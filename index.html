@@ -167,7 +167,66 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 .cel .tear { animation: tear 2.6s steps(6) infinite; }
 @keyframes sigh { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(3%) scaleY(.96); } }
 @keyframes tear { 0%, 25% { transform: translateY(0); opacity: 0; } 35% { opacity: 1; } 85% { transform: translateY(4px); opacity: 1; } 100% { transform: translateY(5px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .cel *, .cel-animal, .cel-bubble { animation: none !important; } .cel-conf { display: none; } }
+/* snail: crawls in slowly when a puzzle took very long */
+.cel-trail { display: none; position: absolute; left: 0; bottom: 8%; height: 5px; width: 0; border-radius: 3px; background: linear-gradient(90deg, rgba(190, 215, 230, 0), rgba(190, 215, 230, .9)); }
+.cel.snail .cel-trail { display: block; animation: trail 7s cubic-bezier(.3,.1,.4,1) forwards; }
+.cel.snail .cel-animal { width: 46%; align-self: flex-start; animation: crawl 7s cubic-bezier(.3,.1,.4,1) both; }
+.cel.snail .cel-bubble { white-space: normal; text-align: center; max-width: 80%; line-height: 1.3; animation-delay: 4s; }
+.cel .squish { transform-origin: 0% 100%; animation: squish 1.2s ease-in-out infinite; }
+.cel .stalks { transform-box: fill-box; transform-origin: 30% 100%; animation: stalks 2.4s steps(2) infinite; }
+@keyframes crawl { from { transform: translateX(-110%); } to { transform: translateX(55%); } }
+@keyframes trail { from { width: 0; } to { width: 42%; } }
+@keyframes squish { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(1.05); } }
+@keyframes stalks { 0%, 40%, 100% { transform: rotate(0); } 50%, 90% { transform: rotate(-8deg); } }
+
+/* visitor lane left of "Neues Rätsel" */
+.lane-row { display: flex; align-items: flex-end; gap: 10px; }
+.lane { position: relative; flex: 1; min-width: 0; height: 70px; overflow: hidden; }
+.lane-row .newbtn { flex: none; margin-bottom: 4px; }
+.water { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; background: rgba(150, 205, 232, 0.9); border-radius: 6px 6px 0 0; opacity: 0; transition: opacity .5s; }
+.water.on { opacity: 1; }
+.water i { position: absolute; top: 4px; height: 3px; background: #fff; animation: v-wave 1.2s steps(3) infinite alternate; }
+.visitor { position: absolute; left: 4px; bottom: 0; display: flex; align-items: flex-end; gap: 6px; max-width: calc(100% - 8px); }
+.visitor.swim { bottom: -12px; }
+.v-move { flex: none; }
+.v-sprite { width: 52px; }
+.v-sprite svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; overflow: visible; }
+.v-bubble {
+  position: relative; align-self: center; margin-bottom: 14px; min-width: 0;
+  padding: 6px 9px; background: #fff; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--rule-strong);
+  font-size: 0.8rem; font-weight: 800; line-height: 1.25; transform-origin: 0% 60%;
+  transform: scale(0); transition: transform .25s steps(3);
+}
+.v-bubble.on { transform: scale(1); }
+.v-bubble::before { content: ""; position: absolute; left: -9px; top: 50%; margin-top: -5px; border: 5px solid transparent; border-right: 6px solid var(--ink); border-left: 0; }
+.in-fly { animation: fly-in 2.2s ease-out both; }
+.in-hop { animation: hop-in 2.4s linear both; }
+.in-swim { animation: slide-in 2.8s ease-out both; }
+.in-trot { animation: slide-in 1.8s linear both; }
+.in-waddle { animation: slide-in 2.6s linear both; }
+.v-move.out { animation-direction: reverse !important; animation-duration: 1.3s !important; }
+.flying .v-sprite { animation: v-bob .36s steps(2) infinite alternate; }
+.swimming .v-sprite { animation: v-bob 1s ease-in-out infinite alternate; }
+.waddling .v-sprite { transform-origin: 50% 100%; animation: v-waddle .3s steps(2) infinite alternate; }
+.trotting .v-sprite { animation: v-trot .25s steps(2) infinite alternate; }
+.lane .blink { transform-box: fill-box; transform-origin: 50% 60%; animation: blink 3s steps(1) infinite; }
+.lane .wag .tail { transform-box: fill-box; transform-origin: 15% 100%; animation: wag .5s steps(2) infinite alternate; }
+.lane .thump .tail { transform-box: fill-box; transform-origin: 0% 100%; animation: thump .6s steps(2) infinite alternate; }
+.lane .fl { transform-box: fill-box; transform-origin: 100% 0%; animation: flap-l .3s steps(2) infinite alternate; }
+.lane .fr { transform-box: fill-box; transform-origin: 0% 0%; animation: flap-r .3s steps(2) infinite alternate; }
+.lane .flutter .wl { transform-box: fill-box; transform-origin: 100% 0%; animation: flap-l .16s steps(2) infinite alternate; }
+.lane .flutter .wr { transform-box: fill-box; transform-origin: 0% 0%; animation: flap-r .16s steps(2) infinite alternate; }
+.lane .ears .earL { transform-box: fill-box; transform-origin: 50% 100%; animation: ear-l 2.6s steps(1) infinite; }
+.lane .ears .earR { transform-box: fill-box; transform-origin: 50% 100%; animation: ear-r 2.6s steps(1) infinite; }
+@keyframes fly-in { 0% { transform: translate(-120px, -26px); } 60% { transform: translate(-10px, -10px); } 100% { transform: translate(0, 0); } }
+@keyframes hop-in { 0% { transform: translate(-110px, 0); } 11% { transform: translate(-96px, -16px); } 22% { transform: translate(-82px, 0); } 33% { transform: translate(-66px, -16px); } 44% { transform: translate(-50px, 0); } 55% { transform: translate(-36px, -14px); } 66% { transform: translate(-22px, 0); } 78% { transform: translate(-10px, -10px); } 89%, 100% { transform: translate(0, 0); } }
+@keyframes slide-in { from { transform: translateX(-120px); } to { transform: translateX(0); } }
+@keyframes v-bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes v-trot { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+@keyframes v-waddle { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+@keyframes v-wave { from { transform: translateX(0); } to { transform: translateX(8px); } }
+
+@media (prefers-reduced-motion: reduce) { .cel *, .cel-animal, .cel-bubble, .lane * { animation: none !important; } .cel-conf { display: none; } }
 
 .cell.revealed { color: #b8a596; font-weight: 500; }
 /* Mode switch, options, killer cages, memo */
@@ -238,6 +297,12 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     <button class="chip" id="d-medium" data-d="medium" aria-pressed="false">Mittel</button>
     <button class="chip" id="d-hard" data-d="hard" aria-pressed="false">Schwer</button>
     <button class="chip" id="d-expert" data-d="expert" aria-pressed="false">Sehr schwer</button>
+  </div>
+
+  <div class="lane-row">
+    <div class="lane" id="lane" aria-live="polite">
+      <div class="water" id="water"><i style="left: 12%; width: 18px;"></i><i style="left: 48%; width: 14px; animation-delay: .4s;"></i><i style="left: 78%; width: 16px; animation-delay: .8s;"></i></div>
+    </div>
     <button class="newbtn" id="newbtn">Neues Rätsel</button>
   </div>
 
@@ -254,6 +319,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       <div class="cel-conf" style="left: 76%; background: #f5a524; animation-delay: .7s;"></div>
       <div class="cel-conf" style="left: 86%; background: #e8650c; animation-delay: 1.4s;"></div>
       <div class="cel-conf" style="left: 93%; background: #ffbd85; animation-delay: 2.2s;"></div>
+      <div class="cel-trail" id="cel-trail"></div>
       <div class="cel-bubble" id="cel-bubble"></div>
       <div class="cel-animal" id="cel-animal"></div>
     </div>
@@ -601,22 +667,91 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     return '<path fill="' + (BROW[id] || "#1d1a14") + '" d="' + brows + '"></path>' +
       '<path class="tear" fill="#7fc4f0" d="M' + lx + " " + (y + 3) + 'h1v2h-1z"></path>';
   }
+  var SNAIL_SVG = '<g class="stalks"><path fill="#1d1a14" d="M24 0h3v1h-3zM19 1h3v1h-3zM23 1h1v1h-1zM27 1h1v1h-1zM18 2h1v1h-1zM22 2h2v1h-2zM27 2h1v1h-1zM18 3h1v1h-1zM22 3h2v1h-2zM27 3h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM19 6h1v1h-1zM21 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM19 7h1v1h-1zM21 7h1v1h-1zM24 7h1v1h-1zM26 7h1v1h-1zM19 8h1v1h-1zM21 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM19 9h1v1h-1zM21 9h1v1h-1zM24 9h1v1h-1zM26 9h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM20 11h1v1h-1zM25 11h1v1h-1z"></path><path fill="#ffffff" d="M24 1h3v1h-3zM19 2h3v1h-3zM24 2h1v1h-1zM19 3h1v1h-1zM24 3h3v1h-3zM19 4h3v1h-3z"></path><path fill="#1d1a14" d="M25 2h2v1h-2zM20 3h2v1h-2z"></path><path fill="#cbbfb2" d="M25 4h1v1h-1zM20 5h1v1h-1zM25 5h1v1h-1zM20 6h1v1h-1zM25 6h1v1h-1zM20 7h1v1h-1zM25 7h1v1h-1zM20 8h1v1h-1zM25 8h1v1h-1zM20 9h1v1h-1zM25 9h1v1h-1zM20 10h1v1h-1zM25 10h1v1h-1z"></path></g><path fill="#1d1a14" d="M9 2h6v1h-6zM7 3h2v1h-2zM15 3h2v1h-2zM6 4h1v1h-1zM17 4h1v1h-1zM5 5h1v1h-1zM18 5h1v1h-1zM4 6h1v1h-1zM19 6h1v1h-1zM4 7h1v1h-1zM19 7h1v1h-1zM4 8h1v1h-1zM19 8h1v1h-1zM3 9h1v1h-1zM20 9h1v1h-1zM22 9h5v1h-5zM3 10h1v1h-1zM20 10h2v1h-2zM27 10h1v1h-1zM4 11h1v1h-1zM19 11h2v1h-2zM28 11h1v1h-1zM4 12h1v1h-1zM19 12h2v1h-2zM28 12h1v1h-1zM4 13h1v1h-1zM19 13h2v1h-2zM28 13h1v1h-1zM5 14h1v1h-1zM18 14h3v1h-3zM28 14h1v1h-1zM4 15h3v1h-3zM24 15h2v1h-2zM28 15h1v1h-1zM3 16h1v1h-1zM28 16h1v1h-1zM2 17h1v1h-1zM28 17h1v1h-1zM1 18h1v1h-1zM27 18h1v1h-1zM2 19h25v1h-25z"></path><path fill="#d9822b" d="M9 3h5v1h-5zM7 4h9v1h-9zM6 5h2v1h-2zM15 5h2v1h-2zM5 6h2v1h-2zM13 6h1v1h-1zM17 6h1v1h-1zM5 7h2v1h-2zM13 7h3v1h-3zM5 8h3v1h-3zM15 8h2v1h-2zM4 9h4v1h-4zM9 9h1v1h-1zM12 9h2v1h-2zM16 9h1v1h-1zM18 9h1v1h-1zM5 10h3v1h-3zM9 10h1v1h-1zM13 10h2v1h-2zM16 10h2v1h-2zM5 11h3v1h-3zM9 11h2v1h-2zM13 11h2v1h-2zM16 11h2v1h-2zM5 12h3v1h-3zM10 12h4v1h-4zM16 12h1v1h-1zM6 13h3v1h-3zM12 13h1v1h-1zM15 13h2v1h-2zM7 14h4v1h-4zM13 14h3v1h-3zM9 15h5v1h-5z"></path><path fill="#b5631a" d="M14 3h1v1h-1zM16 4h1v1h-1zM17 5h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM19 9h1v1h-1zM4 10h1v1h-1zM19 10h1v1h-1zM18 12h1v1h-1zM5 13h1v1h-1zM18 13h1v1h-1zM6 14h1v1h-1zM16 14h2v1h-2zM7 15h2v1h-2zM14 15h3v1h-3zM9 16h6v1h-6z"></path><path fill="#f0a45a" d="M8 5h3v1h-3zM7 6h2v1h-2zM11 6h2v1h-2zM7 7h1v1h-1zM10 7h3v1h-3zM9 8h2v1h-2z"></path><path fill="#7a4210" d="M11 5h4v1h-4zM9 6h2v1h-2zM14 6h3v1h-3zM8 7h2v1h-2zM16 7h2v1h-2zM8 8h1v1h-1zM11 8h4v1h-4zM17 8h1v1h-1zM8 9h1v1h-1zM10 9h2v1h-2zM14 9h2v1h-2zM17 9h1v1h-1zM8 10h1v1h-1zM10 10h3v1h-3zM15 10h1v1h-1zM18 10h1v1h-1zM8 11h1v1h-1zM11 11h2v1h-2zM15 11h1v1h-1zM18 11h1v1h-1zM8 12h2v1h-2zM14 12h2v1h-2zM17 12h1v1h-1zM9 13h3v1h-3zM13 13h2v1h-2zM17 13h1v1h-1zM11 14h2v1h-2z"></path><path fill="#cbbfb2" d="M22 10h5v1h-5zM21 11h2v1h-2zM25 11h3v1h-3zM21 12h1v1h-1zM23 12h5v1h-5zM21 13h7v1h-7zM21 14h5v1h-5zM27 14h1v1h-1zM17 15h7v1h-7zM26 15h2v1h-2zM4 16h5v1h-5zM15 16h13v1h-13zM3 17h24v1h-24z"></path><path fill="#e6ddd2" d="M23 11h2v1h-2zM22 12h1v1h-1z"></path><path fill="#f2a0b0" d="M26 14h1v1h-1z"></path><path fill="#a99b8c" d="M27 17h1v1h-1zM2 18h25v1h-25z"></path>';
+  var SNAIL_LINES = ["Hallo! Hier sind alle deine Möbel.", "Gut Ding will Weile haben.", "Langsam, aber gründlich. Respekt."];
+  function isSlow() {
+    var slow = { easy: 600, medium: 1200, hard: 2400, expert: 3600 }[game.diff] * (game.kind === "killer" ? 2 : 1);
+    return game.elapsed > slow;
+  }
   function celebrate(sad) {
-    var pool = ANIMALS.filter(function (a) { return a.id !== game.animal; });
-    var a = pool[Math.floor(Math.random() * pool.length)];
-    game.animal = a.id;
-    var svg = '<svg viewBox="' + a.vb + '" role="img" aria-label="' + a.name + '">' + a.svg + (sad ? sadMarks(a.id) : "") + '</svg>';
-    if (sad) svg = '<div class="sigh">' + svg + '</div>';
-    else for (var w = a.wraps.length - 1; w >= 0; w--) svg = '<div class="' + a.wraps[w] + '">' + svg + '</div>';
-    celEl.classList.toggle("sad", !!sad);
+    hideVisitor();
     var animalEl = document.getElementById("cel-animal"), bubbleEl = document.getElementById("cel-bubble");
+    var snail = !sad && isSlow(), svg;
+    if (snail) {
+      game.animal = "snail";
+      svg = '<div class="squish"><svg viewBox="0 0 30 22" role="img" aria-label="Schnecke">' + SNAIL_SVG + '</svg></div>';
+      bubbleEl.textContent = SNAIL_LINES[Math.floor(Math.random() * SNAIL_LINES.length)];
+    } else {
+      var pool = ANIMALS.filter(function (a) { return a.id !== game.animal; });
+      var a = pool[Math.floor(Math.random() * pool.length)];
+      game.animal = a.id;
+      svg = '<svg viewBox="' + a.vb + '" role="img" aria-label="' + a.name + '">' + a.svg + (sad ? sadMarks(a.id) : "") + '</svg>';
+      if (sad) svg = '<div class="sigh">' + svg + '</div>';
+      else for (var w = a.wraps.length - 1; w >= 0; w--) svg = '<div class="' + a.wraps[w] + '">' + svg + '</div>';
+      bubbleEl.textContent = sad ? SAD_LINES[Math.floor(Math.random() * SAD_LINES.length)] : pickLine();
+    }
+    celEl.classList.toggle("sad", !!sad);
+    celEl.classList.toggle("snail", snail);
     animalEl.innerHTML = svg;
-    bubbleEl.textContent = sad ? SAD_LINES[Math.floor(Math.random() * SAD_LINES.length)] : pickLine();
     // restart entrance animations
-    animalEl.style.animation = "none"; bubbleEl.style.animation = "none";
+    var trailEl = document.getElementById("cel-trail");
+    [animalEl, bubbleEl, trailEl].forEach(function (el) { el.style.animation = "none"; });
     void animalEl.offsetWidth;
-    animalEl.style.animation = ""; bubbleEl.style.animation = "";
+    [animalEl, bubbleEl, trailEl].forEach(function (el) { el.style.animation = ""; });
     celEl.hidden = false;
+  }
+
+  // ---- visitors: an animal drops by every 3 to 4 minutes while you play ----
+  var MOVES = { tit: "fly", owl: "fly", hare: "hop", chick: "swim", beaver: "swim", otter: "swim", fox: "trot", peng: "waddle" };
+  var PART = { tit: "flutter", owl: "flutter", hare: "ears", fox: "wag", beaver: "thump" };
+  var GERUND = { fly: "flying", swim: "swimming", waddle: "waddling", trot: "trotting" };
+  var MOVE_MS = { fly: 2200, hop: 2400, swim: 2800, trot: 1800, waddle: 2600 };
+  var VISIT_LINES = {
+    tit: { start: ["Tschilp! Leg los.", "Zi-zi, auf geht's."], mid: ["Tschilp, du bist auf einem guten Weg.", "Zwitscher, läuft bei dir."], end: ["Tschilp! Fast geschafft.", "Zi-zi, nur noch ein paar Felder."] },
+    owl: { start: ["Huhu. Erst mal in Ruhe umschauen.", "Schuhu, auf geht's."], mid: ["Huhu, das sieht weise aus.", "Eulenklug bis hierher."], end: ["Huhu, fast geschafft.", "Schuhu, nur noch ein paar Felder."] },
+    hare: { start: ["Hopp, los geht's.", "Mit großen Sprüngen voran."], mid: ["Du hoppelst auf einem guten Weg.", "Ganz schön flott unterwegs."], end: ["Hopp, fast geschafft.", "Noch ein, zwei Sprünge."] },
+    chick: { start: ["Piep! Leg los.", "Piep, du schaffst das."], mid: ["Piep, das läuft gut.", "Piep piep, weiter so."], end: ["Piep! Fast geschafft.", "Piep, nur noch ein paar Felder."] },
+    beaver: { start: ["Erst das Fundament, dann der Damm.", "Ran ans Werk!"], mid: ["Du bist auf einem biberhaft guten Weg.", "Stamm für Stamm, weiter so."], end: ["Der Damm ist fast fertig.", "Nur noch ein paar Stämme."] },
+    otter: { start: ["Rein ins kalte Wasser!", "Auf geht's, ich halte die Muschel."], mid: ["Du schwimmst ganz oben mit.", "Läuft wie geschmiert."], end: ["Fast am Ufer!", "Nur noch ein paar Züge."] },
+    fox: { start: ["Ein schlauer Plan ist alles.", "Leg los, du findest den Weg."], mid: ["Ganz schön gerissen bisher.", "Fuchsig gut unterwegs."], end: ["Fast geschafft. Schlau gemacht.", "Nur noch ein paar Felder."] },
+    peng: { start: ["Watschel los, das wird.", "Kühlen Kopf bewahren."], mid: ["Cool, du bist auf einem guten Weg.", "Eiskalt durchgezogen bis hierher."], end: ["Fast geschafft, ganz cool.", "Noch ein paar Schritte übers Eis."] }
+  };
+  var laneEl = document.getElementById("lane"), waterEl = document.getElementById("water");
+  var visitorBusy = false, visitorTimers = [], lastVisitor = null, nextVisitAt = 0;
+  function scheduleVisit() { nextVisitAt = (game ? game.elapsed : 0) + 180 + Math.floor(Math.random() * 61); }
+  function progressPhase() {
+    var open = 0, filled = 0;
+    for (var i = 0; i < 81; i++) if (!game.puzzle[i]) { open++; if (game.values[i]) filled++; }
+    var f = open ? filled / open : 1;
+    return f < 0.33 ? "start" : f < 0.75 ? "mid" : "end";
+  }
+  function hideVisitor() {
+    visitorTimers.forEach(clearTimeout); visitorTimers = [];
+    laneEl.querySelectorAll(".visitor").forEach(function (v) { v.remove(); });
+    waterEl.classList.remove("on"); visitorBusy = false;
+  }
+  function visit() {
+    if (visitorBusy || !game || game.done || !celEl.hidden) return;
+    visitorBusy = true;
+    var pool = ANIMALS.filter(function (a) { return a.id !== lastVisitor; });
+    var a = pool[Math.floor(Math.random() * pool.length)]; lastVisitor = a.id;
+    var move = MOVES[a.id], dur = MOVE_MS[move];
+    var lines = VISIT_LINES[a.id][progressPhase()];
+    var v = document.createElement("div");
+    v.className = "visitor" + (move === "swim" ? " swim" : "") + (GERUND[move] ? " " + GERUND[move] : "");
+    v.innerHTML = '<div class="v-move in-' + move + '"><div class="v-sprite ' + (PART[a.id] || "") + '"><svg viewBox="' + a.vb + '" aria-hidden="true">' + a.svg + '</svg></div></div><div class="v-bubble"></div>';
+    var mover = v.querySelector(".v-move"), bubble = v.querySelector(".v-bubble");
+    bubble.textContent = lines[Math.floor(Math.random() * lines.length)];
+    laneEl.appendChild(v);
+    if (move === "swim") waterEl.classList.add("on");
+    visitorTimers.push(setTimeout(function () { v.classList.remove("flying", "waddling", "trotting"); bubble.classList.add("on"); }, dur));
+    visitorTimers.push(setTimeout(function () {
+      bubble.classList.remove("on");
+      if (GERUND[move]) v.classList.add(GERUND[move]);
+      mover.classList.add("out");
+      mover.style.animation = "none"; void mover.offsetWidth; mover.style.animation = "";
+    }, dur + 5000));
+    visitorTimers.push(setTimeout(hideVisitor, dur + 6500));
   }
   function pickLine() {
     var mk = game.mistakes || 0, t = game.elapsed, d = game.diff;
@@ -716,7 +851,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       var last = game && game.animal;
       game = kind === "killer" ? generateKiller(diff) : generate(diff);
       if (!game.kind) game.kind = "classic";
-      game.animal = last; game.mistakes = 0; history = []; sel = null; hi = 0;
+      game.animal = last; game.mistakes = 0; history = []; sel = null; hi = 0; hideVisitor(); scheduleVisit();
       save(); render();
     }, 30);
   }
@@ -771,6 +906,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       game.elapsed++;
       document.getElementById("timer").textContent = fmt(game.elapsed);
       if (game.elapsed % 5 === 0) save();
+      if (game.elapsed >= nextVisitAt) { visit(); scheduleVisit(); }
     }
   }, 1000);
 
@@ -787,7 +923,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   // block double-tap zoom on older mobile browsers
   document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
 
-  if (load()) render(); else startNew(pendingDiff);
+  if (load()) { render(); scheduleVisit(); } else startNew(pendingDiff);
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}</script></body></html>
