@@ -97,7 +97,7 @@ h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.9rem; margin:
 .key small { font-family: var(--f-ui); font-size: 0.62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .key.active { background: var(--same); box-shadow: inset 0 0 0 1.5px var(--pen); }
 .key.done { opacity: 0.35; }
-.notes-on .key { font-size: clamp(14px, 4vw, 18px); }
+.notes-on .key { background: var(--line); box-shadow: inset 0 0 0 1.5px var(--rule-strong); }
 button:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
 
 .status { min-height: 1.4em; font-size: 0.9rem; color: var(--muted); text-align: center; }
@@ -170,15 +170,35 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 @media (prefers-reduced-motion: reduce) { .cel *, .cel-animal, .cel-bubble { animation: none !important; } .cel-conf { display: none; } }
 
 .cell.revealed { color: #b8a596; font-weight: 500; }
-.solve-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 36px; }
-.linkbtn {
-  font: inherit; font-size: 0.85rem; border: 0; background: transparent; color: var(--muted);
-  padding: 8px 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
-}
-.solve-confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.88rem; }
-.solve-confirm button { font: inherit; font-size: 0.85rem; border: 0; border-radius: 999px; padding: 7px 13px; cursor: pointer; }
-.solve-confirm .yes { background: #c2510a; color: #fff; font-weight: 700; }
-.solve-confirm .no { background: var(--chip); color: var(--ink); }
+/* Mode switch, options, killer cages, memo */
+.head-right { display: flex; align-items: center; gap: 10px; }
+.iconbtn { width: 40px; height: 40px; border: 0; border-radius: 10px; background: var(--chip); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.iconbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.iconbtn[aria-expanded="true"] { background: var(--chip-on); color: var(--chip-on-fg); }
+.options { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 12px; background: var(--line); }
+.opt { display: flex; align-items: center; justify-content: space-between; gap: 14px; cursor: pointer; }
+.opt-text { display: flex; flex-direction: column; gap: 2px; }
+.opt-text strong { font-size: 0.95rem; }
+.opt-text span { font-size: 0.82rem; color: #7a604f; line-height: 1.4; }
+.switch { position: relative; flex: none; width: 46px; height: 28px; }
+.switch input { position: absolute; inset: 0; z-index: 1; opacity: 0; margin: 0; cursor: pointer; }
+.switch .track { position: absolute; inset: 0; border-radius: 999px; background: #d8c9bc; transition: background .15s; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+.switch input:checked + .track { background: var(--chip-on); }
+.switch input:checked + .track::after { transform: translateX(18px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--pen); outline-offset: 2px; }
+.kinds { display: inline-flex; gap: 0; padding: 3px; border-radius: 999px; background: var(--chip); align-self: flex-start; }
+.kind { font: inherit; font-size: 0.88rem; border: 0; border-radius: 999px; padding: 6px 14px; background: transparent; color: var(--ink); cursor: pointer; }
+.kind[aria-pressed="true"] { background: var(--sheet); box-shadow: 0 1px 3px rgba(43,29,18,.18); font-weight: 600; }
+.board { position: relative; }
+.cages { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
+.cages path { fill: none; stroke: #8c7260; stroke-width: 1.3; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.cs { position: absolute; top: 2px; left: 2px; z-index: 3; padding: 0 2px 1px 1px; background: inherit; border-radius: 2px; font-family: var(--f-ui); font-size: clamp(8px, 2.3vw, 11px); font-weight: 700; line-height: 1; color: var(--ink); pointer-events: none; }
+.killer .notes { inset: 12px 2px 1px; }
+.memo { display: flex; flex-direction: column; gap: 6px; }
+.memo label { font-size: 0.85rem; font-weight: 600; color: #7a604f; }
+.memo textarea { font: inherit; font-size: 16px; line-height: 1.45; min-height: 96px; resize: vertical; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); color: var(--ink); box-sizing: border-box; width: 100%; }
+.memo textarea:focus { outline: 2px solid var(--pen); outline-offset: 1px; border-color: transparent; }
 .result { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 14px; background: var(--line); }
 .result h2 { margin: 0; font-family: var(--f-display); font-size: 1.6rem; font-weight: 600; }
 .result p { margin: 4px 0 0; font-size: 0.95rem; color: #7a604f; font-variant-numeric: tabular-nums; }
@@ -192,8 +212,26 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 <div class="app" id="app">
   <header>
     <h1>Sudoku</h1>
-    <div class="meta"><span id="lvl">–</span><span id="timer">0:00</span></div>
+    <div class="head-right">
+      <div class="meta"><span id="lvl">–</span><span id="timer">0:00</span></div>
+      <button type="button" class="iconbtn" id="opt-btn" aria-label="Optionen" aria-expanded="false" aria-controls="options"><svg viewBox="0 0 24 24"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/></svg></button>
+    </div>
   </header>
+
+  <div class="options" id="options" hidden>
+    <label class="opt" for="opt-autonotes">
+      <span class="opt-text">
+        <strong>Notizen automatisch entfernen</strong>
+        <span>Trägst du eine Zahl ein, verschwindet sie aus den Notizen in derselben Zeile, Spalte und im Block.</span>
+      </span>
+      <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
+    </label>
+  </div>
+
+  <div class="kinds" role="group" aria-label="Rätselart">
+    <button type="button" class="kind" id="k-classic" data-k="classic" aria-pressed="true">Klassisch</button>
+    <button type="button" class="kind" id="k-killer" data-k="killer" aria-pressed="false">Killer</button>
+  </div>
 
   <div class="diffs" role="group" aria-label="Schwierigkeit">
     <button class="chip" id="d-easy" data-d="easy" aria-pressed="false">Leicht</button>
@@ -204,7 +242,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   </div>
 
   <div class="board-wrap">
-    <div class="board" id="board" aria-label="Sudoku-Feld"></div>
+    <div class="board" id="board" aria-label="Sudoku-Feld"><svg class="cages" id="cages" viewBox="0 0 900 900" preserveAspectRatio="none" aria-hidden="true"></svg></div>
     <div class="cel" id="cel" hidden aria-live="polite">
       <div class="cel-conf" style="left: 8%; background: #e8650c; animation-delay: 0s;"></div>
       <div class="cel-conf" style="left: 18%; background: #2b1d12; animation-delay: .9s;"></div>
@@ -241,13 +279,9 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
   <div class="pad" id="pad"></div>
 
-  <div class="solve-row" id="solve-row">
-    <button type="button" class="linkbtn" id="solve-btn">Auflösen</button>
-    <div class="solve-confirm" id="solve-confirm" hidden>
-      <span>Wirklich auflösen?</span>
-      <button type="button" class="yes" id="solve-yes">Ja, auflösen</button>
-      <button type="button" class="no" id="solve-no">Abbrechen</button>
-    </div>
+  <div class="memo" id="memo-wrap" hidden>
+    <label for="memo">Eigene Notizen</label>
+    <textarea id="memo" placeholder="Zum Beispiel Käfigkombinationen: 17 in 2 Feldern = 8 + 9"></textarea>
   </div>
 
   <div class="status" id="status" aria-live="polite"></div>
@@ -322,19 +356,160 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   }
 
   // ---- state ----
-  var game = null, history = [], sel = null, hi = 0, notesMode = false, showMistakes = false, pendingDiff = "medium", confirmTimer = null;
+  var game = null, history = [], sel = null, hi = 0, notesMode = false, showMistakes = false, pendingDiff = "medium", pendingKind = "classic", autoNotes = true, confirmTimer = null;
 
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ game: game, showMistakes: showMistakes, pendingDiff: pendingDiff })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ game: game, showMistakes: showMistakes, pendingDiff: pendingDiff, pendingKind: pendingKind, autoNotes: autoNotes })); } catch (e) {}
   }
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (s) {
+        if (typeof s.autoNotes === "boolean") autoNotes = s.autoNotes;
+        if (s.pendingKind) pendingKind = s.pendingKind;
+      }
       if (s && s.game && s.game.puzzle && s.game.puzzle.length === 81) {
         game = s.game; showMistakes = !!s.showMistakes; pendingDiff = s.pendingDiff || game.diff; return true;
       }
     } catch (e) {}
     return false;
+  }
+
+  // ---- killer sudoku ----
+  function solveK(input, limit, cages, maxNodes) {
+    var g = input.slice(), rows = [0,0,0,0,0,0,0,0,0], cols = rows.slice(), boxes = rows.slice();
+    var cageOf = new Array(81).fill(-1), cMask = [], cSum = [], cLeft = [], cTarget = [];
+    cages.forEach(function (cg, ci) { cMask[ci] = 0; cSum[ci] = 0; cLeft[ci] = cg.c.length; cTarget[ci] = cg.s; cg.c.forEach(function (x) { cageOf[x] = ci; }); });
+    for (var i = 0; i < 81; i++) if (g[i]) {
+      var bit = 1 << g[i];
+      if ((rows[R[i]] | cols[C[i]] | boxes[B[i]]) & bit) return { count: 0, sols: [] };
+      rows[R[i]] |= bit; cols[C[i]] |= bit; boxes[B[i]] |= bit;
+      var ci0 = cageOf[i]; if (ci0 >= 0) { cMask[ci0] |= bit; cSum[ci0] += g[i]; cLeft[ci0]--; }
+    }
+    function cageOk(ci, d) {
+      var used = cMask[ci] | (1 << d), rem = cTarget[ci] - cSum[ci] - d, k = cLeft[ci] - 1;
+      if (k === 0) return rem === 0;
+      if (rem <= 0) return false;
+      var lo = 0, hi = 0, n = 0, x;
+      for (x = 1; x <= 9 && n < k; x++) if (!(used & (1 << x))) { lo += x; n++; }
+      if (n < k) return false;
+      n = 0; for (x = 9; x >= 1 && n < k; x--) if (!(used & (1 << x))) { hi += x; n++; }
+      return lo <= rem && rem <= hi;
+    }
+    function cands(i) {
+      var m = ~(rows[R[i]] | cols[C[i]] | boxes[B[i]]) & 0x3FE, ci = cageOf[i];
+      if (ci < 0) return m;
+      m &= ~cMask[ci];
+      for (var d = 1; d <= 9; d++) if ((m & (1 << d)) && !cageOk(ci, d)) m &= ~(1 << d);
+      return m;
+    }
+    var count = 0, sols = [], nodes = 0, aborted = false;
+    function rec() {
+      if (++nodes > maxNodes) { aborted = true; return; }
+      var best = -1, bestMask = 0, bestN = 10;
+      for (var i = 0; i < 81; i++) if (!g[i]) {
+        var m = cands(i), n = popcount(m);
+        if (n < bestN) { bestN = n; best = i; bestMask = m; if (n === 0) return; if (n === 1) break; }
+      }
+      if (best === -1) { count++; sols.push(g.slice()); return; }
+      var ci = cageOf[best];
+      for (var d = 1; d <= 9; d++) if (bestMask & (1 << d)) {
+        var b = 1 << d;
+        g[best] = d; rows[R[best]] |= b; cols[C[best]] |= b; boxes[B[best]] |= b;
+        if (ci >= 0) { cMask[ci] |= b; cSum[ci] += d; cLeft[ci]--; }
+        rec();
+        g[best] = 0; rows[R[best]] &= ~b; cols[C[best]] &= ~b; boxes[B[best]] &= ~b;
+        if (ci >= 0) { cMask[ci] &= ~b; cSum[ci] -= d; cLeft[ci]++; }
+        if (count >= limit || aborted) return;
+      }
+    }
+    rec();
+    return { count: count, sols: sols, aborted: aborted };
+  }
+
+  function nbrs(x) { var r = []; if (R[x] > 0) r.push(x - 9); if (R[x] < 8) r.push(x + 9); if (C[x] > 0) r.push(x - 1); if (C[x] < 8) r.push(x + 1); return r; }
+
+  function makeCages(sol, minS, maxS) {
+    var cageId = new Array(81).fill(-1), cages = [];
+    shuffle(Array.from({ length: 81 }, function (_, k) { return k; })).forEach(function (start) {
+      if (cageId[start] >= 0) return;
+      var size = minS + Math.floor(Math.random() * (maxS - minS + 1));
+      var cells = [start], mask = 1 << sol[start], id = cages.length; cageId[start] = id;
+      while (cells.length < size) {
+        var opts = [];
+        cells.forEach(function (c) { nbrs(c).forEach(function (n) { if (cageId[n] < 0 && !(mask & (1 << sol[n])) && opts.indexOf(n) < 0) opts.push(n); }); });
+        if (!opts.length) break;
+        var pick = opts[Math.floor(Math.random() * opts.length)];
+        cells.push(pick); cageId[pick] = id; mask |= 1 << sol[pick];
+      }
+      cages.push({ c: cells });
+    });
+    // fold single cells into a neighbouring cage where their digit is still free
+    cages.forEach(function (cg, id) {
+      if (minS < 2 || cg.c.length !== 1) return;
+      var x = cg.c[0];
+      var cand = nbrs(x).map(function (n) { return cageId[n]; }).filter(function (t) {
+        return t !== id && cages[t].c.length > 0 && cages[t].c.length <= maxS && cages[t].c.every(function (y) { return sol[y] !== sol[x]; });
+      });
+      if (cand.length) { var t = cand[Math.floor(Math.random() * cand.length)]; cages[t].c.push(x); cageId[x] = t; cg.c = []; }
+    });
+    cages = cages.filter(function (cg) { return cg.c.length; });
+    cages.forEach(function (cg) { cg.c.sort(function (a, b) { return a - b; }); cg.s = cg.c.reduce(function (s, x) { return s + sol[x]; }, 0); });
+    return cages;
+  }
+
+  // [min cage size, max cage size, extra givens]
+  var KILLER = { easy: [1, 3, 10], medium: [2, 4, 3], hard: [2, 4, 0], expert: [2, 5, 0] };
+  function generateKiller(diff) {
+    var cfg = KILLER[diff];
+    var solution = solve(new Array(81).fill(0), 1, true).grid;
+    var cages = makeCages(solution, cfg[0], cfg[1]);
+    var puzzle = new Array(81).fill(0), i;
+    for (var guard = 0; guard < 60; guard++) {
+      var r = solveK(puzzle, 2, cages, 100000);
+      if (r.count === 1 && !r.aborted) break;
+      var pool = [];
+      if (r.sols.length === 2) { for (i = 0; i < 81; i++) if (r.sols[0][i] !== r.sols[1][i]) pool.push(i); }
+      else { for (i = 0; i < 81; i++) if (!puzzle[i]) pool.push(i); }
+      var pick = pool[Math.floor(Math.random() * pool.length)];
+      puzzle[pick] = solution[pick];
+    }
+    if (cfg[2] === 0) shuffle(Array.from({ length: 81 }, function (_, k) { return k; })).forEach(function (k) {
+      if (!puzzle[k]) return;
+      var v = puzzle[k]; puzzle[k] = 0;
+      var r2 = solveK(puzzle, 2, cages, 100000);
+      if (r2.count !== 1 || r2.aborted) puzzle[k] = v;
+    });
+    var free = shuffle(Array.from({ length: 81 }, function (_, k) { return k; }).filter(function (k) { return !puzzle[k]; }));
+    for (var e = 0; e < cfg[2] && e < free.length; e++) puzzle[free[e]] = solution[free[e]];
+    return { kind: "killer", diff: diff, cages: cages, puzzle: puzzle, solution: solution, values: puzzle.slice(), notes: new Array(81).fill(0), elapsed: 0, done: false, memo: "" };
+  }
+
+  var cagesFor = null, cageHead = {};
+  function drawCages() {
+    var svg = document.getElementById("cages");
+    if (cagesFor === game) return;
+    cagesFor = game; cageHead = {};
+    if (!game.cages) { svg.innerHTML = ""; return; }
+    game.cages.forEach(function (cg) { cageHead[cg.c[0]] = cg.s; });
+    var id = new Array(81);
+    game.cages.forEach(function (cg, ci) { cg.c.forEach(function (x) { id[x] = ci; }); });
+    function same(r, c, ci) { return r >= 0 && r < 9 && c >= 0 && c < 9 && id[r * 9 + c] === ci; }
+    var S = 100, n = 9, d = "";
+    function seg(x1, y1, x2, y2) { d += "M" + x1 + " " + y1 + "L" + x2 + " " + y2; }
+    for (var x = 0; x < 81; x++) {
+      var r = R[x], c = C[x], ci = id[x], x0 = c * S, y0 = r * S, x1 = x0 + S, y1 = y0 + S;
+      var up = same(r - 1, c, ci), dn = same(r + 1, c, ci), lf = same(r, c - 1, ci), rt = same(r, c + 1, ci);
+      if (!up) seg(x0 + (lf ? 0 : n), y0 + n, x1 - (rt ? 0 : n), y0 + n);
+      if (!dn) seg(x0 + (lf ? 0 : n), y1 - n, x1 - (rt ? 0 : n), y1 - n);
+      if (!lf) seg(x0 + n, y0 + (up ? 0 : n), x0 + n, y1 - (dn ? 0 : n));
+      if (!rt) seg(x1 - n, y0 + (up ? 0 : n), x1 - n, y1 - (dn ? 0 : n));
+      if (up && lf && !same(r - 1, c - 1, ci)) { seg(x0, y0 + n, x0 + n, y0 + n); seg(x0 + n, y0, x0 + n, y0 + n); }
+      if (up && rt && !same(r - 1, c + 1, ci)) { seg(x1, y0 + n, x1 - n, y0 + n); seg(x1 - n, y0, x1 - n, y0 + n); }
+      if (dn && lf && !same(r + 1, c - 1, ci)) { seg(x0, y1 - n, x0 + n, y1 - n); seg(x0 + n, y1, x0 + n, y1 - n); }
+      if (dn && rt && !same(r + 1, c + 1, ci)) { seg(x1, y1 - n, x1 - n, y1 - n); seg(x1 - n, y1, x1 - n, y1 - n); }
+    }
+    svg.innerHTML = '<path d="' + d + '"></path>';
   }
 
   // ---- DOM ----
@@ -371,10 +546,10 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     if (game.done) { hi = dg; render(); return; }
     if (sel === null || game.puzzle[sel]) { hi = (hi === dg && sel === null) ? 0 : dg; render(); return; }
     if (notesMode) {
-      if (game.values[sel]) { hi = dg; render(); return; }
+      // notes never change the number highlight
+      if (game.values[sel]) return;
       snapshot();
       game.notes[sel] ^= (1 << dg);
-      hi = dg;
     } else {
       snapshot();
       if (game.values[sel] === dg) {
@@ -384,7 +559,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
         game.notes[sel] = 0;
         if (dg !== game.solution[sel]) game.mistakes = (game.mistakes || 0) + 1;
         // remove this candidate from every cell in the same row, column and box
-        PEERS[sel].forEach(function (p) { game.notes[p] &= ~(1 << dg); });
+        if (autoNotes) PEERS[sel].forEach(function (p) { game.notes[p] &= ~(1 << dg); });
       }
       hi = dg;
       checkWin();
@@ -445,7 +620,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   }
   function pickLine() {
     var mk = game.mistakes || 0, t = game.elapsed, d = game.diff;
-    var fast = { easy: 300, medium: 600, hard: 900, expert: 1500 }[d];
+    var fast = { easy: 150, medium: 300, hard: 900, expert: 1800 }[d] * (game.kind === "killer" ? 2 : 1);
     var lines = [];
     if (mk === 0 && d === "expert") lines.push("Fehlerfrei auf Sehr schwer. Respekt.");
     else if (mk === 0) lines.push("Fehlerfrei gelöst.", "Kein einziger Fehler.");
@@ -463,6 +638,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
   function render() {
     var v = game.values;
+    drawCages();
+    boardEl.classList.toggle("killer", game.kind === "killer");
     for (var i = 0; i < 81; i++) {
       var el = cells[i], cls = "cell r" + R[i] + " c" + C[i];
       if (game.puzzle[i]) cls += " given";
@@ -487,6 +664,10 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
         el.innerHTML = html + '</span>';
         el.setAttribute("aria-label", "Zeile " + (R[i] + 1) + ", Spalte " + (C[i] + 1) + ": leer");
       }
+      if (cageHead[i]) {
+        el.insertAdjacentHTML("afterbegin", '<span class="cs">' + cageHead[i] + '</span>');
+        el.setAttribute("aria-label", el.getAttribute("aria-label") + ", Käfigsumme " + cageHead[i]);
+      }
     }
     var counts = [0,0,0,0,0,0,0,0,0,0];
     for (i = 0; i < 81; i++) if (v[i]) counts[v[i]]++;
@@ -504,10 +685,14 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     document.getElementById("result").hidden = !game.done;
     document.getElementById("tools").hidden = game.done;
     padEl.hidden = game.done;
-    document.getElementById("solve-row").hidden = game.done;
+    document.querySelectorAll(".kind").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.k === pendingKind); });
+    autoBox.checked = autoNotes;
+    var memoWrap = document.getElementById("memo-wrap");
+    memoWrap.hidden = game.kind !== "killer";
+    if (!memoWrap.hidden && document.activeElement !== memoEl) memoEl.value = game.memo || "";
     if (game.done) {
       var mk = game.mistakes || 0;
-      document.getElementById("result-title").textContent = game.revealed ? "Aufgelöst" : "Gelöst!";      document.getElementById("result-line").textContent = DIFFS[game.diff].label + " · " + fmt(game.elapsed) + " · " +
+      document.getElementById("result-title").textContent = game.revealed ? "Aufgelöst" : "Gelöst!";      document.getElementById("result-line").textContent = (game.kind === "killer" ? "Killer · " : "") + DIFFS[game.diff].label + " · " + fmt(game.elapsed) + " · " +
         (game.revealed ? "aufgelöst" : mk === 0 ? "ohne Fehler" : mk === 1 ? "1 Fehler" : mk + " Fehler");
     }
     document.getElementById("lvl").textContent = DIFFS[game.diff].label;
@@ -525,10 +710,13 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
   function startNew(diff) {
     var st = document.getElementById("status");
-    st.textContent = "Neues Rätsel (" + DIFFS[diff].label + ") wird erstellt …"; st.className = "status";
+    var kind = pendingKind;
+    st.textContent = "Neues " + (kind === "killer" ? "Killer-Sudoku" : "Rätsel") + " (" + DIFFS[diff].label + ") wird erstellt …"; st.className = "status";
     setTimeout(function () {
       var last = game && game.animal;
-      game = generate(diff); game.animal = last; game.mistakes = 0; history = []; sel = null; hi = 0;
+      game = kind === "killer" ? generateKiller(diff) : generate(diff);
+      if (!game.kind) game.kind = "classic";
+      game.animal = last; game.mistakes = 0; history = []; sel = null; hi = 0;
       save(); render();
     }, 30);
   }
@@ -547,7 +735,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       confirmTimer = setTimeout(resetNewBtn, 3000);
       return;
     }
-    resetNewBtn(); hideCelebration(); closeSolveConfirm(); startNew(pendingDiff);
+    resetNewBtn(); hideCelebration(); startNew(pendingDiff);
   });
   document.querySelectorAll(".chip").forEach(function (ch) {
     ch.addEventListener("click", function () { pendingDiff = ch.dataset.d; resetNewBtn(); save(); render(); });
@@ -586,23 +774,15 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     }
   }, 1000);
 
-  // ---- solve ----
-  var solveBtn = document.getElementById("solve-btn"), solveConfirm = document.getElementById("solve-confirm");
-  function closeSolveConfirm() { solveConfirm.hidden = true; solveBtn.hidden = false; }
-  solveBtn.addEventListener("click", function () { solveBtn.hidden = true; solveConfirm.hidden = false; });
-  document.getElementById("solve-no").addEventListener("click", closeSolveConfirm);
-  document.getElementById("solve-yes").addEventListener("click", function () {
-    closeSolveConfirm();
-    if (!game || game.done) return;
-    game.revealed = [];
-    for (var i = 0; i < 81; i++) {
-      if (!game.puzzle[i] && game.values[i] !== game.solution[i]) game.revealed.push(i);
-      game.values[i] = game.solution[i]; game.notes[i] = 0;
-    }
-    game.done = true; sel = null; hi = 0;
-    celebrate(true);
-    save(); render();
+  // ---- options, kind, memo ----
+  var optBtn = document.getElementById("opt-btn"), optPanel = document.getElementById("options"), autoBox = document.getElementById("opt-autonotes");
+  optBtn.addEventListener("click", function () { optPanel.hidden = !optPanel.hidden; optBtn.setAttribute("aria-expanded", !optPanel.hidden); });
+  autoBox.addEventListener("change", function () { autoNotes = autoBox.checked; save(); });
+  document.querySelectorAll(".kind").forEach(function (b) {
+    b.addEventListener("click", function () { pendingKind = b.dataset.k; resetNewBtn(); save(); render(); });
   });
+  var memoEl = document.getElementById("memo");
+  memoEl.addEventListener("input", function () { if (game) { game.memo = memoEl.value; save(); } });
 
   // block double-tap zoom on older mobile browsers
   document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
