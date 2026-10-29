@@ -397,12 +397,23 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     for (var w = a.wraps.length - 1; w >= 0; w--) svg = '<div class="' + a.wraps[w] + '">' + svg + '</div>';
     var animalEl = document.getElementById("cel-animal"), bubbleEl = document.getElementById("cel-bubble");
     animalEl.innerHTML = svg;
-    bubbleEl.textContent = a.say[Math.floor(Math.random() * a.say.length)];
+    bubbleEl.textContent = pickLine();
     // restart entrance animations
     animalEl.style.animation = "none"; bubbleEl.style.animation = "none";
     void animalEl.offsetWidth;
     animalEl.style.animation = ""; bubbleEl.style.animation = "";
     celEl.hidden = false;
+  }
+  function pickLine() {
+    var mk = game.mistakes || 0, t = game.elapsed, d = game.diff;
+    var fast = { easy: 300, medium: 600, hard: 900, expert: 1500 }[d];
+    var lines = [];
+    if (mk === 0 && d === "expert") lines.push("Fehlerfrei auf Sehr schwer. Respekt.");
+    else if (mk === 0) lines.push("Fehlerfrei gelöst.", "Kein einziger Fehler.");
+    if (d === "expert") lines.push("Das war ein harter Brocken.", "Sehr schwer, trotzdem gelöst.");
+    if (t < fast) lines.push("Das ging schnell.", "Zügig gelöst.");
+    if (!lines.length) lines.push("Gut gemacht.", "Saubere Arbeit.", "Geschafft.", "Schön gelöst.");
+    return lines[Math.floor(Math.random() * lines.length)];
   }
   function hideCelebration() { celEl.hidden = true; document.getElementById("cel-animal").innerHTML = ""; }
   celEl.addEventListener("click", hideCelebration);
