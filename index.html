@@ -161,6 +161,16 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 @keyframes ear-r{0%,62%,80%,100%{transform:rotate(0)}66%,76%{transform:rotate(22deg)}}
 @media (prefers-reduced-motion: reduce) { .cel *, .cel-animal, .cel-bubble { animation: none !important; } .cel-conf { display: none; } }
 
+.cell.revealed { color: #b8a596; font-weight: 500; }
+.solve-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 36px; }
+.linkbtn {
+  font: inherit; font-size: 0.85rem; border: 0; background: transparent; color: var(--muted);
+  padding: 8px 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.solve-confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.88rem; }
+.solve-confirm button { font: inherit; font-size: 0.85rem; border: 0; border-radius: 999px; padding: 7px 13px; cursor: pointer; }
+.solve-confirm .yes { background: #c2510a; color: #fff; font-weight: 700; }
+.solve-confirm .no { background: var(--chip); color: var(--ink); }
 .result { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 14px; background: var(--line); }
 .result h2 { margin: 0; font-family: var(--f-display); font-size: 1.6rem; font-weight: 600; }
 .result p { margin: 4px 0 0; font-size: 0.95rem; color: #7a604f; font-variant-numeric: tabular-nums; }
@@ -205,7 +215,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
   <div class="result" id="result" hidden>
     <div>
-      <h2>Gelöst!</h2>
+      <h2 id="result-title">Gelöst!</h2>
       <p id="result-line"></p>
     </div>
     <div class="row">
@@ -222,6 +232,15 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   </div>
 
   <div class="pad" id="pad"></div>
+
+  <div class="solve-row" id="solve-row">
+    <button type="button" class="linkbtn" id="solve-btn">Auflösen</button>
+    <div class="solve-confirm" id="solve-confirm" hidden>
+      <span>Wirklich auflösen?</span>
+      <button type="button" class="yes" id="solve-yes">Ja, auflösen</button>
+      <button type="button" class="no" id="solve-no">Abbrechen</button>
+    </div>
+  </div>
 
   <div class="status" id="status" aria-live="polite"></div>
   <p class="help">Tastatur: <kbd>1</kbd>–<kbd>9</kbd> eintragen, <kbd>N</kbd> Notizen, <kbd>M</kbd> Fehler zeigen, Pfeiltasten bewegen, <kbd>Rücktaste</kbd> löschen, <kbd>Strg</kbd>+<kbd>Z</kbd> rückgängig. Tippe ohne ausgewähltes Feld auf eine Zahl unten, um sie überall hervorzuheben.</p>
@@ -426,7 +445,9 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     var v = game.values;
     for (var i = 0; i < 81; i++) {
       var el = cells[i], cls = "cell r" + R[i] + " c" + C[i];
-      if (game.puzzle[i]) cls += " given"; else if (v[i]) cls += " user";
+      if (game.puzzle[i]) cls += " given";
+      else if (game.revealed && game.revealed.indexOf(i) >= 0) cls += " revealed";
+      else if (v[i]) cls += " user";
       if (sel !== null) {
         if (i === sel) cls += " selected";
         else if (R[i] === R[sel] || C[i] === C[sel]) cls += " line";
@@ -463,10 +484,13 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     document.getElementById("result").hidden = !game.done;
     document.getElementById("tools").hidden = game.done;
     padEl.hidden = game.done;
+    document.getElementById("solve-row").hidden = game.done;
     if (game.done) {
       var mk = game.mistakes || 0;
+      document.getElementById("result-title").textContent = game.revealed ? "Aufgelöst" : "Gelöst!";
+      document.getElementById("r-board").hidden = !!game.revealed;
       document.getElementById("result-line").textContent = DIFFS[game.diff].label + " · " + fmt(game.elapsed) + " · " +
-        (mk === 0 ? "ohne Fehler" : mk === 1 ? "1 Fehler" : mk + " Fehler");
+        (game.revealed ? "aufgelöst" : mk === 0 ? "ohne Fehler" : mk === 1 ? "1 Fehler" : mk + " Fehler");
     }
     document.getElementById("lvl").textContent = DIFFS[game.diff].label;
     document.getElementById("timer").textContent = fmt(game.elapsed);
@@ -505,7 +529,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       confirmTimer = setTimeout(resetNewBtn, 3000);
       return;
     }
-    resetNewBtn(); hideCelebration(); startNew(pendingDiff);
+    resetNewBtn(); hideCelebration(); closeSolveConfirm(); startNew(pendingDiff);
   });
   document.querySelectorAll(".chip").forEach(function (ch) {
     ch.addEventListener("click", function () { pendingDiff = ch.dataset.d; resetNewBtn(); save(); render(); });
@@ -543,6 +567,23 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       if (game.elapsed % 5 === 0) save();
     }
   }, 1000);
+
+  // ---- solve ----
+  var solveBtn = document.getElementById("solve-btn"), solveConfirm = document.getElementById("solve-confirm");
+  function closeSolveConfirm() { solveConfirm.hidden = true; solveBtn.hidden = false; }
+  solveBtn.addEventListener("click", function () { solveBtn.hidden = true; solveConfirm.hidden = false; });
+  document.getElementById("solve-no").addEventListener("click", closeSolveConfirm);
+  document.getElementById("solve-yes").addEventListener("click", function () {
+    closeSolveConfirm();
+    if (!game || game.done) return;
+    game.revealed = [];
+    for (var i = 0; i < 81; i++) {
+      if (!game.puzzle[i] && game.values[i] !== game.solution[i]) game.revealed.push(i);
+      game.values[i] = game.solution[i]; game.notes[i] = 0;
+    }
+    game.done = true; sel = null; hi = 0;
+    save(); render();
+  });
 
   // block double-tap zoom on older mobile browsers
   document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
