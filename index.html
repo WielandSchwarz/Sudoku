@@ -346,7 +346,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 16 · 29.10.2026</p>
+    <p class="opt-version">Version 17 · 29.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -805,7 +805,6 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     visitorBusy = true;
     var pool = ANIMALS.filter(function (a) { return a.id !== lastVisitor; });
     var a = pool[Math.floor(Math.random() * pool.length)]; lastVisitor = a.id;
-    markSeen(a.id);
     var move = MOVES[a.id], dur = MOVE_MS[move];
     var lines = VISIT_LINES[a.id][progressPhase()];
     var v = document.createElement("div");
