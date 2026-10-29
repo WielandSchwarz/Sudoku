@@ -240,6 +240,21 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 .opt-text strong { font-size: 0.95rem; }
 .opt-text span { font-size: 0.82rem; color: #7a604f; line-height: 1.4; }
 .opt-version { margin: 8px 0 0; font-size: 0.75rem; color: #7a604f; }
+.account { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.acc-title { font-size: 0.95rem; }
+.acc-text { margin: 0; font-size: 0.85rem; line-height: 1.4; color: #7a604f; }
+.acc-text strong { color: var(--ink); }
+.acc-fields { display: flex; gap: 8px; margin-top: 6px; }
+.acc-field { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 600; color: #7a604f; }
+.acc-field.acc-pin { flex: 0 0 96px; }
+.acc-field input { font: inherit; font-size: 16px; font-weight: 400; color: var(--ink); padding: 9px 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); min-width: 0; width: 100%; box-sizing: border-box; }
+.acc-field input:focus { outline: 2px solid var(--pen); outline-offset: 1px; border-color: transparent; }
+.acc-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.acc-btn { font: inherit; font-size: 0.88rem; font-weight: 600; border: 0; border-radius: 999px; padding: 9px 14px; background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--rule-strong); cursor: pointer; }
+.acc-btn.primary { background: #c2510a; color: #fff; box-shadow: none; }
+.acc-btn:disabled { opacity: .5; cursor: default; }
+.acc-status { margin: 0; min-height: 1.2em; font-size: 0.8rem; color: #7a604f; }
+.acc-status.err { color: var(--wrong); }
 
 /* Sticker album */
 .iconbtn svg ellipse, .iconbtn svg circle { fill: none; }
@@ -346,7 +361,29 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 17 · 29.10.2026</p>
+    <div class="account" id="account">
+      <strong class="acc-title">Konto</strong>
+      <div id="acc-out">
+        <p class="acc-text">Melde dich an, um Album und Spielstand auf mehreren Geräten zu nutzen.</p>
+        <div class="acc-fields">
+          <label class="acc-field" for="acc-name"><span>Name</span><input id="acc-name" type="text" autocomplete="username" maxlength="20" placeholder="z. B. Wieland"></label>
+          <label class="acc-field acc-pin" for="acc-pin"><span>PIN</span><input id="acc-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="4" placeholder="4 Ziffern"></label>
+        </div>
+        <div class="acc-row">
+          <button type="button" class="acc-btn primary" id="acc-login">Anmelden</button>
+          <button type="button" class="acc-btn" id="acc-create">Neues Konto</button>
+        </div>
+      </div>
+      <div id="acc-in" hidden>
+        <p class="acc-text">Angemeldet als <strong id="acc-who"></strong></p>
+        <div class="acc-row">
+          <button type="button" class="acc-btn" id="acc-sync">Jetzt abgleichen</button>
+          <button type="button" class="acc-btn" id="acc-logout">Abmelden</button>
+        </div>
+      </div>
+      <p class="acc-status" id="acc-status" aria-live="polite"></p>
+    </div>
+    <p class="opt-version">Version 18 · 29.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -492,8 +529,12 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   // ---- state ----
   var game = null, history = [], sel = null, hi = 0, notesMode = false, showMistakes = false, pendingDiff = "medium", pendingKind = "classic", autoNotes = true, confirmTimer = null;
 
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ game: game, showMistakes: showMistakes, pendingDiff: pendingDiff, pendingKind: pendingKind, autoNotes: autoNotes })); } catch (e) {}
+  var stateUpdated = 0, syncDirty = false;
+  function snapshotState() { return { game: game, showMistakes: showMistakes, pendingDiff: pendingDiff, pendingKind: pendingKind, autoNotes: autoNotes }; }
+  function save(fromServer) {
+    if (!fromServer) { stateUpdated = Date.now(); syncDirty = true; }
+    var s = snapshotState(); s.stateUpdated = stateUpdated;
+    try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
   }
   function load() {
     try {
@@ -501,6 +542,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       if (s) {
         if (typeof s.autoNotes === "boolean") autoNotes = s.autoNotes;
         if (s.pendingKind) pendingKind = s.pendingKind;
+        stateUpdated = s.stateUpdated || 0;
       }
       if (s && s.game && s.game.puzzle && s.game.puzzle.length === 81) {
         game = s.game; showMistakes = !!s.showMistakes; pendingDiff = s.pendingDiff || game.diff; return true;
@@ -987,6 +1029,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     seen[id] = true;
     try { localStorage.setItem(SEEN_KEY, JSON.stringify(Object.keys(seen))); } catch (e) {}
     if (!albumPanel.hidden) renderAlbum();
+    syncDirty = true; syncSoon();
   }
   var albumBtn = document.getElementById("album-btn"), albumPanel = document.getElementById("album");
   function renderAlbum() {
@@ -1037,7 +1080,103 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   // block double-tap zoom on older mobile browsers
   document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
 
+  // ---- account sync (Cloudflare worker + D1). Works in the installed app on github.io, not inside the Claude preview ----
+  var SYNC_URL = "https://sudoku-sync.wieland-schwarz.workers.dev";
+  var ACC_KEY = "sudoku-account";
+  var account = null, syncing = false, syncTimer = null, lastSync = 0;
+  var canSync = /github\.io$|^localhost$/.test(location.hostname);
+  try { account = JSON.parse(localStorage.getItem(ACC_KEY) || "null"); } catch (e) {}
+  var accOut = document.getElementById("acc-out"), accIn = document.getElementById("acc-in"), accStatus = document.getElementById("acc-status");
+  var ERR = {
+    wrong_pin: "Die PIN stimmt nicht.",
+    locked: "Zu viele falsche Versuche. Bitte in 15 Minuten nochmal.",
+    name_taken: "Den Namen gibt es schon. Bitte einen anderen wählen.",
+    no_account: "Kein Konto mit diesem Namen. Tippe auf „Neues Konto“.",
+    bad_name: "Der Name braucht 2 bis 20 Zeichen (Buchstaben, Ziffern, Leerzeichen).",
+    bad_pin: "Die PIN muss aus 4 Ziffern bestehen.",
+    network: "Keine Verbindung. Der Stand wird später abgeglichen."
+  };
+  function setStatus(text, err) { accStatus.textContent = text || ""; accStatus.classList.toggle("err", !!err); }
+  function renderAccount() {
+    if (!canSync) {
+      accOut.hidden = true; accIn.hidden = true;
+      setStatus("Die Anmeldung funktioniert in der installierten App unter wielandschwarz.github.io/Sudoku.");
+      return;
+    }
+    accOut.hidden = !!account; accIn.hidden = !account;
+    if (account) document.getElementById("acc-who").textContent = account.name;
+  }
+  function payload(extra) {
+    var b = { seen: Object.keys(seen), state: snapshotState(), stateUpdated: stateUpdated };
+    for (var k in extra) b[k] = extra[k];
+    return b;
+  }
+  function applyServer(r) {
+    (r.seen || []).forEach(function (id) { seen[id] = true; });
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(Object.keys(seen))); } catch (e) {}
+    if (r.state && r.stateUpdated > stateUpdated && r.state.game && r.state.game.puzzle) {
+      var s = r.state;
+      game = s.game; showMistakes = !!s.showMistakes; pendingDiff = s.pendingDiff || game.diff;
+      pendingKind = s.pendingKind || "classic"; if (typeof s.autoNotes === "boolean") autoNotes = s.autoNotes;
+      stateUpdated = r.stateUpdated; history = []; sel = null; hi = 0; cagesFor = null;
+      hideCelebration(); hideVisitor(); save(true); render(); scheduleVisit();
+    }
+    if (!albumPanel.hidden) renderAlbum();
+  }
+  function post(path, body) {
+    return fetch(SYNC_URL + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true })
+      .then(function (res) { return res.json().catch(function () { return { ok: false, error: "network" }; }); }, function () { return { ok: false, error: "network" }; });
+  }
+  function sync(manual) {
+    if (!canSync || !account || syncing) return;
+    syncing = true; syncDirty = false;
+    post("/api/save", payload({ name: account.name, pin: account.pin })).then(function (r) {
+      syncing = false;
+      if (r.ok) {
+        lastSync = Date.now(); applyServer(r);
+        if (manual) setStatus("Abgeglichen um " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + ".");
+      } else {
+        syncDirty = true;
+        if (r.error === "wrong_pin" || r.error === "no_account") { account = null; try { localStorage.removeItem(ACC_KEY); } catch (e) {} renderAccount(); }
+        if (manual || r.error !== "network") setStatus(ERR[r.error] || "Abgleich fehlgeschlagen.", true);
+      }
+    });
+  }
+  function syncSoon() { if (!account || !canSync) return; clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500); }
+  function login(create) {
+    var name = document.getElementById("acc-name").value.trim(), pin = document.getElementById("acc-pin").value.trim();
+    if (!/^\d{4}$/.test(pin)) { setStatus(ERR.bad_pin, true); return; }
+    var btns = [document.getElementById("acc-login"), document.getElementById("acc-create")];
+    btns.forEach(function (b) { b.disabled = true; });
+    setStatus(create ? "Konto wird angelegt …" : "Anmelden …");
+    post("/api/login", payload({ name: name, pin: pin, create: !!create })).then(function (r) {
+      btns.forEach(function (b) { b.disabled = false; });
+      if (!r.ok) { setStatus(ERR[r.error] || "Das hat nicht geklappt.", true); return; }
+      account = { name: r.name, pin: pin };
+      try { localStorage.setItem(ACC_KEY, JSON.stringify(account)); } catch (e) {}
+      document.getElementById("acc-pin").value = "";
+      renderAccount(); applyServer(r);
+      setStatus(r.created ? "Konto angelegt. Dein Stand wird ab jetzt abgeglichen." : "Angemeldet. Stand abgeglichen.");
+      if (!r.created) sync();
+    });
+  }
+  document.getElementById("acc-login").addEventListener("click", function () { login(false); });
+  document.getElementById("acc-create").addEventListener("click", function () { login(true); });
+  document.getElementById("acc-sync").addEventListener("click", function () { sync(true); });
+  document.getElementById("acc-logout").addEventListener("click", function () {
+    account = null; try { localStorage.removeItem(ACC_KEY); } catch (e) {}
+    renderAccount(); setStatus("Abgemeldet. Dein Stand bleibt auf diesem Gerät gespeichert.");
+  });
+  // sync on start, when leaving the app, and every minute while something changed
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden" && syncDirty) sync();
+    if (document.visibilityState === "visible" && Date.now() - lastSync > 30000) sync();
+  });
+  setInterval(function () { if (syncDirty) sync(); }, 60000);
+  renderAccount();
+
   if (load()) { render(); scheduleVisit(); } else startNew(pendingDiff);
+  if (account) setTimeout(sync, 800);
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(function(){});}</script></body></html>
