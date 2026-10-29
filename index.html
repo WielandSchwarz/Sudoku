@@ -383,7 +383,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 18 · 29.10.2026</p>
+    <p class="opt-version">Version 19 · 29.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -992,6 +992,9 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
   document.addEventListener("keydown", function (e) {
     if (!game) return;
+    // typing in a text field (PIN, name, notes) must not reach the board
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
     var k = e.key;
     if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
