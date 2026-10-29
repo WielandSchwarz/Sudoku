@@ -254,7 +254,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 .sticker.snail svg { aspect-ratio: 30 / 22; }
 .sticker span { font-size: 0.68rem; font-weight: 600; text-align: center; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
 .sticker.locked { background: rgba(255,255,255,.55); box-shadow: none; }
-.sticker.locked svg { filter: brightness(0) opacity(.2) blur(6px); transform: scale(.78); }
+.sticker canvas { display: block; width: 100%; max-width: 58px; height: auto; aspect-ratio: 28 / 29; image-rendering: pixelated; image-rendering: crisp-edges; }
+.sticker.snail canvas { aspect-ratio: 30 / 22; }
 .sticker.locked span { color: #b8a596; }
 
 /* part animations of the newer animals (only run inside celebration or visit wrappers) */
@@ -346,7 +347,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 14 · 29.10.2026</p>
+    <p class="opt-version">Version 15 · 29.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -995,12 +996,26 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       .concat([{ id: "snail", name: "Schnecke", vb: "0 0 30 22", svg: SNAIL_SVG }]);
     var n = all.filter(function (a) { return seen[a.id]; }).length;
     document.getElementById("album-count").textContent = n + " von " + all.length + " entdeckt";
-    document.getElementById("album-grid").innerHTML = all.map(function (a) {
-      var got = !!seen[a.id];
-      return '<div class="sticker' + (got ? "" : " locked") + (a.id === "snail" ? " snail" : "") + '">' +
-        '<svg viewBox="' + a.vb + '" aria-hidden="true">' + a.svg + '</svg>' +
+    var grid = document.getElementById("album-grid");
+    grid.innerHTML = all.map(function (a, i) {
+      var got = !!seen[a.id], snail = a.id === "snail";
+      var pic = got ? '<svg viewBox="' + a.vb + '" aria-hidden="true">' + a.svg + '</svg>'
+        : '<canvas data-i="' + i + '" width="' + (snail ? 7 : 6) + '" height="' + (snail ? 5 : 6) + '" aria-hidden="true"></canvas>';
+      return '<div class="sticker' + (got ? "" : " locked") + (snail ? " snail" : "") + '">' + pic +
         '<span>' + (got ? a.name.replace("Papageientaucher", "Papageien\u00adtaucher") : "???") + '</span></div>';
     }).join("");
+    // undiscovered animals: draw the sprite into a tiny canvas and show it as a few big grey blocks
+    grid.querySelectorAll("canvas").forEach(function (cv) {
+      var a = all[+cv.dataset.i], img = new Image();
+      img.onload = function () {
+        var ctx = cv.getContext("2d");
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        ctx.globalCompositeOperation = "source-in";
+        ctx.fillStyle = "#cdc3b9";
+        ctx.fillRect(0, 0, cv.width, cv.height);
+      };
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + a.vb + '" width="56" height="58">' + a.svg + '</svg>');
+    });
   }
   albumBtn.addEventListener("click", function () {
     albumPanel.hidden = !albumPanel.hidden;
