@@ -92,9 +92,8 @@ h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.9rem; margin:
 .key {
   font-family: var(--f-digit); font-size: clamp(20px, 6vw, 28px); border: 0; border-radius: 10px;
   background: var(--sheet); color: var(--pen); box-shadow: inset 0 0 0 1px var(--rule);
-  padding: 8px 0 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
+  padding: 11px 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
 }
-.key small { font-family: var(--f-ui); font-size: 0.62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .key.active { background: var(--same); box-shadow: inset 0 0 0 1.5px var(--pen); }
 .key.done { opacity: 0.35; }
 .notes-on .key { background: var(--line); box-shadow: inset 0 0 0 1.5px var(--rule-strong); }
@@ -383,7 +382,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 19 · 29.10.2026</p>
+    <p class="opt-version">Version 20 · 29.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -702,7 +701,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   for (var d = 1; d <= 9; d++) {
     var k = document.createElement("button");
     k.className = "key"; k.id = "key-" + d; k.dataset.d = d;
-    k.innerHTML = d + "<small></small>";
+    k.textContent = d;
     k.addEventListener("click", function () { input(+this.dataset.d); });
     padEl.appendChild(k); keys.push(k);
   }
@@ -920,7 +919,6 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     for (i = 0; i < 81; i++) if (v[i]) counts[v[i]]++;
     keys.forEach(function (k, idx) {
       var dg = idx + 1, left = 9 - counts[dg];
-      k.querySelector("small").textContent = left > 0 ? left : "✓";
       k.classList.toggle("done", left <= 0);
       k.classList.toggle("active", dg === hi);
     });
