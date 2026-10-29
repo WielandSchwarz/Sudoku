@@ -159,6 +159,14 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 @keyframes owl-r{0%,70%,78%,100%{transform:rotate(0)}74%,82%{transform:rotate(-28deg)}86%{transform:rotate(0)}}
 @keyframes ear-l{0%,30%,48%,100%{transform:rotate(0)}34%,44%{transform:rotate(-24deg)}}
 @keyframes ear-r{0%,62%,80%,100%{transform:rotate(0)}66%,76%{transform:rotate(22deg)}}
+.cel.sad { background: rgba(246, 243, 240, 0.9); }
+.cel.sad .cel-conf { display: none; }
+.cel.sad .cel-bubble { white-space: normal; text-align: center; max-width: 80%; font-size: clamp(15px, 4.2vw, 19px); line-height: 1.3; }
+.cel.sad .cel-animal { animation-duration: 1.1s; }
+.cel .sigh { transform-origin: 50% 100%; animation: sigh 3.2s ease-in-out infinite; }
+.cel .tear { animation: tear 2.6s steps(6) infinite; }
+@keyframes sigh { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(3%) scaleY(.96); } }
+@keyframes tear { 0%, 25% { transform: translateY(0); opacity: 0; } 35% { opacity: 1; } 85% { transform: translateY(4px); opacity: 1; } 100% { transform: translateY(5px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .cel *, .cel-animal, .cel-bubble { animation: none !important; } .cel-conf { display: none; } }
 
 .cell.revealed { color: #b8a596; font-weight: 500; }
@@ -408,15 +416,27 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
   // ---- celebration ----
   var celEl = document.getElementById("cel");
-  function celebrate() {
+  // eye positions per animal [left eye x, eye top y, right eye x] and brow colour, for the sad face
+  var EYES = { chick: [6, 10, 16], fox: [7, 11, 15], peng: [8, 11, 14], beaver: [7, 10, 15], otter: [7, 11, 15], owl: [7, 10, 15], tit: [7, 10, 15], hare: [7, 13, 15] };
+  var BROW = { peng: "#c8ccd4" };
+  var SAD_LINES = ["Guter Versuch. Beim nächsten Mal klappt es bestimmt.", "Das war knifflig. Das nächste schaffst du.", "Nicht schlimm. Nächstes Mal klappt es.", "Kopf hoch, das nächste wird deins."];
+  function sadMarks(id) {
+    var e = EYES[id], lx = e[0], y = e[1], rx = e[2];
+    var brows = "M" + (lx - 1) + " " + (y - 1) + "h2v1h-2zM" + (lx + 1) + " " + (y - 2) + "h1v1h-1zM" + rx + " " + (y - 2) + "h1v1h-1zM" + (rx + 1) + " " + (y - 1) + "h2v1h-2z";
+    return '<path fill="' + (BROW[id] || "#1d1a14") + '" d="' + brows + '"></path>' +
+      '<path class="tear" fill="#7fc4f0" d="M' + lx + " " + (y + 3) + 'h1v2h-1z"></path>';
+  }
+  function celebrate(sad) {
     var pool = ANIMALS.filter(function (a) { return a.id !== game.animal; });
     var a = pool[Math.floor(Math.random() * pool.length)];
     game.animal = a.id;
-    var svg = '<svg viewBox="' + a.vb + '" role="img" aria-label="' + a.name + '">' + a.svg + '</svg>';
-    for (var w = a.wraps.length - 1; w >= 0; w--) svg = '<div class="' + a.wraps[w] + '">' + svg + '</div>';
+    var svg = '<svg viewBox="' + a.vb + '" role="img" aria-label="' + a.name + '">' + a.svg + (sad ? sadMarks(a.id) : "") + '</svg>';
+    if (sad) svg = '<div class="sigh">' + svg + '</div>';
+    else for (var w = a.wraps.length - 1; w >= 0; w--) svg = '<div class="' + a.wraps[w] + '">' + svg + '</div>';
+    celEl.classList.toggle("sad", !!sad);
     var animalEl = document.getElementById("cel-animal"), bubbleEl = document.getElementById("cel-bubble");
     animalEl.innerHTML = svg;
-    bubbleEl.textContent = pickLine();
+    bubbleEl.textContent = sad ? SAD_LINES[Math.floor(Math.random() * SAD_LINES.length)] : pickLine();
     // restart entrance animations
     animalEl.style.animation = "none"; bubbleEl.style.animation = "none";
     void animalEl.offsetWidth;
@@ -487,9 +507,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     document.getElementById("solve-row").hidden = game.done;
     if (game.done) {
       var mk = game.mistakes || 0;
-      document.getElementById("result-title").textContent = game.revealed ? "Aufgelöst" : "Gelöst!";
-      document.getElementById("r-board").hidden = !!game.revealed;
-      document.getElementById("result-line").textContent = DIFFS[game.diff].label + " · " + fmt(game.elapsed) + " · " +
+      document.getElementById("result-title").textContent = game.revealed ? "Aufgelöst" : "Gelöst!";      document.getElementById("result-line").textContent = DIFFS[game.diff].label + " · " + fmt(game.elapsed) + " · " +
         (game.revealed ? "aufgelöst" : mk === 0 ? "ohne Fehler" : mk === 1 ? "1 Fehler" : mk + " Fehler");
     }
     document.getElementById("lvl").textContent = DIFFS[game.diff].label;
@@ -582,6 +600,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       game.values[i] = game.solution[i]; game.notes[i] = 0;
     }
     game.done = true; sel = null; hi = 0;
+    celebrate(true);
     save(); render();
   });
 
