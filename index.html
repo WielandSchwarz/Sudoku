@@ -181,18 +181,18 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 
 /* visitor lane left of "Neues Rätsel" */
 .lane-row { display: flex; align-items: flex-end; gap: 10px; }
-.lane { position: relative; flex: 1; min-width: 0; height: 70px; overflow: hidden; }
+.lane { position: relative; flex: 1; min-width: 0; height: 54px; margin-top: -6px; overflow: hidden; }
 .lane-row .newbtn { flex: none; margin-bottom: 4px; }
 .water { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; background: rgba(150, 205, 232, 0.9); border-radius: 6px 6px 0 0; opacity: 0; transition: opacity .5s; }
 .water.on { opacity: 1; }
 .water i { position: absolute; top: 4px; height: 3px; background: #fff; animation: v-wave 1.2s steps(3) infinite alternate; }
 .visitor { position: absolute; left: 4px; bottom: 0; display: flex; align-items: flex-end; gap: 6px; max-width: calc(100% - 8px); }
-.visitor.swim { bottom: -12px; }
+.visitor.swim { bottom: -10px; }
 .v-move { flex: none; }
-.v-sprite { width: 52px; }
+.v-sprite { width: 44px; }
 .v-sprite svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; overflow: visible; }
 .v-bubble {
-  position: relative; align-self: center; margin-bottom: 14px; min-width: 0;
+  position: relative; align-self: center; margin-bottom: 8px; min-width: 0;
   padding: 6px 9px; background: #fff; border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--rule-strong);
   font-size: 0.8rem; font-weight: 800; line-height: 1.25; transform-origin: 0% 60%;
   transform: scale(0); transition: transform .25s steps(3);
@@ -246,6 +246,17 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 .switch input:checked + .track { background: var(--chip-on); }
 .switch input:checked + .track::after { transform: translateX(18px); }
 .switch input:focus-visible + .track { outline: 2px solid var(--pen); outline-offset: 2px; }
+.mode-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.diff-select { position: relative; }
+.diff-select select {
+  -webkit-appearance: none; appearance: none; font: inherit; font-size: 0.88rem; font-weight: 600;
+  border: 0; border-radius: 999px; padding: 9px 34px 9px 14px; background: var(--chip); color: var(--ink); cursor: pointer;
+}
+.diff-select::after {
+  content: ""; position: absolute; right: 14px; top: 50%; width: 7px; height: 7px; margin-top: -6px; pointer-events: none;
+  border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg);
+}
+.diff-select select:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
 .kinds { display: inline-flex; gap: 0; padding: 3px; border-radius: 999px; background: var(--chip); align-self: flex-start; }
 .kind { font: inherit; font-size: 0.88rem; border: 0; border-radius: 999px; padding: 6px 14px; background: transparent; color: var(--ink); cursor: pointer; }
 .kind[aria-pressed="true"] { background: var(--sheet); box-shadow: 0 1px 3px rgba(43,29,18,.18); font-weight: 600; }
@@ -287,16 +298,19 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     </label>
   </div>
 
-  <div class="kinds" role="group" aria-label="Rätselart">
-    <button type="button" class="kind" id="k-classic" data-k="classic" aria-pressed="true">Klassisch</button>
-    <button type="button" class="kind" id="k-killer" data-k="killer" aria-pressed="false">Killer</button>
-  </div>
-
-  <div class="diffs" role="group" aria-label="Schwierigkeit">
-    <button class="chip" id="d-easy" data-d="easy" aria-pressed="false">Leicht</button>
-    <button class="chip" id="d-medium" data-d="medium" aria-pressed="false">Mittel</button>
-    <button class="chip" id="d-hard" data-d="hard" aria-pressed="false">Schwer</button>
-    <button class="chip" id="d-expert" data-d="expert" aria-pressed="false">Sehr schwer</button>
+  <div class="mode-row">
+    <div class="kinds" role="group" aria-label="Rätselart">
+      <button type="button" class="kind" id="k-classic" data-k="classic" aria-pressed="true">Klassisch</button>
+      <button type="button" class="kind" id="k-killer" data-k="killer" aria-pressed="false">Killer</button>
+    </div>
+    <div class="diff-select">
+      <select id="diff" aria-label="Schwierigkeit">
+        <option value="easy">Leicht</option>
+        <option value="medium">Mittel</option>
+        <option value="hard">Schwer</option>
+        <option value="expert">Sehr schwer</option>
+      </select>
+    </div>
   </div>
 
   <div class="lane-row">
@@ -832,7 +846,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     }
     document.getElementById("lvl").textContent = DIFFS[game.diff].label;
     document.getElementById("timer").textContent = fmt(game.elapsed);
-    document.querySelectorAll(".chip").forEach(function (ch) { ch.setAttribute("aria-pressed", ch.dataset.d === pendingDiff); });
+    document.getElementById("diff").value = pendingDiff;
     var st = document.getElementById("status");
     if (game.done) { st.textContent = ""; st.className = "status"; }
     else if (showMistakes) {
@@ -872,9 +886,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     }
     resetNewBtn(); hideCelebration(); startNew(pendingDiff);
   });
-  document.querySelectorAll(".chip").forEach(function (ch) {
-    ch.addEventListener("click", function () { pendingDiff = ch.dataset.d; resetNewBtn(); save(); render(); });
-  });
+  document.getElementById("diff").addEventListener("change", function () { pendingDiff = this.value; resetNewBtn(); save(); render(); });
   document.getElementById("t-undo").addEventListener("click", undo);
   document.getElementById("t-erase").addEventListener("click", erase);
   document.getElementById("t-notes").addEventListener("click", function () { notesMode = !notesMode; render(); });
