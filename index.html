@@ -335,7 +335,6 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       <h2 id="album-title">Tier-Album</h2>
       <span class="album-count" id="album-count"></span>
     </div>
-    <p class="album-hint">Tiere tauchen nach gelösten Rätseln und als Besuch auf. Graue Schatten warten noch darauf, entdeckt zu werden.</p>
     <div class="album-grid" id="album-grid"></div>
   </section>
 
@@ -347,7 +346,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 15 · 29.10.2026</p>
+    <p class="opt-version">Version 16 · 29.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -1000,7 +999,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     grid.innerHTML = all.map(function (a, i) {
       var got = !!seen[a.id], snail = a.id === "snail";
       var pic = got ? '<svg viewBox="' + a.vb + '" aria-hidden="true">' + a.svg + '</svg>'
-        : '<canvas data-i="' + i + '" width="' + (snail ? 7 : 6) + '" height="' + (snail ? 5 : 6) + '" aria-hidden="true"></canvas>';
+        : '<canvas data-i="' + i + '" width="' + (snail ? 11 : 10) + '" height="' + (snail ? 8 : 10) + '" aria-hidden="true"></canvas>';
       return '<div class="sticker' + (got ? "" : " locked") + (snail ? " snail" : "") + '">' + pic +
         '<span>' + (got ? a.name.replace("Papageientaucher", "Papageien\u00adtaucher") : "???") + '</span></div>';
     }).join("");
