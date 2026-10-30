@@ -958,7 +958,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 30 · 30.10.2026</p>
+    <p class="opt-version">Version 31 · 30.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -2687,12 +2687,12 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     body(""); vCls("sing", false); vCls("m-flutter", false); front({ paws: "down" });
     if (Math.random() < 0.6) { var c = giveSeed(v.x); say(v.an.name + " lässt ein Tütchen " + CROPS[c].name + "-Samen da."); await wait(900); }
   }
-  // visits are rare: at most one every 20 minutes, then only now and then
+  // visits: at most one every 5 minutes, after that a 20 % chance each minute
   garden.lastVisit = 0;
   setInterval(function () {
     if (place2 !== "garden" || hamHidden() || s.asleep) return;
-    if (Date.now() - (garden.lastVisit || 0) < 20 * 60000) return;
-    if (Math.random() < 0.05) spawnVisitor();
+    if (Date.now() - (garden.lastVisit || 0) < 5 * 60000) return;
+    if (Math.random() < 0.2) spawnVisitor();
   }, 60000);
 
   // ---- garden life ----
