@@ -622,14 +622,16 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
+.games-label { margin-top: 14px !important; font-weight: 700; color: var(--ink) !important; }
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}</style></head><body>
 
 <div id="ham-root">
 <div class="page">
   <section class="start" id="scr-start">
-    <h1>Spielzimmer</h1>
-    <p class="sub">Was möchtest du machen?</p>
+    <h1 id="wel-h">Willkommen</h1>
+    <p class="sub">in der besten Spiele-App.</p>
+    <p class="sub games-label">Deine Spiele:</p>
     <button type="button" class="choice" id="go-sudoku">
       <span class="pic"><span class="mini-grid"><i>5</i><i></i><i>3</i><i></i><i>7</i><i></i><i>9</i><i></i><i>1</i></span></span>
       <span class="txt"><strong>Sudoku</strong></span>
@@ -654,7 +656,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       <h1><button type="button" id="ham-name" aria-label="Hamster umbenennen">Krümel</button></h1>
       <span class="age" id="ham-age"></span>
     </div>
-    <button type="button" class="close" id="ham-close" aria-label="Zurück zum Spielzimmer">×</button>
+    <button type="button" class="close" id="ham-close" aria-label="Zurück zur Übersicht">×</button>
   </div>
 
   <div class="scene" id="scene">
@@ -720,7 +722,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 </div>
 <div class="app" id="app" hidden>
   <header>
-    <div class="title-row"><button type="button" class="iconbtn homebtn" id="home-btn" aria-label="Zum Spielzimmer"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10.5 19.5v-5h3v5"/></svg></button><h1>Sudoku</h1></div>
+    <div class="title-row"><button type="button" class="iconbtn homebtn" id="home-btn" aria-label="Zur Übersicht"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10.5 19.5v-5h3v5"/></svg></button><h1>Sudoku</h1></div>
     <div class="head-right">
       <div class="meta"><span id="lvl">–</span><span id="timer">0:00</span></div>
       <button type="button" class="iconbtn" id="album-btn" aria-label="Tier-Album" aria-expanded="false" aria-controls="album"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="4.5" ry="3.8"/><circle cx="6" cy="10.5" r="1.9"/><circle cx="9.6" cy="6.6" r="1.9"/><circle cx="14.4" cy="6.6" r="1.9"/><circle cx="18" cy="10.5" r="1.9"/></svg></button>
@@ -766,7 +768,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 24 · 29.10.2026</p>
+    <p class="opt-version">Version 25 · 30.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -1629,6 +1631,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   function renderStart() {
     document.getElementById("start-ham").innerHTML = faceHTML(s.name ? (s.asleep ? { eyes: "sleep", mouth: "flat" } : mood()) : { eyes: "open", mouth: "smile" });
     document.getElementById("start-ham-name").textContent = s.name || "Dein Hamster";
+    if (!window.__welcome) window.__welcome = function (k, v) { var el = document.getElementById("wel-h"); if (!el) return; if (k) el.dataset[k] = v || ""; var n = [el.dataset.user, el.dataset.ham].filter(Boolean); el.textContent = "Willkommen" + (n.length ? " " + n.join(" und ") : ""); };
+    window.__welcome("ham", s.name);
     var low = lowest(), need = s.name && !s.asleep && s[low.id] < 40;
     document.getElementById("start-dot").hidden = !need || !!(home && home.pending);
     var pb = document.getElementById("start-pkg"); pb.hidden = !(s.name && home && home.pending);
@@ -2649,6 +2653,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   };
   function setStatus(text, err) { accStatus.textContent = text || ""; accStatus.classList.toggle("err", !!err); }
   function renderAccount() {
+    if (!window.__welcome) window.__welcome = function (k, v) { var el = document.getElementById("wel-h"); if (!el) return; if (k) el.dataset[k] = v || ""; var n = [el.dataset.user, el.dataset.ham].filter(Boolean); el.textContent = "Willkommen" + (n.length ? " " + n.join(" und ") : ""); };
+    window.__welcome("user", account && account.name);
     if (!canSync) {
       accOut.hidden = true; accIn.hidden = true;
       setStatus("Die Anmeldung funktioniert in der installierten App unter wielandschwarz.github.io/Sudoku.");
