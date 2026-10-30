@@ -1472,6 +1472,9 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .t-lane { min-height: 62px; }
 #ham-root .t-arrow { width: 56px; height: 42px; background: #f7ead4; box-shadow: inset 0 -4px 0 0 #dcc29c, inset 0 2px 0 0 #fffaf0, 0 0 0 2px var(--ink), 0 4px 0 0 rgba(43,29,18,.18); }
 #ham-root .t-arrow svg { width: 18px; height: 18px; }
+#ham-root .t-undo { width: 44px; min-width: 44px; padding: 0 !important; display: grid; place-items: center; }
+#ham-root .t-undo svg { width: 18px; height: 16px; }
+#ham-root .t-undo:disabled { opacity: .35; }
 #ham-root .l-place { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
 #ham-root .l-place[hidden] { display: none; }
 #ham-root .l-place .l-bg { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
@@ -2048,7 +2051,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 43 · 31.10.2026</p>
+    <p class="opt-version">Version 44 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -5838,18 +5841,15 @@ window.__EXTRAS = true;
     function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
     // ---- visiting animals: now and then one hops in with a word of encouragement ----
-    var LINES = {
-      igel: { start: ["Ich roll mich ein, du legst los.", "Stachelig sind nur die Buchstaben."], mid: ["Igelig gut, Wort für Wort.", "Pieks, da steckt noch mehr drin."], end: ["Fast alle Buchstaben verputzt!", "Nur noch ein paar Stacheln … äh, Buchstaben."], pangram: ["Alle neun! Mir stehen die Stacheln zu Berge."], done: ["Igelstark gespielt!"] },
-      hare: { start: ["Hopp, ab ins Buchstabenbeet!", "Schnell, die Wörter hoppeln davon."], mid: ["Mit großen Sprüngen durchs Alphabet.", "Hasenflink, weiter so!"], end: ["Nur noch ein, zwei Sprünge.", "Die Möhre ist fast aufgefuttert!"], pangram: ["Ein Riesensprung: alle Buchstaben!"], done: ["Hopp, geschafft!"] },
-      squirrel: { start: ["Ich sammle Nüsse, du sammelst Wörter.", "Knack die Buchstaben!"], mid: ["Ganz schön was gehortet!", "Noch ein Wort für den Wintervorrat?"], end: ["Der Vorrat ist fast voll!", "Nur noch ein paar Nüsse übrig."], pangram: ["Die dickste Nuss geknackt!"], done: ["Nussig gut gesammelt!"] },
-      robin: { start: ["Tirili! Zeit für Wörter.", "Ein Lied für dein erstes Wort."], mid: ["Tirili, das klingt gut!", "Du zwitscherst ja nur so los."], end: ["Die letzte Strophe!", "Fast ausgesungen."], pangram: ["Tirili! Ein Wort mit allen Tönen!"], done: ["Ein Lied für dein Ergebnis!"] },
-      tit: { start: ["Zi-zi, leg los!", "Tschilp! Welches Wort zuerst?"], mid: ["Meisterhaft gemampft!", "Zi-zi-zauberhaft!"], end: ["Tschilp, fast leer gepickt!", "Nur noch ein paar Körner."], pangram: ["Zi-zi-zack, alle neun!"], done: ["Meisen-mäßig gut!"] },
-      fox: { start: ["Schlauer Plan: das Pangramm zuerst.", "Fuchs-Tipp: Nimm den scharfen Buchstaben mit!"], mid: ["Ganz schön gerissen!", "Fuchsig gut gemampft."], end: ["Mach die letzten Buchstaben platt!", "Schlau, fast alles aufgebraucht."], pangram: ["Raffiniert! Das Pangramm!"], done: ["Fuchsschlau gespielt!"] },
-      mouse: { start: ["Piep! Ich knabber mit.", "Kleine Wörter zählen auch."], mid: ["Piep, das war lecker!", "Krümelig gut!"], end: ["Fast alles aufgeknabbert!", "Piep, nur noch Krümel übrig."], pangram: ["Piep piep! Das größte Stück Käse!"], done: ["Mäuschenstark!"] },
-      badger: { start: ["Ich grab mich durch, du grabst nach Wörtern.", "Gründlich ans Werk!"], mid: ["Tief gegraben, gut gefunden.", "Dachs-solide gemacht."], end: ["Der Bau ist fast fertig.", "Nur noch ein paar Erdkrümel."], pangram: ["Ein Schatz ausgegraben: alle neun!"], done: ["Dachsstark!"] },
-      owl: { start: ["Huhu. Erst in Ruhe die Buchstaben anschauen.", "Schuhu, der goldene gehört immer dazu."], mid: ["Huhu, wie weise!", "Eulenschlau gemampft."], end: ["Schuhu, fast alles verbraucht.", "Huhu, nur noch ein paar Buchstaben."], pangram: ["Huhu! Alle neun, wie weise!"], done: ["Eulenklug gespielt!"] },
-      otter: { start: ["Rein ins Buchstabenwasser!", "Ich halte die Muschel, du die Wörter."], mid: ["Ottertastisch!", "Läuft wie geschmiert."], end: ["Fast am Ufer!", "Noch ein paar Züge."], pangram: ["Alle neun! Ottertastisch!"], done: ["Glatt gemampft!"] }
+    // plain encouragement; every visitor uses the same calm lines
+    var CHEER = {
+      start: ["Schöner Start. Lass dir Zeit.", "Fang einfach mit einem kurzen Wort an.", "Du schaffst das.", "Ganz in Ruhe, ein Wort nach dem anderen."],
+      mid: ["Läuft gut, bleib dran.", "Du machst das gut.", "Weiter so.", "Gute Wörter bisher.", "Kurze Pause hilft manchmal auch."],
+      end: ["Fast geschafft.", "Nur noch ein paar Buchstaben.", "Das Ende ist in Sicht.", "Bleib dran, gleich ist es leer."],
+      pangram: ["Alle neun Buchstaben, stark!", "Ein Pangramm, sehr gut."],
+      done: ["Gut gemacht.", "Schön gespielt.", "Das war eine gute Runde."]
     };
+    var LINES = {}; ["igel", "hare", "squirrel", "robin", "tit", "fox", "mouse", "badger", "owl", "otter"].forEach(function (k) { LINES[k] = CHEER; });
     var IDS = Object.keys(LINES).filter(function (k) { return WANI[k]; }), vTimer = null, vBusy = false, lastV = null, lastVisitAt = 0, vTimers = [];
     function active() { return !root.hidden && (!window.Nav || window.Nav.current === "words") && document.visibilityState === "visible"; }
     function schedVisits(ms) { clearTimeout(vTimer); vTimer = setTimeout(function () { visit(null); schedVisits(150000 + Math.random() * 90000); }, ms); }
@@ -6070,7 +6070,7 @@ window.__EXTRAS = true;
       '<div class="t-boardwrap" id="t-wrap"><div class="t-board" id="t-board"></div><div class="t-over" id="t-over" hidden></div></div>' +
       '<div class="t-pad">' + arrBtn("left") + '<div class="t-pad-mid">' + arrBtn("up") + arrBtn("down") + '</div>' + arrBtn("right") + '</div>' +
       '<div class="w-lane t-lane" id="t-lane"><span class="t-ham" id="t-ham"></span></div>' +
-      '<div class="w-tools"><button type="button" class="w-btn w-small" id="t-reset">Level neu</button><span class="w-hinttxt" id="t-msg"></span><button type="button" class="w-btn w-small" id="t-hint">Tipp</button></div>' +
+      '<div class="w-tools"><button type="button" class="w-btn w-small" id="t-reset">Level neu</button><button type="button" class="w-btn w-small t-undo" id="t-undo" aria-label="Letzten Zug zurücknehmen" title="Letzten Zug zurücknehmen"><svg viewBox="0 0 9 8" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h1v2h3v1h1v1h1v3H8v1H7V5H6V4H4v2H3V5H2V4H1V3H0V2h1V1h2z"/></svg></button><span class="w-hinttxt" id="t-msg"></span><button type="button" class="w-btn w-small" id="t-hint">Tipp</button></div>' +
       '<div class="w-rules" id="t-rules" hidden><div class="w-rules-card" role="dialog"><div class="w-rules-top"><h2>So geht Farbklecks</h2><button type="button" class="w-iconbtn" id="t-rules-x" aria-label="Schließen">×</button></div><ul>' +
       '<li>Wische über das Brett (oder nimm die Pfeile). Dann rutschen <b>alle</b> Kacheln gleichzeitig ein Feld in diese Richtung, wenn davor Platz ist.</li>' +
       '<li>Berühren sich <b>vier oder mehr</b> Kacheln derselben Farbe, machen sie „plopp“ und verschwinden. Die Form ist egal.</li>' +
@@ -6127,6 +6127,7 @@ window.__EXTRAS = true;
     function place(t, i, c) { t.style.left = (100 * (i % c.w) / c.w) + "%"; t.style.top = (100 * ((i / c.w) | 0) / c.h) + "%"; }
     function render() {
       var run = curRun(), c = loadLevel();
+      var ub = $t("t-undo"); if (ub) ub.disabled = !(c.hist && c.hist.length) || c.state === "won" || (S.mode === "daily" && run.done);
       root.querySelectorAll(".w-pill button").forEach(function (b) { b.classList.toggle("on", b.dataset.m === S.mode); });
       $t("t-score").textContent = S.mode === "daily" ? run.score : run.cleared;
       $t("t-score").nextSibling.textContent = S.mode === "daily" ? " Pkt" : " Level";
@@ -6146,6 +6147,7 @@ window.__EXTRAS = true;
       var run = curRun(), c = loadLevel(); if (anim || c.state !== "play" || (S.mode === "daily" && run.done)) return;
       var r = slide(c.b, c.w, c.h, dir);
       if (!r.moved.length) { var w = $t("t-wrap"); w.classList.remove("bump-" + dir); void w.offsetWidth; w.classList.add("bump-" + dir); beep([[180, .04]]); return; }
+      c.hist = c.hist || []; c.hist.push({ b: c.b.slice(), ids: c.ids.slice(), moves: c.moves, score: run.score }); if (c.hist.length > 30) c.hist.shift();
       anim = true; c.moves--;
       var ids = c.ids.slice();
       r.moved.forEach(function (m) { ids[m[1]] = c.ids[m[0]]; ids[m[0]] = 0; });
@@ -6179,6 +6181,11 @@ window.__EXTRAS = true;
         }, gs.length ? 280 : 0);
       }, 130);
     }
+    function undo() {
+      var run = curRun(), c = loadLevel(); if (anim || !c.hist || !c.hist.length || c.state === "won") return;
+      var h = c.hist.pop(); c.b = h.b; c.ids = h.ids; c.moves = h.moves; if (S.mode === "daily") run.score = h.score;
+      c.state = "play"; c.stuck = false; buildBoard(); render(); save(); hamSet("idle"); beep([[360, .03], [300, .04]]); msg("Zug zurückgenommen.");
+    }
     function levelDone() {
       var run = curRun(), c = loadLevel(); c.state = "won";
       var wrap = $t("t-wrap"); wrap.classList.remove("cleared"); void wrap.offsetWidth; wrap.classList.add("cleared"); confetti();
@@ -6203,7 +6210,7 @@ window.__EXTRAS = true;
     function resetLevel() {
       var run = curRun(), c = run.cur; if (!c || anim) return;
       if (S.mode === "daily" && run.done) return;
-      c.b = c.start.slice(); c.moves = BASE_MOVES; c.startMoves = BASE_MOVES; c.state = "play"; run.carry = 0;
+      c.b = c.start.slice(); c.moves = BASE_MOVES; c.startMoves = BASE_MOVES; c.state = "play"; c.hist = []; run.carry = 0;
       buildBoard(); render(); save(); msg("Level neu, mit 6 Zügen.");
     }
     // little pixel effects
@@ -6296,11 +6303,8 @@ window.__EXTRAS = true;
     function hamFrame() { hamSet("idle"); clearInterval(blinkT); blinkT = setInterval(function () { if (hamMood === "idle" && !root.hidden) { var h = $t("t-ham"); h.innerHTML = hamArt("blink"); setTimeout(function () { if (hamMood === "idle") h.innerHTML = hamArt("idle"); }, 160); } }, 3400); }
     function hamCheer(big) { var h = $t("t-ham"); if (!h) return; hamSet(big ? "wow" : "happy", big ? 1400 : 900); h.classList.remove("hop", "hop2"); void h.offsetWidth; h.classList.add(big ? "hop2" : "hop"); }
     // ---- visiting animals, like in Squish ----
-    var LINES = {
-      igel: ["Pieks! Vier auf einen Streich.", "Bunt wie ein Herbstblatt!"], hare: ["Hopp, alles rutscht!", "Hasenflink geschoben!"], squirrel: ["Ich schieb die bunten Nüsse mit!", "Knack, weg sind sie!"],
-      robin: ["Tirili, wie bunt!", "Zwitscher, schön geschoben!"], tit: ["Zi-zi, Farben-Meister!", "Tschilp, plopp, weg!"], fox: ["Schlau: erst überlegen, dann wischen.", "Fuchsig gut geschoben."],
-      mouse: ["Piep, das blitzt ja!", "Krümelig gut!"], badger: ["Gründlich abgeräumt!", "Dachs-solide."], owl: ["Huhu, gut vorausgedacht!", "Eulenklug: erst die Steine anschauen."], otter: ["Platsch, weg damit!", "Ottertastisch bunt!"]
-    };
+    var CHEER = ["Gut geschoben.", "Weiter so.", "Du machst das gut.", "Schöner Zug.", "Lass dir Zeit, du hast genug Züge.", "Bleib dran.", "Gut überlegt."];
+    var LINES = {}; ["igel", "hare", "squirrel", "robin", "tit", "fox", "mouse", "badger", "owl", "otter"].forEach(function (k) { LINES[k] = CHEER; });
     var vTimer = null, vBusy = false, lastV = null, vTimers = [];
     function active() { return !root.hidden && (!window.Nav || window.Nav.current === "tiles") && document.visibilityState === "visible"; }
     function schedVisits(ms) { clearTimeout(vTimer); vTimer = setTimeout(function () { visit(); schedVisits(150000 + Math.random() * 90000); }, ms); }
@@ -6308,7 +6312,7 @@ window.__EXTRAS = true;
       var ani = window.WordsGame && window.WordsGame._ani; if (!ani || !active() || vBusy) return;
       var ids = Object.keys(LINES).filter(function (k) { return ani[k] && k !== lastV; }); if (!ids.length) return;
       vBusy = true; var id = pick(ids), an = ani[id]; lastV = id;
-      var line = kind === "done" ? pick(["Wunderbar bunt gespielt!", "Klasse gemacht!", "Was für ein Farbenspiel!"]) : pick(LINES[id]);
+      var line = kind === "done" ? pick(["Gut gemacht.", "Schön gespielt.", "Stark gelöst."]) : pick(LINES[id]);
       var lane = $t("t-lane"), v = document.createElement("div"); v.className = "wv in";
       v.innerHTML = '<span class="wv-sprite"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><span class="wv-bubble">' + esc(line) + '</span>';
       lane.querySelectorAll(".wv").forEach(function (x) { x.remove(); }); lane.appendChild(v);
@@ -6347,6 +6351,7 @@ window.__EXTRAS = true;
         case "t-rules-x": $t("t-rules").hidden = true; return;
         case "t-reset": return resetLevel();
         case "t-hint": return hint();
+        case "t-undo": return undo();
         case "t-gift": leave(); if (window.HamsterApp && window.HamsterApp.openPackageSoon) window.HamsterApp.openPackageSoon(); else { show("scr-hamster"); refresh(); if (home.pending) later(openPackage, 800); } return;
       }
     });
