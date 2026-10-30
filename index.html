@@ -331,6 +331,22 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 .result button { flex: 1; min-height: 48px; border: 0; border-radius: 10px; font: inherit; font-size: 1rem; cursor: pointer; }
 .result .primary { background: #c2510a; color: #fff; font-weight: 700; }
 .result .secondary { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--rule-strong); font-weight: 600; }
+#ham-root .top-btns { display: flex; gap: 8px; align-items: center; }
+#ham-root .albumbtn { display: flex; align-items: center; justify-content: center; padding: 0; }
+#ham-root .albumbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+#ham-root .albumbtn svg ellipse, #ham-root .albumbtn svg circle { fill: none; }
+.ham-album { position: fixed; inset: 0; z-index: 2000; background: rgba(43, 29, 18, .45); display: flex; align-items: flex-start; justify-content: center; padding: max(16px, env(safe-area-inset-top)) 12px 16px; overflow-y: auto; }
+.ham-album[hidden] { display: none; }
+.ham-album-card { width: 100%; max-width: 520px; background: var(--line, #fdf2e6); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+.ham-album-top { display: flex; align-items: center; justify-content: space-between; }
+.ham-album-top h2 { margin: 0; font-size: 1.35rem; }
+.ham-album-sub { margin: 0; font-size: 0.82rem; line-height: 1.4; color: #7a604f; }
+.ham-album-sub span { font-weight: 700; color: var(--chip-on); }
+.sticker .hearts { display: flex; gap: 1px; font-size: 0.8rem; line-height: 1; color: #e8554a; letter-spacing: 0; }
+.sticker .hearts i { font-style: normal; }
+.sticker .hearts i.off { color: #e2d6c8; }
+.sticker .hcount { font-size: 0.62rem; color: #7a604f; font-weight: 600; text-align: center; line-height: 1.2; }
+
 .title-row { display: flex; align-items: center; gap: 10px; }
 .homebtn { width: 40px; height: 40px; }
 .rewards { display: flex; flex-direction: column; gap: 8px; }
@@ -970,7 +986,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       <h1><button type="button" id="ham-name" aria-label="Hamster umbenennen">Krümel</button></h1>
       <span class="age" id="ham-age"></span>
     </div>
-    <button type="button" class="close" id="ham-close" aria-label="Zurück zur Übersicht">×</button>
+    <div class="top-btns"><button type="button" class="close albumbtn" id="ham-album-btn" aria-label="Tier-Album"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="4.5" ry="3.8"/><circle cx="6" cy="10.5" r="1.9"/><circle cx="9.6" cy="6.6" r="1.9"/><circle cx="14.4" cy="6.6" r="1.9"/><circle cx="18" cy="10.5" r="1.9"/></svg></button><button type="button" class="close" id="ham-close" aria-label="Zurück zur Übersicht">×</button></div>
   </div>
 
   <div class="scene" id="scene">
@@ -1059,7 +1075,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   </div>
 </div>
 
-
+<div class="ham-album" id="ham-album" hidden><div class="ham-album-card" role="dialog" aria-labelledby="ham-album-title"><div class="ham-album-top"><h2 id="ham-album-title">Tier-Album</h2><button type="button" class="close" id="ham-album-close" aria-label="Album schließen">×</button></div><p class="ham-album-sub"><span id="ham-album-count"></span> · Jeder Besuch im Garten bringt ein Herz, bei 3 Herzen gibt es ein Geschenk.</p><div class="album-grid" id="ham-album-grid"></div></div></div>
 </div>
 <div class="app" id="app" hidden>
   <header>
@@ -3922,8 +3938,13 @@ window.__EXTRAS = true;
       window.scrollTo(0, 0);
     }
   };
+  // the animal album, reachable from the hamster screen, with the hearts of every garden friend
+  document.getElementById("ham-album-btn").addEventListener("click", function () { if (window.SudokuAlbum) window.SudokuAlbum(); document.getElementById("ham-album").hidden = false; });
+  document.getElementById("ham-album-close").addEventListener("click", function () { document.getElementById("ham-album").hidden = true; });
+  document.getElementById("ham-album").addEventListener("click", function (e) { if (e.target.id === "ham-album") e.target.hidden = true; });
   window.HamsterApp = {
     exportState: exportState, importState: importState, mergeServer: mergeServer, onSolved: onSolved,
+    friendInfo: function () { return { friends: garden.friends || {}, visitors: VISIT.slice() }; },
     hasPending: function () { return !!home.pending; }, openPackageSoon: openPackageSoon,
     giftSVG: svgOf(PROPS.gift.svg, 24, 24), appleSVG: svgOf(A.apple, SZ.apple[0], SZ.apple[1]), seedSVG: function (id) { return svgOf(A["seed_" + id], 8, 10); },
     name: function () { return s.name; }
@@ -4530,18 +4551,24 @@ window.__EXTRAS = true;
     syncDirty = true; syncSoon();
   }
   var albumBtn = document.getElementById("album-btn"), albumPanel = document.getElementById("album");
-  function renderAlbum() {
+  function heartsHTML(h) {
+    var cur = h ? (h % 3 || 3) : 0, row = "";   // a full row right after a gift, then it starts again
+    for (var i = 0; i < 3; i++) row += '<i' + (i < cur ? "" : ' class="off"') + '>♥</i>';
+    return '<span class="hearts" aria-label="' + h + ' Herzen">' + row + '</span><span class="hcount">' + h + (h === 1 ? " Herz" : " Herzen") + (h >= 3 ? " · " + Math.floor(h / 3) + (h >= 6 ? " Geschenke" : " Geschenk") : "") + '</span>';
+  }
+  window.SudokuAlbum = function () { renderAlbum("ham-album-grid", "ham-album-count", window.HamsterApp && window.HamsterApp.friendInfo ? window.HamsterApp.friendInfo() : null); };
+  function renderAlbum(gridId, countId, fr) {
     var all = ANIMALS.map(function (a) { return { id: a.id, name: a.name, vb: a.vb, svg: a.svg }; })
       .concat([{ id: "snail", name: "Schnecke", vb: "0 0 30 22", svg: SNAIL_SVG }]);
     var n = all.filter(function (a) { return seen[a.id]; }).length;
-    document.getElementById("album-count").textContent = n + " von " + all.length + " entdeckt";
-    var grid = document.getElementById("album-grid");
+    document.getElementById(countId || "album-count").textContent = n + " von " + all.length + " entdeckt";
+    var grid = document.getElementById(gridId || "album-grid");
     grid.innerHTML = all.map(function (a, i) {
       var got = !!seen[a.id], snail = a.id === "snail";
       var pic = got ? '<svg viewBox="' + a.vb + '" aria-hidden="true">' + a.svg + '</svg>'
         : '<canvas data-i="' + i + '" width="' + (snail ? 11 : 10) + '" height="' + (snail ? 8 : 10) + '" aria-hidden="true"></canvas>';
       return '<div class="sticker' + (got ? "" : " locked") + (snail ? " snail" : "") + '">' + pic +
-        '<span>' + (got ? a.name.replace("Papageientaucher", "Papageien\u00adtaucher") : "???") + '</span></div>';
+        '<span>' + (got ? a.name.replace("Papageientaucher", "Papageien\u00adtaucher") : "???") + '</span>' + (fr && got && fr.visitors.indexOf(a.id) >= 0 ? heartsHTML(fr.friends[a.id] || 0) : "") + '</div>';
     }).join("");
     // undiscovered animals: draw the sprite into a tiny canvas and show it as a few big grey blocks
     grid.querySelectorAll("canvas").forEach(function (cv) {
