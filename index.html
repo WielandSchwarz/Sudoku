@@ -958,7 +958,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 31 · 30.10.2026</p>
+    <p class="opt-version">Version 32 · 30.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -2412,6 +2412,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     say(N() + " ist im Garten.");
     await walkTo(GSPOT.home.x, GSPOT.home.y);
     front({ eyes: "happy", mouth: "grin", paws: "up", blush: true }); pulse("bighop", 620); await wait(650);
+    // every trip outside starts with a visitor; after that the normal timer runs
+    setTimeout(function () { if (place2 === "garden" && !s.asleep) spawnVisitor(true); }, 800);
   }
   async function goInsideSeq() {
     if (place2 !== "garden") return;
