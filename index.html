@@ -768,7 +768,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 26 · 30.10.2026</p>
+    <p class="opt-version">Version 27 · 30.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -1611,7 +1611,6 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   function passHours(h) {
     STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
     if (home) trackHappy(h);
-    if (s.asleep && s.energy >= 100 && !busy) wake(false);
   }
   $id("d-hours").addEventListener("click", function () { passHours(3); say("Drei Stunden später …"); refresh(); });
   $id("d-solve").addEventListener("click", function () {
@@ -1889,7 +1888,6 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
   // decay without animations (used for the time the app was closed)
   function passHoursQuiet(h) {
     STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
-    if (s.asleep && s.energy >= 100) s.asleep = false;
   }
   function catchUpQuiet() {
     var now = Date.now(), h = Math.min(Math.max(0, (now - (s.t || now)) / 3600000), 24 * 30);
