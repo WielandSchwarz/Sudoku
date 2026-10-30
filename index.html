@@ -1461,7 +1461,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 38 · 30.10.2026</p>
+    <p class="opt-version">Version 39 · 30.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4663,7 +4663,7 @@ window.__EXTRAS = true;
   }
   var _h_sleepSeq3 = sleepSeq, sleepSpot = null;
   sleepSeq = async function () {
-    var spot = sleepSpot || (place2 === "bedroom" ? "bed" : "chair"); sleepSpot = null;
+    var spot = sleepSpot || (place2 === "bedroom" ? "bed" : "chair"); sleepSpot = null; home.sleepAt = spot;
     if (spot === "chair") { if (place2 === "bath" || place2 === "bedroom") await toRoom(); return _h_sleepSeq3(); }
     if (place2 !== "bedroom") { say(N() + " geht nach oben ins Schlafzimmer."); await toRoom(); await goBedroomSeq(); }
     await bedSleep();
@@ -4888,6 +4888,22 @@ window.__EXTRAS = true;
   var _h_openPop = openPop;
   openPop = function () { var sb = document.querySelector(".say-box.on"); if (sb) sb.classList.remove("on"); return _h_openPop.apply(this, arguments); };
 
+  // ---- reopening the app: the hamster sleeps where he was put to bed ----
+  function placeAsleepBed() {
+    stopZzz(); if (place2 !== "bedroom") showPlace("bedroom");
+    ham.classList.remove("in-chair"); fadeX(true); H.scale = 1; H.dir = -1;
+    inFront(bedFront, true); H.where = "bed"; moveTo(RSPOT.bed.x, RSPOT.bed.y, 0);
+    front({ eyes: "sleep", mouth: "flat", ears: "flat", blanket: 2, paws: "down", blush: true }); body("snooze");
+    startZzz(); syncButtons(); skyTime();
+  }
+  // leaves the bed without animation; with a target place it also goes there (returns true if it handled the placement)
+  function leaveBedNow(target) {
+    if (H.where !== "bed" && place2 !== "bedroom") { if (target && place2 !== target) showPlace(target); return false; }
+    inFront(bedFront, false);
+    if (target) { showPlace(target); H.where = "floor"; return false; }
+    stopZzz(); H.where = "floor"; H.scale = 1; moveTo(RSPOT.home.x, RSPOT.home.y, 0); front({ blanket: null }); settle(); syncButtons(); skyTime(); return true;
+  }
+
 
   
   // ===================== app mode: real time, saving, navigation, sudoku bridge =====================
@@ -4904,6 +4920,8 @@ window.__EXTRAS = true;
   }
   // put the hamster straight into his sleeping place (after loading a sleeping hamster)
   function placeAsleep() {
+    if (home.sleepAt === "bed" && typeof placeAsleepBed === "function") return placeAsleepBed();
+    if (typeof leaveBedNow === "function") leaveBedNow("room");
     var it = chairItem();
     if (it) { H.scale = CHAIR_S; var p = seatPos(it); moveTo(p.x, p.y, 0); ham.classList.add("in-chair"); H.where = "chair"; }
     else { H.scale = HS; moveTo(SPOT.home.x, SPOT.home.y - 2, 0); ham.classList.remove("in-chair"); H.where = "floor"; }
@@ -4912,6 +4930,7 @@ window.__EXTRAS = true;
     startZzz(); syncButtons(); skyTime();
   }
   function placeAwake() {
+    if (typeof leaveBedNow === "function" && leaveBedNow(null)) return;
     stopZzz(); ham.classList.remove("in-chair"); H.where = "floor"; H.scale = HS; moveTo(SPOT.home.x, SPOT.home.y, 0); settle(); syncButtons(); skyTime();
   }
   function chairCls(cls, on) { [slotEl("chair"), document.getElementById("slot-chair-front")].forEach(function (el) { el.classList.toggle(cls, on); }); }
@@ -4930,7 +4949,7 @@ window.__EXTRAS = true;
   function exportState() {
     catchUpQuiet();
     return { v: 1, name: s.name, born: s.born, t: s.t, food: Math.round(s.food * 10) / 10, energy: Math.round(s.energy * 10) / 10, love: Math.round(s.love * 10) / 10, fun: Math.round(s.fun * 10) / 10,
-      asleep: !!s.asleep, treats: s.treats, owned: home.owned, placed: home.placed, pending: home.pending, pos: home.pos, scarf: home.scarf, kitchen: home.kitchen, bedroom: home.bedroom, houseStyle: home.houseStyle, canopy: home.canopy,
+      asleep: !!s.asleep, treats: s.treats, owned: home.owned, placed: home.placed, pending: home.pending, pos: home.pos, scarf: home.scarf, kitchen: home.kitchen, bedroom: home.bedroom, houseStyle: home.houseStyle, canopy: home.canopy, sleepAt: home.sleepAt === "bed" ? "bed" : "chair",
       garden: { plots: garden.plots, seeds: garden.seeds, harvest: garden.harvest, snow: garden.snow, snowLv: garden.snowLv, snowSeen: !!garden.snowSeen, lastVisit: garden.lastVisit || 0, t: garden.t, friends: garden.friends || {}, advent: garden.advent, easter: garden.easter, xmas: garden.xmas } };
   }
   function importState(o) {
@@ -4947,6 +4966,7 @@ window.__EXTRAS = true;
     if (o.scarf) home.scarf = o.scarf;
     if (o.bedroom && typeof o.bedroom === "object" && home.bedroom) { for (var bk in o.bedroom) if (typeof o.bedroom[bk] === "number") home.bedroom[bk] = o.bedroom[bk]; if (typeof renderBedroomArt === "function") renderBedroomArt(); }
     if (typeof o.houseStyle === "number") home.houseStyle = o.houseStyle;
+    home.sleepAt = o.sleepAt === "bed" ? "bed" : "chair";
     if (typeof o.canopy === "number") { home.canopy = o.canopy; if (typeof renderBedroomArt === "function") renderBedroomArt(); }
     if (o.kitchen && typeof o.kitchen === "object") { for (var kk in o.kitchen) if (typeof o.kitchen[kk] === "number") home.kitchen[kk] = o.kitchen[kk]; if (typeof renderKitchenArt === "function") renderKitchenArt(); }
     if (o.garden && typeof o.garden === "object") {
@@ -4991,7 +5011,7 @@ window.__EXTRAS = true;
   // save whenever something that matters changed (needs are compared in steps of 5)
   function sig() {
     var plots = garden.plots.map(function (p) { return p ? [p.crop, stage(p), p.wetUntil > Date.now()] : null; });
-    return JSON.stringify([s.name, s.treats, s.asleep, Math.round(s.food / 5), Math.round(s.energy / 5), Math.round(s.love / 5), Math.round(s.fun / 5), home.owned, home.placed, home.pending, home.pos, home.scarf, home.kitchen, home.bedroom, home.houseStyle, home.canopy, plots, garden.seeds, garden.harvest, garden.snowLv, garden.snow, garden.lastVisit, garden.friends, garden.advent, garden.easter, garden.xmas]);
+    return JSON.stringify([s.name, s.treats, s.asleep, Math.round(s.food / 5), Math.round(s.energy / 5), Math.round(s.love / 5), Math.round(s.fun / 5), home.owned, home.placed, home.pending, home.pos, home.scarf, home.kitchen, home.bedroom, home.houseStyle, home.canopy, home.sleepAt, plots, garden.seeds, garden.harvest, garden.snowLv, garden.snow, garden.lastVisit, garden.friends, garden.advent, garden.easter, garden.xmas]);
   }
   var lastSig = null;
   function persistNow() { lastSig = sig(); if (window.SudokuSave) window.SudokuSave(); }
