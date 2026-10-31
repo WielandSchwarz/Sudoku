@@ -1769,6 +1769,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .k-dish2 { position: absolute; bottom: 0; }
 #ham-root .k-dish2 svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
 #ham-root #slot-shelf { pointer-events: auto; }
+#ham-root .lf-paper .lf-ps { font-style: italic; color: #8a6a4a; font-size: 0.8rem; }
 #ham-root #scr-hamster, #ham-root #scr-hamster button, #ham-root #scr-hamster input, #ham-root .ham-album, #ham-root .ham-album button, #ham-root .map-ov, #ham-root .map-card, #ham-root .map-card button, #ham-root #scene .gpop, #ham-root #scene .l-pop, #ham-root #scene .f-card, #ham-root #scene .say-box, #ham-root .pz-ui, #ham-root .l-recipes { font-family: "HamPix", system-ui, sans-serif !important; letter-spacing: 0; }
 #ham-root #scr-hamster > .top { gap: 8px; align-items: center; }
 #ham-root #scr-hamster > .top > div:first-child { min-width: 0; flex: 1; }
@@ -2081,7 +2082,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 50 · 31.10.2026</p>
+    <p class="opt-version">Version 51 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -6957,12 +6958,42 @@ window.__EXTRAS = true;
   }
   // letters only come from friends: animals with at least three hearts
   function friendIds() { return Object.keys(garden.friends || {}).filter(function (k) { return ALLANI[k] && garden.friends[k] >= 3; }); }
+  // ---- letter writing: friends write personal letters with good presents, new animals introduce themselves ----
+  var LOPEN = [
+    ["ich musste heute an dich denken.", "seit meinem letzten Besuch frage ich mich, was in deinem Garten alles wächst.", "ich hoffe, dir geht es gut."],
+    ["es ist schön, dass wir uns so gut verstehen.", "bei dir fühle ich mich jedes Mal wie zu Hause.", "ich erzähle allen hier von unseren Nachmittagen."],
+    ["du bist mir richtig ans Herz gewachsen.", "so gute Freunde wie uns gibt es nicht oft.", "ohne unsere Besuche wäre mein Jahr nur halb so schön."]
+  ];
+  var LSEASON = {
+    spring: "Bei mir blüht gerade alles, und morgens singen die Vögel um die Wette.",
+    summer: "Es ist so warm, dass ich mittags nur noch im Schatten liege.",
+    autumn: "Die Blätter werden bunt, und ich sammle schon fleißig für den Winter.",
+    winter: "Draußen liegt Schnee, und ich kuschle mich abends warm ein."
+  };
+  var LSIGN = ["Bis bald", "Alles Liebe", "Ganz herzliche Grüße", "Ich freu mich auf dich"];
+  function cropNow() { var p = (garden.plots || []).filter(function (x) { return x && CROPS[x.crop]; })[0]; return p ? CROPS[p.crop].name : null; }
+  function friendGift() {
+    var r = Math.random(), crops = Object.keys(CROPS).filter(function (c) { return c !== "chili"; });
+    if (r < 0.3) return { t: "gift", txt: "Und weil du mir so viel bedeutest, kommt bald ein Paket mit etwas Schönem für dein Zuhause!" };
+    if (r < 0.55) return { t: "apples", n: 4, txt: "Im Umschlag stecken vier saftige Äpfel, extra für dich ausgesucht." };
+    if (r < 0.75) return { t: "seed", k: "chili", n: 3, txt: "Ich lege dir drei Chili-Samen bei. Die sind selten, am besten wachsen sie im Gewächshaus." };
+    var k = pick(["pumpkin", "sunflower", "tomato", "strawberry"].filter(function (c) { return CROPS[c]; }).concat(crops.slice(0, 1)));
+    return { t: "seed", k: k, n: 4, txt: "Ich habe dir vier Tütchen " + CROPS[k].name + "-Samen eingepackt, meine liebste Sorte." };
+  }
   function makeLetter(from, kind) {
-    if (!from) { var friends = friendIds(); if (!friends.length) return null; from = pick(friends); }
-    var gift = JSON.parse(JSON.stringify(pick(LGIFT)));
-    if (kind === "friend") return { from: from, friend: true, body: "jetzt sind wir richtig befreundet! Ich freue mich schon auf unseren nächsten Nachmittag zusammen. Ab und zu schreibe ich dir ab jetzt einen Brief.", gift: { t: "seeds", k: pick(Object.keys(CROPS).filter(function (c) { return c !== "chili"; })), n: 2 } };
-    if (gift.t === "seeds") { gift.k = pick(Object.keys(CROPS).filter(function (c) { return c !== "chili"; })); gift.txt = "Ich habe dir zwei Tütchen " + CROPS[gift.k].name + "-Samen eingepackt."; }
-    return { from: from, body: pick(LBODY), gift: gift };
+    var lines = (GLINES[from] || PLINES[from] || []);
+    if (kind === "hello") {
+      return { from: from, hello: "Hallo " + N() + ",", sign: "Viele Grüße",
+        body: "ich wohne noch nicht lange hier in der Gegend und habe schon viel von dir gehört. Vielleicht komme ich bald mal im Garten oder am See vorbei. Ich würde mich freuen, dich kennenzulernen!" + (lines.length ? " Übrigens: " + lines[0] : ""),
+        gift: { t: "seeds", k: pick(Object.keys(CROPS).filter(function (c) { return c !== "chili"; })), n: 2 } };
+    }
+    if (!from) { var friends = friendIds(); if (!friends.length) return null; from = pick(friends); lines = (GLINES[from] || PLINES[from] || []); }
+    var h = garden.friends[from] || 0, tier = h >= 9 ? 2 : h >= 6 ? 1 : 0, crop = cropNow();
+    var parts = [pick(LOPEN[tier])];
+    parts.push(pick([LSEASON[season()], crop ? "Wächst " + crop + " in deinem Beet schon gut? Ich bin gespannt auf die Ernte." : "Hast du schon etwas Neues in deinem Beet gepflanzt?", "Ich war jetzt schon " + h + "-mal bei dir zu Besuch, und jedes Mal war es schön."]));
+    if (tier >= 1) parts.push(pick(["Pass gut auf dich auf, ja?", "Schreib mir mal, wie es " + N() + " so geht. Ach so, das bist ja du!", "Ich komme bald wieder vorbei, versprochen."]));
+    var ps = lines.length ? pick(lines) : "";
+    return { from: from, hello: pick(["Hallo ", "Hey ", "Huhu "]) + N() + ",", sign: pick(LSIGN), body: parts.join(" "), ps: ps, gift: friendGift() };
   }
   function grantLetter(l) {
     var r = l.gift || { t: "none" }, got = "", icon = "";
@@ -6978,12 +7009,12 @@ window.__EXTRAS = true;
     var l = makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
     var L = life(); L.lastLetter = Date.now();
     var an = ALLANI[l.from], fromLeft = Math.random() < 0.5;
-    if (l.friend && l.gift.t === "seeds") l.gift.txt = "Als kleines Freundschaftsgeschenk lege ich dir zwei Tütchen " + CROPS[l.gift.k].name + "-Samen bei.";
+    if (l.gift && l.gift.t === "seeds" && !l.gift.txt) l.gift.txt = "Als kleine Begrüßung lege ich dir zwei Tütchen " + CROPS[l.gift.k].name + "-Samen bei.";
     letterOn = true; letterEl.hidden = false; letterEl.className = "l-fly " + (fromLeft ? "from-l" : "from-r");
     letterEl.innerHTML = '<div class="lf-dim"></div><div class="lf-env"><div class="lf-flap"><svg viewBox="0 0 30 10" aria-hidden="true" shape-rendering="crispEdges">' + FLAP + '</svg></div>' +
       '<svg class="lf-body" viewBox="0 0 30 20" aria-hidden="true" shape-rendering="crispEdges">' + ENV0 + '</svg></div>' +
       '<div class="lf-paper pixtext"><div class="lf-fold"></div><div class="l-lhead"><span class="l-lpic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><b>Post von ' + ANAME[l.from] + '</b></div>' +
-      '<p>Hallo ' + N() + ',</p><p>' + l.body + '</p><div class="lf-gift"></div><p class="l-lsign">Viele Grüße<br>' + ANAME[l.from] + '</p>' +
+      '<p>' + (l.hello || "Hallo " + N() + ",") + '</p><p>' + l.body + '</p>' + (l.ps ? '<p class="lf-ps">P.S. ' + l.ps + '</p>' : "") + '<div class="lf-gift"></div><p class="l-lsign">' + (l.sign || "Viele Grüße") + '<br>' + ANAME[l.from] + '</p>' +
       '<div class="l-lbtns"><button type="button" class="pbtn" data-a="ok">' + (l.gift.t !== "none" ? "Danke!" : "Schön!") + '</button></div></div>';
     beep([[880, .05], [660, .05]]);
     front({ eyes: "wide", mouth: "open", paws: "up" });
@@ -7010,18 +7041,21 @@ window.__EXTRAS = true;
   letterEl.addEventListener("click", function (e) { if (e.target.closest("[data-a=ok]") || (letterEl.classList.contains("unfold") && e.target.classList.contains("lf-dim"))) closeLetter(); });
   // a letter every few hours of play, only when you are looking at the hamster
   // a new friend writes right away, but only once the hamster screen is open and nothing else is in the way
-  var _lt_addHeart = addHeart;
-  addHeart = function (id, extra) {
-    var before = garden.friends[id] || 0; _lt_addHeart(id, extra);
-    if (before < 3 && (garden.friends[id] || 0) >= 3 && ALLANI[id]) { var L = life(); L.letterQ = L.letterQ || []; if (L.letterQ.indexOf(id) < 0) L.letterQ.push(id); if (window.SudokuSave) window.SudokuSave(); }
-  };
+  function queueHello(id) { var L = life(); L.letterQ = L.letterQ || []; if (L.letterQ.indexOf(id) < 0 && ALLANI[id]) L.letterQ.push(id); if (window.SudokuSave) window.SudokuSave(); }
+  // watch the album: every animal that is newly unlocked writes a short hello
+  setInterval(function () {
+    if (!window.HamsterSeen || !s.name) return;
+    var seen = window.HamsterSeen() || {}, L = life();
+    if (!L.knownSeen) { L.knownSeen = Object.keys(seen); return; }   // first run: no flood of letters for animals you already had
+    Object.keys(seen).forEach(function (id) { if (L.knownSeen.indexOf(id) < 0) { L.knownSeen.push(id); queueHello(id); } });
+  }, 1500);
   var okSince = 0;
   setInterval(function () {
     var L = life(); if (!s.name || !L.letterQ || !L.letterQ.length) { okSince = 0; return; }
     if (!letterOk() || busy && cur === "visit") { okSince = 0; return; }
     if (!okSince) { okSince = Date.now(); return; }
     if (Date.now() - okSince < 4000) return;   // the screen has been open for a moment: now it can arrive
-    var id = L.letterQ.shift(); okSince = 0; letterArrives(false, id, "friend");
+    var id = L.letterQ.shift(); okSince = 0; letterArrives(false, id, "hello");
   }, 700);
   setInterval(function () {
     var L = life(); if (!s.name || Date.now() - (L.lastLetter || 0) < 6 * 3600000) return;
@@ -7240,6 +7274,7 @@ window.__EXTRAS = true;
     var dh = $id("d-hours"), box = dh && dh.parentNode;
     if (!box) return;
     [["l-d-letter", "Brief bekommen", function () { letterArrives(true); }],
+      ["l-d-hello", "Neues Tier entdeckt", function () { var ids = Object.keys(ALLANI).filter(function (k) { return ANAME[k]; }); queueHello(pick(ids)); say("Ein neues Tier ist entdeckt. Gleich kommt Post."); }],
       ["l-d-pond", "Zum Teich", function () { if (busy) interrupt(); act("travel", function () { return travelTo("pond"); }); }]
     ].forEach(function (d) { var b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.id = d[0]; b.textContent = d[1]; b.addEventListener("click", d[2]); box.appendChild(b); });
   })();
