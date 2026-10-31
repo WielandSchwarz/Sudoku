@@ -86,7 +86,7 @@ h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.9rem; margin:
 }
 .tool svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tool[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-fg); }
-.tool .state { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
+.tool .state { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
 
 .pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; }
 .key {
@@ -101,8 +101,8 @@ button:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
 
 .status { min-height: 1.4em; font-size: 0.9rem; color: var(--muted); text-align: center; }
 .status.win { color: var(--ok); font-weight: 600; }
-.help { font-size: 0.78rem; color: var(--muted); line-height: 1.5; margin: 0; }
-kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-radius: 4px; background: var(--chip); }
+.help { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin: 0; }
+kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-radius: 4px; background: var(--chip); }
 @media (hover: none) { .help { display: none; } }
 
 [hidden] { display: none !important; }
@@ -1319,7 +1319,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .w-tile { position: relative; aspect-ratio: 1; border: 0; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 2px var(--rule), 0 3px 0 var(--rule); color: var(--ink); font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0; transition: transform .08s; -webkit-tap-highlight-color: transparent; }
 #ham-root .w-tile:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 0 0 2px var(--orange), 0 1px 0 var(--rule); }
 #ham-root .w-tile .w-l { font-size: 2.3rem; font-weight: 800; line-height: 1; }
-#ham-root .w-tile .w-v { position: absolute; right: 9px; top: 7px; font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+#ham-root .w-tile .w-v { position: absolute; right: 9px; top: 7px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
 #ham-root .w-tile .w-dots { display: flex; gap: 3px; height: 8px; align-items: center; }
 #ham-root .w-tile .w-dots i { width: 7px; height: 7px; border-radius: 50%; background: #eadccd; }
 #ham-root .w-tile .w-dots i.on { background: var(--orange); }
@@ -1613,7 +1613,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 @keyframes h-l-tw { 0%, 100% { opacity: 1; } 30% { opacity: .25; } 55% { opacity: .9; } 70% { opacity: .5; } }
 #ham-root .l-stars { position: absolute; inset: 0; pointer-events: none; }
 #ham-root .l-stars-lake { left: 34%; }
-#ham-root .pixtext, #ham-root .pixtext * { font-family: "HamPix", var(--f-body, system-ui), sans-serif !important; letter-spacing: .02em; }
+#ham-root .pixtext, #ham-root .pixtext * { font-family: var(--f-body, system-ui), sans-serif !important; letter-spacing: .02em; }
 #ham-root .pixtext b, #ham-root .pixtext h2 { font-weight: 700 !important; }
 #ham-root .l-letter.pixtext { font-size: 0.86rem; line-height: 1.45; background-image: repeating-linear-gradient(#fff8ec 0 19px, #f0e2cc 19px 20px); }
 #ham-root .l-letter .l-lhead b { font-size: 0.95rem; }
@@ -1814,7 +1814,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 @keyframes h-ip-emerge { 0% { transform: translate(-50%, 60%) scale(.3); opacity: 0; } 60% { transform: translate(-50%, -8%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, 0) scale(1); } }
 @media (prefers-reduced-motion: reduce) {#ham-root .ip, #ham-root .ip * { animation-duration: .01s !important; animation-iteration-count: 1 !important; }}
 #ham-root #scene:has(.ip) .say-box, #ham-root #scene:has(.ip) .f-card { visibility: hidden !important; }
-#ham-root #scr-hamster, #ham-root #scr-hamster button, #ham-root #scr-hamster input, #ham-root .ham-album, #ham-root .ham-album button, #ham-root .map-ov, #ham-root .map-card, #ham-root .map-card button, #ham-root #scene .gpop, #ham-root #scene .l-pop, #ham-root #scene .f-card, #ham-root #scene .say-box, #ham-root .pz-ui, #ham-root .l-recipes { font-family: "HamPix", system-ui, sans-serif !important; letter-spacing: 0; }
+#ham-root #scr-hamster, #ham-root #scr-hamster button, #ham-root #scr-hamster input, #ham-root .ham-album, #ham-root .ham-album button, #ham-root .map-ov, #ham-root .map-card, #ham-root .map-card button, #ham-root #scene .gpop, #ham-root #scene .l-pop, #ham-root #scene .f-card, #ham-root #scene .say-box, #ham-root .pz-ui, #ham-root .l-recipes { font-family: system-ui, sans-serif !important; letter-spacing: 0; }
 #ham-root #scr-hamster > .top { gap: 8px; align-items: center; }
 #ham-root #scr-hamster > .top > div:first-child { min-width: 0; flex: 1; }
 #ham-root #scr-hamster > .top h1 { font-size: 1.55rem; font-weight: 700; line-height: 1.05; margin: 0; }
@@ -1874,15 +1874,15 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root #scene .seedrow { font-size: 0.78rem !important; padding: 4px 6px 6px !important; min-height: 0 !important; gap: 5px !important; }
 #ham-root #scene .seedrow svg { width: 10px !important; height: auto; }
 #ham-root #scene .seedrow[disabled] { opacity: .45; box-shadow: inset 0 0 0 2px #c8b49a !important; }
-#ham-root #scene .pbtn { font-family: "HamPix", system-ui, sans-serif !important; }
+#ham-root #scene .pbtn { font-family: system-ui, sans-serif !important; }
 #ham-root .pz-switch { font-size: 0.78rem !important; }
 #ham-root #scene .f-card { border-radius: 0 !important; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414 !important; border: 0 !important; }
 #ham-root #scene .f-card .fc-name { font-size: 0.82rem !important; }
 #ham-root #scene .f-card .fc-btn { font-family: inherit !important; font-size: 0.8rem !important; border-radius: 0 !important; }
-#ham-root #scene .sign .t { font-family: "HamPix", system-ui, sans-serif !important; font-weight: 400 !important; }
+#ham-root #scene .sign .t { font-family: system-ui, sans-serif !important; font-weight: 400 !important; }
 #ham-root #scene .sign .bar { border-radius: 0 !important; height: 4px !important; }
 #ham-root .ham-album-card, #ham-root .map-card { border-radius: 0 !important; background: #fdf3e2 !important; box-shadow: 0 0 0 3px #3a2414, 0 6px 0 3px #3a2414 !important; }
-#ham-root .ham-album-top h2, #ham-root .map-card h2 { font-family: "HamPix", system-ui, sans-serif !important; font-size: 1.35rem !important; font-weight: 700; }
+#ham-root .ham-album-top h2, #ham-root .map-card h2 { font-family: system-ui, sans-serif !important; font-size: 1.35rem !important; font-weight: 700; }
 #ham-root .ham-album-sub, #ham-root .map-card p { font-size: 0.85rem !important; }
 #ham-root .ham-album .close, #ham-root .map-card .close { width: 34px !important; height: 34px !important; display: grid; place-items: center; font-size: 1.1rem !important; padding: 0 !important; }
 #ham-root .album-grid .sticker { border-radius: 0 !important; box-shadow: inset 0 0 0 2px #e6d4ba !important; background: #fff8ec !important; }
@@ -1891,7 +1891,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .map-card .map-pic, #ham-root .map-card .map-track { border-radius: 0 !important; }
 #ham-root .map-card .map-pic { box-shadow: 0 0 0 2px #3a2414 !important; }
 #ham-root .map-card button.style, #ham-root .map-card .hs-btn { font-size: 0.72rem !important; }
-#ham-root #scr-hamster > .top h1, #ham-root #scr-hamster > .top h1 button { font-family: "HamPix", system-ui, sans-serif !important; }
+#ham-root #scr-hamster > .top h1, #ham-root #scr-hamster > .top h1 button { font-family: system-ui, sans-serif !important; }
 #ham-root #scr-hamster > .top .age, #ham-root #scr-hamster > .top p { white-space: normal !important; overflow: visible; line-height: 1.15; }
 #ham-root #scene .gpop.seeds { top: 4% !important; bottom: auto !important; left: 13% !important; right: auto !important; transform: none !important; }
 #ham-root .gift-ask { position: absolute; inset: 0; z-index: 900; background: rgba(43, 29, 18, .35); display: flex; align-items: center; justify-content: center; }
@@ -1901,7 +1901,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .gift-ask .ga-ic svg { width: 28px; height: auto; shape-rendering: crispEdges; }
 #ham-root .gift-ask .ga-ic { margin: 0 0 4px; }
 #ham-root .gift-ask .ga-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
-#ham-root .gift-ask button { font-family: "HamPix", system-ui, sans-serif !important; border: 0; border-radius: 0; background: #fff8ec; color: #3a2414; cursor: pointer;
+#ham-root .gift-ask button { font-family: system-ui, sans-serif !important; border: 0; border-radius: 0; background: #fff8ec; color: #3a2414; cursor: pointer;
   box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4; padding: 6px 4px 8px; font-size: 0.75rem; }
 #ham-root .gift-ask .ga-grid button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 #ham-root .gift-ask .ga-grid svg { height: 20px; width: auto; shape-rendering: crispEdges; }
@@ -1953,6 +1953,19 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .pz-tip { left: 50% !important; right: auto !important; top: calc(3% + 42px) !important; transform: translateX(-50%); width: max-content; max-width: 90%; }
 #ham-root .pz-tip br { display: none; }
 #ham-root .ip-banner b { font-size: inherit !important; font-weight: 600 !important; }
+#ham-root .cook-pov .pov-ring, #ham-root .bee-pov .bp-bar { left: 50% !important; right: auto !important; bottom: 4% !important; transform: translateX(-50%); width: 44.44% !important; height: auto !important; aspect-ratio: 80 / 10;
+  padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; overflow: visible; }
+#ham-root .cook-pov .pov-ring i, #ham-root .bee-pov .bp-bar i { display: none !important; }
+#ham-root #scene .gpop .g2-bar, #ham-root #scene .l-pop .g2-bar { display: block; width: 100%; height: auto; aspect-ratio: 50 / 10; padding: 0; background: none; box-shadow: none; }
+#ham-root #scr-hamster, #ham-root #scr-hamster *, #ham-root #scene, #ham-root #scene *, #ham-root .gift-ask, #ham-root .gift-ask *, #ham-root .lf-paper, #ham-root .lf-paper *, #ham-root .ip, #ham-root .ip *, #ham-root .map-card, #ham-root .map-card *, #ham-root .ham-album, #ham-root .ham-album * { font-family: var(--f-ui, system-ui), -apple-system, "Segoe UI", Roboto, sans-serif !important; }
+#ham-root #scr-hamster h1, #ham-root #scr-hamster h2, #ham-root #scr-hamster #ham-name, #ham-root .map-card h2, #ham-root .ham-album h2 { font-family: var(--f-display, Georgia), Georgia, serif !important; }
+#ham-root .map-style { font-size: 0.75rem !important; hyphens: auto; }
+#ham-root #scr-hamster .catalog .item, #ham-root #scr-hamster .catalog .item span, #ham-root #scr-hamster .catalog .item small { font-size: 0.78rem !important; }
+#ham-root .gift-ask .ga-s { font-size: 0.82rem !important; }
+#ham-root #scene .gpop .seedrow { font-size: 0.82rem !important; min-height: 30px; }
+#ham-root #scene .gpop .seedrow svg { width: 13px; }
+#ham-root #scene .gpop .pn, #ham-root #scene .l-pop .pn { display: none !important; }
+#ham-root #scene .gpop, #ham-root #scene .l-pop { font-size: 0.8rem; }
 #ham-root .cook-pov { font-family: system-ui, -apple-system, sans-serif; }
 #ham-root .cook-pov .pov-head { left: 0; right: 0; top: 0; padding: 0; background: none; border: 0; border-radius: 0; gap: 0; display: block; pointer-events: none; }
 #ham-root .cook-pov .pov-head b { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); margin-top: 6px; background: #fff8ec; color: #3a2414; font-size: 0.9rem; font-weight: 400; padding: 3px 10px; white-space: nowrap; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; }
@@ -2282,7 +2295,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 61 · 31.10.2026</p>
+    <p class="opt-version">Version 62 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4418,21 +4431,36 @@ window.__EXTRAS = true;
     svgEl.onclick = svgEl.onpointerdown = svgEl.onpointermove = svgEl.onpointerup = null;
     svgEl.classList.remove("fade"); void svgEl.offsetWidth; svgEl.classList.add("fade");
   }
+  // one pixel progress bar for every minigame and info card: dark frame with stepped corners, honey blocks with a light and a dark edge
+  function pixBarSvg(f, w) {
+    w = w || 80; f = Math.max(0, Math.min(1, f || 0)); var H_ = 10, o = "", n = Math.floor((w - 5) / 5), on = Math.round(f * n);
+    function r(x, y, ww, hh, c) { o += '<rect x="' + x + '" y="' + y + '" width="' + ww + '" height="' + hh + '" fill="' + c + '"/>'; }
+    r(1, 0, w - 2, 1, "#3a2414"); r(1, H_ - 1, w - 2, 1, "#3a2414"); r(0, 1, 1, H_ - 2, "#3a2414"); r(w - 1, 1, 1, H_ - 2, "#3a2414");
+    r(1, 1, w - 2, H_ - 2, "#fff8ec"); r(1, H_ - 2, w - 2, 1, "#ecdcc4");
+    for (var i = 0; i < n; i++) {
+      var x = 3 + i * 5;
+      if (i < on) { r(x, 3, 4, 4, "#f0a51e"); r(x, 3, 4, 1, "#ffd25a"); r(x, 6, 4, 1, "#c97a10"); r(x + 3, 4, 1, 2, "#e08a10"); }
+      else r(x, 3, 4, 4, "#efe2cc");
+    }
+    return '<svg viewBox="0 0 ' + w + ' ' + H_ + '" shape-rendering="crispEdges" aria-hidden="true" style="width:100%;height:100%;display:block">' + o + '</svg>';
+  }
+  function setPixBar(el, f) { if (el) el.innerHTML = pixBarSvg(f, 80); }
   // the spoon comes from below the view and dips into the soup: rings in the liquid where it goes in
   function drawSpoon(ang) {
-    var G0 = geo(), tx = Math.round(G0.x + Math.cos(ang) * G0.rx), ty = Math.round(G0.y + Math.sin(ang) * G0.ry), hx = Math.round(100 + (tx - 100) * 0.5), hy = 142, o = "";
+    var G0 = geo(), tx = Math.round(G0.x + Math.cos(ang) * G0.rx), ty = Math.round(G0.y + Math.sin(ang) * G0.ry), hx = Math.round(100 + (tx - 100) * 0.5), hy = 142, dark = "", wood = "", lite = "", top = "";
+    function px(x, y, w, h, c) { return '<rect x="' + Math.round(x) + '" y="' + Math.round(y) + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'; }
+    function ell(cx, cy, rx, ry, c, ring) { var o = ""; for (var y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (var x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) { var d = Math.pow((x + .5 - cx) / rx, 2) + Math.pow((y + .5 - cy) / ry, 2); if (ring ? (d <= 1 && d > .62) : d <= 1) o += px(x, y, 1, 1, c); } return o; }
     if (liqCol) {
       var hi = mix(liqCol, "#ffffff", 0.45), lo = mix(liqCol, "#000000", 0.25);
-      o += '<ellipse cx="' + (tx + (POT.x - tx) * 0.12) + '" cy="' + (ty - 4) + '" rx="7" ry="3" fill="' + lo + '" opacity=".55"/>';
-      o += '<ellipse cx="' + tx + '" cy="' + ty + '" rx="11" ry="4.5" fill="none" stroke="' + hi + '" stroke-width="1" opacity=".5"/>';
-      o += '<ellipse cx="' + tx + '" cy="' + ty + '" rx="6.5" ry="2.6" fill="none" stroke="' + hi + '" stroke-width="1.2"/>';
-    } else {
-      o += '<ellipse cx="' + tx + '" cy="' + (ty - 3) + '" rx="6" ry="4" fill="#c8945a" stroke="#3a2414" stroke-width="1"/><ellipse cx="' + (tx - 1.5) + '" cy="' + (ty - 4) + '" rx="2" ry="1.2" fill="#dcae72"/>';
+      top += ell(tx + (POT.x - tx) * 0.12, ty - 3, 6, 2.6, lo) + ell(tx, ty, 11, 4.5, hi, true) + ell(tx, ty, 6.5, 2.8, hi, true);
+    } else top += ell(tx, ty - 3, 6.5, 4.5, "#3a2414") + ell(tx, ty - 3, 5.5, 3.5, "#c8945a") + ell(tx - 2, ty - 4.5, 2, 1.2, "#dcae72");
+    var n = Math.max(Math.abs(tx - hx), Math.abs(ty - hy));                        // handle: a 3-pixel wooden stick with a 1-pixel outline
+    for (var i = 0; i <= n; i++) {
+      var t = n ? i / n : 0, x = Math.round(hx + (tx - hx) * t), y = Math.round(hy + (ty - hy) * t);
+      dark += px(x - 2, y - 2, 5, 5, "#3a2414"); wood += px(x - 1, y - 1, 3, 3, "#c8945a"); lite += px(x - 1, y - 1, 1, 1, "#dcae72");
+      if (i % 9 === 4) lite += px(x + 1, y, 1, 1, "#9a6a3e");
     }
-    o += '<line x1="' + hx + '" y1="' + hy + '" x2="' + tx + '" y2="' + ty + '" stroke="#3a2414" stroke-width="5"/>' +
-      '<line x1="' + hx + '" y1="' + hy + '" x2="' + tx + '" y2="' + ty + '" stroke="#c8945a" stroke-width="3"/>' +
-      '<line x1="' + (hx - 0.8) + '" y1="' + hy + '" x2="' + (tx - 0.8) + '" y2="' + ty + '" stroke="#dcae72" stroke-width="1"/>';
-    $p("pov-tool").innerHTML = o;
+    $p("pov-tool").innerHTML = dark + wood + lite + top;
   }
   function renderFloat(t) {
     if (view !== "pot" && view !== "bowl") return;
@@ -4468,7 +4496,7 @@ window.__EXTRAS = true;
       for (var k in R.need) for (var n = 0; n < R.need[k]; n++) items.push(k);
       floaters = []; setLiquid(null); pov.hidden = false; $p("pov-done").hidden = true;
       function head(i, txt) { var nm = { cut: "Schneiden", add: "Zutaten rein", stir: "Umrühren", heat: "Erhitzen", mash: "Zerdrücken", knead: "Kneten", bake: "Backen" }[plan[i][0]] || "Verzieren"; $p("pov-step").textContent = (i + 1) + " · " + nm; $p("pov-text").textContent = txt; pov.classList.toggle("c2-gauge", plan[i][0] === "heat"); }
-      function bar(f) { $p("pov-ringbar").style.width = Math.min(100, f * 100) + "%"; }
+      function bar(f) { setPixBar($p("pov-ring"), f); }
       // ---- step: cut every ingredient that needs it on the board, in its own view ----
       function stepCut(i) {
         var list = items.filter(function (k) { return CUTS[k]; });
@@ -8407,7 +8435,7 @@ window.__EXTRAS = true;
     if (decor || !p || stage(p) === 3) return _g2_tap(i);
     var wet = p.wetUntil > Date.now(), ic = svgOf(A["f_" + p.crop], SZ["f_" + p.crop][0], SZ["f_" + p.crop][1]);
     openPop('<p class="g2-name">' + ic + '<span>' + CROPS[p.crop].name + '</span></p>' +
-      '<span class="g2-bar"><i style="width:' + Math.round(p.prog * 100) + '%"></i></span>' +
+      '<span class="g2-bar">' + pixBarSvg(p.prog, 50) + '</span>' +
       '<p class="g2-time">Noch ' + fmtH(hoursLeft(p)) + (wet ? '<i class="g2-drop" title="Gegossen"></i>' : "") + '</p>' +
       (wet ? "" : '<button type="button" class="pbtn" data-a="water">Gießen</button>'), plotX(i), GL.bed.bottom - 20, "g2-info").addEventListener("click", function (e) {
       if (!e.target.closest('[data-a="water"]')) return; closePop();
@@ -8444,7 +8472,7 @@ window.__EXTRAS = true;
     var p = life().gh[+b.dataset.i]; if (!p || stage(p) === 3) return;
     e.stopImmediatePropagation();
     var ic = A["f_" + p.crop] ? svgOf(A["f_" + p.crop], SZ["f_" + p.crop][0], SZ["f_" + p.crop][1]) : "";
-    openLPop(ghEl, '<p class="g2-name">' + ic + '<span>' + CROPS[p.crop].name + '</span></p><span class="g2-bar"><i style="width:' + Math.round(p.prog * 100) + '%"></i></span><p class="g2-time">Noch ' + fmtH((1 - p.prog) * CROPS[p.crop].hours) + '</p>', GHX[+b.dataset.i], 48, "g2-info");
+    openLPop(ghEl, '<p class="g2-name">' + ic + '<span>' + CROPS[p.crop].name + '</span></p><span class="g2-bar">' + pixBarSvg(p.prog, 50) + '</span><p class="g2-time">Noch ' + fmtH((1 - p.prog) * CROPS[p.crop].hours) + '</p>', GHX[+b.dataset.i], 48, "g2-info");
   }, true);
   async function sprayAll() {
     var L = life(), todo = [];
@@ -8505,7 +8533,7 @@ window.__EXTRAS = true;
     e.stopPropagation();
     if (!hiveReady()) {
       var pr = 1 - hiveLeft() / HIVE_H;
-      openPop('<p class="g2-name">' + svgOf(A.honey_s, 9, 11) + '<span>Honig</span></p><span class="g2-bar"><i style="width:' + Math.round(pr * 100) + '%"></i></span><p class="g2-time">Noch ' + fmtH(hiveLeft()) + '</p>', GL.deco.x, GL.deco.bottom - 24, "g2-info");
+      openPop('<p class="g2-name">' + svgOf(A.honey_s, 9, 11) + '<span>Honig</span></p><span class="g2-bar">' + pixBarSvg(pr, 50) + '</span><p class="g2-time">Noch ' + fmtH(hiveLeft()) + '</p>', GL.deco.x, GL.deco.bottom - 24, "g2-info");
       return;
     }
     if (s.asleep) { say(N() + " schläft gerade."); return; }
@@ -8656,7 +8684,7 @@ window.__EXTRAS = true;
       banner(2, "Entdeckeln"); $b("bp-base").innerHTML = env(A.bk_s3); $b("bp-top").innerHTML = ""; $b("bp-fx").innerHTML = "";
       var X0 = 36, Y0 = 57, BW = 6, NC = 18, NR = 10, open = [], cnt = 0, fx0 = 90, fy0 = 82, down = false, fin = false, drips = [];
       for (var i = 0; i < NC * NR; i++) open.push(false);
-      $b("bp-bar").hidden = false; $b("bp-barfill").style.width = "0%";
+      $b("bp-bar").hidden = false; setPixBar($b("bp-bar"), 0);
       function draw(t) {
         var clip = "";
         open.forEach(function (o, i) { if (o) clip += '<rect x="' + (X0 + (i % NC) * BW) + '" y="' + (Y0 + Math.floor(i / NC) * BW) + '" width="' + BW + '" height="' + BW + '"/>'; });
@@ -8683,9 +8711,9 @@ window.__EXTRAS = true;
           var cc = c + dc, rr = r + dr; if (cc < 0 || rr < 0 || cc >= NC || rr >= NR) continue;
           var k = rr * NC + cc; if (!open[k]) { open[k] = true; cnt++; got++; if (Math.random() < .35) flake(X0 + cc * BW + 3, Y0 + rr * BW + 3); }
         }
-        if (got) { noHint(); if (Math.random() < .5) beep([[260 + cnt * 3, .02]]); $b("bp-barfill").style.width = Math.round(cnt / (NC * NR) * 100) + "%"; }
+        if (got) { noHint(); if (Math.random() < .5) beep([[260 + cnt * 3, .02]]); setPixBar($b("bp-bar"), cnt / (NC * NR)); }
         if (cnt >= NC * NR * .92 && !fin) {
-          fin = true; for (var k2 = 0; k2 < NC * NR; k2++) open[k2] = true; cnt = NC * NR; $b("bp-barfill").style.width = "100%"; clearHandlers(); beep([[660, .06], [990, .08]]);
+          fin = true; for (var k2 = 0; k2 < NC * NR; k2++) open[k2] = true; cnt = NC * NR; setPixBar($b("bp-bar"), 1); clearHandlers(); beep([[660, .06], [990, .08]]);
           setTimeout(function () { stop(); $b("bp-bar").hidden = true; res(); }, 1300);
         }
       }
@@ -8701,7 +8729,7 @@ window.__EXTRAS = true;
     return new Promise(function (res) {
       banner(3, "Honig auffangen"); $b("bp-base").innerHTML = env(A.bk_s4c); $b("bp-top").innerHTML = ""; $b("bp-fx").innerHTML = "";
       var bx = 90, drops = [], splashes = [], caught = 0, NEED = 8, nextT = 0, fin = false, glints = [];
-      $b("bp-bar").hidden = false; $b("bp-barfill").style.width = "0%";
+      $b("bp-bar").hidden = false; setPixBar($b("bp-bar"), 0);
       function draw(t) {
         var h = spr("bk_unc", 28, -26);
         drops.forEach(function (d) { h += spr("bk_drop", d.x - 2, d.y); });
@@ -8717,7 +8745,7 @@ window.__EXTRAS = true;
           if (d.hang > 0) { d.hang--; return; }
           d.v = Math.min(.45, d.v + .008); d.y += d.v;
           if (!d.done && d.y >= 92 && d.y < 98 && Math.abs(d.x - bx) <= 13) {
-            d.done = true; d.gone = true; caught++; beep([[620 + caught * 30, .04]]); $b("bp-barfill").style.width = Math.round(caught / NEED * 100) + "%";
+            d.done = true; d.gone = true; caught++; beep([[620 + caught * 30, .04]]); setPixBar($b("bp-bar"), caught / NEED);
             for (var q = 0; q < 4; q++) glints.push({ x: d.x + (Math.random() - .5) * 8, y: 96, vy: -.6 - Math.random() * .6, life: 20 });
             if (caught >= NEED && !fin) { fin = true; noHint(); clearHandlers(); beep([[660, .06], [990, .1]]); setTimeout(function () { stop(); $b("bp-bar").hidden = true; res(); }, 900); }
           }
