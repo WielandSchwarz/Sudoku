@@ -1884,6 +1884,17 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root #scene .h-up { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 18%; height: 9%; z-index: 9; border: 0; padding: 0; background: none; cursor: pointer; display: flex; align-items: flex-start; justify-content: center; }
 #ham-root #scene .h-up span { margin-top: 3px; transform: rotate(-90deg); }
 #ham-root .decor .h-up { display: none; }
+#ham-root { --px-notch: polygon(0 2px, 2px 2px, 2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px));
+  --px-notch2: polygon(0 4px, 2px 4px, 2px 2px, 4px 2px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 2px) calc(100% - 4px), calc(100% - 2px) calc(100% - 2px), calc(100% - 4px) calc(100% - 2px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 2px), 2px calc(100% - 2px), 2px calc(100% - 4px), 0 calc(100% - 4px)); }
+#ham-root #scene .pbtn, #ham-root .lf-paper .pbtn, #ham-root .pz-ui .pbtn, #ham-root .gift-ask .ga-yes { border-radius: 0 !important; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -5px 0 2px #b84c06 !important; }
+#ham-root #scene .fc-btn { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e0ccac !important; }
+#ham-root #scene .fc-btn.bye { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #b84c06 !important; }
+#ham-root #scr-hamster .top-btns .close, #ham-root #scr-hamster .act, #ham-root #scr-hamster .food-btn, #ham-root #scr-hamster .track, #ham-root #scr-hamster .decor-btn, #ham-root #scr-hamster .tab, #ham-root #scr-hamster .item, #ham-root #scr-hamster .clear-btn, #ham-root #scene .gpop button, #ham-root #scene .l-pop button, #ham-root #scene .pbtn, #ham-root #scene .fc-btn, #ham-root #scene .fc-x, #ham-root .lf-paper .pbtn, #ham-root .gift-ask button, #ham-root .pz-paws button, #ham-root .pz-ui .pbtn, #ham-root .pz-x, #ham-root .ham-album .close, #ham-root .map-card .close, #ham-root .map-card .hs-btn, #ham-root .map-card button.style { clip-path: var(--px-notch2); }
+#ham-root #scr-hamster .top-btns .close::after, #ham-root #scr-hamster .act::after, #ham-root #scr-hamster .food-btn::after, #ham-root #scr-hamster .track::after, #ham-root #scr-hamster .decor-btn::after, #ham-root #scr-hamster .tab::after, #ham-root #scr-hamster .item::after, #ham-root #scene .gpop button::after, #ham-root #scene .l-pop button::after, #ham-root #scene .pbtn::after, #ham-root #scene .fc-btn::after, #ham-root .lf-paper .pbtn::after, #ham-root .gift-ask button::after, #ham-root .pz-paws button::after, #ham-root .pz-ui .pbtn::after, #ham-root .ham-album .close::after, #ham-root .map-card .close::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#3a2414, #3a2414) 2px 2px / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#3a2414, #3a2414) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat; }
+#ham-root #scr-hamster .top-btns .close, #ham-root #scr-hamster .act, #ham-root #scr-hamster .food-btn, #ham-root #scr-hamster .track, #ham-root #scr-hamster .decor-btn, #ham-root #scr-hamster .tab, #ham-root #scr-hamster .item, #ham-root #scene .gpop button, #ham-root #scene .l-pop button, #ham-root #scene .pbtn, #ham-root #scene .fc-btn, #ham-root .lf-paper .pbtn, #ham-root .gift-ask button, #ham-root .pz-paws button, #ham-root .pz-ui .pbtn, #ham-root .ham-album .close, #ham-root .map-card .close { position: relative; }
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
@@ -2070,7 +2081,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 48 · 31.10.2026</p>
+    <p class="opt-version">Version 49 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
