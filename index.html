@@ -2019,6 +2019,8 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .pz-ready i { width: 9px !important; height: 9px !important;
   background: linear-gradient(#fff0a0, #fff0a0) 4px 0 / 1px 9px no-repeat, linear-gradient(#fff0a0, #fff0a0) 0 4px / 9px 1px no-repeat, linear-gradient(#ffffff, #ffffff) 3px 3px / 3px 3px no-repeat !important;
   clip-path: none !important; }
+#ham-root .pz-gauge { left: 2% !important; right: auto !important; top: 19% !important; bottom: auto !important; transform: none !important; }
+#ham-root .cook-pov .pov-gauge { left: 2% !important; right: auto !important; top: 19% !important; }
 #ham-root .cook-pov { font-family: system-ui, -apple-system, sans-serif; }
 #ham-root .cook-pov .pov-head { left: 0; right: 0; top: 0; padding: 0; background: none; border: 0; border-radius: 0; gap: 0; display: block; pointer-events: none; }
 #ham-root .cook-pov .pov-head b { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); margin-top: 6px; background: #fff8ec; color: #3a2414; font-size: 0.9rem; font-weight: 400; padding: 3px 10px; white-space: nowrap; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; }
@@ -2350,7 +2352,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 70 · 31.10.2026</p>
+    <p class="opt-version">Version 71 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4534,7 +4536,7 @@ window.__EXTRAS = true;
     out += spark;
     var vw = o.vertical ? TH : W, vh = o.vertical ? W : TH;
     return '<svg class="wbar" width="' + vw * U + '" height="' + vh * U + '" viewBox="0 0 ' + vw + ' ' + vh + '" shape-rendering="crispEdges" aria-hidden="true" style="display:block;max-width:100%;height:auto">' +
-      (o.vertical ? '<g transform="matrix(0 1 1 0 0 0)">' + out + '</g>' : out) + '</svg>';
+      (o.vertical ? '<g transform="' + (o.up ? 'matrix(0 -1 1 0 0 ' + W + ')' : 'matrix(0 1 1 0 0 0)') + '">' + out + '</g>' : out) + '</svg>';
   }
   function pixBarSvg(f, w) { return woodBarSvg({ w: w && w < 70 ? 44 : 68, frac: f || 0, col: function () { return "#f0a51e"; } }); }
   function setPixBar(el, f) { if (el) el.innerHTML = pixBarSvg(f, 80); }
@@ -8108,7 +8110,7 @@ window.__EXTRAS = true;
   // ---------- step 1: weeding ----------
   function pzWeeds(G) {
     var n = 2 + Math.floor(Math.random() * 3), xs = [], tries = 0;
-    while (xs.length < n && tries++ < 200) { var x = rnd(24, 124); if (xs.every(function (o) { return Math.abs(o - x) > 22; })) xs.push(x); }
+    while (xs.length < n && tries++ < 200) { var x = rnd(40, 128); if (xs.every(function (o) { return Math.abs(o - x) > 22; })) xs.push(x); }
     G.weeds = xs.map(function (x, k) {
       var y = rnd(84, 104), kind = k % 3, el = lEl("div", "pz-weed", pzLay);
       pzPos(el, x - 9, y - 15, 18, 15); el.style.zIndex = Math.round(y);
@@ -8120,7 +8122,7 @@ window.__EXTRAS = true;
   // pulling weeds: one big bar at the bottom shows how hard the hamster pulls; the golden range is the steady pull
   function pzTension(ten) {
     var el = pzUi.querySelector(".pz-gauge"); if (!el) return; el.hidden = false;
-    el.innerHTML = woodBarSvg({ w: 60, frac: Math.min(1, ten), zone: [0.25, 0.8], col: function (t) { return t < 0.55 ? mix("#8ac860", "#f0c040", t / 0.55) : mix("#f0c040", "#d8342a", (t - 0.55) / 0.45); } });
+    el.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: Math.min(1, ten), zone: [0.25, 0.8], col: function (t) { return t < 0.55 ? mix("#8ac860", "#f0c040", t / 0.55) : mix("#f0c040", "#d8342a", (t - 0.55) / 0.45); } });
   }
   function pzDrag(G, w) {
     var startY = 0, lastY = 0, lastT = 0, t0 = 0, v = 0, over = 0, pull = 0, active = false, meter = null, fill = null;
@@ -8193,7 +8195,7 @@ window.__EXTRAS = true;
   // the pixel gauge, lying flat under the tip: level k (1..12) is block k - 1, filled from the left
   function pzGauge(G, lit) {
     var z = G.gz, el = pzUi.querySelector(".pz-gauge"); if (!z || !el) return;
-    el.innerHTML = woodBarSvg({ w: 60, frac: lit / 12, zone: [(z.a - 1) / 12, z.b / 12], col: function () { return z.c; } });
+    el.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: lit / 12, zone: [(z.a - 1) / 12, z.b / 12], col: function () { return z.c; } });
   }
   function pzDigSetup(G) {
     var t = DEPTH[G.c] || [5, 7]; G.target = t; G.depth = 0; G.last = null; G.dug = false;
