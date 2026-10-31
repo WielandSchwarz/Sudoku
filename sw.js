@@ -1,8 +1,8 @@
 // Sudoku offline cache.
 // The page itself is loaded network-first, so every start with internet shows the newest version.
 // Without internet the last saved copy is used. Icons and manifest are cache-first.
-const CACHE = 'sudoku-v73';
-const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'sudoku-v74';
+const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' skips the browser's HTTP cache, so a fresh copy is stored
