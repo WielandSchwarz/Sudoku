@@ -2352,7 +2352,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 71 · 31.10.2026</p>
+    <p class="opt-version">Version 72 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -5511,7 +5511,8 @@ window.__EXTRAS = true;
   };
   function inFront(el, on) { el.classList.toggle("over", on); }
   var BSPOT = { home: { x: 104, y: 122 }, tubSide: { x: 98, y: 118 }, tub: { x: 52, y: 101 } };
-  var RSPOT = { home: { x: 98, y: 122 }, bedSide: { x: 98, y: 120 }, bed: { x: 50, y: 100 }, stairs: { x: 160, y: 116 } };
+  var RSPOT = { home: { x: 124, y: 122 }, bedSide: { x: 116, y: 120 }, bed: { x: 50, y: 100 }, stairs: { x: 160, y: 116 } };
+  var BED_CLEAR = 116;   // in the bedroom the hamster stays right of the bed's front, so he never half-disappears behind it
   renderBedroomArt();
   async function goBathSeq() {
     if (H.where === "chair") await hopOutOfChair();
@@ -5574,12 +5575,14 @@ window.__EXTRAS = true;
   document.getElementById("bath-exit").addEventListener("click", function () { if (busy) interrupt(); act("inside", roomFromBath); });
   document.getElementById("bed-exit").addEventListener("click", function () { if (s.asleep) { say(N() + " schläft. Weck ihn erst auf."); return; } if (busy) interrupt(); act("inside", roomFromBedroom); });
   IDLE_ACTS.push("bathgo", "hwander");
+  var _h_walkBed = walkTo;
+  walkTo = function (x, y, speed) { if (place2 === "bedroom" && H.where !== "bed") x = Math.max(BED_CLEAR, x); return _h_walkBed.call(this, x, y, speed); };
   // feeding and parcels still happen downstairs
   var _h_feedSeq2 = feedSeq; feedSeq = async function (k) { if (place2 === "bath" || place2 === "bedroom") await toRoom(); return _h_feedSeq2(k); };
   var _h_idle3 = idle; idle = function () {
     if (place2 === "bath" || place2 === "bedroom") {
       later(idle, rnd(3500, 7000)); if (idleBlocked()) return;
-      act("hwander", async function () { await walkTo(rnd(70, 140), rnd(116, 126)); front(mood()); await nibbleNose(6); await wait(700); });
+      act("hwander", async function () { await walkTo(place2 === "bedroom" ? rnd(BED_CLEAR, 150) : rnd(70, 140), rnd(116, 126)); front(mood()); await nibbleNose(6); await wait(700); });
       return;
     }
     _h_idle3();
