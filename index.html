@@ -2198,6 +2198,11 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
+.account.acc-start { margin-top: 14px; padding: 16px; border-top: 0; border-radius: 16px; background: var(--soft); box-shadow: inset 0 0 0 1.5px var(--rule); }
+.account.acc-start .acc-title { font-size: 1.05rem; }
+.account.acc-start .acc-text { font-size: 0.95rem; }
+.account.acc-start .acc-btn { font-size: 0.95rem; padding: 10px 16px; }
+.account.acc-start .acc-status { font-size: 0.9rem; }
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}</style></head><body>
 
@@ -2223,7 +2228,29 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       <span class="pic"><span class="mini-tiles"><i style="background:#e8554a"></i><i></i><i style="background:#4a8ad8"></i><i style="background:#f2c230"></i><i style="background:#e8554a"></i><i></i><i></i><i style="background:#5aaa4a"></i><i style="background:#4a8ad8"></i></span></span>
       <span class="txt"><strong>Farbklecks</strong></span>
     </button>
-  </section>
+      <div class="account acc-start" id="account">
+      <strong class="acc-title">Dein Konto</strong>
+      <div id="acc-out">
+        <p class="acc-text">Melde dich an, damit dein Hamster und alle Spielstände auf jedem Gerät da sind.</p>
+        <div class="acc-fields">
+          <label class="acc-field" for="acc-name"><span>Name</span><input id="acc-name" type="text" autocomplete="username" maxlength="20" placeholder="z. B. Wieland"></label>
+          <label class="acc-field acc-pin" for="acc-pin"><span>PIN</span><input id="acc-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="4" placeholder="4 Ziffern"></label>
+        </div>
+        <div class="acc-row">
+          <button type="button" class="acc-btn primary" id="acc-login">Anmelden</button>
+          <button type="button" class="acc-btn" id="acc-create">Neues Konto</button>
+        </div>
+      </div>
+      <div id="acc-in" hidden>
+        <p class="acc-text">Angemeldet als <strong id="acc-who"></strong></p>
+        <div class="acc-row">
+          <button type="button" class="acc-btn" id="acc-sync">Jetzt abgleichen</button>
+          <button type="button" class="acc-btn" id="acc-logout">Abmelden</button>
+        </div>
+      </div>
+      <p class="acc-status" id="acc-status" aria-live="polite"></p>
+    </div>
+</section>
 
   <section class="words" id="scr-words" hidden></section>
   <section class="words tiles" id="scr-tiles" hidden></section>
@@ -2359,29 +2386,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <div class="account" id="account">
-      <strong class="acc-title">Konto</strong>
-      <div id="acc-out">
-        <p class="acc-text">Melde dich an, um Album und Spielstand auf mehreren Geräten zu nutzen.</p>
-        <div class="acc-fields">
-          <label class="acc-field" for="acc-name"><span>Name</span><input id="acc-name" type="text" autocomplete="username" maxlength="20" placeholder="z. B. Wieland"></label>
-          <label class="acc-field acc-pin" for="acc-pin"><span>PIN</span><input id="acc-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" maxlength="4" placeholder="4 Ziffern"></label>
-        </div>
-        <div class="acc-row">
-          <button type="button" class="acc-btn primary" id="acc-login">Anmelden</button>
-          <button type="button" class="acc-btn" id="acc-create">Neues Konto</button>
-        </div>
-      </div>
-      <div id="acc-in" hidden>
-        <p class="acc-text">Angemeldet als <strong id="acc-who"></strong></p>
-        <div class="acc-row">
-          <button type="button" class="acc-btn" id="acc-sync">Jetzt abgleichen</button>
-          <button type="button" class="acc-btn" id="acc-logout">Abmelden</button>
-        </div>
-      </div>
-      <p class="acc-status" id="acc-status" aria-live="polite"></p>
-    </div>
-    <p class="opt-version">Version 74 · 31.10.2026</p>
+    <p class="opt-version">Version 75 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -10576,8 +10581,11 @@ window.__EXTRAS = true;
       account = { name: r.name, pin: pin };
       try { localStorage.setItem(ACC_KEY, JSON.stringify(account)); } catch (e) {}
       document.getElementById("acc-pin").value = "";
+      var adopt = !r.created && r.state && typeof r.state === "object";
+      if (adopt) stateUpdated = 0;
       renderAccount(); applyServer(r);
-      setStatus(r.created ? "Konto angelegt. Dein Stand wird ab jetzt abgeglichen." : "Angemeldet. Stand abgeglichen.");
+      if (adopt) { stateUpdated = r.stateUpdated || 1; save(true); }
+      setStatus(r.created ? "Konto angelegt. Dein Stand wird ab jetzt abgeglichen." : "Angemeldet. Dein Spielstand ist geladen.");
       if (!r.created) sync();
     });
   }
