@@ -2081,7 +2081,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 49 · 31.10.2026</p>
+    <p class="opt-version">Version 50 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -6952,12 +6952,15 @@ window.__EXTRAS = true;
   var letterOn = false;
   function letterOk() {
     return !letterOn && !s.asleep && !decor && !(window.__pz && window.__pz()) && (!window.Nav || window.Nav.current === "hamster") &&
-      document.visibilityState === "visible" && !document.querySelector(".gift-ask") && !(mapEl && !mapEl.hidden);
+      document.visibilityState === "visible" && !document.querySelector(".gift-ask, .gift-wrap") && !(mapEl && !mapEl.hidden) &&
+      !!(document.getElementById("scr-hamster") && document.getElementById("scr-hamster").offsetParent);
   }
-  function makeLetter() {
-    var friends = Object.keys(garden.friends || {}).filter(function (k) { return ALLANI[k] && garden.friends[k] > 0; });
-    var from = friends.length ? pick(friends) : pick(VISIT.filter(function (k) { return ALLANI[k]; }));
+  // letters only come from friends: animals with at least three hearts
+  function friendIds() { return Object.keys(garden.friends || {}).filter(function (k) { return ALLANI[k] && garden.friends[k] >= 3; }); }
+  function makeLetter(from, kind) {
+    if (!from) { var friends = friendIds(); if (!friends.length) return null; from = pick(friends); }
     var gift = JSON.parse(JSON.stringify(pick(LGIFT)));
+    if (kind === "friend") return { from: from, friend: true, body: "jetzt sind wir richtig befreundet! Ich freue mich schon auf unseren nächsten Nachmittag zusammen. Ab und zu schreibe ich dir ab jetzt einen Brief.", gift: { t: "seeds", k: pick(Object.keys(CROPS).filter(function (c) { return c !== "chili"; })), n: 2 } };
     if (gift.t === "seeds") { gift.k = pick(Object.keys(CROPS).filter(function (c) { return c !== "chili"; })); gift.txt = "Ich habe dir zwei Tütchen " + CROPS[gift.k].name + "-Samen eingepackt."; }
     return { from: from, body: pick(LBODY), gift: gift };
   }
@@ -6970,10 +6973,12 @@ window.__EXTRAS = true;
     if (window.SudokuSave) window.SudokuSave();
     return { got: got, icon: icon };
   }
-  async function letterArrives(force) {
-    if (!force && !letterOk()) return;
+  async function letterArrives(force, from, kind) {
+    if (!force && !letterOk()) return false;
+    var l = makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
     var L = life(); L.lastLetter = Date.now();
-    var l = makeLetter(), an = ALLANI[l.from], fromLeft = Math.random() < 0.5;
+    var an = ALLANI[l.from], fromLeft = Math.random() < 0.5;
+    if (l.friend && l.gift.t === "seeds") l.gift.txt = "Als kleines Freundschaftsgeschenk lege ich dir zwei Tütchen " + CROPS[l.gift.k].name + "-Samen bei.";
     letterOn = true; letterEl.hidden = false; letterEl.className = "l-fly " + (fromLeft ? "from-l" : "from-r");
     letterEl.innerHTML = '<div class="lf-dim"></div><div class="lf-env"><div class="lf-flap"><svg viewBox="0 0 30 10" aria-hidden="true" shape-rendering="crispEdges">' + FLAP + '</svg></div>' +
       '<svg class="lf-body" viewBox="0 0 30 20" aria-hidden="true" shape-rendering="crispEdges">' + ENV0 + '</svg></div>' +
@@ -7004,8 +7009,23 @@ window.__EXTRAS = true;
   }
   letterEl.addEventListener("click", function (e) { if (e.target.closest("[data-a=ok]") || (letterEl.classList.contains("unfold") && e.target.classList.contains("lf-dim"))) closeLetter(); });
   // a letter every few hours of play, only when you are looking at the hamster
+  // a new friend writes right away, but only once the hamster screen is open and nothing else is in the way
+  var _lt_addHeart = addHeart;
+  addHeart = function (id, extra) {
+    var before = garden.friends[id] || 0; _lt_addHeart(id, extra);
+    if (before < 3 && (garden.friends[id] || 0) >= 3 && ALLANI[id]) { var L = life(); L.letterQ = L.letterQ || []; if (L.letterQ.indexOf(id) < 0) L.letterQ.push(id); if (window.SudokuSave) window.SudokuSave(); }
+  };
+  var okSince = 0;
+  setInterval(function () {
+    var L = life(); if (!s.name || !L.letterQ || !L.letterQ.length) { okSince = 0; return; }
+    if (!letterOk() || busy && cur === "visit") { okSince = 0; return; }
+    if (!okSince) { okSince = Date.now(); return; }
+    if (Date.now() - okSince < 4000) return;   // the screen has been open for a moment: now it can arrive
+    var id = L.letterQ.shift(); okSince = 0; letterArrives(false, id, "friend");
+  }, 700);
   setInterval(function () {
     var L = life(); if (!s.name || Date.now() - (L.lastLetter || 0) < 6 * 3600000) return;
+    if (L.letterQ && L.letterQ.length) return;
     if (Math.random() < 0.25) letterArrives();
   }, 30000);
 
