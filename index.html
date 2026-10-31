@@ -2242,7 +2242,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
         </div>
       </div>
       <div id="acc-in" hidden>
-        <p class="acc-text">Angemeldet als <strong id="acc-who"></strong></p>
+        <p class="acc-text">Angemeldet als <strong id="acc-who"></strong></p><p class="acc-text" id="acc-last"></p>
         <div class="acc-row">
           <button type="button" class="acc-btn" id="acc-sync">Jetzt abgleichen</button>
           <button type="button" class="acc-btn" id="acc-logout">Abmelden</button>
@@ -2386,7 +2386,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 75 · 31.10.2026</p>
+    <p class="opt-version">Version 76 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -10530,6 +10530,7 @@ window.__EXTRAS = true;
     }
     accOut.hidden = !!account; accIn.hidden = !account;
     if (account) document.getElementById("acc-who").textContent = account.name;
+    if (typeof showLastSync === "function") showLastSync();
   }
   function payload(extra) {
     var b = { seen: Object.keys(seen), state: snapshotState(), stateUpdated: stateUpdated };
@@ -10550,16 +10551,22 @@ window.__EXTRAS = true;
     if (!albumPanel.hidden) renderAlbum();
   }
   function post(path, body) {
-    return fetch(SYNC_URL + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true })
+    var req = fetch(SYNC_URL + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: document.visibilityState === "hidden" })
       .then(function (res) { return res.json().catch(function () { return { ok: false, error: "network" }; }); }, function () { return { ok: false, error: "network" }; });
+    return Promise.race([req, new Promise(function (res) { setTimeout(function () { res({ ok: false, error: "network" }); }, 15000); })]);
+  }
+  var syncStart = 0, SYNC_SEEN = "sudoku-last-sync";
+  function showLastSync() {
+    var el = document.getElementById("acc-last"), t = 0; try { t = +localStorage.getItem(SYNC_SEEN) || 0; } catch (e) {}
+    if (el) el.textContent = t ? "Zuletzt abgeglichen: " + new Date(t).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + " Uhr" : "";
   }
   function sync(manual) {
-    if (!canSync || !account || syncing) return;
-    syncing = true; syncDirty = false;
+    if (!canSync || !account || (syncing && Date.now() - syncStart < 20000)) return;
+    syncing = true; syncStart = Date.now(); syncDirty = false;
     post("/api/save", payload({ name: account.name, pin: account.pin })).then(function (r) {
       syncing = false;
       if (r.ok) {
-        lastSync = Date.now(); applyServer(r);
+        lastSync = Date.now(); try { localStorage.setItem(SYNC_SEEN, String(lastSync)); } catch (e) {} showLastSync(); applyServer(r);
         if (manual) setStatus("Abgeglichen um " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + ".");
       } else {
         syncDirty = true;
