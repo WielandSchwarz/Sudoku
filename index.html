@@ -2070,7 +2070,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 47 · 31.10.2026</p>
+    <p class="opt-version">Version 48 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4649,10 +4649,13 @@ window.__EXTRAS = true;
   var rbow = xEl("div", "g-rainbow", gEl("g-sky"), xs(A.rainbow_big ? "rainbow_big" : "rainbow")); rbow.id = "g-rainbow";
   function isDay() { var c = document.getElementById("sky").className; return !/sky-(eve|night)/.test(c); }
   function rollWeather() {
-    if (season() === "winter") { var rw = Math.random(); weather.type = rw < 0.62 ? "snow" : rw < 0.9 ? "clouds" : "storm"; }
-    else if (weather.type === "rain" || weather.type === "storm") weather.type = isDay() ? "rainbow" : "clouds";
-    else { var r = Math.random(); weather.type = r < 0.45 ? "sun" : r < 0.7 ? "clouds" : r < 0.9 ? "rain" : "storm"; }
-    weather.until = Date.now() + (weather.type === "rainbow" ? 45000 : rnd(6, 10) * 60000);
+    // mostly fine weather; bad weather only now and then, and it passes quickly
+    var bad = weather.type === "rain" || weather.type === "storm";
+    if (season() === "winter") { var rw = Math.random(); weather.type = bad ? "clouds" : rw < 0.6 ? "snow" : rw < 0.95 ? "clouds" : "storm"; }
+    else if (bad) weather.type = isDay() ? "rainbow" : "sun";
+    else { var r = Math.random(); weather.type = r < 0.7 ? "sun" : r < 0.88 ? "clouds" : r < 0.97 ? "rain" : "storm"; }
+    var DUR = { sun: [10, 16], snow: [8, 14], clouds: [4, 7], rain: [2, 4], storm: [1.5, 2.5] }[weather.type];
+    weather.until = Date.now() + (weather.type === "rainbow" ? 45000 : rnd(DUR[0], DUR[1]) * 60000);
     applyWeather();
   }
   function weatherClass() { if (weather.type === "storm" && season() === "winter") return "w-clouds"; return weather.type === "rain" || weather.type === "storm" ? "w-" + weather.type : weather.type === "clouds" ? "w-clouds" : ""; }
