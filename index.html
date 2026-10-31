@@ -2015,6 +2015,10 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 @keyframes h-pz-bob { 0% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 @keyframes h-pz-press { 0% { transform: scale(.85); } 100% { transform: scale(1); } }
 #ham-root .pz-tool.pz-hint { animation: h-pz-bob 0.8s steps(2) infinite; }
+#ham-root .pz-gauge { top: auto !important; bottom: 3% !important; }
+#ham-root .pz-ready i { width: 9px !important; height: 9px !important;
+  background: linear-gradient(#fff0a0, #fff0a0) 4px 0 / 1px 9px no-repeat, linear-gradient(#fff0a0, #fff0a0) 0 4px / 9px 1px no-repeat, linear-gradient(#ffffff, #ffffff) 3px 3px / 3px 3px no-repeat !important;
+  clip-path: none !important; }
 #ham-root .cook-pov { font-family: system-ui, -apple-system, sans-serif; }
 #ham-root .cook-pov .pov-head { left: 0; right: 0; top: 0; padding: 0; background: none; border: 0; border-radius: 0; gap: 0; display: block; pointer-events: none; }
 #ham-root .cook-pov .pov-head b { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); margin-top: 6px; background: #fff8ec; color: #3a2414; font-size: 0.9rem; font-weight: 400; padding: 3px 10px; white-space: nowrap; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; }
@@ -2346,7 +2350,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 69 · 31.10.2026</p>
+    <p class="opt-version">Version 70 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4516,8 +4520,10 @@ window.__EXTRAS = true;
       for (var q2 = 0; q2 < 2; q2++) { var sx = sh + q2; if (sx >= x0 && sx <= x1) r(sx, iy + 1, 1, ih - 2, "#ffffff", .55); }
       var ph = -(Date.now() % 1600), mid = Math.round((x0 + x1) / 2), pts = [[x0 - 1, iy - 1], [x1 + 1, iy + ih], [mid, iy - 2], [x1 + 1, iy - 1], [x0 - 1, iy + ih], [mid - 2, iy + ih + 1]];
       pts.forEach(function (q, k) {
-        spark += '<g class="wb-sp" style="animation-delay:' + (ph - k * 270) + 'ms">' +
-          '<rect x="' + q[0] + '" y="' + (q[1] - 1) + '" width="1" height="3" fill="' + G2 + '"/><rect x="' + (q[0] - 1) + '" y="' + q[1] + '" width="3" height="1" fill="' + G2 + '"/><rect x="' + q[0] + '" y="' + q[1] + '" width="1" height="1" fill="#ffffff"/></g>';
+        var cx_ = q[0] + 0.5, cy_ = q[1] + 0.5, t3 = 1 / 3;                               // a fine twinkle: thin arms, a small bright core
+        spark += '<g class="wb-sp" style="animation-delay:' + (ph - k * 270) + 'ms" shape-rendering="crispEdges">' +
+          '<rect x="' + (cx_ - t3 / 2) + '" y="' + (cy_ - 1.5) + '" width="' + t3 + '" height="3" fill="' + G2 + '"/><rect x="' + (cx_ - 1.5) + '" y="' + (cy_ - t3 / 2) + '" width="3" height="' + t3 + '" fill="' + G2 + '"/>' +
+          '<rect x="' + (cx_ - t3) + '" y="' + (cy_ - t3) + '" width="' + (2 * t3) + '" height="' + (2 * t3) + '" fill="#ffffff"/></g>';
       });
     }
     if (o.mark != null) {
@@ -8106,20 +8112,24 @@ window.__EXTRAS = true;
     G.weeds = xs.map(function (x, k) {
       var y = rnd(84, 104), kind = k % 3, el = lEl("div", "pz-weed", pzLay);
       pzPos(el, x - 9, y - 15, 18, 15); el.style.zIndex = Math.round(y);
-      el.innerHTML = pzSvg("weed" + kind, "0 0 18 15") + '<span class="pz-meter"><i></i></span>';
+      el.innerHTML = pzSvg("weed" + kind, "0 0 18 15");
       var w = { el: el, kind: kind, x: x, y: y, out: false, broken: false };
       pzDrag(G, w); return w;
     });
+  }
+  // pulling weeds: one big bar at the bottom shows how hard the hamster pulls; the golden range is the steady pull
+  function pzTension(ten) {
+    var el = pzUi.querySelector(".pz-gauge"); if (!el) return; el.hidden = false;
+    el.innerHTML = woodBarSvg({ w: 60, frac: Math.min(1, ten), zone: [0.25, 0.8], col: function (t) { return t < 0.55 ? mix("#8ac860", "#f0c040", t / 0.55) : mix("#f0c040", "#d8342a", (t - 0.55) / 0.45); } });
   }
   function pzDrag(G, w) {
     var startY = 0, lastY = 0, lastT = 0, t0 = 0, v = 0, over = 0, pull = 0, active = false, meter = null, fill = null;
     function unitsPerPx() { return 135 / scene.getBoundingClientRect().height; }
     w.el.addEventListener("pointerdown", function (e) {
       if (w.out || w.broken || G.step !== 1) return;
-      meter = w.el.querySelector(".pz-meter"); if (!meter) return; fill = meter.querySelector("i");
-      active = true; startY = lastY = e.clientY; lastT = t0 = performance.now(); v = 0; over = 0; pull = 0;
+      active = true; pzTension(0); startY = lastY = e.clientY; lastT = t0 = performance.now(); v = 0; over = 0; pull = 0;
       try { w.el.setPointerCapture(e.pointerId); } catch (x) {}
-      meter.classList.add("on"); front({ paws: "hold", eyes: "down", mouth: "teeth" }); body("squat");
+      front({ paws: "hold", eyes: "down", mouth: "teeth" }); body("squat");
       e.preventDefault();
     });
     w.el.addEventListener("pointermove", function (e) {
@@ -8128,23 +8138,23 @@ window.__EXTRAS = true;
       v = v * 0.6 + (d / dt * 1000) * 0.4; lastY = e.clientY; lastT = now;
       pull = Math.max(0, (startY - e.clientY) * unitsPerPx());
       var ten = Math.max(0, Math.min(1.2, v / 46));
-      fill.style.width = Math.min(100, ten * 100) + "%"; meter.className = "pz-meter on " + (ten > 0.85 ? "hot" : ten > 0.55 ? "warm" : "");
+      pzTension(ten);
       w.el.style.transform = "translateY(" + (-Math.min(3, pull / 5)) * 100 / 16 + "%) scaleY(" + (1 + Math.min(0.12, pull / 120)) + ")";
       if (pull > 2 && ten > 1) { if ((over += dt) > 40) { active = false; pzSnap(G, w); } } else over = 0;
       if (active && pull >= 15) { active = false; if (ten > 0.85 || performance.now() - t0 < 300) pzSnap(G, w); else pzOut(G, w); }
     });
-    function end() { if (!active) return; active = false; if (meter) meter.classList.remove("on"); w.el.style.transform = ""; front({ paws: "down", eyes: "open", mouth: "smile" }); body(""); if (pull > 3) pzTip("Gleichmäßig weiter nach oben ziehen, bis die Wurzel rauskommt."); }
+    function end() { if (!active) return; active = false; pzTension(0); w.el.style.transform = ""; front({ paws: "down", eyes: "open", mouth: "smile" }); body(""); if (pull > 3) pzTip("Gleichmäßig weiter nach oben ziehen, bis die Wurzel rauskommt."); }
     w.el.addEventListener("pointerup", end); w.el.addEventListener("pointercancel", end);
   }
   function pzSnap(G, w) {
     w.broken = true; G.snaps++; w.el.style.transform = "";
-    w.el.innerHTML = pzSvg("stub", "0 0 18 15") + '<span class="pz-meter"><i></i></span>'; w.el.classList.add("snap");
+    w.el.innerHTML = pzSvg("stub", "0 0 18 15"); w.el.classList.add("snap");
     pzCrumbs(w.x, w.y, 3); beep([[220, .06], [160, .08]]);
     front({ eyes: "sad", mouth: "frown", paws: "down" }); body("");
     pzTip("Ritsch, abgerissen! Die Wurzel steckt noch drin. Langsamer ziehen.");
     setTimeout(function () {
       if (!PZG || PZG !== G || w.out) return;
-      w.broken = false; w.el.classList.remove("snap"); w.el.innerHTML = pzSvg("weed" + w.kind, "0 0 18 15") + '<span class="pz-meter"><i></i></span>';
+      w.broken = false; w.el.classList.remove("snap"); w.el.innerHTML = pzSvg("weed" + w.kind, "0 0 18 15");
       w.el.classList.add("regrow"); setTimeout(function () { w.el.classList.remove("regrow"); }, 500);
       front({ eyes: "open", mouth: "smile" });
     }, 1100);
