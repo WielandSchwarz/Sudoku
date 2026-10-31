@@ -2069,12 +2069,15 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .bp-env.w-clouds { background-color: rgba(120, 130, 140, .08); }
 #ham-root .bp-env.w-storm { background-color: rgba(40, 46, 60, .28); }
 #ham-root .bp-env.w-storm.d-night { background-color: rgba(18, 20, 44, .58); }
-#ham-root .bp-env i { position: absolute; top: -8%; width: .8%; aspect-ratio: 1 / 4; background: #b8dcf4; opacity: .85; display: none; }
-#ham-root .bp-env.w-rain i, #ham-root .bp-env.w-storm i { display: block; animation: h-bp-rain .7s steps(8) infinite; }
-#ham-root .bp-env.w-snow i { display: block; width: 1.2%; aspect-ratio: 1; background: #ffffff; animation: h-bp-snow 2.6s steps(26) infinite; }
-#ham-root .bp-env.w-snow i:nth-child(2n) { animation-duration: 3.4s !important; }
-@keyframes h-bp-rain { to { transform: translate(-12px, 150px); } }
-@keyframes h-bp-snow { 0% { transform: translate(0, 0); } 50% { transform: translate(6px, 75px); } 100% { transform: translate(-4px, 150px); } }
+#ham-root .bp-env i { position: absolute; top: -6%; width: .56%; height: 2.6%; background: #d6e8f6; opacity: .45; display: none; }
+#ham-root .bp-env.w-rain i:nth-child(3n), #ham-root .bp-env.w-storm i { display: block; animation: h-bp-rain .8s linear infinite; }
+#ham-root .bp-env.w-rain i:nth-child(3n+1) { display: block; opacity: .3; animation: h-bp-rain 1.05s linear infinite; }
+#ham-root .bp-env.w-storm i { opacity: .55; animation-duration: .6s !important; }
+@keyframes h-bp-rain { from { transform: translate(0, 0); } to { transform: translate(-46px, 150px); } }
+#ham-root .bp-env.w-snow i { display: block; width: .9%; height: auto; aspect-ratio: 1; background: #ffffff; opacity: .85; animation: h-bp-snow 4.2s linear infinite; }
+#ham-root .bp-env.w-snow i:nth-child(2n) { width: .56%; opacity: .7; animation-duration: 5.6s !important; }
+#ham-root .bp-env.w-snow i:nth-child(5n) { width: 1.2%; animation-duration: 3.6s !important; }
+@keyframes h-bp-snow { 0% { transform: translate(0, 0); } 25% { transform: translate(5px, 36px); } 50% { transform: translate(-3px, 74px); } 75% { transform: translate(6px, 112px); } 100% { transform: translate(0, 150px); } }
 #ham-root .bp-env.w-storm:not(.no-flash)::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; animation: h-bp-flash 7s steps(1) infinite; }
 @keyframes h-bp-flash { 0%, 91%, 93%, 100% { opacity: 0; } 92% { opacity: .55; } 94% { opacity: .3; } }
 #ham-root .g2-spark { position: absolute; aspect-ratio: 1; pointer-events: none; z-index: 3; opacity: 0;
@@ -2091,6 +2094,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .g2-info .pbtn { margin-top: 6px; width: 100%; min-height: 28px; font-size: 0.74rem; }
 #ham-root #scene .gpop.g2-info button.pbtn { background: var(--orange, #e8701a) !important; color: #fff !important; text-shadow: 0 1px 0 #b85a18 !important; font-weight: 800 !important; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -5px 0 2px #b84c06 !important; border: 0 !important; }
 #ham-root #scene .l-pop.g2-info { width: max-content !important; min-width: 30% !important; max-width: 40% !important; }
+#ham-root .bp-env.w-rain { background-color: rgba(50, 60, 85, .16); }
+#ham-root .bp-env.w-rain.d-night { background-color: rgba(20, 22, 50, .55); }
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
@@ -2277,7 +2282,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 60 · 31.10.2026</p>
+    <p class="opt-version">Version 61 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -8536,7 +8541,7 @@ window.__EXTRAS = true;
     return svg.replace(/fill="(#[0-9a-fA-F]{6})"/g, function (all, c) { c = c.toLowerCase(); var c2 = m[c] || c; return 'fill="' + (w[c2] || c2) + '"'; });
   }
   function envOverlay() {
-    var el = bp.querySelector(".bp-env"); if (!el) { el = document.createElement("div"); el.className = "bp-env"; bp.insertBefore(el, bp.querySelector(".bp-ban")); var h = ""; for (var i = 0; i < 46; i++) h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;animation-delay:-' + (Math.random() * 2).toFixed(2) + 's;animation-duration:' + (0.55 + Math.random() * .35).toFixed(2) + 's"></i>'; el.innerHTML = h; }
+    var el = bp.querySelector(".bp-env"); if (!el) { el = document.createElement("div"); el.className = "bp-env"; bp.insertBefore(el, bp.querySelector(".bp-ban")); var h = ""; for (var i = 0; i < 60; i++) h += '<i style="left:' + (Math.random() * 125).toFixed(1) + '%;animation-delay:-' + (Math.random() * 5).toFixed(2) + 's"></i>'; el.innerHTML = h; }
     var w = curWeather(), ph = typeof daylight === "function" ? daylight() : "day";
     el.className = "bp-env w-" + w + " d-" + ph + (season() === "winter" && w === "storm" ? " no-flash" : "");
   }
@@ -8942,6 +8947,27 @@ window.__EXTRAS = true;
   interrupt = function () { if (bpOpen && beeGame.abort) beeGame.abort(); if (beeSuit) { beeSuit = false; } return _bk_interrupt.apply(this, arguments); };
   if (typeof place2 !== "undefined" && place2 === "garden") renderGardenDecor();
   window.__bee = { envSvg: function (k) { return env(A[k]); }, env: function (se, w) { seasonOverride = se; if (typeof weather !== "undefined") weather.type = w; }, ready: function () { garden.hive.t = 0; renderGardenDecor(); }, state: function () { return { open: bpOpen, suit: beeSuit, honey: garden.harvest.honey, ban: $b("bp-ban").textContent }; } };
+  // ---- gifts: honey can be given away too, and every visitor gives something back that you do not have right now ----
+  var _bk_sg = simpleGifts;
+  simpleGifts = function () { var a = _bk_sg(); if ((garden.harvest.honey || 0) > 0 && a.indexOf("honey") < 0) a.push("honey"); return a; };
+  var _bk_gn = giftName;
+  giftName = function (k) { return k === "honey" ? "Honig" : _bk_gn(k); };
+  function returnGift(who) {
+    var opts = [];
+    Object.keys(CROPS).forEach(function (c) { if (!(garden.seeds[c] || 0) && IBIG["seed_" + c]) opts.push({ kind: "seed", c: c, k: "seed_" + c, label: CROPS[c].name + "-Samen" }); });
+    Object.keys(CROPS).concat(["nut"]).forEach(function (c) { var key = ibFor(c); if (!(garden.harvest[c] || 0) && key) opts.push({ kind: "harvest", c: c, k: key, label: "1 × " + (c === "nut" ? "Haselnuss" : CROPS[c].name) }); });
+    if (!s.treats) opts.push({ kind: "apple", k: "apple", label: "einen Apfel" });
+    var g = opts.length ? pick(opts) : { kind: "apple", k: "apple", label: "einen Apfel" };
+    if (g.kind === "seed") garden.seeds[g.c] = (garden.seeds[g.c] || 0) + 1;
+    else if (g.kind === "harvest") garden.harvest[g.c] = (garden.harvest[g.c] || 0) + 1;
+    else s.treats++;
+    renderFoods(); renderNeeds(); if (typeof renderStart === "function") renderStart();
+    if (typeof itemPop === "function") itemPop({ k: g.k, title: who + " schenkt dir " + g.label + "!" });
+    else say(who + " schenkt " + N() + " " + g.label + ".");
+    if (typeof SudokuSave === "function") SudokuSave();
+  }
+  var _bk_ask = askGift;
+  askGift = function (who, done) { return _bk_ask(who, function (k, nm) { done(k, nm); setTimeout(function () { returnGift(who); }, 1500); }); };
 
 
   
