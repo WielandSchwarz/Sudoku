@@ -1816,6 +1816,8 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 @keyframes h-ip-emerge { 0% { transform: translate(-50%, 60%) scale(.3); opacity: 0; } 60% { transform: translate(-50%, -8%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, 0) scale(1); } }
 @media (prefers-reduced-motion: reduce) {#ham-root .ip, #ham-root .ip * { animation-duration: .01s !important; animation-iteration-count: 1 !important; }}
 #ham-root #scene:has(.ip) .say-box, #ham-root #scene:has(.ip) .f-card { visibility: hidden !important; }
+#ham-root .pz-gauge { background: none !important; box-shadow: none !important; padding: 0 !important; width: 36.11% !important; display: block !important; left: 31.94% !important; right: auto !important; top: 33% !important; }
+#ham-root .pz-gauge[hidden] { display: none !important; }
 #ham-root #scr-hamster, #ham-root #scr-hamster button, #ham-root #scr-hamster input, #ham-root .ham-album, #ham-root .ham-album button, #ham-root .map-ov, #ham-root .map-card, #ham-root .map-card button, #ham-root #scene .gpop, #ham-root #scene .l-pop, #ham-root #scene .f-card, #ham-root #scene .say-box, #ham-root .pz-ui, #ham-root .l-recipes { font-family: system-ui, sans-serif !important; letter-spacing: 0; }
 #ham-root #scr-hamster > .top { gap: 8px; align-items: center; }
 #ham-root #scr-hamster > .top > div:first-child { min-width: 0; flex: 1; }
@@ -1998,6 +2000,10 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .cook-pov .pov-card .pbtn { margin-top: 4px; min-height: 32px; font-size: 0.8rem; }
 #ham-root .kpop .pn { display: none; }
 #ham-root .cook-pov .pov-head span { display: none !important; }
+#ham-root .cook-pov .pgx { box-shadow: none !important; background: none !important; border: 0 !important; border-radius: 0 !important; overflow: visible !important; height: auto !important; }
+#ham-root .cook-pov .pgx::before { content: none !important; }
+#ham-root .cook-pov .pov-bake { left: 4% !important; right: auto !important; bottom: 5% !important; width: 52.78% !important; }
+#ham-root .cook-pov .pov-gauge { right: 4% !important; left: auto !important; top: 15% !important; bottom: auto !important; width: 12.78% !important; }
 #ham-root #g-signs { display: none !important; }
 #ham-root .g2-spark { position: absolute; aspect-ratio: 1; pointer-events: none; z-index: 3; opacity: 0;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffd34a' d='M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z'/%3E%3Cpath fill='%23fff' d='M3 2h1v3H3zM2 3h3v1H2z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
@@ -2297,7 +2303,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 64 · 31.10.2026</p>
+    <p class="opt-version">Version 65 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4413,8 +4419,8 @@ window.__EXTRAS = true;
     '<div class="pov-head"><b id="pov-step"></b><span id="pov-text"></span></div>' +
     '<div class="pov-board" id="pov-board" hidden></div>' +
     '<div class="pov-ring" id="pov-ring" hidden><i id="pov-ringbar"></i></div>' +
-    '<div class="pov-gauge" id="pov-gauge" hidden><i class="z2"></i><i class="mark" id="pov-mark"></i></div>' +
-    '<div class="pov-bake" id="pov-bake" hidden><i class="l1"></i><i class="l2"></i><i class="mark" id="pov-bmark"></i><span>roh</span><span>goldbraun</span><span>dunkel</span></div>' +
+    '<div class="pov-gauge pgx" id="pov-gauge" hidden></div>' +
+    '<div class="pov-bake pgx" id="pov-bake" hidden></div>' +
     '<button type="button" class="pov-go" id="pov-go" hidden></button>' +
     '<button type="button" class="pov-x" id="pov-x" aria-label="Kochen abbrechen">×</button>' +
     '<div class="pov-done" id="pov-done" hidden></div>';
@@ -4446,6 +4452,39 @@ window.__EXTRAS = true;
     }
     return '<svg viewBox="0 0 ' + w + ' ' + H_ + '" shape-rendering="crispEdges" aria-hidden="true" style="width:100%;height:100%;display:block">' + o + '</svg>';
   }
+  // one pixel gauge for timing and filling games: a row of shaded blocks in a framed trough, the good range marked with green
+  // edges and a green arrow underneath, the current value as a cream arrow on top. vertical = the same thing turned on its side.
+  // o = { n, col(i) -> colour of block i, zone: [first, last], mark: 0..1 (optional), lit: number of filled blocks (optional), off: colour of empty blocks }
+  function pixGaugeSvg(o) {
+    var n = o.n, W = n * 5 + 5, B = 6, H = 12, TH = B + H + 5, out = "";
+    function r(x, y, w, h, c) { out += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'; }
+    var INK = "#3a2414", CR = "#fff8ec", GR = "#4e8a32", GR2 = "#8ac860";
+    r(1, B, W - 2, 1, INK); r(1, B + H - 1, W - 2, 1, INK); r(0, B + 1, 1, H - 2, INK); r(W - 1, B + 1, 1, H - 2, INK);
+    r(1, B + 1, W - 2, H - 2, CR); r(1, B + H - 2, W - 2, 1, "#e6d4ba"); r(W - 2, B + 1, 1, H - 2, "#ecdcc4");
+    r(2, B + 2, W - 4, H - 4, "#5a3a22");
+    for (var i = 0; i < n; i++) {
+      var x = 3 + i * 5, on = o.lit == null || i < o.lit, c = on ? o.col(i) : (o.off || "#e6d4ba");
+      r(x, B + 3, 4, 6, c); r(x, B + 3, 4, 1, mix(c, "#ffffff", 0.35)); r(x, B + 8, 4, 1, mix(c, "#000000", 0.22)); r(x + 3, B + 4, 1, 4, mix(c, "#000000", 0.1));
+    }
+    if (o.zone) {
+      var zx0 = 2 + o.zone[0] * 5, zx1 = 3 + o.zone[1] * 5 + 4, zc = Math.round((zx0 + zx1) / 2);
+      r(zx0 - 1, B + 1, zx1 - zx0 + 3, 2, GR); r(zx0 - 1, B + H - 3, zx1 - zx0 + 3, 2, GR);
+      r(zx0 - 1, B + 1, 2, H - 2, GR); r(zx1, B + 1, 2, H - 2, GR);
+      r(zx0 + 1, B + 1, zx1 - zx0 - 1, 1, GR2); r(zx0 - 1, B + 1, 1, H - 2, GR2);
+      r(zc - 2, B + H, 5, 1, INK); r(zc - 1, B + H, 3, 1, GR2); r(zc - 3, B + H + 1, 7, 1, INK); r(zc - 2, B + H + 1, 5, 1, GR); r(zc - 3, B + H + 2, 7, 1, INK);
+      r(zc - 1, B + H - 1, 3, 1, INK);
+    }
+    if (o.mark != null) {
+      var mx = Math.round(3 + Math.max(0, Math.min(1, o.mark)) * (n * 5 - 1));
+      r(mx - 3, 0, 7, 1, INK); r(mx - 4, 1, 9, 1, INK); r(mx - 3, 1, 7, 1, CR); r(mx - 3, 2, 7, 1, INK); r(mx - 2, 2, 5, 1, CR); r(mx - 2, 3, 5, 1, INK); r(mx - 1, 3, 3, 1, CR);
+      r(mx - 1, 4, 3, 1, INK); r(mx, 4, 1, 1, CR); r(mx - 1, 5, 3, 1, INK);
+      r(mx - 1, B + 1, 3, H - 2, INK); r(mx, B + 1, 1, H - 2, CR);
+    }
+    var vb = o.vertical ? "0 0 " + TH + " " + W : "0 0 " + W + " " + TH;
+    return '<svg viewBox="' + vb + '" shape-rendering="crispEdges" aria-hidden="true" style="width:100%;height:auto;display:block">' + (o.vertical ? '<g transform="matrix(0 1 1 0 0 0)">' + out + '</g>' : out) + '</svg>';
+  }
+  function gaugeW(n) { return (n * 5 + 5) / 180 * 100; }
+  function gaugeT() { return 23 / 180 * 100; }
   function setPixBar(el, f) { if (el) el.innerHTML = pixBarSvg(f, 80); }
   // a proper wooden spoon: one shape that widens from a thick handle into a rounded, hollow bowl; shaded from the top left, 1-pixel outline, soft drop shadow
   function drawSpoon(ang) {
@@ -4692,7 +4731,7 @@ window.__EXTRAS = true;
           bakeFn = function () {
             var p = Math.min(1, (performance.now() - b0) / 12000), c = colorAt(p);
             $p("pov-float").innerHTML = art.split("#0c0003").join(c).split("#0c0004").join(mix(c, "#000000", 0.25)).split("#0c0005").join(mix(c, "#ffffff", 0.3));
-            $p("pov-bmark").style.left = (p * 100) + "%";
+            $p("pov-bake").dataset.p = p; $p("pov-bake").innerHTML = pixGaugeSvg({ n: 18, col: function (k) { return colorAt((k + 0.5) / 18); }, zone: [9, 11], mark: p });
             if (p >= 1 && !fin) take(p);
           };
           function take(p) { if (fin) return; fin = true; bakeFn = null; go.onclick = null; grades.push(p >= 0.5 && p <= 0.66 ? 3 : p >= 0.4 && p <= 0.76 ? 2 : 1); res(); }
@@ -4747,7 +4786,7 @@ window.__EXTRAS = true;
       function finish(v) { cancelAnimationFrame(raf); pov.hidden = true; setView("pot"); heatFn = bakeFn = null; resolve(v); }
       (function loop(now) {
         renderFloat((now - t0) / 1000);
-        if (heatFn) $p("pov-mark").style.bottom = (heatFn() * 92) + "%";
+        if (heatFn) $p("pov-gauge").dataset.v = heatFn(), $p("pov-gauge").innerHTML = pixGaugeSvg({ n: 16, vertical: true, col: function (k) { var t = 1 - (k + 0.5) / 16; return t < 0.5 ? mix("#bfe0f0", "#f6c04a", t / 0.5) : mix("#f6c04a", "#d8342a", (t - 0.5) / 0.5); }, zone: [6, 9], mark: 1 - heatFn() });
         if (bakeFn) bakeFn();
         if (view === "pot" && liqCol && Math.random() < 0.05) puff(POT.x + rnd(-30, 30), POT.y + rnd(-6, 8));
         raf = requestAnimationFrame(loop);
@@ -8069,13 +8108,17 @@ window.__EXTRAS = true;
   }
 
   // ---------- step 2: digging ----------
+  // the pixel gauge, lying flat under the tip: level k (1..12) is block k - 1, filled from the left
+  function pzGauge(G, lit) {
+    var z = G.gz, el = pzUi.querySelector(".pz-gauge"); if (!z || !el) return;
+    el.innerHTML = pixGaugeSvg({ n: 12, zone: [z.a - 1, z.b - 1], off: z.off || "#e6d4ba", lit: lit, col: function () { return z.c; } });
+  }
   function pzDigSetup(G) {
     var t = DEPTH[G.c] || [5, 7]; G.target = t; G.depth = 0; G.last = null; G.dug = false;
     var hole = lEl("div", "pz-hole", pzLay); pzPos(hole, 70 - 15, 92, 30, 14); hole.style.zIndex = 99; G.holeEl = hole;
     var mark = lEl("div", "pz-mark", pzLay); pzPos(mark, 70 - 1, 96, 2, 2);
     var gauge = pzUi.querySelector(".pz-gauge"); gauge.hidden = false;
-    var segs = ""; for (var k = 12; k >= 1; k--) segs += '<i class="' + (k >= t[0] && k <= t[1] ? "z" : "") + '" data-k="' + k + '"></i>';
-    gauge.innerHTML = '<b>Tiefe</b><span class="pz-segs">' + segs + '</span>';
+    G.gz = { a: t[0], b: t[1], c: "#8a5e3a" }; pzGauge(G, 0);
     pzUi.querySelector(".pz-paws").hidden = false;
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true;
     pzTip("Abwechselnd links und rechts tippen. Im grünen Bereich aufhören: " + CROPS[G.c].name + (t[0] >= 7 ? " mag es tief." : t[0] <= 3 ? " mag es flach." : " mag es mitteltief."));
@@ -8090,7 +8133,7 @@ window.__EXTRAS = true;
     front({ paws: side === "l" ? "hold" : "down", eyes: "down", mouth: "teeth" }); body(side === "l" ? "squat" : "");
     pzCrumbs(70 + (side === "l" ? -8 : 8), 96, 4); beep([[300 + G.depth * 30, .04]]);
     G.holeEl.innerHTML = pzSvg("hole" + Math.min(6, Math.ceil(G.depth / 2)));
-    pzUi.querySelectorAll(".pz-segs i").forEach(function (i) { i.classList.toggle("on", +i.dataset.k <= G.depth); });
+    pzGauge(G, G.depth);
     pzUi.querySelector(".pz-done").disabled = false;
     var inZone = G.depth >= G.target[0] && G.depth <= G.target[1];
     pzTip(inZone ? "Genau richtig! Jetzt auf <b>Fertig</b> tippen." : G.depth > G.target[1] ? "Ups, das wird zu tief." : "");
@@ -8183,8 +8226,7 @@ window.__EXTRAS = true;
   function pzCoverSetup(G) {
     G.fill = 0; G.pats = 0; G.covered = false;
     var gauge = pzUi.querySelector(".pz-gauge"), segs = "";
-    for (var k = 12; k >= 1; k--) segs += '<i class="' + (k >= 9 && k <= 10 ? "z" : "") + '" data-k="' + k + '"></i>';
-    gauge.innerHTML = '<b>Erde</b><span class="pz-segs">' + segs + '</span>'; gauge.hidden = false;
+    G.gz = { a: 9, b: 10, c: "#8a5e3a" }; pzGauge(G, 0); gauge.hidden = false;
     var hit = lEl("div", "pz-cover", pzLay); pzPos(hit, 30, 74, 80, 40); G.coverEl = hit;
     var last = null;
     function unitsPerPx() { return 180 / scene.getBoundingClientRect().width; }
@@ -8207,7 +8249,7 @@ window.__EXTRAS = true;
     pzLay.querySelectorAll(".pz-sown").forEach(function (s) { s.hidden = f > 30; });
     var m = pzLay.querySelector(".pz-mound");
     if (f >= 85) { if (!m) { m = lEl("div", "pz-mound", pzLay); pzPos(m, 55, 93, 30, 9); m.style.zIndex = 101; } m.innerHTML = pzSvg("mound" + (f < 110 ? 0 : f < 125 ? 1 : f < 140 ? 2 : 3)); }
-    pzUi.querySelectorAll(".pz-segs i").forEach(function (i) { i.classList.toggle("on", +i.dataset.k * 12.5 <= f + 6); });
+    pzGauge(G, Math.max(0, Math.min(12, Math.floor((f + 6) / 12.5))));
     pzUi.querySelector(".pz-done").disabled = f < 70;
     pzTip(f >= 100 && f <= 125 ? "Genug Erde! Jetzt <b>Festklopfen</b>." : f > 125 ? "Oha, das wird ein Maulwurfshügel." : "");
   }
@@ -8228,8 +8270,7 @@ window.__EXTRAS = true;
   function pzWaterSetup(G) {
     G.wet = 0; G.watered = false; G.pouring = false;
     var gauge = pzUi.querySelector(".pz-gauge"), segs = "";
-    for (var k = 12; k >= 1; k--) segs += '<i class="' + (k >= 8 && k <= 10 ? "z w" : "w") + '" data-k="' + k + '"></i>';
-    gauge.innerHTML = '<b>Wasser</b><span class="pz-segs">' + segs + '</span>'; gauge.hidden = false;
+    G.gz = { a: 8, b: 10, c: "#5aa0c8", off: "#dbe8f0" }; pzGauge(G, 0); gauge.hidden = false;
     var gh = G.where === "gh", tool = lEl("div", "pz-tool " + (gh ? "spray" : "can"), pzLay, pzSvg(gh ? "spray" : "can"));
     if (gh) pzPos(tool, 80, 66, 12, 20); else pzPos(tool, 76, 64, 26, 16);
     tool.style.zIndex = 130; G.toolEl = tool;
@@ -8255,7 +8296,7 @@ window.__EXTRAS = true;
   }
   function pzWetDraw(G) {
     var w = G.wet;
-    pzUi.querySelectorAll(".pz-segs i").forEach(function (i) { i.classList.toggle("on", +i.dataset.k * 100 / 12 <= w + 4); });
+    pzGauge(G, Math.max(0, Math.min(12, Math.floor((w + 4) * 12 / 100))));
     pzUi.querySelector(".pz-done").disabled = w < 20;
     var m = pzLay.querySelector(".pz-mound"); if (m) m.classList.toggle("wet", w > 40);
     if (w > 100 && !pzLay.querySelector(".pz-puddle")) { var p = lEl("div", "pz-puddle", pzLay, pzSvg("puddle")); pzPos(p, 52, 99, 36, 7); p.style.zIndex = 102; pzTip("Platsch, eine Pfütze. Das war zu viel Wasser."); front({ eyes: "wide", mouth: "open" }); }
