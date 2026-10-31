@@ -2221,7 +2221,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 58 · 31.10.2026</p>
+    <p class="opt-version">Version 59 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -8851,7 +8851,7 @@ window.__EXTRAS = true;
     ["food", "energy", "love", "fun"].forEach(function (k) { if (typeof o[k] === "number") s[k] = clamp(o[k]); });
     s.name = o.name || null; s.born = o.born || Date.now(); s.t = o.t || Date.now(); s.asleep = !!o.asleep; s.treats = typeof o.treats === "number" ? o.treats : 3; s.music = false;
     if (o.owned) for (var c in home.owned) home.owned[c] = (o.owned[c] || []).filter(function (id) { return item(c, id); });
-    for (var c2 in home.owned) if (!home.owned[c2].length) home.owned[c2] = [FURN[c2][0].id];
+    for (var c2 in home.owned) if (!home.owned[c2].length && FURN[c2] && FURN[c2][0]) home.owned[c2] = [FURN[c2][0].id];
     if (o.placed) for (var c3 in home.placed) { var own3 = home.owned[c3.replace(/\d+$/, "")] || []; if (o.placed[c3] === null || (o.placed[c3] && own3.indexOf(o.placed[c3]) >= 0)) home.placed[c3] = o.placed[c3]; }
     if (!home.placed.wall) home.placed.wall = home.owned.wall[0];
     if (!home.placed.floor) home.placed.floor = home.owned.floor[0];
@@ -9025,7 +9025,7 @@ window.__EXTRAS = true;
   function save(fromServer) {
     if (!fromServer) { stateUpdated = Date.now(); syncDirty = true; }
     var s = snapshotState(); s.stateUpdated = stateUpdated;
-    try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify(s)); if (game) localStorage.setItem(KEY + "-hist", JSON.stringify(history.slice(-80))); } catch (e) {}
   }
   function load() {
     try {
@@ -9034,10 +9034,12 @@ window.__EXTRAS = true;
         if (typeof s.autoNotes === "boolean") autoNotes = s.autoNotes;
         if (s.pendingKind) pendingKind = s.pendingKind;
         stateUpdated = s.stateUpdated || 0;
-        if (s.hamster && window.HamsterApp) window.HamsterApp.importState(s.hamster);
+        if (s.hamster && window.HamsterApp) { try { window.HamsterApp.importState(s.hamster); } catch (e) {} }
       }
       if (s && s.game && s.game.puzzle && s.game.puzzle.length === 81) {
-        game = s.game; showMistakes = !!s.showMistakes; pendingDiff = s.pendingDiff || game.diff; return true;
+        game = s.game; showMistakes = !!s.showMistakes; pendingDiff = s.pendingDiff || game.diff;
+        try { var hs = JSON.parse(localStorage.getItem(KEY + "-hist") || "[]"); if (Array.isArray(hs)) history = hs.filter(function (h) { return h && h.values && h.values.length === 81; }); } catch (e) {}
+        return true;
       }
     } catch (e) {}
     return false;
