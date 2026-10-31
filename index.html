@@ -2386,7 +2386,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 76 · 31.10.2026</p>
+    <p class="opt-version">Version 77 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -6440,7 +6440,6 @@ window.__EXTRAS = true;
     function solve(b, w, h, maxD) {
       for (var D = 1; D <= maxD; D++) {
         var seen = {};
-  window.HamsterSeen = function () { return seen; };
         var ok = (function dfs(s, d) {
           if (clear(s)) return true; if (d === 0) return false;
           var key = s.join(",") + "|" + d; if (seen[key]) return false; seen[key] = 1;
@@ -7512,8 +7511,9 @@ window.__EXTRAS = true;
   setInterval(function () {
     if (!window.HamsterSeen || !s.name) return;
     var seen = window.HamsterSeen() || {}, L = life();
-    if (!L.knownSeen) { L.knownSeen = Object.keys(seen); return; }   // first run: no flood of letters for animals you already had
-    Object.keys(seen).forEach(function (id) { if (L.knownSeen.indexOf(id) < 0) { L.knownSeen.push(id); queueHello(id); } });
+    if (L.knownSeen && L.knownSeen.some(function (id) { return !ALLANI[id]; })) L.knownSeen = L.knownSeen.filter(function (id) { return !!ALLANI[id]; });   // clean out junk from an old bug
+    if (!L.knownSeen) { L.knownSeen = Object.keys(seen).filter(function (id) { return !!ALLANI[id]; }); return; }   // first run: no flood of letters for animals you already had
+    Object.keys(seen).forEach(function (id) { if (ALLANI[id] && L.knownSeen.indexOf(id) < 0) { L.knownSeen.push(id); queueHello(id); } });
   }, 1500);
   var okSince = 0;
   setInterval(function () {
@@ -9752,7 +9752,7 @@ window.__EXTRAS = true;
     if (o.bedroom && typeof o.bedroom === "object" && home.bedroom) { for (var bk in o.bedroom) if (typeof o.bedroom[bk] === "number") home.bedroom[bk] = o.bedroom[bk]; if (typeof renderBedroomArt === "function") renderBedroomArt(); }
     if (typeof o.houseStyle === "number") home.houseStyle = o.houseStyle;
     home.sleepAt = o.sleepAt === "bed" ? "bed" : "chair";
-    if (o.life && typeof o.life === "object") home.life = o.life;
+    if (o.life && typeof o.life === "object") { home.life = o.life; if (Array.isArray(home.life.knownSeen)) home.life.knownSeen = home.life.knownSeen.filter(function (id) { return typeof id === "string" && id.indexOf(",") < 0 && id.length < 20; }); }
     if (typeof o.canopy === "number") { home.canopy = o.canopy; if (typeof renderBedroomArt === "function") renderBedroomArt(); }
     if (o.kitchen && typeof o.kitchen === "object") { for (var kk in o.kitchen) if (typeof o.kitchen[kk] === "number") home.kitchen[kk] = o.kitchen[kk]; if (typeof renderKitchenArt === "function") renderKitchenArt(); }
     if (o.garden && typeof o.garden === "object") {
@@ -10439,6 +10439,7 @@ window.__EXTRAS = true;
   // ---- sticker album ----
   var SEEN_KEY = "sudoku-animals-seen";
   var seen = {};
+  window.HamsterSeen = function () { return seen; };
   try { (JSON.parse(localStorage.getItem(SEEN_KEY) || "[]") || []).forEach(function (id) { seen[id] = true; }); } catch (e) {}
   function markSeen(id) {
     if (!id || seen[id]) return;
