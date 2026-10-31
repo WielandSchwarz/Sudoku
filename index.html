@@ -345,6 +345,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 .sticker .hearts { display: flex; gap: 1px; font-size: 0.8rem; line-height: 1; color: #e8554a; letter-spacing: 0; }
 .sticker .hearts i { font-style: normal; }
 .sticker .hearts i.off { color: #e2d6c8; }
+.sticker .hearts b { font-size: 0.75rem; color: #a8463c; margin-left: 2px; font-weight: 700; }
 .sticker .hcount { font-size: 0.62rem; color: #7a604f; font-weight: 600; text-align: center; line-height: 1.2; }
 
 .title-row { display: flex; align-items: center; gap: 10px; }
@@ -1189,6 +1190,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .fc-btn { border-radius: 0 !important; background: #f3e6d0 !important; color: var(--ink); box-shadow: inset 0 -3px 0 0 #e0ccac, 0 0 0 2px var(--ink); margin: 0 2px; min-height: 26px !important; padding: 3px 9px !important; }
 #ham-root .fc-btn.bye { background: var(--orange) !important; color: #fff !important; box-shadow: inset 0 -3px 0 0 #c8641a, 0 0 0 2px var(--ink); text-shadow: 0 1px 0 #b85a18; }
 #ham-root .fc-h i { width: 7px !important; height: 6px !important; clip-path: polygon(0 16.7%, 14.3% 16.7%, 14.3% 0, 42.9% 0, 42.9% 16.7%, 57.1% 16.7%, 57.1% 0, 85.7% 0, 85.7% 16.7%, 100% 16.7%, 100% 50%, 85.7% 50%, 85.7% 66.7%, 71.4% 66.7%, 71.4% 83.3%, 57.1% 83.3%, 57.1% 100%, 42.9% 100%, 42.9% 83.3%, 28.6% 83.3%, 28.6% 66.7%, 14.3% 66.7%, 14.3% 50%, 0 50%) !important; }
+#ham-root .fc-n { font-size: .75rem; line-height: 1; color: #a8463c; font-weight: 700; margin-left: 2px; align-self: center; }
 #ham-root .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
 #ham-root .need { display: flex; flex-direction: column; gap: 4px; }
 #ham-root .need-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; font-weight: 600; }
@@ -2295,7 +2297,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 63 · 31.10.2026</p>
+    <p class="opt-version">Version 64 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -2792,7 +2794,7 @@ window.__EXTRAS = true;
     else s.food = clamp(s.food + (kind === "seed" ? 15 : 25));
     renderNeeds();
     front({ hold: null, paws: "down", mouth: "smile", eyes: "happy", cheeks: kind === "seed" ? "l" : null }); body(""); pulse("hop", 420);
-    say({ seed: "Backen voll! " + N() + " legt sich einen Vorrat an.", carrot: "Knusper, knusper. Lecker.", apple: N() + " ist rundum glücklich." }[kind] || N() + " schmatzt zufrieden.");
+    say({ seed: "Backen voll! Dicke Backen.", carrot: "Knusper, knusper. Lecker.", apple: N() + " ist rundum glücklich." }[kind] || N() + " schmatzt zufrieden.");
     await wait(500);
     await walkTo(SPOT.home.x, SPOT.home.y);
     if (F.cheeks) {
@@ -4808,8 +4810,8 @@ window.__EXTRAS = true;
   };
   function giveFriendGift(id) {
     var g = FGIFT[id] || { seeds: ["strawberry", 2] }, got = [];
-    if (g.meadow && home.owned.meadow.indexOf(g.meadow) < 0) { home.owned.meadow.push(g.meadow); got.push(item("meadow", g.meadow).name); }
-    if (g.deco && home.owned.deco.indexOf(g.deco) < 0) { home.owned.deco.push(g.deco); got.push(item("deco", g.deco).name); }
+    if (g.meadow && item("meadow", g.meadow) && home.owned.meadow.indexOf(g.meadow) < 0) { home.owned.meadow.push(g.meadow); got.push(item("meadow", g.meadow).name); }
+    if (g.deco && item("deco", g.deco) && home.owned.deco.indexOf(g.deco) < 0) { home.owned.deco.push(g.deco); got.push(item("deco", g.deco).name); }
     if (g.seeds) { garden.seeds[g.seeds[0]] = (garden.seeds[g.seeds[0]] || 0) + g.seeds[1]; got.push(g.seeds[1] + " " + CROPS[g.seeds[0]].name + "-Samen"); }
     if (g.nut) { garden.harvest.nut += g.nut; got.push(g.nut + " Haselnüsse"); renderFoods(); }
     if (!got.length) { var c = pick(Object.keys(CROPS)); garden.seeds[c] += 3; got.push("3 " + CROPS[c].name + "-Samen"); }
@@ -4850,10 +4852,10 @@ window.__EXTRAS = true;
   var fcard = xEl("div", "f-card", gEl("g-ui")); fcard.id = "f-card"; fcard.hidden = true;
   function renderFriendCard() {
     if (!visitor) { fcard.hidden = true; return; }
-    var id = visitor.id, h = garden.friends[id] || 0, full = h % 3 === 0 && h > 0 ? 3 : h % 3, an = visitor.an;
+    var id = visitor.id, h = garden.friends[id] || 0, full = h, an = visitor.an;
     var dishes = simpleGifts();
-    var hearts = ""; for (var i = 0; i < 3; i++) hearts += '<i class="' + (i < full ? "on" : "") + '"></i>';
-    fcard.innerHTML = '<span class="fc-pic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><span class="fc-name">' + an.name + '<span class="fc-h" aria-label="' + full + ' von 3 Herzen">' + hearts + '</span></span>' +
+    var hearts = heartIcons(h);
+    fcard.innerHTML = '<span class="fc-pic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><span class="fc-name">' + an.name + '<span class="fc-h" aria-label="' + full + (full === 1 ? ' Herz' : ' Herzen') + '">' + hearts + '</span></span>' +
       (dishes.length && !visitor.fed ? '<button type="button" class="fc-btn" data-a="give">Schenken</button>' : "") + '<button type="button" class="fc-btn bye" data-a="bye">Tschüss</button>';
     fcard.hidden = decor;
   }
@@ -4869,6 +4871,11 @@ window.__EXTRAS = true;
       });
     }
   });
+  // every heart stays: five slots, and past five a small count next to them
+  function heartIcons(h) {
+    var o = ""; for (var i = 0; i < 5; i++) o += '<i class="' + (i < h ? "on" : "") + '"></i>';
+    return o + (h > 5 ? '<b class="fc-n">' + h + '</b>' : "");
+  }
   function addHeart(id, extra) {
     garden.friends[id] = (garden.friends[id] || 0) + 1;
     renderFriendCard();
@@ -6746,7 +6753,7 @@ window.__EXTRAS = true;
     var L = home.life;
     L.mat = L.mat || { stick: 0, stone: 0, feather: 0, shell: 0, reed: 0 };
     L.crafts = L.crafts || {}; L.stash = L.stash || []; delete L.diary; delete L.letters;
-    L.gh = L.gh || [null, null, null]; L.lastLetter = L.lastLetter || 0; L.lastFind = L.lastFind || 0; L.nibbled = L.nibbled || 0;
+    L.gh = L.gh || [null, null, null]; L.lastLetter = L.lastLetter || 0; L.lastFind = L.lastFind || 0; L.nibbled = 0; if (L.stash.length && !stashBack) { stashBack = true; setTimeout(function () { returnStash(); }, 0); }
     return L;
   }
   life();
@@ -7030,8 +7037,7 @@ window.__EXTRAS = true;
   var pCard = lEl("div", "f-card l-pcard", scene); pCard.hidden = true;
   function renderPondCard() {
     if (!pondV || place2 !== "pond") { pCard.hidden = true; return; }
-    var id = pondV.id, an = ALLANI[id], h = garden.friends[id] || 0, full = h % 3 === 0 && h > 0 ? 3 : h % 3, hearts = "";
-    for (var i = 0; i < 3; i++) hearts += '<i class="' + (i < full ? "on" : "") + '"></i>';
+    var id = pondV.id, an = ALLANI[id], h = garden.friends[id] || 0, hearts = heartIcons(h);
     var dishes = simpleGifts();
     pCard.innerHTML = '<span class="fc-pic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><span class="fc-name">' + ANAME[id] + '<span class="fc-h">' + hearts + '</span></span>' +
       (dishes.length && !pondV.fed ? '<button type="button" class="fc-btn" data-a="give">Schenken</button>' : "") + '<button type="button" class="fc-btn bye" data-a="bye">Tschüss</button>';
@@ -7553,6 +7559,7 @@ window.__EXTRAS = true;
   var stashEl = lEl("button", "l-stash", scene); stashEl.type = "button"; stashEl.setAttribute("aria-label", "Vorrat"); stashEl.hidden = true;
   var FNAME = { seed: "Kerne", carrot: "Karotte", apple: "Apfel" };
   function renderStash() {
+    stashEl.hidden = true; return;
     var L = life(), n = L.stash.length, inBed = home.sleepAt === "bed";
     var where = inBed ? "bedroom" : "room";
     stashEl.hidden = !n || place2 !== where;
@@ -7560,43 +7567,13 @@ window.__EXTRAS = true;
     stashEl.innerHTML = svgOf(A["stash" + Math.min(6, n)], 16, 9);
     if (inBed) pos(stashEl, 84, 112, 16); else pos(stashEl, 40, 122, 16);
   }
-  var _l_feedSeq2 = feedSeq; feedSeq = async function (k) {
-    var full = s.food > 85;
-    await _l_feedSeq2(k);
-    if (!full) return;
-    var L = life(); if (L.stash.length >= 6) { say("Der Vorrat ist voll. " + N() + " behält es lieber in den Backen."); return; }
-    var bed = home.sleepAt === "bed";
-    if (bed && place2 !== "bedroom") { say(N() + " versteckt es oben im Bett."); }
-    else { await walkTo(34, 126); front({ paws: "hold", cheeks: "l", eyes: "happy", mouth: "teeth" }); body("squat"); await wait(500); body(""); front({ cheeks: null, paws: "down", mouth: "smile" }); say(N() + " versteckt es heimlich neben dem Sessel. Ein Vorrat für die Nacht!"); }
-    L.stash.push(k); renderStash(); if (!bed) await walkTo(SPOT.home.x, SPOT.home.y); 
-  };
-  stashEl.addEventListener("click", function (e) {
-    e.stopPropagation(); var L = life();
-    say("Im Vorrat: " + L.stash.map(function (k) { return FNAME[k] || (GNAME && GNAME[k]) || k; }).join(", ") + ". Nachts nascht " + N() + " davon, wenn er Hunger bekommt.");
-  });
-  var sleepAcc = 0;
-  var _l_passHours = passHours;
-  passHours = function (h) {
-    _l_passHours(h);
-    if (!s.asleep) { sleepAcc = 0; return; }
-    sleepAcc += h; var L = life();
-    if (sleepAcc >= 1.5 && L.stash.length && s.food < 60) {
-      sleepAcc = 0; L.stash.shift(); L.nibbled++; s.food = clamp(s.food + 15); renderStash();
-      if (place2 === "room" || place2 === "bedroom") fx("crumb", H.x + rnd(-6, 6), H.y - 10, "fall", 1, { "--dx": rnd(-6, 6) + "px" });
-    }
-  };
-  var _l_wakeSeq = wakeSeq;
-  wakeSeq = async function (byPoke) {
-    await _l_wakeSeq(byPoke);
-    var L = life();
-    if (L.nibbled) {
-      var n = L.nibbled; L.nibbled = 0;
-      for (var i = 0; i < 4; i++) fx("crumb", H.x + rnd(-12, 12), H.y - 4, "fall", 1, { "--dx": rnd(-8, 8) + "px" });
-      say("Überall Krümel! " + N() + " hat nachts " + (n === 1 ? "einmal" : n + "-mal") + " aus seinem Vorrat genascht.");
- 
-    }
-  };
-
+  // the bedside stash is gone: whatever was still in it goes back to the pantry (after a saved state has been loaded)
+  var stashBack = false;
+  function returnStash() {
+    stashBack = false; var L = life(); if (!L.stash.length) return;
+    L.stash.forEach(function (k) { if (k === "apple") s.treats++; else if (GFOOD[k]) garden.harvest[k] = (garden.harvest[k] || 0) + 1; });
+    L.stash = []; L.nibbled = 0; renderFoods(); renderNeeds();
+  }
 
   // preview controls for the new things
   (function () {
@@ -7705,16 +7682,8 @@ window.__EXTRAS = true;
       var val = GFOOD[kind] ? GFOOD[kind].food : kind === "apple" ? 20 : kind === "seed" ? 15 : 25;
       if (GFOOD[kind]) { garden.harvest[kind]--; renderFoods(); } else if (kind === "apple") s.treats--;
       front({ hold: null, cheeks: "l", paws: "down", mouth: "smile", eyes: "happy", blush: true }); pulse("hop", 420);
-      var L = life();
-      if (L.stash.length >= 6) {
-        stashFood = Math.min(60, stashFood + val); stashUntil = Math.max(stashUntil, Date.now()) + 90000; renderNeeds();
-        say(N() + " ist satt und stopft alles in die Backen. Der Vorrat ist schon voll."); await wait(600); front({ cheeks: null }); await walkTo(KSPOT.home.x, KSPOT.home.y); return;
-      }
-      say(N() + " ist eigentlich satt und bringt es in seinen Vorrat."); await wait(500);
-      await goRoomFromKitchen();
-      await walkTo(34, 126); front({ paws: "hold", cheeks: "l", eyes: "happy", mouth: "teeth" }); body("squat"); await wait(500); body("");
-      front({ cheeks: null, paws: "down", mouth: "smile" }); L.stash.push(kind); renderStash(); renderNeeds();
-      say(N() + " versteckt es in seinem Vorrat."); await wait(500); await walkTo(SPOT.home.x, SPOT.home.y); return;
+      stashFood = Math.min(60, stashFood + val); stashUntil = Math.max(stashUntil, Date.now()) + 90000; renderNeeds();
+      say(N() + " ist eigentlich satt und stopft alles in die Backen. Dicke Backen!"); await wait(900); await walkTo(KSPOT.home.x, KSPOT.home.y); return;
     }
     front({ hold: kind, holdScale: 1, paws: "hold", eyes: "happy", mouth: "chew" }); body("nibble");
     var n = kind === "seed" ? 12 : 16;
@@ -7733,7 +7702,7 @@ window.__EXTRAS = true;
     else s.food = clamp(s.food + (kind === "seed" ? 15 : 25));
     renderNeeds();
     front({ hold: null, paws: "down", mouth: "smile", eyes: "happy", cheeks: kind === "seed" ? "l" : null }); body(""); pulse("hop", 420);
-    say({ seed: "Backen voll! " + N() + " legt sich einen Vorrat an.", carrot: "Knusper, knusper. Lecker.", apple: N() + " ist rundum glücklich." }[kind] || N() + " schmatzt zufrieden.");
+    say({ seed: "Backen voll! Dicke Backen.", carrot: "Knusper, knusper. Lecker.", apple: N() + " ist rundum glücklich." }[kind] || N() + " schmatzt zufrieden.");
     await wait(900); front({ cheeks: null }); await walkTo(KSPOT.home.x, KSPOT.home.y);
   };
   // tap the bookshelf and the hamster reads
@@ -9134,8 +9103,10 @@ window.__EXTRAS = true;
       var set = {}; (home.owned[c] || []).concat((o.owned && o.owned[c]) || []).forEach(function (id) { if (item(c, id)) set[id] = true; });
       union[c] = Object.keys(set);
     }
-    if (newer) { var copy = JSON.parse(JSON.stringify(o)); copy.owned = union; if (!copy.pending && home.pending) copy.pending = home.pending; importState(copy); }
-    else { var changed = false; for (var c4 in union) if (union[c4].length !== home.owned[c4].length) { home.owned[c4] = union[c4]; changed = true; } if (changed) { renderCosy(); if (decor) renderCatalog(); } }
+    var fr = {}, mine = garden.friends || {}, theirs = (o.garden && o.garden.friends) || {}, frUp = false;   // hearts only ever grow: keep the higher count from both sides
+    Object.keys(mine).concat(Object.keys(theirs)).forEach(function (k) { fr[k] = Math.max(mine[k] || 0, theirs[k] || 0); if (fr[k] !== (mine[k] || 0)) frUp = true; });
+    if (newer) { var copy = JSON.parse(JSON.stringify(o)); copy.owned = union; copy.garden = copy.garden || {}; copy.garden.friends = fr; if (!copy.pending && home.pending) copy.pending = home.pending; importState(copy); }
+    else { var changed = false; for (var c4 in union) if (union[c4].length !== home.owned[c4].length) { home.owned[c4] = union[c4]; changed = true; } if (changed) { renderCosy(); if (decor) renderCatalog(); } if (frUp) garden.friends = fr; }
   }
   function onSolved(diff, kind) {
     catchUpQuiet();
@@ -9149,13 +9120,23 @@ window.__EXTRAS = true;
   }
   function openPackageSoon() { window.Nav.show("hamster"); if (home.pending) later(openPackage, 800); }
   // save whenever something that matters changed (needs are compared in steps of 5)
-  function sig() {
-    var plots = garden.plots.map(function (p) { return p ? [p.crop, stage(p), p.wetUntil > Date.now()] : null; });
-    return JSON.stringify([s.name, s.treats, s.asleep, Math.round(s.food / 5), Math.round(s.energy / 5), Math.round(s.love / 5), Math.round(s.fun / 5), home.owned, home.placed, home.pending, home.pos, home.scarf, home.kitchen, home.bedroom, home.houseStyle, home.canopy, home.sleepAt, JSON.stringify(home.life || 0), plots, garden.seeds, garden.harvest, garden.snowLv, garden.snow, garden.lastVisit, garden.friends, garden.advent, garden.easter, garden.xmas, window.WordsGame ? window.WordsGame.sig() : "", window.TilesGame ? window.TilesGame.sig() : ""]);
+  // things that change by themselves with time (needs, growing plants, snow, sleep) are saved on this device,
+  // but they do not count as a newer state for syncing, so a device left open with an old state cannot overwrite the newer one
+  function passiveSig() {
+    var plots = garden.plots.map(function (p) { return p ? [stage(p), p.wetUntil > Date.now()] : null; });
+    return JSON.stringify([s.asleep, Math.round(s.food / 5), Math.round(s.energy / 5), Math.round(s.love / 5), Math.round(s.fun / 5), plots, garden.snow]);
   }
-  var lastSig = null;
-  function persistNow() { lastSig = sig(); if (window.SudokuSave) window.SudokuSave(); }
-  setInterval(function () { var g = sig(); if (lastSig !== null && g !== lastSig) persistNow(); }, 2000);
+  function sig() {
+    var plots = garden.plots.map(function (p) { return p ? [p.crop, p.wetUntil || 0] : null; });
+    return JSON.stringify([s.name, s.treats, home.owned, home.placed, home.pending, home.pos, home.scarf, home.kitchen, home.bedroom, home.houseStyle, home.canopy, home.sleepAt, JSON.stringify(home.life || 0), plots, garden.seeds, garden.harvest, garden.snowLv, garden.snow, garden.lastVisit, garden.friends, garden.advent, garden.easter, garden.xmas, window.WordsGame ? window.WordsGame.sig() : "", window.TilesGame ? window.TilesGame.sig() : ""]);
+  }
+  var lastSig = null, lastPSig = null;
+  function persistNow() { lastSig = sig(); lastPSig = passiveSig(); if (window.SudokuSave) window.SudokuSave(); }
+  setInterval(function () {
+    var g = sig(), ps = passiveSig();
+    if (lastSig !== null && g !== lastSig) persistNow();
+    else if (lastPSig !== null && ps !== lastPSig) { lastPSig = ps; if (window.SudokuSaveQuiet) window.SudokuSaveQuiet(); else if (window.SudokuSave) window.SudokuSave(); }
+  }, 2000);
 
   window.Nav = {
     current: "home",
@@ -9265,6 +9246,7 @@ window.__EXTRAS = true;
   var stateUpdated = 0, syncDirty = false;
   function snapshotState() { return { game: game, showMistakes: showMistakes, pendingDiff: pendingDiff, pendingKind: pendingKind, autoNotes: autoNotes, hamster: window.HamsterApp ? window.HamsterApp.exportState() : undefined }; }
   window.SudokuSave = function () { save(); };
+  window.SudokuSaveQuiet = function () { save(true); };
   function save(fromServer) {
     if (!fromServer) { stateUpdated = Date.now(); syncDirty = true; }
     var s = snapshotState(); s.stateUpdated = stateUpdated;
@@ -9788,8 +9770,9 @@ window.__EXTRAS = true;
   }
   var albumBtn = document.getElementById("album-btn"), albumPanel = document.getElementById("album");
   function heartsHTML(h) {
-    var cur = h ? (h % 3 || 3) : 0, row = "";   // a full row right after a gift, then it starts again
-    for (var i = 0; i < 3; i++) row += '<i' + (i < cur ? "" : ' class="off"') + '>♥</i>';
+    var row = "";   // every heart stays: five slots, and past five a small count
+    for (var i = 0; i < 5; i++) row += '<i' + (i < h ? "" : ' class="off"') + '>♥</i>';
+    if (h > 5) row += '<b>' + h + '</b>';
     return '<span class="hearts" aria-label="' + h + (h === 1 ? ' Herz' : ' Herzen') + '">' + row + '</span>';
   }
   window.SudokuAlbum = function () { renderAlbum("ham-album-grid", "ham-album-count", window.HamsterApp && window.HamsterApp.friendInfo ? window.HamsterApp.friendInfo() : null); };
