@@ -1996,6 +1996,17 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .pz-paws button:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #ecdcc4 !important; }
 #ham-root .pz-paws button svg { width: 40px !important; height: 37.5px !important; }
 #ham-root .pz-paws button.next { box-shadow: inset 0 0 0 2px #3a2414, inset 0 0 0 4px #f6c84a, inset 0 -6px 0 4px #e8b030 !important; }
+#ham-root .pz-tip { display: none !important; }
+#ham-root .pz-row { position: absolute; left: 0; right: 0; bottom: 4%; display: flex; justify-content: center; align-items: center; gap: 12px; pointer-events: none !important; }
+#ham-root .pz-row > * { pointer-events: auto; }
+#ham-root .pz-ui .pz-row .pz-act, #ham-root .pz-ui .pz-row .pz-done, #ham-root .pz-row .pz-paws { position: relative !important; left: auto !important; right: auto !important; bottom: auto !important; top: auto !important; transform: none !important; }
+#ham-root .pz-row .pz-paws[hidden], #ham-root .pz-row .pz-act[hidden], #ham-root .pz-row .pz-done[hidden] { display: none !important; }
+#ham-root .pz-ui .pz-done.is-fertig { display: none !important; }
+#ham-root .pz-ready { position: absolute; z-index: 150; pointer-events: none; }
+#ham-root .pz-ready[hidden] { display: none; }
+#ham-root .pz-ready i { position: absolute; width: 15px; height: 15px; animation: h-wb-sp 1.2s steps(1) infinite; opacity: 0;
+  background: linear-gradient(#fff0a0, #fff0a0) 6px 0 / 3px 15px no-repeat, linear-gradient(#fff0a0, #fff0a0) 0 6px / 15px 3px no-repeat, linear-gradient(#f6c84a, #f6c84a) 3px 3px / 9px 9px no-repeat;
+  clip-path: polygon(40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0 60%, 0 40%, 40% 40%); }
 #ham-root .cook-pov { font-family: system-ui, -apple-system, sans-serif; }
 #ham-root .cook-pov .pov-head { left: 0; right: 0; top: 0; padding: 0; background: none; border: 0; border-radius: 0; gap: 0; display: block; pointer-events: none; }
 #ham-root .cook-pov .pov-head b { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); margin-top: 6px; background: #fff8ec; color: #3a2414; font-size: 0.9rem; font-weight: 400; padding: 3px 10px; white-space: nowrap; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; }
@@ -2327,7 +2338,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 67 · 31.10.2026</p>
+    <p class="opt-version">Version 68 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -8034,6 +8045,26 @@ window.__EXTRAS = true;
     rows.forEach(function (r, y) { for (var x = 0; x < r.length; x++) { var c = C_[r[x]]; if (c) o += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + c + '"/>'; } });
     return '<svg viewBox="0 0 16 15" aria-hidden="true" shape-rendering="crispEdges">' + o + '</svg>';
   }
+  // tapping the hamster counts as "Fertig" while a minigame waits for it
+  function pzHamDone(e) {
+    if (!PZG || pzUi.hidden) return;
+    var d = pzUi.querySelector(".pz-done"); if (!d || d.hidden || d.disabled || d.textContent !== "Fertig") return;
+    var r = ham.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+    e.stopImmediatePropagation(); e.preventDefault(); d.click();
+  }
+  ham.addEventListener("click", pzHamDone, true);
+  // the Fertig button itself stays hidden: when the step can be finished, golden sparkles twinkle around the hamster
+  var pzReady = document.createElement("div"); pzReady.className = "pz-ready"; pzReady.hidden = true;
+  pzReady.innerHTML = [[-6, 18], [104, 30], [94, -4], [8, -10]].map(function (q, k) { return '<i style="left:' + q[0] + '%;top:' + q[1] + '%;animation-delay:' + (-k * 300) + 'ms"></i>'; }).join("");
+  scene.appendChild(pzReady);
+  setInterval(function () {
+    var d = PZG && !pzUi.hidden ? pzUi.querySelector(".pz-done") : null, fertig = !!d && d.textContent === "Fertig";
+    if (d) d.classList.toggle("is-fertig", fertig);
+    var on = fertig && !d.hidden && !d.disabled; pzReady.hidden = !on; if (!on) return;
+    var r = ham.getBoundingClientRect(), sr = scene.getBoundingClientRect();
+    pzReady.style.left = (r.left - sr.left) + "px"; pzReady.style.top = (r.top - sr.top) + "px"; pzReady.style.width = r.width + "px"; pzReady.style.height = r.height + "px";
+  }, 150);
+  setTimeout(function () { if (typeof pzLay !== "undefined" && pzLay) pzLay.addEventListener("click", pzHamDone, true); }, 0);
   function pzSvg(k, vb) { var a = PZ[k]; return '<svg viewBox="' + (vb || "0 0 " + a.w + " " + a.h) + '" aria-hidden="true" shape-rendering="crispEdges">' + a.svg + '</svg>'; }
   var PZSTAR = '<svg viewBox="0 0 9 9" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M4 0h1v2h1v1h3v1H8v1H7v2h1v2H7V8H6V7H3v1H2v1H1V7h1V5H1V4H0V3h3V2h1z"/><path fill="#ffd34a" d="M4 2h1v2h3v1H7v2H6V6H3v1H2V5H1V4h3z"/><path fill="#fff2a0" d="M4 2h1v2H4z"/></svg>';
   var PZSTAR0 = PZSTAR.replace('#ffd34a', '#e6d4ba').replace('#fff2a0', '#efe2cc');
@@ -8346,9 +8377,9 @@ window.__EXTRAS = true;
     var G = PZG = { i: i, c: c, where: where, step: 1, snaps: 0, slips: 0, pile: 0, weeds: [], worm: null, misses: 0 };
     pzLay.innerHTML = ""; pzRenderBg(where); pzEl.hidden = false; pzEl.classList.add("in");
     pzUi.innerHTML = '<div class="pz-ban"></div><div class="pz-tip"></div><div class="pz-gauge" hidden></div>' +
-      '<div class="pz-paws" hidden><button type="button" data-p="l" aria-label="Linke Pfote">' + pawPrintSvg() + '</button><button type="button" data-p="r" aria-label="Rechte Pfote">' + pawPrintSvg() + '</button></div>' +
+      '<div class="pz-row"><div class="pz-paws" hidden><button type="button" data-p="l" aria-label="Linke Pfote">' + pawPrintSvg() + '</button><button type="button" data-p="r" aria-label="Rechte Pfote">' + pawPrintSvg() + '</button></div>' +
       '<button type="button" class="pz-act pbtn" hidden></button>' +
-      '<button type="button" class="pz-done pbtn" hidden>Fertig</button><button type="button" class="pz-x" aria-label="Abbrechen">×</button><div class="pz-res" hidden></div>';
+      '<button type="button" class="pz-done pbtn" hidden>Fertig</button></div><button type="button" class="pz-x" aria-label="Abbrechen">×</button><div class="pz-res" hidden></div>';
     pzUi.hidden = false;
     pzUi.onclick = function (e) {
       var b = e.target.closest("button"); if (!b) return;
