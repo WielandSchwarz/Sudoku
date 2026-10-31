@@ -1476,6 +1476,8 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
 #ham-root .t-undo { width: 44px; min-width: 44px; padding: 0 !important; display: grid; place-items: center; }
 #ham-root .t-undo svg { width: 18px; height: 16px; }
 #ham-root .t-undo:disabled { opacity: .35; }
+#ham-root .t-undo.warn { animation: h-t-warn 1s steps(2) infinite; }
+@keyframes h-t-warn { 50% { background: #ffd34a; } }
 #ham-root .l-place { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
 #ham-root .l-place[hidden] { display: none; }
 #ham-root .l-place .l-bg { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
@@ -1939,6 +1941,18 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
     linear-gradient(#3a2414, #3a2414) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat; }
 #ham-root #scr-hamster .top-btns .close, #ham-root #scr-hamster .act, #ham-root #scr-hamster .food-btn, #ham-root #scr-hamster .track, #ham-root #scr-hamster .decor-btn, #ham-root #scr-hamster .tab, #ham-root #scr-hamster .item, #ham-root #scene .gpop button, #ham-root #scene .l-pop button, #ham-root #scene .pbtn, #ham-root #scene .fc-btn, #ham-root .lf-paper .pbtn, #ham-root .gift-ask button, #ham-root .pz-paws button, #ham-root .pz-ui .pbtn, #ham-root .ham-album .close, #ham-root .map-card .close { position: relative; }
 #ham-root .pz-ui .pz-act, #ham-root .pz-ui .pz-done { position: absolute !important; }
+#ham-root #scene .say-box, #ham-root .pz-ban, #ham-root .pz-tip, #ham-root .cook-pov .pov-head b, #ham-root .ip-banner {
+  background: #fff8ec !important; color: #3a2414 !important; text-shadow: none !important; border: 0 !important; border-radius: 0 !important;
+  box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .18), inset 0 -2px 0 0 #ecdcc4 !important;
+  font-family: var(--f-body, system-ui), -apple-system, "Segoe UI", Roboto, sans-serif !important; font-size: 0.86rem !important; font-weight: 600 !important; line-height: 1.25 !important;
+  text-align: center !important; padding: 5px 12px 7px !important; box-sizing: border-box; text-wrap: balance;
+  display: block; }
+#ham-root #scene .say-box::after { display: none !important; content: none !important; }
+#ham-root #scene .say-box { width: max-content; max-width: 80% !important; }
+#ham-root .pz-ban, #ham-root .cook-pov .pov-head b { white-space: nowrap; max-width: 70%; top: 3% !important; margin-top: 3px !important; }
+#ham-root .pz-tip { left: 50% !important; right: auto !important; top: calc(3% + 42px) !important; transform: translateX(-50%); width: max-content; max-width: 90%; }
+#ham-root .pz-tip br { display: none; }
+#ham-root .ip-banner b { font-size: inherit !important; font-weight: 600 !important; }
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
@@ -2125,7 +2139,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 55 · 31.10.2026</p>
+    <p class="opt-version">Version 56 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -6082,15 +6096,16 @@ window.__EXTRAS = true;
       }
       return 0;
     }
-    // a level: groups of four, pulled apart a little, checked to be solvable in 6 moves
-    function makeLevel(L, seed) {
-      var T = tier(L), r = rng(seed);
-      for (var tries = 0; tries < 400; tries++) {
+    // a level: every colour has exactly four tiles, pulled apart a little. Each candidate is played through:
+    // we want one clear intended way (few shortest solutions), little luck (random swiping rarely wins),
+    // pops that come one after another, and a little room in the move budget.
+    function rawLevel(L, r) {
+      var T = tier(L);
+      for (var tries = 0; tries < 60; tries++) {
         var w = T.w, h = T.h, b = new Array(w * h).fill(0), ok = true;
         var free = function () { var f = []; for (var i = 0; i < b.length; i++) if (b[i] === 0) f.push(i); return f; };
-        var nGroups = T.colors + (L > 10 && r() < 0.5 ? 1 : 0);
-        for (var g = 0; g < nGroups && ok; g++) {
-          var col = (g % T.colors) + 1, f = free(), start = f[Math.floor(r() * f.length)], cells = [start], guard = 0;
+        for (var g = 0; g < T.colors && ok; g++) {
+          var col = g + 1, f = free(), start = f[Math.floor(r() * f.length)], cells = [start], guard = 0;
           b[start] = col;
           while (cells.length < 4 && guard++ < 50) {
             var from = cells[Math.floor(r() * cells.length)], x = from % w, y = (from / w) | 0, d = DIRS[DK[Math.floor(r() * 4)]], nx = x + d[0], ny = y + d[1];
@@ -6099,28 +6114,79 @@ window.__EXTRAS = true;
           if (cells.length < 4) ok = false;
         }
         if (!ok) continue;
-        // pull every group apart: one or two of its tiles hop a little way off
         var cols = {}; for (var i = 0; i < b.length; i++) if (b[i] > 0) (cols[b[i]] = cols[b[i]] || []).push(i);
-        var nMoves = 0;
         for (var cc in cols) {
-          var cl = cols[cc], hops = 1 + (r() < 0.25 + L / 40 ? 1 : 0);
+          var cl = cols[cc], hops = 1 + (r() < 0.2 ? 1 : 0);
           for (var hh = 0; hh < hops; hh++) {
             for (var att = 0; att < 12; att++) {
-              var ti = cl[Math.floor(r() * cl.length)], tx = ti % w, ty = (ti / w) | 0, dd = DIRS[DK[Math.floor(r() * 4)]], dist = 1 + Math.floor(r() * (L > 8 ? 3 : 2)), ex = tx + dd[0] * dist, ey = ty + dd[1] * dist;
+              var ti = cl[Math.floor(r() * cl.length)], tx = ti % w, ty = (ti / w) | 0, dd = DIRS[DK[Math.floor(r() * 4)]], dist = 1 + Math.floor(r() * 2), ex = tx + dd[0] * dist, ey = ty + dd[1] * dist;
               if (ex < 0 || ey < 0 || ex >= w || ey >= h) continue; var e = ey * w + ex; if (b[e] !== 0) continue;
-              b[e] = b[ti]; b[ti] = 0; cl[cl.indexOf(ti)] = e; nMoves++; break;
+              b[e] = b[ti]; b[ti] = 0; cl[cl.indexOf(ti)] = e; break;
             }
           }
         }
-        // stones that never move
         var fr = free();
         for (var k = 0; k < T.blocks && fr.length; k++) { var pi = Math.floor(r() * fr.length); b[fr[pi]] = -1; fr.splice(pi, 1); }
         if (groups(b, w, h).length) continue;
-        var sol = solve(b, w, h, BASE_MOVES);
-        if (sol && sol >= T.minSol) return { w: w, h: h, b: b, sol: sol };
+        return { w: w, h: h, b: b };
       }
-      // fallback: an easy one
-      return makeLevel(1, seed + 1);
+      return null;
+    }
+    // breadth-first over all move sequences up to M: shortest length, how many shortest solutions, how spread the pops are,
+    // and the chance that random swiping wins
+    function analyze(lv, M) {
+      var w = lv.w, h = lv.h, layer = [{ s: lv.b, c: 1, pops: 0 }], idx = {}, minD = 0, nMin = 0, pops = 0;
+      idx[lv.b.join(",")] = layer[0];
+      for (var d = 1; d <= M && !minD; d++) {
+        var next = [], nidx = {};
+        for (var q = 0; q < layer.length; q++) {
+          var st = layer[q];
+          for (var k = 0; k < 4; k++) {
+            var r = step(st.s, w, h, DK[k]); if (!r.moved.length) continue;
+            var pp = st.pops + (r.gs.length ? 1 : 0);
+            if (clear(r.b)) { if (!minD || pp > pops) pops = pp; minD = d; nMin += st.c; continue; }
+            var key = r.b.join(","), e = nidx[key];
+            if (e) { e.c += st.c; if (pp > e.pops) e.pops = pp; } else { e = nidx[key] = { s: r.b, c: st.c, pops: pp }; next.push(e); }
+          }
+        }
+        if (next.length > 6000) return null;
+        layer = next;
+      }
+      if (!minD) return null;
+      var memo = {};
+      function P(s, dd) {
+        if (clear(s)) return 1; if (!dd) return 0; var key = s.join(",") + "|" + dd; if (key in memo) return memo[key];
+        var t = 0, n = 0; for (var k = 0; k < 4; k++) { var r = step(s, w, h, DK[k]); if (r.moved.length) { n++; t += P(r.b, dd - 1); } }
+        return (memo[key] = n ? t / n : 0);
+      }
+      var luck = P(lv.b, M), fm = 0, bad = 0;
+      for (var k2 = 0; k2 < 4; k2++) { var r2 = step(lv.b, w, h, DK[k2]); if (!r2.moved.length) continue; fm++; if (!clear(r2.b) && !P(r2.b, M - 1)) bad++; }
+      return { minD: minD, nMin: nMin, pops: pops, luck: luck, trap: fm ? bad / fm : 1 };
+    }
+    function goal(L) {   // [shortest solution min, max], max shortest solutions, max luck, min separate pops
+      if (L <= 1) return [1, 2, 9, 0.8, 1];
+      if (L <= 3) return [2, 2, 4, 0.5, 1];
+      if (L <= 8) return [3, 3, 3, 0.2, 2];
+      if (L <= 14) return [3, 4, 2, 0.08, 2, 0.5];
+      return [4, 5, 2, 0.04, 3, 0.5];
+    }
+    function makeLevel(L, seed) {
+      var r = rng(seed), G = goal(L), best = null, bestScore = -1e9, t0 = Date.now();
+      for (var n = 0; n < 400; n++) {
+        if (best && Date.now() - t0 > 140) break;
+        if (!best && Date.now() - t0 > 220) return L > 1 ? makeLevel(L - 1, seed + 7) : makeLevel(1, seed + 1);
+        var lv = rawLevel(L, r); if (!lv) continue;
+        var a = analyze(lv, BASE_MOVES - (L > 8 ? 1 : 0)); if (!a) continue;
+        var score = 0;
+        if (a.minD < G[0]) score -= 40 * (G[0] - a.minD); if (a.minD > G[1]) score -= 40 * (a.minD - G[1]);
+        if (a.nMin > G[2]) score -= 6 * Math.min(10, a.nMin - G[2]);
+        if (a.luck > G[3]) score -= 100 * (a.luck - G[3]);
+        if (a.pops < G[4]) score -= 15 * (G[4] - a.pops);
+        if (G[5] !== undefined && a.trap > G[5]) score -= 30 * (a.trap - G[5]);
+        if (score > bestScore) { bestScore = score; best = lv; best.sol = a.minD; }
+        if (score >= 0) break;
+      }
+      return best || makeLevel(1, seed + 1);
     }
 
     // ---- state ----
@@ -6155,7 +6221,7 @@ window.__EXTRAS = true;
       '<li>Gestreifte Steine bewegen sich nie.</li>' +
       '<li>Jedes Level hat <b>6 Züge</b>. Bis zu 3 übrige Züge nimmst du ins nächste Level mit, höchstens 9.</li>' +
       '<li>Ein Level ist geschafft, wenn keine bunte Kachel mehr übrig ist. Jedes Level ist lösbar.</li>' +
-      '<li><b>Täglich</b>: 20 Level, jeden Tag neu, mit Belohnungen für deinen Hamster. <b>Endlos</b>: so viele Level, wie du magst.</li>' +
+      '<li><b>Täglich</b>: 20 Level, jeden Tag neu. <b>Endlos</b>: so viele Level, wie du magst. Nach jedem Level kann es eine Belohnung für deinen Hamster geben, je schwerer das Level, desto eher.</li>' +
       '<li>Jede Farbe hat ein kleines Muster, so kann man sie auch ohne Farben unterscheiden.</li></ul></div></div>';
     // detailed 16 x 16 pixel tiles: dark rim, bevel light top-left, shade bottom-right, glossy spot and a little symbol
     function hx(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
@@ -6205,7 +6271,7 @@ window.__EXTRAS = true;
     function place(t, i, c) { t.style.left = (100 * (i % c.w) / c.w) + "%"; t.style.top = (100 * ((i / c.w) | 0) / c.h) + "%"; }
     function render() {
       var run = curRun(), c = loadLevel();
-      var ub = $t("t-undo"); if (ub) ub.disabled = !(c.hist && c.hist.length) || c.state === "won" || (S.mode === "daily" && run.done);
+      var ub = $t("t-undo"); if (ub) ub.disabled = !(c.hist && c.hist.length) || c.state === "won" || (S.mode === "daily" && run.done); if (ub) ub.classList.toggle("warn", !!c.stuck && c.state === "play");
       root.querySelectorAll(".w-pill button").forEach(function (b) { b.classList.toggle("on", b.dataset.m === S.mode); });
       $t("t-score").textContent = S.mode === "daily" ? run.score : run.cleared;
       $t("t-score").nextSibling.textContent = S.mode === "daily" ? " Pkt" : " Level";
@@ -6254,7 +6320,7 @@ window.__EXTRAS = true;
           anim = false;
           if (clear(c.b)) return levelDone();
           if (c.moves <= 0) { c.state = "lost"; save(); render(); hamSet("sad"); beep([[300, .1], [200, .16]]); return; }
-          if (!solve(c.b, c.w, c.h, c.moves)) { c.stuck = true; msg("So geht es nicht mehr auf. Tippe auf „Level neu“."); hamSet("sad"); } else { c.stuck = false; if (!gs.length) hamSet("think", 700); }
+          if (!solve(c.b, c.w, c.h, c.moves)) { c.stuck = true; msg("So geht es nicht mehr auf. Nimm den Zug mit dem Pfeil zurück."); hamSet("sad"); } else { c.stuck = false; if (!gs.length) hamSet("think", 700); }
           save(); render();
         }, gs.length ? 280 : 0);
       }, 130);
@@ -6274,7 +6340,7 @@ window.__EXTRAS = true;
         if (run.level >= DAYLEVELS) { run.done = true; S.stats.days++; }
       } else {
         run.cleared++; run.best = Math.max(run.best, run.cleared); run.carry = carry;
-        rw = giveRewards("endless", run.cleared);
+        rw = giveRewards("endless", run.level);
       }
       c.reward = rw; hamCheer(true); beep([[784, .08], [988, .08], [1319, .16]]);
       if ((S.mode === "daily" && (run.level % 5 === 0)) || (S.mode === "endless" && run.cleared % 5 === 0)) setTimeout(function () { visit("done"); }, 600);
@@ -6328,8 +6394,9 @@ window.__EXTRAS = true;
     function giveRewards(mode, n) {
       if (typeof s === "undefined" || !s.name) return { none: true };
       var apples = 0, seeds = [], gift = null, crops = Object.keys(CROPS).filter(function (c) { return c !== "chili"; });
-      if (mode === "daily") { if (n % 5 === 0) apples = 1; if (n === 10 || n === 20) seeds.push(pick(crops)); if (n === 20) { apples += 2; gift = pickGift(); } }
-      else { if (n % 3 === 0) apples = 1; if (n % 6 === 0) seeds.push(pick(crops)); if (n % 10 === 0 && isHappy()) gift = pickGift(); }
+      // after every level a chance for a reward, higher on harder levels: 1-5 10 %, 6-11 20 %, from 12 on 30 %
+      var chance = n <= 5 ? 0.1 : n <= 11 ? 0.2 : 0.3;
+      if (Math.random() < chance) { if (Math.random() < 0.5) apples = 1; else seeds.push(pick(crops)); }
       if (!apples && !seeds.length && !gift) return null;
       s.treats += apples; seeds.forEach(function (c) { garden.seeds[c] = (garden.seeds[c] || 0) + 1; });
       renderNeeds(); renderCosy(); if (typeof renderStart === "function") renderStart();
