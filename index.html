@@ -2221,7 +2221,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 57 · 31.10.2026</p>
+    <p class="opt-version">Version 58 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -5844,6 +5844,7 @@ window.__EXTRAS = true;
       return { base: base, mult: mult, spicy: spicy, flat: flat, pan: pan, panB: panB, pts: base * mult, cnt: cnt };
     }
     function renderWord() {
+      if (typeof undoState === "function") undoState();
       var b = board(), el = $w("w-word");
       if (!cur.length) { el.innerHTML = '<span class="w-ph">' + (b.done ? "Rätsel beendet" : "Tippe Buchstaben an") + '</span>'; return; }
       var w = cur.join(""), sc = scoreOf(w, b);
@@ -5851,6 +5852,7 @@ window.__EXTRAS = true;
         (w.length >= 2 && w.indexOf(b.center) >= 0 ? '<span class="w-prev">' + sc.base + (sc.mult > 1 ? " × " + sc.mult : "") + '</span>' : "") +
         '<button type="button" class="w-clear" id="w-clear" aria-label="Wort leeren">×</button>';
     }
+    function undoState() { var b = board(), u = $w("w-undo"); if (!u) return; u.disabled = b.done || (!cur.length && !b.played.length); u.classList.toggle("warn", !!b.stuck && !b.done); }
     function rankOf(p) { var r = RANKS[0][1]; RANKS.forEach(function (x) { if (p >= x[0]) r = x[1]; }); return r; }
     function renderInfo() {
       var b = board(), pan = b.played.some(function (p) { return p.pan; }), sec = b.played.some(function (p) { return p.sec; });
@@ -5864,7 +5866,7 @@ window.__EXTRAS = true;
       $w("w-hinttxt").textContent = b.hints.length && !b.done ? b.hints[b.hints.length - 1] : "";
       $w("w-end").disabled = b.done || !b.played.length;
       ["w-del", "w-mix", "w-go"].forEach(function (id) { $w(id).disabled = b.done; });
-      $w("w-undo").disabled = b.done || !b.played.length; $w("w-undo").classList.toggle("warn", !!b.stuck && !b.done);
+      undoState();
     }
     function renderPile() {
       var b = board();
@@ -5919,7 +5921,9 @@ window.__EXTRAS = true;
     }
     function solveNow(b) { var ex = {}; b.played.forEach(function (p) { ex[p.w] = 1; }); var r = solve(b.outer, b.center, b.uses, ex, 40000, true); return r || solve(b.outer, b.center, b.uses, ex, 60000, false); }
     function undo() {
-      var b = board(); if (b.done || !b.played.length) return;
+      var b = board(); if (b.done) return;
+      if (cur.length) { cur.pop(); renderBoard(); renderWord(); return; }     // the last step was a letter: take it back
+      if (!b.played.length) return;
       var p = b.played.pop(), cnt = {}; for (var i = 0; i < p.w.length; i++) cnt[p.w[i]] = (cnt[p.w[i]] || 0) + 1;
       for (var l in cnt) if (l !== b.center) b.uses[l] += cnt[l];
       b.score -= p.pts; b.spicy = p.prevSpicy !== undefined ? p.prevSpicy : b.spicy; cur = [];
@@ -6296,7 +6300,7 @@ window.__EXTRAS = true;
       '<div class="t-boardwrap" id="t-wrap"><div class="t-board" id="t-board"></div><div class="t-over" id="t-over" hidden></div></div>' +
       '<div class="t-pad">' + arrBtn("left") + '<div class="t-pad-mid">' + arrBtn("up") + arrBtn("down") + '</div>' + arrBtn("right") + '</div>' +
       '<div class="w-lane t-lane" id="t-lane"><span class="t-ham" id="t-ham"></span></div>' +
-      '<div class="w-tools"><button type="button" class="w-btn w-small" id="t-reset">Level neu</button><button type="button" class="w-btn w-small t-undo" id="t-undo" aria-label="Letzten Zug zurücknehmen" title="Letzten Zug zurücknehmen"><svg viewBox="0 0 9 8" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h1v2h3v1h1v1h1v3H8v1H7V5H6V4H4v2H3V5H2V4H1V3H0V2h1V1h2z"/></svg></button><span class="w-hinttxt" id="t-msg"></span><button type="button" class="w-btn w-small" id="t-hint">Tipp</button></div>' +
+      '<div class="w-tools"><button type="button" class="w-btn w-small" id="t-reset">Level neu</button><button type="button" class="w-btn w-small t-undo" id="tl-undo" aria-label="Letzten Zug zurücknehmen" title="Letzten Zug zurücknehmen"><svg viewBox="0 0 9 8" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h1v2h3v1h1v1h1v3H8v1H7V5H6V4H4v2H3V5H2V4H1V3H0V2h1V1h2z"/></svg></button><span class="w-hinttxt" id="t-msg"></span><button type="button" class="w-btn w-small" id="t-hint">Tipp</button></div>' +
       '<div class="w-rules" id="t-rules" hidden><div class="w-rules-card" role="dialog"><div class="w-rules-top"><h2>So geht Farbklecks</h2><button type="button" class="w-iconbtn" id="t-rules-x" aria-label="Schließen">×</button></div><ul>' +
       '<li>Wische über das Brett (oder nimm die Pfeile). Dann rutschen <b>alle</b> Kacheln gleichzeitig ein Feld in diese Richtung, wenn davor Platz ist.</li>' +
       '<li>Berühren sich <b>vier oder mehr</b> Kacheln derselben Farbe, machen sie „plopp“ und verschwinden. Die Form ist egal.</li>' +
@@ -6353,7 +6357,7 @@ window.__EXTRAS = true;
     function place(t, i, c) { t.style.left = (100 * (i % c.w) / c.w) + "%"; t.style.top = (100 * ((i / c.w) | 0) / c.h) + "%"; }
     function render() {
       var run = curRun(), c = loadLevel();
-      var ub = $t("t-undo"); if (ub) ub.disabled = !(c.hist && c.hist.length) || c.state === "won" || (S.mode === "daily" && run.done); if (ub) ub.classList.toggle("warn", !!c.stuck && c.state === "play");
+      var ub = $t("tl-undo"); if (ub) ub.disabled = !(c.hist && c.hist.length) || c.state === "won" || (S.mode === "daily" && run.done); if (ub) ub.classList.toggle("warn", !!c.stuck && c.state === "play");
       root.querySelectorAll(".w-pill button").forEach(function (b) { b.classList.toggle("on", b.dataset.m === S.mode); });
       $t("t-score").textContent = S.mode === "daily" ? run.score : run.cleared;
       $t("t-score").nextSibling.textContent = S.mode === "daily" ? " Pkt" : " Level";
@@ -6579,7 +6583,7 @@ window.__EXTRAS = true;
         case "t-rules-x": $t("t-rules").hidden = true; return;
         case "t-reset": return resetLevel();
         case "t-hint": return hint();
-        case "t-undo": return undo();
+        case "tl-undo": return undo();
         case "t-gift": leave(); if (window.HamsterApp && window.HamsterApp.openPackageSoon) window.HamsterApp.openPackageSoon(); else { show("scr-hamster"); refresh(); if (home.pending) later(openPackage, 800); } return;
       }
     });
