@@ -2082,7 +2082,7 @@ kbd { font-family: var(--f-ui); font-size: 0.72rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 51 · 31.10.2026</p>
+    <p class="opt-version">Version 52 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -8748,7 +8748,7 @@ window.__EXTRAS = true;
   function heartsHTML(h) {
     var cur = h ? (h % 3 || 3) : 0, row = "";   // a full row right after a gift, then it starts again
     for (var i = 0; i < 3; i++) row += '<i' + (i < cur ? "" : ' class="off"') + '>♥</i>';
-    return '<span class="hearts" aria-label="' + h + ' Herzen">' + row + '</span><span class="hcount">' + h + (h === 1 ? " Herz" : " Herzen") + (h >= 3 ? " · " + Math.floor(h / 3) + (h >= 6 ? " Geschenke" : " Geschenk") : "") + '</span>';
+    return '<span class="hearts" aria-label="' + h + (h === 1 ? ' Herz' : ' Herzen') + '">' + row + '</span>';
   }
   window.SudokuAlbum = function () { renderAlbum("ham-album-grid", "ham-album-count", window.HamsterApp && window.HamsterApp.friendInfo ? window.HamsterApp.friendInfo() : null); };
   function renderAlbum(gridId, countId, fr) {
