@@ -2007,6 +2007,14 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .pz-ready i { position: absolute; width: 15px; height: 15px; animation: h-wb-sp 1.2s steps(1) infinite; opacity: 0;
   background: linear-gradient(#fff0a0, #fff0a0) 6px 0 / 3px 15px no-repeat, linear-gradient(#fff0a0, #fff0a0) 0 6px / 15px 3px no-repeat, linear-gradient(#f6c84a, #f6c84a) 3px 3px / 9px 9px no-repeat;
   clip-path: polygon(40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0 60%, 0 40%, 40% 40%); }
+#ham-root .pz-ui .pz-done, #ham-root .pz-ui .pz-act, #ham-root .pz-ui .pz-paws { display: none !important; }
+#ham-root .pz-pawmark { position: absolute; pointer-events: none; opacity: .55; }
+#ham-root .pz-pawmark svg { width: 100%; height: 100%; display: block; }
+#ham-root .pz-pawmark.next { opacity: 1; filter: drop-shadow(1px 0 0 #f6c84a) drop-shadow(-1px 0 0 #f6c84a) drop-shadow(0 1px 0 #f6c84a) drop-shadow(0 -1px 0 #f6c84a); animation: h-pz-bob 0.8s steps(2) infinite; }
+#ham-root .pz-pawmark.tap { animation: h-pz-press .25s steps(2); }
+@keyframes h-pz-bob { 0% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes h-pz-press { 0% { transform: scale(.85); } 100% { transform: scale(1); } }
+#ham-root .pz-tool.pz-hint { animation: h-pz-bob 0.8s steps(2) infinite; }
 #ham-root .cook-pov { font-family: system-ui, -apple-system, sans-serif; }
 #ham-root .cook-pov .pov-head { left: 0; right: 0; top: 0; padding: 0; background: none; border: 0; border-radius: 0; gap: 0; display: block; pointer-events: none; }
 #ham-root .cook-pov .pov-head b { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); margin-top: 6px; background: #fff8ec; color: #3a2414; font-size: 0.9rem; font-weight: 400; padding: 3px 10px; white-space: nowrap; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; }
@@ -2338,7 +2346,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </div>
       <p class="acc-status" id="acc-status" aria-live="polite"></p>
     </div>
-    <p class="opt-version">Version 68 · 31.10.2026</p>
+    <p class="opt-version">Version 69 · 31.10.2026</p>
   </div>
 
   <div class="mode-row">
@@ -8048,7 +8056,7 @@ window.__EXTRAS = true;
   // tapping the hamster counts as "Fertig" while a minigame waits for it
   function pzHamDone(e) {
     if (!PZG || pzUi.hidden) return;
-    var d = pzUi.querySelector(".pz-done"); if (!d || d.hidden || d.disabled || d.textContent !== "Fertig") return;
+    var d = pzUi.querySelector(".pz-done"); if (!d || d.hidden || d.disabled) return;
     var r = ham.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
     e.stopImmediatePropagation(); e.preventDefault(); d.click();
   }
@@ -8058,9 +8066,8 @@ window.__EXTRAS = true;
   pzReady.innerHTML = [[-6, 18], [104, 30], [94, -4], [8, -10]].map(function (q, k) { return '<i style="left:' + q[0] + '%;top:' + q[1] + '%;animation-delay:' + (-k * 300) + 'ms"></i>'; }).join("");
   scene.appendChild(pzReady);
   setInterval(function () {
-    var d = PZG && !pzUi.hidden ? pzUi.querySelector(".pz-done") : null, fertig = !!d && d.textContent === "Fertig";
-    if (d) d.classList.toggle("is-fertig", fertig);
-    var on = fertig && !d.hidden && !d.disabled; pzReady.hidden = !on; if (!on) return;
+    var d = PZG && !pzUi.hidden ? pzUi.querySelector(".pz-done") : null;
+    var on = !!d && !d.hidden && !d.disabled; pzReady.hidden = !on; if (!on) return;
     var r = ham.getBoundingClientRect(), sr = scene.getBoundingClientRect();
     pzReady.style.left = (r.left - sr.left) + "px"; pzReady.style.top = (r.top - sr.top) + "px"; pzReady.style.width = r.width + "px"; pzReady.style.height = r.height + "px";
   }, 150);
@@ -8184,7 +8191,7 @@ window.__EXTRAS = true;
     var mark = lEl("div", "pz-mark", pzLay); pzPos(mark, 70 - 1, 96, 2, 2);
     var gauge = pzUi.querySelector(".pz-gauge"); gauge.hidden = false;
     G.gz = { a: t[0], b: t[1], c: "#8a5e3a" }; pzGauge(G, 0);
-    pzUi.querySelector(".pz-paws").hidden = false;
+    G.pawEls = ["l", "r"].map(function (sd) { var e = lEl("div", "pz-pawmark", pzLay, pawPrintSvg()); pzPos(e, sd === "l" ? 38 : 88, 92, 14, 13); e.dataset.p = sd; e.style.zIndex = 110; return e; });
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true;
     pzTip("Abwechselnd links und rechts tippen. Im goldenen Bereich aufhören: " + CROPS[G.c].name + (t[0] >= 7 ? " mag es tief." : t[0] <= 3 ? " mag es flach." : " mag es mitteltief."));
   }
@@ -8195,7 +8202,7 @@ window.__EXTRAS = true;
       front({ eyes: "wide", mouth: "open" }); beep([[200, .05]]); return;
     }
     G.last = side; G.depth++;
-    pzUi.querySelectorAll(".pz-paws button").forEach(function (b) { b.classList.toggle("next", b.dataset.p !== side && G.depth < 12); });
+    (G.pawEls || []).forEach(function (b) { b.classList.toggle("next", b.dataset.p !== side && G.depth < 12); b.classList.toggle("tap", b.dataset.p === side); void b.offsetWidth; });
     front({ paws: side === "l" ? "hold" : "down", eyes: "down", mouth: "teeth" }); body(side === "l" ? "squat" : "");
     pzCrumbs(70 + (side === "l" ? -8 : 8), 96, 4); beep([[300 + G.depth * 30, .04]]);
     G.holeEl.innerHTML = pzSvg("hole" + Math.min(6, Math.ceil(G.depth / 2)));
@@ -8261,7 +8268,7 @@ window.__EXTRAS = true;
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
-    var ui = pzUi.querySelector(".pz-act"); ui.hidden = false; ui.textContent = "Fallen lassen";
+    pzUi.querySelector(".pz-act").hidden = true;
     pzTip(G.need > 1 ? "Tippe, wenn der Samen über dem Loch ist. " + G.need + " Samen gehören hinein." : "Tippe, wenn der Samen genau über dem Loch ist.");
   }
   function pzDrop(G) {
@@ -8340,7 +8347,7 @@ window.__EXTRAS = true;
     var gh = G.where === "gh", tool = lEl("div", "pz-tool " + (gh ? "spray" : "can"), pzLay, pzSvg(gh ? "spray" : "can"));
     if (gh) pzPos(tool, 80, 66, 12, 20); else pzPos(tool, 76, 64, 26, 16);
     tool.style.zIndex = 130; G.toolEl = tool;
-    var act2 = pzUi.querySelector(".pz-act"); act2.hidden = false; act2.textContent = gh ? "Sprühen" : "Gedrückt halten";
+    pzUi.querySelector(".pz-act").hidden = true; tool.classList.add("pz-hint");
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true; pzUi.querySelector(".pz-done").textContent = "Fertig";
     pzTip(gh ? "Im Takt auf <b>Sprühen</b> tippen, bis der Wasserstand im goldenen Bereich ist." : "Den Knopf gedrückt halten, dann gießt " + N() + ". Im goldenen Bereich loslassen.");
     if (!gh) {
@@ -8401,6 +8408,17 @@ window.__EXTRAS = true;
     pzUi.addEventListener("pointerup", stopPour); pzUi.addEventListener("pointercancel", stopPour); pzUi.addEventListener("pointerleave", stopPour);
     pzUi.querySelector(".pz-paws").addEventListener("click", function (e) { e.stopPropagation(); }, true);
     pzLay.onclick = function () { if (G.step === 3) pzDrop(G); };
+    function onHam(e) { var r = ham.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
+    pzLay.onpointerdown = function (e) {
+      if (PZG !== G || onHam(e)) return;
+      var sr = scene.getBoundingClientRect(), wx = (e.clientX - sr.left) / sr.width * 180;
+      if (G.step === 2 && !G.dug) { e.preventDefault(); pzDigTap(G, wx < 70 ? "l" : "r"); }
+      else if (G.step === 5 && !G.watered) {
+        e.preventDefault(); if (G.toolEl) G.toolEl.classList.remove("pz-hint");
+        if (G.where === "gh") pzSprayTap(G); else { G.pouring = true; front({ paws: "hold", eyes: "happy", mouth: "smile" }); }
+      }
+    };
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (t) { pzLay.addEventListener(t, function () { if (PZG === G && G.pouring) { G.pouring = false; front({ paws: "down" }); } }); });
     var keyH = function (e) {
       if (G.step === 2 && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); pzDigTap(G, e.key === "ArrowLeft" ? "l" : "r"); }
       else if (G.step === 3 && e.key === " ") { e.preventDefault(); pzDrop(G); }
@@ -8430,7 +8448,7 @@ window.__EXTRAS = true;
       // 2 · dig
       G.step = 2; pzBanner("2 · Loch buddeln"); pzDigSetup(G);
       await pzUntil(function () { return G.cancel || G.dug; }); chk();
-      pzUi.querySelector(".pz-paws").hidden = true; pzUi.querySelector(".pz-done").hidden = true; pzUi.querySelector(".pz-gauge").hidden = true;
+      pzUi.querySelector(".pz-paws").hidden = true; pzUi.querySelector(".pz-done").hidden = true; pzUi.querySelector(".pz-gauge").hidden = true; (G.pawEls || []).forEach(function (e) { e.remove(); });
       await wait(G.stone ? 1200 : 500);
       var st = pzLay.querySelector(".pz-stonehit"); if (st) st.remove();
       // 3 · sow
@@ -8494,7 +8512,7 @@ window.__EXTRAS = true;
   }
   async function pzClose(G, i, quick) {
     ["wormT", "aphT", "pourT"].forEach(function (k) { if (G[k]) clearInterval(G[k]); });
-    PZG = null; pzUi.hidden = true; pzUi.innerHTML = ""; pzLay.onclick = null;
+    PZG = null; pzUi.hidden = true; pzUi.innerHTML = ""; pzLay.onclick = null; pzLay.onpointerdown = null;
     if (!quick) { fadeX(false); await wait(220); }
     pzEl.hidden = true; pzEl.classList.remove("in"); pzLay.innerHTML = ""; scene.classList.remove("pz-on");
     if (place2 === "garden") { gardenEl.insertBefore(ham, gEl("g-fg")); ham.style.zIndex = G.hz || ""; moveTo(plotX(i) + 1, BR.y0, 0); }
