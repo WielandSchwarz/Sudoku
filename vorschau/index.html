@@ -9678,7 +9678,7 @@ window.__EXTRAS = true;
       '<defs><clipPath id="cf-win">' + clip + '</clipPath></defs>' + CF.bg +
       '<g clip-path="url(#cf-win)"><rect id="cf-sky" x="0" y="0" width="' + CF.w + '" height="70" fill="#a8dcf6"/><g id="cf-stars"></g><g id="cf-view"></g><g id="cf-wx"></g></g>' +
       CF.ob + '<g class="cf-fire cf-f0">' + CF.fire0 + '</g><g class="cf-fire cf-f1">' + CF.fire1 + '</g>' +
-      '<g id="cf-ham" class="cf-ham" transform="translate(' + hx.toFixed(2) + ' ' + hy.toFixed(2) + ') scale(' + s + ')"></g>' + CF.cf + '<g id="cf-stock"></g>' +
+      '<g id="cf-ham" class="cf-ham" transform="translate(' + hx.toFixed(2) + ' ' + hy.toFixed(2) + ') scale(' + s + ')"></g>' + CF.cf + '<g id="cf-fest"></g><g id="cf-stock"></g>' +
       '<rect id="cf-dim" x="0" y="0" width="' + CF.w + '" height="' + CF.h + '" fill="#1e2a54" opacity="0"/>' +
       '<g class="cf-light cf-hearth">' + cfGlow(CF.hearth[0], CF.hearth[1], 46, "#ffb24a", .06, 6) + '</g><g class="cf-light cf-lamps">' + lamps + '</g></svg>';
     cfHamSet({});
@@ -9695,10 +9695,13 @@ window.__EXTRAS = true;
   var cfKey = "";
   function cfRender() {
     var se = season(), wt = weather.type, sk = document.getElementById("sky").className, night = /sky-night/.test(sk), eve = /sky-eve/.test(sk);
-    var key = se + "|" + wt + "|" + night + "|" + eve; if (key === cfKey) return; cfKey = key;
+    var fe = typeof festival === "function" ? festival() : "";
+    var key = se + "|" + wt + "|" + night + "|" + eve + "|" + fe; if (key === cfKey) return; cfKey = key;
+    var fg = document.getElementById("cf-fest"); if (fg) fg.innerHTML = cfFest(fe, night || eve);
     var col = night ? "#1e2a54" : eve ? "#f4b88a" : wt === "storm" ? "#46506a" : (wt === "rain" || wt === "snow") ? "#a8b8c8" : wt === "clouds" ? "#bcd0de" : "#a8dcf6";
     document.getElementById("cf-sky").setAttribute("fill", col);
-    document.getElementById("cf-view").innerHTML = CF.views[se] + (night ? '<rect x="0" y="0" width="' + CF.w + '" height="' + CF.h + '" fill="#141a3a" opacity=".55"/>' : eve ? '<rect x="0" y="0" width="' + CF.w + '" height="' + CF.h + '" fill="#a04a3a" opacity=".18"/>' : "");
+    var gv = typeof WBG === "object" && WBG["bg_" + se] ? CF.wins.map(function (w) { return '<image href="' + WBG["bg_" + se] + '" x="' + (w[0] - 104) + '" y="' + (w[1] - 64) + '" width="180" height="135" style="image-rendering:pixelated"/>'; }).join("") + '<image href="' + WBG["bg_" + se] + '" x="' + (CF.doorwin[0] - 60) + '" y="' + (CF.doorwin[1] - 70) + '" width="180" height="135" style="image-rendering:pixelated"/>' : CF.views[se];
+    document.getElementById("cf-view").innerHTML = gv + (night ? '<rect x="0" y="0" width="' + CF.w + '" height="' + CF.h + '" fill="#141a3a" opacity=".55"/>' : eve ? '<rect x="0" y="0" width="' + CF.w + '" height="' + CF.h + '" fill="#a04a3a" opacity=".18"/>' : "");
     var st = ""; if (night) [[86, 42], [97, 40], [324, 27], [335, 30], [21, 53]].forEach(function (p, i) { st += '<rect class="cf-star" x="' + p[0] + '" y="' + p[1] + '" width="1" height="1" fill="#fff6c8" style="animation-delay:-' + i * 0.7 + 's"/>'; });
     document.getElementById("cf-stars").innerHTML = st;
     var wx = "", i;
@@ -9708,6 +9711,25 @@ window.__EXTRAS = true;
     document.getElementById("cf-wx").innerHTML = wx;
     document.getElementById("cf-dim").setAttribute("opacity", night ? ".3" : eve ? ".12" : (wt === "rain" || wt === "storm") ? ".1" : "0");
     cafeEl.classList.toggle("cf-dark", night || eve);
+  }
+  // festival decoration in the café, with the same sprites as in the house
+  function cfFest(f, dark) {
+    if (!f || typeof festSprite !== "function") return "";
+    var o = "", S = festSprite;
+    if (f === "herbst") {
+      o += S("f_hbunting", 5, 4) + S("f_hbunting", 185, 4) + S("f_web", 0, 6) + S("f_web", 332, 6, true);
+      o += S(dark ? "f_jack0on" : "f_jack0off", 83, 81) + S(dark ? "jack_on" : "jack_off", 36, 104) + S(dark ? "f_jack1on" : "f_jack1off", 226, 108);
+      o += S("f_candle", 145, 84) + S("f_candle", 211, 84) + S("f_ghost", 112, 26) + S("f_bat0", 250, 18) + S("f_bat1", 66, 22);
+    } else if (f === "advent" || f === "weihnachten") {
+      o += S("f_garland", 5, 4) + S("f_garland", 185, 4) + S("f_star", 82, 38) + S("f_candle", 145, 84) + S("f_candle", 211, 84);
+      if (f === "advent") o += S("f_wreath" + (typeof adventWeek === "function" ? adventWeek() : 1), 9, 66);
+      else o += S("f_wreath4", 9, 66) + S("f_mistle", 300, 14) + S("f_stock0", 160, 52) + S("f_stock1", 174, 54) + S("f_stock2", 188, 52) + S("f_cookies", 83, 90) + S("f_gift0", 40, 112) + S("f_gift2", 52, 114);
+    } else if (f === "silvester") {
+      o += S("f_pbunting", 5, 4) + S("f_pbunting", 185, 4) + S("f_balloon0", 50, 40) + S("f_balloon1", 62, 46) + S("f_balloon2", 240, 36) + S("f_balloon3", 252, 44);
+    } else if (f === "ostern") {
+      o += S("f_pbunting", 5, 4) + S("f_pbunting", 185, 4) + S("egg0", 88, 89) + S("egg1", 140, 87) + S("egg2", 150, 87) + S("egg3", 206, 87) + S("egg4", 216, 87);
+    }
+    return o;
   }
   // the hamster behind the counter: blinks, wipes the counter, looks out at the room
   var cfT = 0;
@@ -10071,19 +10093,57 @@ window.__EXTRAS = true;
     var se = season(), wt = weather.type, sk = document.getElementById("sky").className, night = /sky-night/.test(sk), eve = /sky-eve/.test(sk);
     var key = se + wt + night + eve; if (key === wallKey && wallImg) return wallImg; wallKey = key;
     var col = night ? "#1e2a54" : eve ? "#f4b88a" : wt === "storm" ? "#46506a" : (wt === "rain" || wt === "snow") ? "#a8b8c8" : wt === "clouds" ? "#bcd0de" : "#a8dcf6";
-    // the counter window, drawn big at the same pixel size (its own larger version, not a stretched copy)
-    var BW = CF.bigwin, wx = BW.cx, wy = BW.cy, wr = BW.r, ex = "";
-    if (night) ex += '<rect x="0" y="0" width="' + BW.w + '" height="' + BW.h + '" fill="#141a3a" opacity=".55"/>' + [[-9, -12], [7, -8], [-2, -16], [12, -14]].map(function (q) { return '<rect x="' + (wx + q[0]) + '" y="' + (wy + q[1]) + '" width="1" height="1" fill="#fff6c8"/>'; }).join("");
-    else if (eve) ex += '<rect x="0" y="0" width="' + BW.w + '" height="' + BW.h + '" fill="#a04a3a" opacity=".18"/>';
-    if (wt === "rain" || wt === "storm") for (var i = 0; i < 18; i++) ex += '<rect x="' + (wx - wr + (i * 7) % (2 * wr)) + '" y="' + (wy - wr + (i * 11) % (2 * wr)) + '" width="1" height="3" fill="#d8e4f2"/>';
-    if (wt === "snow") for (var j = 0; j < 18; j++) ex += '<rect x="' + (wx - wr + (j * 7) % (2 * wr)) + '" y="' + (wy - wr + (j * 11) % (2 * wr)) + '" width="1" height="1" fill="#ffffff"/>';
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="135" viewBox="0 0 180 135" shape-rendering="crispEdges">' +
       '<svg x="0" y="0" width="180" height="135" viewBox="180 0 180 135">' + CF.bg + '</svg>' +
-      '<svg x="118" y="6" width="' + BW.w + '" height="' + BW.h + '" viewBox="0 0 ' + BW.w + ' ' + BW.h + '"><defs><clipPath id="tw"><circle cx="' + wx + '" cy="' + wy + '" r="' + (wr + .5) + '"/></clipPath></defs>' +
-      '<g clip-path="url(#tw)"><rect x="0" y="0" width="' + BW.w + '" height="' + BW.h + '" fill="' + col + '"/>' + BW.views[se] + ex + '</g>' + BW.frame + '</svg>' +
       (night ? '<rect width="180" height="135" fill="#1e2a54" opacity=".22"/>' : eve ? '<rect width="180" height="135" fill="#1e2a54" opacity=".08"/>' : "") + '</svg>';
     var im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); wallImg = im; return im;
   }
+  // ---- the big window in the close-ups: only a part of it is in the picture, the garden is outside, the weather moves
+  var WIN = { cx: 166, cy: 26, r: 44 }, winImgs = {};
+  function drawCafeWindow(c, t) {
+    var se = season(), wt = weather.type, sk = document.getElementById("sky").className, night = /sky-night/.test(sk), eve = /sky-eve/.test(sk);
+    var cx = WIN.cx, cy = WIN.cy, r = WIN.r;
+    c.save(); c.beginPath(); c.arc(cx, cy, r, 0, 2 * Math.PI); c.clip();
+    c.fillStyle = night ? "#1e2a54" : eve ? "#f4b88a" : wt === "storm" ? "#5a647e" : (wt === "rain" || wt === "snow") ? "#a8b8c8" : wt === "clouds" ? "#bcd0de" : "#a8dcf6"; c.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    if (night) for (var i = 0; i < 9; i++) { if ((Math.floor(t / 700) + i) % 4) R(c, cx - 36 + (i * 17) % 44, cy - 30 + (i * 11) % 18, 1, 1, "#fff6c8"); }
+    if (night) { disc(c, cx - 14, cy - 22, 4, "#fff6c8"); disc(c, cx - 12, cy - 23, 3.4, "#1e2a54"); }
+    if (wt === "sun" && !night) { disc(c, cx - 30, cy - 26, 5, "#fff0a0"); disc(c, cx - 30, cy - 26, 3.6, "#ffe060"); }
+    if (wt === "rainbow" && !night) ["#e8554a", "#f6a030", "#f6d84a", "#7ac860", "#5aa0e8"].forEach(function (col, k) { c.strokeStyle = col; c.lineWidth = 1; c.beginPath(); c.arc(cx - 8, cy + 14, 30 - k, Math.PI, 1.75 * Math.PI); c.stroke(); });
+    var im = winImgs[se] || (winImgs[se] = (function () { var x = new Image(); x.src = WBG["bg_" + se]; return x; })());
+    if (im.complete && im.naturalWidth) c.drawImage(im, 26, -34);
+    // clouds drifting by
+    if (wt === "clouds" || wt === "rain" || wt === "storm" || wt === "snow") for (var k = 0; k < 3; k++) {
+      var x0 = cx - 60 + ((t / (90 + k * 30) + k * 40) % 110), y0 = cy - 34 + k * 7, col = wt === "storm" ? "#7a8296" : "#eef2f6";
+      disc(c, x0, y0, 5, col); disc(c, x0 + 6, y0 - 2, 6, col); disc(c, x0 + 13, y0, 5, col); R(c, x0 - 4, y0 + 1, 22, 4, col);
+    }
+    if (night) { c.fillStyle = "rgba(14,20,50,.55)"; c.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+    else if (eve) { c.fillStyle = "rgba(160,74,58,.18)"; c.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+    if (wt === "rain" || wt === "storm") for (var q = 0; q < 40; q++) { var rx = cx - r + (q * 13) % (2 * r), ry = (t / (wt === "storm" ? 2.2 : 3.2) + q * 23) % (2 * r) + cy - r; R(c, rx - (ry - cy) * .15, ry, 1, 3, "rgba(216,228,242,.85)"); }
+    if (wt === "snow") for (var q2 = 0; q2 < 36; q2++) { var sx = cx - r + (q2 * 13) % (2 * r) + Math.sin(t / 700 + q2) * 2, sy = (t / 26 + q2 * 19) % (2 * r) + cy - r; R(c, sx, sy, q2 % 4 ? 1 : 2, q2 % 4 ? 1 : 2, "#ffffff"); }
+    if (wt === "storm" && (t % 6000) < 140) { c.fillStyle = "rgba(255,255,240,.7)"; c.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+    if (wt === "rain" || wt === "storm") [[cx - 20, cy + 6], [cx - 6, cy - 12], [cx - 28, cy - 8], [cx - 12, cy + 18]].forEach(function (d) { R(c, d[0], d[1], 1, 2, "rgba(255,255,255,.7)"); R(c, d[0], d[1] + 2, 1, 1, "rgba(150,180,210,.8)"); });
+    c.restore();
+    // the frame: a thick wooden ring with a cross, and a sill
+    c.save(); c.lineWidth = 1;
+    for (var w = 0; w < 6; w++) { c.strokeStyle = w === 0 || w === 5 ? "#3a2414" : w < 3 ? "#a8744a" : "#6e4428"; c.beginPath(); c.arc(cx, cy, r + w + .5, 0, 2 * Math.PI); c.stroke(); }
+    c.restore();
+    R(c, cx - 2, cy - r, 4, 2 * r, "#6e4428"); R(c, cx - 2, cy - r, 1, 2 * r, "#a8744a"); R(c, cx - r, cy - 2, 2 * r, 4, "#6e4428"); R(c, cx - r, cy - 2, 2 * r, 1, "#a8744a");
+    R(c, cx - r - 10, cy + r + 4, 2 * r + 20, 6, "#3a2414"); R(c, cx - r - 9, cy + r + 5, 2 * r + 18, 2, "#c8905a"); R(c, cx - r - 9, cy + r + 7, 2 * r + 18, 2, "#8a5a30");
+  }
+  // ---- festival decoration in the close-ups (the same sprites as in the house)
+  var festImg = null, festKey = "";
+  function festSprite(k, x, y, flip) { if (!A[k] || !SZ[k]) return ""; return '<g transform="translate(' + (flip ? x + SZ[k][0] : x) + ' ' + y + ')' + (flip ? ' scale(-1 1)' : '') + '">' + A[k] + '</g>'; }
+  function festOverlay(where) {
+    var f = typeof festival === "function" ? festival() : "", night = typeof daylight === "function" && daylight() !== "day", key = f + night + where;
+    if (key === festKey) return festImg; festKey = key; festImg = null; if (!f) return null;
+    var o = "";
+    if (f === "herbst") { o += festSprite("f_hbunting", 5, 2) + festSprite("f_web", 0, 3); if (where === "win") o += festSprite(night ? "f_jack0on" : "f_jack0off", 126, 58) + festSprite("f_candle", 147, 62); o += festSprite("f_bat0", 70, 20) ; }
+    if (f === "advent" || f === "weihnachten") { o += festSprite("f_garland", 5, 2); if (where === "win") o += festSprite("f_star", 156, 18) + festSprite(f === "advent" ? "f_wreath" + (typeof adventWeek === "function" ? adventWeek() : 1) : "f_mistle", f === "advent" ? 60 : 70, 16); }
+    if (f === "silvester") { o += festSprite("f_pbunting", 5, 2); if (where === "win") o += festSprite("f_balloon0", 122, 40) + festSprite("f_balloon2", 112, 46); }
+    if (f === "ostern") { o += festSprite("f_pbunting", 5, 2); if (where === "win") o += festSprite("egg0", 130, 63) + festSprite("egg2", 139, 63) + festSprite("egg3", 148, 63); }
+    var im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="180" height="135" viewBox="0 0 180 135" shape-rendering="crispEdges">' + o + '</svg>'); festImg = im; return im;
+  }
+  function drawFest(c, where) { var im = festOverlay(where || "win"); if (im && im.complete && im.naturalWidth) c.drawImage(im, 0, 0); }
   teaGame = function () {
     var G_ = cfGameEl("Zutaten in den Mörser"), c = G_.c, phase = "mix", pick = [], bl = null, raf = 0, last = performance.now(), shake = -1;
     // fire and kettle
@@ -10103,7 +10163,7 @@ window.__EXTRAS = true;
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function shadow(x, y, w) { c.fillStyle = "rgba(58,36,20,.22)"; c.fillRect(Math.round(x), Math.round(y), w, 2); c.fillRect(Math.round(x) + 2, Math.round(y) + 2, w - 4, 1); }
     // ---------- the shelf (choose the blend) ----------
-    function wall() { spr("bg_shelf", 0, 0); }
+    function wall() { spr("bg_shelf", 0, 0); drawFest(c, "shelf"); }
     function tin(i, t) {
       var r = TIN[i], g = TEA_ING[i], used = pick.filter(function (v) { return v === g.id; }).length, bob = shake === i ? -Math.abs(Math.round(Math.sin(t / 40) * 2)) : 0;
       spr("tin_" + g.id, r.x, r.y + bob);
@@ -10163,7 +10223,7 @@ window.__EXTRAS = true;
       }
     }
     function drawFire(t) {
-      spr("bg_hearth", 0, 0);
+      spr("bg_hearth", 0, 0); drawFest(c, "shelf");
       if (lit) {
         // warm light on the soot and the bricks
         c.fillStyle = "rgba(255,170,80," + (.06 + fire * .16).toFixed(3) + ")"; c.fillRect(36, 18, 108, 82);
@@ -10240,6 +10300,7 @@ window.__EXTRAS = true;
     }
     function drawGlass(t, colFn, dx) {
       var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); else spr("bg_table", 0, 0);
+      drawCafeWindow(c, t); drawFest(c, "win");
       spr("bg_counter", 0, 0);
       c.save(); c.translate(dx || 0, 0);
       spr("doily", 31, 104); shadow(48, 110, 76);
@@ -10498,13 +10559,13 @@ window.__EXTRAS = true;
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function shadow(x, y, w) { c.fillStyle = "rgba(58,36,20,.22)"; c.fillRect(Math.round(x), Math.round(y), w, 2); }
     function arrow(x, y, t) { var on = Math.floor(t / 300) % 2; R(c, x - 1, y + on * 2, 3, 4, "#f6c84a"); R(c, x - 3, y + 4 + on * 2, 7, 1, "#f6c84a"); R(c, x - 2, y + 5 + on * 2, 5, 1, "#f6c84a"); R(c, x - 1, y + 6 + on * 2, 3, 1, "#f6c84a"); }
-    function wall() { var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); spr("bg_counter", 0, 0); }
+    function wall() { var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); drawCafeWindow(c, performance.now()); drawFest(c, "win"); spr("bg_counter", 0, 0); }
     function gauge(frac, zone, col) { G_.gauge.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: Math.max(0, Math.min(1, frac)), zone: zone, col: function (k) { return typeof col === "function" ? col(k) : col; } }); }
     function beanCol() { if (cocoa) return "#6a3a20"; var r = 0, g = 0, b = 0; pick.forEach(function (id) { var h = BEAN[bIdx(id)].g; r += parseInt(h.substr(1, 2), 16); g += parseInt(h.substr(3, 2), 16); b += parseInt(h.substr(5, 2), 16); }); var n = pick.length || 1; return "rgb(" + Math.round(r / n) + "," + Math.round(g / n) + "," + Math.round(b / n) + ")"; }
     function showPick() { if (cocoa) { G_.banner("Kakao"); return; } var k = cofKey(pick).split("+").filter(Boolean), u = k.filter(function (v, i) { return k.indexOf(v) === i; }); G_.banner(u.length ? u.map(function (id) { var n = k.filter(function (v) { return v === id; }).length; return BEAN[bIdx(id)].n + (n > 1 ? " ×" + n : ""); }).join(" + ") : "Bohnen in die Schale"); }
     // ---------- 1: beans ----------
     function drawBeans(t) {
-      spr("bg_shelf", 0, 0);
+      spr("bg_shelf", 0, 0); drawFest(c, "shelf");
       JAR.forEach(function (r, i) { var id = i < 6 ? BEAN[i].id : "kakao", n = i < 6 ? pick.filter(function (v) { return v === id; }).length : cocoa ? 1 : 0; spr("jar_" + id, r.x, r.y);
         for (var u = 0; u < n; u++) { var bx = r.x + r.w - 7 - u * 8; R(c, bx, r.y - 3, 8, 8, "#3a2414"); R(c, bx + 1, r.y - 2, 6, 6, "#f6c84a"); R(c, bx + 2, r.y + 1, 1, 1, "#3a2414"); R(c, bx + 3, r.y + 2, 1, 1, "#3a2414"); R(c, bx + 4, r.y, 1, 2, "#3a2414"); } });
       shadow(BOWL.x + 6, BOWL.y + 25, 36); spr("bowl_b", BOWL.x, BOWL.y);
