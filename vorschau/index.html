@@ -10838,7 +10838,7 @@ window.__EXTRAS = true;
       else { tries++; trace = []; G_.banner(tries < 3 ? "Fast! Nochmal nachzeichnen" : "Kein Bild diesmal"); beep([[392, .05], [330, .06]]); if (tries >= 3) setTimeout(function () { if (phase === "art") { phase = "adds"; G_.banner("Noch etwas dazu?"); } }, 1200); }
     }
     // ---------- 7: extras on top; tap the cup to serve ----------
-    var APOS = { kakao: { x: 0, y: -4 }, zimt: { x: 2, y: 33 }, sirup: { x: 4, y: 64 }, sahne: { x: 2, y: 100 } }, KEKS = { x: 146, y: 102 };
+    var APOS = { kakao: { x: 1, y: 0 }, zimt: { x: 2, y: 34 }, sirup: { x: 4, y: 64 }, sahne: { x: 2, y: 100 } }, KEKS = { x: 146, y: 102 };
     function drawAdds(t) {
       drawCupTop(t);
       // the extras, big and clear: powder dusted on top, a caramel drizzle, a swirl of cream, a biscuit on the saucer
