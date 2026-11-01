@@ -12330,6 +12330,13 @@ window.__EXTRAS = true;
   function gCk(g) { return g.cakeK || (g.order.wish && g.order.wish.t === "cake" ? g.order.wish.v : null); }
   function gIcon(kind, v) { if (kind === "cake" && v) return ckPix(v, false).svg; var k = kind === "cake" ? "cakeA" : kind === "tea" ? "tea" : "cof", p = CF.spr[k]; return '<g>' + p.svg + '</g>'; }
   // like the hamster: the body waddles and the feet take turns. The picture is cut into the body and a left and right foot strip.
+  // how each animal gets about: birds and the ladybug fly in, hares, frogs and squirrels hop, ducks and penguins waddle,
+  // the seal flops along on its belly, the crab scuttles sideways, the turtle plods; everyone else walks at their own pace
+  var GMOVE = { robin: "fly", tit: "fly", owl: "fly", puffin: "fly", ladybug: "buzz", hare: "hop", frog: "hop", squirrel: "hop", duck: "waddle", chick: "waddle", peng: "waddle", seal: "flop", crab: "scuttle", turtle: "plod" };
+  var GSTEP = { mouse: 70, igel: 90, elk: 170, panda: 150, koala: 150, badger: 130, beaver: 130 };
+  var GSPEED = { fly: 40, buzz: 34, hop: 34, waddle: 20, flop: 17, scuttle: 30, plod: 11, mouse: 40, igel: 30, elk: 26, panda: 21, koala: 21 };
+  function gMove(id) { return GMOVE[id] || "walk"; }
+  function gFlies(g) { var m = gMove(g.id); return m === "fly" || m === "buzz"; }
   var gUid = 0;
   function gMake(g) {
     var el = document.createElementNS("http://www.w3.org/2000/svg", "g"), an = ALLANI[g.id];
@@ -12337,7 +12344,13 @@ window.__EXTRAS = true;
     var pic = '<g transform="translate(-17 ' + (-bh).toFixed(2) + ') scale(' + sc.toFixed(4) + ')">' + an.svg + '</g>';
     el.innerHTML = '<defs><clipPath id="' + id + 'u"><rect x="-30" y="-90" width="60" height="' + (90 - band) + '"/></clipPath><clipPath id="' + id + 'l"><rect x="-30" y="' + (-band) + '" width="30" height="' + (band + 2) + '"/></clipPath><clipPath id="' + id + 'r"><rect x="0" y="' + (-band) + '" width="30" height="' + (band + 2) + '"/></clipPath></defs>' +
       '<g class="gq-item"></g><g class="gq-body"><g class="gq-tilt"><g class="gq-fl"><g clip-path="url(#' + id + 'l)">' + pic + '</g></g><g class="gq-fr"><g clip-path="url(#' + id + 'r)">' + pic + '</g></g><g class="gq-up"><g clip-path="url(#' + id + 'u)">' + pic + '</g></g></g></g><g class="gq-bub"></g><g class="gq-fx"></g>';
-    gLayerEl().appendChild(el); g.el = el; g.bh = bh; g.parts = [el.querySelector(".gq-tilt"), el.querySelector(".gq-fl"), el.querySelector(".gq-fr"), el.querySelector(".gq-up")]; gBubble(g);
+    if (gFlies(g)) {
+      var wx = g.id === "ladybug" ? 4 : 7;
+      el.innerHTML = '<defs><clipPath id="' + id + 'c"><rect x="' + (-wx) + '" y="-90" width="' + (2 * wx) + '" height="92"/></clipPath><clipPath id="' + id + 'wl"><rect x="-30" y="-90" width="' + (30 - wx) + '" height="92"/></clipPath><clipPath id="' + id + 'wr"><rect x="' + wx + '" y="-90" width="' + (30 - wx) + '" height="92"/></clipPath></defs>' +
+        '<g class="gq-item"></g><ellipse class="gq-shadow" cx="0" cy="0" rx="9" ry="2" fill="#3a2414" opacity="0"/><g class="gq-body"><g class="gq-tilt"><g class="gq-fl"><g clip-path="url(#' + id + 'wl)">' + pic + '</g></g><g class="gq-fr"><g clip-path="url(#' + id + 'wr)">' + pic + '</g></g><g class="gq-up"><g clip-path="url(#' + id + 'c)">' + pic + '</g></g></g></g><g class="gq-bub"></g><g class="gq-fx"></g>';
+      g.wx = wx;
+    }
+    gLayerEl().appendChild(el); g.el = el; g.bh = bh; g.parts = [el.querySelector(".gq-tilt"), el.querySelector(".gq-fl"), el.querySelector(".gq-fr"), el.querySelector(".gq-up")]; g.shadow = el.querySelector(".gq-shadow"); gBubble(g);
   }
   var G_EAT = 75000, G_STAY = 300000;      // eating takes a while, and a visit lasts about five minutes from being served
   // a little speech bubble while they chat: a heart, a note, a star, three dots ...
@@ -12358,6 +12371,8 @@ window.__EXTRAS = true;
     g.mov = false; if (g.delay > 0) { g.delay -= dt; return false; }
     var p = g.path[0]; if (!p) return true;
     var dx = p[0] - g.x, dy = p[1] - g.y, d = Math.hypot(dx, dy), st = g.sp * dt; g.mov = true;
+    if (gMove(g.id) === "flop") { g.lp = (g.lp || 0) + dt * 5.5; st *= .2 + 1.6 * Math.max(0, Math.sin(g.lp)); }
+    g.hd = (g.hd || 0) + Math.min(st, d);
     if (Math.abs(dx) > .5) g.dir = dx > 0 ? 1 : -1;
     if (d <= st) { g.x = p[0]; g.y = p[1]; g.path.shift(); return !g.path.length; }
     g.x += dx / d * st; g.y += dy / d * st; return false;
@@ -12370,16 +12385,61 @@ window.__EXTRAS = true;
       '<g transform="translate(3 2)">' + pic.svg + '</g></g>';
   }
   function gPos(g, t) {
-    var f = g.mov ? Math.floor((t + g.ph) / 120) % 4 : -1, P = g.parts, cy = (-g.bh / 2).toFixed(1);
+    var mv = gMove(g.id);
+    if (mv !== "walk" && mv !== "plod" && mv !== "waddle" && mv !== "scuttle") return gPosSpecial(g, t, mv);
+    var per = mv === "plod" ? 240 : mv === "waddle" ? 170 : mv === "scuttle" ? 60 : (GSTEP[g.id] || 120);
+    var f = g.mov ? Math.floor((t + g.ph) / per) % 4 : -1, P = g.parts, cy = (-g.bh / 2).toFixed(1), tilt = mv === "waddle" ? 8 : mv === "plod" ? 2 : mv === "scuttle" ? 0 : 4;
+    if (f >= 0 && !(f < 0 && g.sip)) {
+      P[0].setAttribute("transform", "translate(0 " + (f % 2 ? 0 : -1) + ") rotate(" + (f === 0 ? -tilt : f === 2 ? tilt : 0) + " 0 " + (mv === "waddle" ? 0 : cy) + ")");
+      P[1].setAttribute("transform", f === 0 ? "translate(-1 -1)" : ""); P[2].setAttribute("transform", f === 2 ? "translate(-1 -1)" : "");
+      gPlace(g, mv === "scuttle" ? g.face : null); return;
+    }
     // frames as with the hamster: tilt left with a foot up, both down, tilt right with the other foot up, both down
     if (f < 0 && g.sip) { P[0].setAttribute("transform", "translate(0 -1)"); } else
     P[0].setAttribute("transform", f < 0 ? "" : "translate(0 " + (f % 2 ? 0 : -1) + ") rotate(" + (f === 0 ? -4 : f === 2 ? 4 : 0) + " 0 " + cy + ")");
     P[1].setAttribute("transform", f === 0 ? "translate(-1 -1)" : ""); P[2].setAttribute("transform", f === 2 ? "translate(-1 -1)" : "");
+    gPlace(g);
+  }
+  function gPlace(g, fixedFace) {
     g.el.setAttribute("transform", "translate(" + Math.round(g.x) + " " + Math.round(g.y) + ")");
-    var face = g.mov ? g.dir : g.face;
+    var face = fixedFace != null ? fixedFace : g.mov ? g.dir : g.face;
     g.el.querySelector(".gq-body").setAttribute("transform", face > 0 ? "scale(-1 1)" : "");
     var dd = Math.hypot(g.x - G_DOOR[0], g.y - G_DOOR[1]);
     g.el.style.opacity = (g.state === "leave" || g.state === "walk") && dd < 14 ? Math.max(0, dd / 14) : 1;
+  }
+  function gPosSpecial(g, t, mv) {
+    var P = g.parts, bh = g.bh;
+    if (mv === "fly" || mv === "buzz") {
+      // flying: up off the floor, a gentle bob, wings beating around the shoulders, a shadow on the floor; down again to land
+      var air = 0;
+      if (g.mov && g.path && g.path.length) {
+        var end = g.path[g.path.length - 1], dRem = Math.hypot(end[0] - g.x, end[1] - g.y), dGo = g.hd || 0;
+        air = Math.min(mv === "buzz" ? 10 : 15, dRem * .45, dGo * .45 + 2);
+      }
+      g.air = air;
+      var flap = air > .5 ? Math.sin(t / (mv === "buzz" ? 28 : 55) * Math.PI) : 0, a = flap * (mv === "buzz" ? 20 : 32), pv = -bh * .58;
+      var bob = air > .5 ? Math.sin(t / 180) * 1.5 : 0, lean = air > .5 ? 6 : 0;
+      P[0].setAttribute("transform", "translate(0 " + (-air + bob - (g.sip ? 1 : 0)).toFixed(1) + ") rotate(" + lean + " 0 " + (-bh / 2).toFixed(1) + ")");
+      P[1].setAttribute("transform", a ? "rotate(" + a.toFixed(1) + " " + (-g.wx) + " " + pv.toFixed(1) + ")" : "");
+      P[2].setAttribute("transform", a ? "rotate(" + (-a).toFixed(1) + " " + g.wx + " " + pv.toFixed(1) + ")" : "");
+      if (g.shadow) { var k = Math.max(0, Math.min(1, air / 15)); g.shadow.setAttribute("opacity", air > .5 ? (.25 - k * .12).toFixed(2) : 0); g.shadow.setAttribute("rx", (9 - k * 4).toFixed(1)); }
+      return gPlace(g);
+    }
+    if (mv === "hop") {
+      // hopping: a little arc per hop, squashed for a moment when landing, stretched in the air
+      var u = g.mov ? ((g.hd || 0) % 13) / 13 : 0, z = g.mov ? Math.sin(u * Math.PI) * 6 : 0, land = g.mov && (u < .14 || u > .9);
+      var sx = land ? 1.1 : g.mov ? .95 : 1, sy = land ? .88 : g.mov ? 1.06 : 1;
+      P[0].setAttribute("transform", "translate(0 " + (-z - (g.sip ? 1 : 0)).toFixed(1) + ") scale(" + sx + " " + sy + ")");
+      P[1].setAttribute("transform", ""); P[2].setAttribute("transform", "");
+      return gPlace(g);
+    }
+    if (mv === "flop") {
+      // the seal pushes itself along: stretched while it slides, bunched up while it gathers for the next push
+      var s = g.mov ? Math.sin(g.lp || 0) : 0, push = Math.max(0, s), gather = Math.max(0, -s);
+      P[0].setAttribute("transform", "translate(0 " + (-(gather * 2) - (g.sip ? 1 : 0)).toFixed(1) + ") scale(" + (1 + push * .1 - gather * .04).toFixed(3) + " " + (1 - push * .08 + gather * .06).toFixed(3) + ")");
+      P[1].setAttribute("transform", ""); P[2].setAttribute("transform", "");
+      return gPlace(g);
+    }
   }
   function gFx(g, html, ms) { var f = g.el.querySelector(".gq-fx"); f.innerHTML = html; setTimeout(function () { if (g.el) f.innerHTML = ""; }, ms); }
   function gHearts() { return '<g class="gq-heart"><path fill="#3a2414" d="M-4 -46h3v1h2v-1h3v1h1v3h-1v1h-1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-1h-1v-3h1z"/><path fill="#e8554a" d="M-3 -45h2v1h2v-1h2v3h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1z"/></g>'; }
@@ -12399,6 +12459,7 @@ window.__EXTRAS = true;
   function gDay() { var C_ = cfL(), d = new Date(), k = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); if (!C_.gday || C_.gday.d !== k) C_.gday = { d: k, n: 0 }; return C_.gday; }
   function gSpawn(manual) {
     var free = gTablesFree(), pool = gKnown(); if (!pool.length) pool = gAnyone();
+    if (window.__gForce) pool = window.__gForce.filter(function (id) { return ALLANI[id] && !guests.some(function (q) { return q.id === id; }); });
     if (!free.length || !pool.length) return false;
     if (!manual && gDay().n >= G_DAY) return false;
     var pair = pool.length > 1 && Math.random() < .5, tables = free.filter(function (i) { return pair ? TABLES[i].seats.length === 2 : true; });
@@ -12406,8 +12467,9 @@ window.__EXTRAS = true;
     var ti = tables[Math.floor(Math.random() * tables.length)], tb = TABLES[ti], n = pair ? 2 : 1, names = [];
     for (var k = 0; k < n; k++) {
       var j = Math.floor(Math.random() * pool.length), id = pool.splice(j, 1)[0], seat = tb.seats.length === 1 ? 0 : (n === 1 ? Math.floor(Math.random() * 2) : k);
-      var sx = tb.seats[seat], g = { id: id, table: ti, seat: seat, x: G_DOOR[0], y: G_DOOR[1], dir: 1, sp: 27 + Math.random() * 6, ph: Math.random() * 480, delay: k ? .7 + Math.random() * .3 : 0,
+      var sx = tb.seats[seat], g = { id: id, table: ti, seat: seat, x: G_DOOR[0], y: G_DOOR[1], dir: 1, sp: (GSPEED[gMove(id)] || GSPEED[id] || 27) + Math.random() * 5, ph: Math.random() * 480, delay: k ? .7 + Math.random() * .3 : 0,
         path: [[G_DOOR[0] + 12, G_LANE], [sx, G_LANE + (k ? 2 : 0)], [sx, G_SEAT]], face: sx < tb.top[0] ? 1 : -1, state: "walk", order: gOrder(id), t0: 0, wait: 0 };
+      if (gFlies(g)) g.path = [[sx, G_SEAT]];
       guests.push(g); gMake(g); names.push(ALLANI[id].name);
     }
     gDay().n += n; var C2 = cfL(); C2.gseen = C2.gseen || {}; guests.slice(-n).forEach(function (q) { C2.gseen[q.id] = Date.now(); }); if (window.SudokuSave) window.SudokuSave();
@@ -12460,7 +12522,7 @@ window.__EXTRAS = true;
     if (g.wished && typeof addHeart === "function") addHeart(g.id, true);
     if (window.SudokuSave) window.SudokuSave();
   }
-  function gGo(g) { g.state = "leave"; g.delay = g.seat && guests.some(function (q) { return q !== g && q.table === g.table && q.state === "leave"; }) ? .4 + Math.random() * .3 : 0; g.path = [[g.x, G_LANE + (g.seat ? 2 : 0)], [G_DOOR[0] + 12, G_LANE], [G_DOOR[0], G_DOOR[1]]]; }
+  function gGo(g) { g.hd = 0; if (gFlies(g)) { g.state = "leave"; g.delay = 0; g.path = [[G_DOOR[0], G_DOOR[1]]]; return; } g.state = "leave"; g.delay = g.seat && guests.some(function (q) { return q !== g && q.table === g.table && q.state === "leave"; }) ? .4 + Math.random() * .3 : 0; g.path = [[g.x, G_LANE + (g.seat ? 2 : 0)], [G_DOOR[0] + 12, G_LANE], [G_DOOR[0], G_DOOR[1]]]; }
   // ---- the loop while the café is open
   function gLoop(t) {
     if (!cafeOn) { gRaf = 0; return; }
