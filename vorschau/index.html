@@ -2307,8 +2307,8 @@ window.__EXTRAS = true;
     var on = lampOn(phase), lamp = document.getElementById("lamp");
     if (lamp && PROPS.lamp_on) { lamp.innerHTML = svgOf(on ? PROPS.lamp_on.svg : PROPS.lamp_off.svg, 16, 46); lamp.classList.toggle("lit", on); }
     // light in the room: daylight, lamp light or darkness
-    var n = document.getElementById("night"), dark = phase === "night" ? 0.6 : phase === "twilight" ? 0.32 : 0;
-    if (s.asleep && phase === "day") dark = 0.22;
+    // inside the house it is always light; only the view through the windows gets dark
+    var n = document.getElementById("night"), dark = s.asleep ? 0.22 : 0;
     if (on && dark) {
       n.style.background = "radial-gradient(ellipse 42% 58% at " + (L.lamp.x / GW * 100) + "% " + ((L.lamp.y + 8) / GH * 100) + "%, rgba(255, 196, 110, " + (0.16) + ") 0%, rgba(24, 26, 64, " + (dark * 0.35) + ") 50%, rgba(24, 26, 64, " + (dark * 0.85) + ") 100%)";
     } else n.style.background = "rgba(24, 26, 64, " + dark + ")";
@@ -4681,7 +4681,7 @@ window.__EXTRAS = true;
     _skyTime2();
     var ks = document.getElementById("k-sky"); if (ks) ks.className = "sky k-sky " + (document.getElementById("sky").className.replace(/\bsky\b/, "").trim()) + " " + weatherClass();
     if (place2 !== "kitchen") return;
-    var n = document.getElementById("night"), ph = daylight(), dark = ph === "night" ? 0.5 : ph === "twilight" ? 0.25 : 0;
+    var n = document.getElementById("night"), ph = daylight(), dark = 0;   // the kitchen stays light too
     n.style.background = dark ? "radial-gradient(ellipse 34% 46% at 21% 62%, rgba(255,170,90,.22) 0%, rgba(24,26,64," + dark * 0.55 + ") 55%, rgba(24,26,64," + dark + ") 100%)" : "radial-gradient(ellipse 34% 46% at 21% 62%, rgba(255,170,90,.12) 0%, rgba(0,0,0,0) 60%)";
     n.classList.add("on");
   };
@@ -4699,13 +4699,19 @@ window.__EXTRAS = true;
     mouse: { seeds: ["herbs", 1], text: "ein Tütchen Kräutersamen" },
     badger: { deco: "stones", text: "einen Steinhaufen" }
   };
+  // seeds as presents come out of a shuffled bag: every kind turns up equally often
+  function seedPick() {
+    var ks = Object.keys(CROPS); garden.seedBag = (garden.seedBag || []).filter(function (k) { return CROPS[k]; });
+    if (!garden.seedBag.length) { garden.seedBag = ks.slice(); for (var i = ks.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = garden.seedBag[i]; garden.seedBag[i] = garden.seedBag[j]; garden.seedBag[j] = t; } }
+    return garden.seedBag.pop();
+  }
   function giveFriendGift(id) {
-    var g = FGIFT[id] || { seeds: ["strawberry", 1] }, got = [];
+    var g = FGIFT[id] || { seeds: [seedPick(), 1] }, got = [];
     if (g.meadow && item("meadow", g.meadow) && home.owned.meadow.indexOf(g.meadow) < 0) { home.owned.meadow.push(g.meadow); got.push(item("meadow", g.meadow).name); }
     if (g.deco && item("deco", g.deco) && home.owned.deco.indexOf(g.deco) < 0) { home.owned.deco.push(g.deco); got.push(item("deco", g.deco).name); }
     if (g.seeds && !got.length) { garden.seeds[g.seeds[0]] = (garden.seeds[g.seeds[0]] || 0) + 1; got.push("ein Tütchen " + CROPS[g.seeds[0]].name + "-Samen"); }
     if (g.nut && !got.length) { garden.harvest.nut += 1; got.push("eine Haselnuss"); renderFoods(); }
-    if (!got.length) { var c = pick(Object.keys(CROPS)); garden.seeds[c] += 1; got.push("ein Tütchen " + CROPS[c].name + "-Samen"); }
+    if (!got.length) { var c = seedPick(); garden.seeds[c] = (garden.seeds[c] || 0) + 1; got.push("ein Tütchen " + CROPS[c].name + "-Samen"); }
     got = got.slice(0, 1);
     renderCosy(); if (decor) renderCatalog();
     var an = ANIMALS[id];
@@ -9651,12 +9657,12 @@ window.__EXTRAS = true;
   var HEARTPX = '<svg viewBox="0 0 9 8" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M2 0h2v1H2zM5 0h2v1H5zM1 1h1v1H1zM4 1h1v1H4zM7 1h1v1H7zM0 2h1v2H0zM8 2h1v2H8zM1 4h1v1H1zM7 4h1v1H7zM2 5h1v1H2zM6 5h1v1H6zM3 6h1v1H3zM5 6h1v1H5zM4 7h1v1H4z"/><path fill="#e8554a" d="M2 1h2v1H2zM5 1h2v1H5zM1 2h7v2H1zM2 4h5v1H2zM3 5h3v1H3zM4 6h1v1H4z"/><path fill="#ffb0a8" d="M2 2h1v1H2z"/><path fill="#b83a30" d="M6 3h1v1H6zM5 4h1v1H5z"/></svg>';
   // a new friend (every third heart): the animal hops in the middle, its hearts pop in one by one, the present lies below
   giveFriendGift = function (id) {
-    var g = FGIFT[id] || { seeds: ["strawberry", 1] }, got = [], icons = [];
+    var g = FGIFT[id] || { seeds: [seedPick(), 1] }, got = [], icons = [];
     if (g.meadow && item("meadow", g.meadow) && home.owned.meadow.indexOf(g.meadow) < 0) { var im = item("meadow", g.meadow); home.owned.meadow.push(g.meadow); got.push(im.name); icons.push(MBIG && MBIG["mb_" + g.meadow] ? '<svg viewBox="0 0 52 52" aria-hidden="true" shape-rendering="crispEdges">' + tint(MBIG["mb_" + g.meadow].svg) + '</svg>' : itemSVG("meadow", im, "", "")); }
     if (g.deco && item("deco", g.deco) && home.owned.deco.indexOf(g.deco) < 0) { var idc = item("deco", g.deco); home.owned.deco.push(g.deco); got.push(idc.name); icons.push(itemSVG("deco", idc, "", "")); }
     if (g.seeds && !got.length) { garden.seeds[g.seeds[0]] = (garden.seeds[g.seeds[0]] || 0) + 1; got.push("ein Tütchen " + CROPS[g.seeds[0]].name + "-Samen"); icons.push(ibSvg("seed_" + g.seeds[0]) || ibSvg("packet")); }
     if (g.nut && !got.length) { garden.harvest.nut += 1; got.push("eine Haselnuss"); icons.push(ibSvg("nut")); renderFoods(); }
-    if (!got.length) { var c = pick(Object.keys(CROPS)); garden.seeds[c] += 1; got.push("ein Tütchen " + CROPS[c].name + "-Samen"); icons.push(ibSvg("seed_" + c) || ibSvg("packet")); }
+    if (!got.length) { var c = seedPick(); garden.seeds[c] = (garden.seeds[c] || 0) + 1; got.push("ein Tütchen " + CROPS[c].name + "-Samen"); icons.push(ibSvg("seed_" + c) || ibSvg("packet")); }
     renderCosy(); if (decor) renderCatalog();
     var h = (garden.friends && garden.friends[id]) || 3, name = (ANIMALS[id] && ANIMALS[id].name) || ANAME[id] || "Ein Tier";
     itemPop({ friend: id, hearts: h, icons: icons, gotText: got.join(" · "), title: h <= 3 ? "Neuer Freund: " + name + "!" : name + " hat dich noch lieber!" });
