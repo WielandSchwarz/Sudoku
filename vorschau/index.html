@@ -11671,8 +11671,7 @@ window.__EXTRAS = true;
     // ================= 2: preparing each ingredient
     function nextItem() {
       it = items.shift();
-      if (!it && /\+creme$/.test(key)) { phase = "egg"; eggN = 0; newEgg(); G_.banner("Eier aufschlagen"); beep([[523, .05], [659, .05]]); return; }
-      if (!it) { phase = "mill"; mill = 0; mAng = null; mTurn = 0; G_.banner("Mehl mahlen"); beep([[523, .05], [659, .05]]); return; }
+      if (!it) { phase = "egg"; eggN = 0; newEgg(); G_.banner("Eier aufschlagen"); beep([[523, .05], [659, .05]]); return; }
       var I = BK_ING[it.id]; phase = "prep"; pr = { p: 0, t: 0 };
       G_.banner(I.n + " " + I.v); beep([[523, .05], [659, .05]]);
       if (I.prep === "grate") { pr.cy = -6; pr.pile = []; }
