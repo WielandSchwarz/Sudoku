@@ -10327,7 +10327,8 @@ window.__EXTRAS = true;
     if (k === "book") { if (window.__teaBook) window.__teaBook(cafeEl, "tea", true); return; }
     if (k === "bake") { cfStartBake(); return; }
     if (k === "vitrine") {
-      var CL = ckList(), have = garden.harvest.cake || 0, room = 4 - CL.length;
+      if (ckList().length && typeof gCounterAsk === "function") { gCounterAsk(); return; }
+      var CL = ckList(), have = garden.harvest.cake || 0, room = CK_MAX - CL.length;
       if (room <= 0) { say("Die Vitrine ist voll mit Kuchen."); return; }
       if (!have) { say("Kein Kuchen in der Küche. " + N() + " backt hier in der Backstube einen."); cfStartBake(); return; }
       var n = Math.min(have, room); garden.harvest.cake -= n; for (var q = 0; q < n; q++) CL.push({ k: "moehre", n: 4 }); C_.cakes = CL.length; if (typeof renderFoods === "function") renderFoods();
@@ -11258,8 +11259,10 @@ window.__EXTRAS = true;
       for (var q = 0; q <= 32; q++) { var u = q / 32, a = u * Math.PI / 2, x = 122 - Math.sin(a) * 22 * (u < 1 ? 1 : 1), y = 41 + (1 - Math.cos(a)) * 29; R(c, x - 3, y - 3, 7, 7, "#3a2414"); }
       for (var q2 = 0; q2 <= 32; q2++) { var u2 = q2 / 32, a2 = u2 * Math.PI / 2, x2 = 122 - Math.sin(a2) * 22, y2 = 41 + (1 - Math.cos(a2)) * 29; R(c, x2 - 2, y2 - 2, 5, 5, "#c8ccd4"); R(c, x2 - 2, y2 - 2, 2, 2, "#ffffff"); }
       R(c, TIP[0] - 3, TIP[1] - 1, 7, 5, "#3a2414"); R(c, TIP[0] - 2, TIP[1], 5, 3, "#6a707a");
-      var surf = py + 16 - Math.round(foam * 6), depth = TIP[1] + 3 - surf, mode = !steamHold ? 0 : depth < 0 ? 1 : depth <= 5 ? 2 : 3;
-      if (mode) { temp = Math.min(1.1, temp + dt * (mode === 1 ? .04 : .1)); if (mode === 2) foam = Math.min(1, foam + dt * .28); }
+      var surf = py + 16 - Math.round(foam * 6), depth = TIP[1] + 3 - surf, mode = !steamHold ? 0 : depth < 0 ? 1 : depth <= 8 ? 2 : 3;
+      if (mode) { temp = Math.min(1.1, temp + dt * (mode === 1 ? .04 : .1)); if (mode === 2) foam = Math.min(1, foam + dt * .2); }
+      var hint = !mode ? null : mode === 1 ? "Zu hoch, die Düse muss in die Milch" : mode === 3 ? "Zu tief: nur heiß, kein Schaum" : cocoa ? "Es schäumt" : foam < .55 ? "Es schäumt … noch mehr für Cappuccino" : "Genug Schaum für Cappuccino";
+      if (hint && hint !== drawSteam.hint) { drawSteam.hint = hint; G_.banner(hint); }
       if (mode && Math.random() < .6) bub.push({ x: TIP[0] + rnd(-7, 7), y: TIP[1], t0: t });
       if (mode && Math.floor(t / 120) !== Math.floor((t - dt * 1000) / 120)) beep(mode === 1 ? [[2600, .02]] : mode === 2 ? [[1500 + Math.random() * 300, .015]] : [[220, .03]]);
       // the pitcher (front wall drawn over the milk and the nozzle tip)
@@ -11273,9 +11276,10 @@ window.__EXTRAS = true;
     function endSteam() {
       if (phase !== "steam") return;
       sMilk = temp >= .65 && temp <= .85 && foam >= .35 ? 1 : 0;
+      drawSteam.hint = null;
       G_.banner(temp > .85 ? "Etwas zu heiß" : temp < .65 ? "Noch etwas kühl" : foam < .35 ? "Wenig Schaum" : "Schön cremig!");
       beep([[523, .04], [659, .05]]); phase = "steamout";
-      G_.pause(1000, function () { initCup(); phase = "pour"; G_.gauge.innerHTML = ""; hasMilk = true; setTimeout(function () { if (phase === "pour") G_.banner("Gedrückt halten zum Eingießen"); }, 1000); }, 80, 80);
+      G_.pause(1000, function () { initCup(); phase = "pour"; G_.gauge.innerHTML = ""; hasMilk = true; setTimeout(function () { if (phase === "pour" && !milk) G_.banner("Gedrückt halten zum Eingießen"); }, 1000); }, 80, 80);
     }
     // ---------- 6: pouring and drawing, the cup seen from above ----------
     var FW = 70, img = null;
@@ -11290,7 +11294,7 @@ window.__EXTRAS = true;
       for (var y = 0; y < FW; y++) for (var x = 0; x < FW; x++) {
         var i = y * FW + x, dx = x - 35 + .5, dy = y - 35 + .5, o = i * 4;
         if (dx * dx + dy * dy > CR * CR) { d[o + 3] = 0; continue; }
-        var f = Math.max(0, Math.min(1, F[i])), mot = ((x * 7 + y * 13) % 11 === 0) ? -14 : ((x * 5 + y * 3) % 17 === 0 ? 10 : 0);
+        var f0 = Math.max(0, Math.min(1, F[i])), f = f0 >= .55 ? 1 : f0 >= .3 ? ((x + y) & 1 ? .6 : 0) : 0, mot = ((x * 7 + y * 13) % 11 === 0) ? -14 : ((x * 5 + y * 3) % 17 === 0 ? 10 : 0);
         d[o] = cr[0] + (foamC[0] - cr[0]) * f + mot * (1 - f); d[o + 1] = cr[1] + (foamC[1] - cr[1]) * f + mot * (1 - f); d[o + 2] = cr[2] + (foamC[2] - cr[2]) * f + mot * (1 - f); d[o + 3] = 255;
       }
       var tmp = drawCupTop.cv || (drawCupTop.cv = document.createElement("canvas")); tmp.width = FW; tmp.height = FW; tmp.getContext("2d").putImageData(img, 0, 0);
@@ -11307,10 +11311,37 @@ window.__EXTRAS = true;
         if (milk >= 1) { pourAt = null; toArt(); }
       }
     }
+    // the milk pitcher lying tilted, drawn pixel by pixel around its spout (sx, sy); ang tilts it
+    function tiltPitcher(sx, sy, ang) {
+      var ca = Math.cos(ang), sa = Math.sin(ang);
+      function inS(u, v, m) {
+        if (u >= 2 + m && u <= 16 - m && v >= m && v <= 18 - m) return 1;                                  // body
+        if (u >= -2.5 + v * 1.4 + m && u <= 3 && v >= m && v <= 3.2 - m) return 1;                           // spout
+        if (u >= 16 - m && u <= 20.5 - m && v >= 4 + m && v <= 13.5 - m && !(u > 16.5 + m * 0 && u < 19 && v > 6 && v < 11.5)) return 2;   // handle
+        return 0;
+      }
+      var S = 1.55;
+      for (var y = Math.floor(sy - 42); y <= sy + 12; y++) for (var x = Math.floor(sx - 8); x <= sx + 42; x++) {
+        var dx = x + .5 - sx, dy = y + .5 - sy, u = (dx * ca + dy * sa) / S, v = (-dx * sa + dy * ca) / S, a = inS(u, v, 0); if (!a) continue;
+        var col = "#3a2414";
+        if (inS(u, v, .7)) col = a === 2 ? "#a8aeb8" : v < 1.6 && u < 3.2 ? "#fffaf0" : v < 1.6 ? "#ffffff" : u < 6 ? "#eef2f6" : u > 12.5 ? "#9aa0aa" : "#c4c8d0";
+        R(c, x, y, 1, 1, col);
+      }
+    }
     function drawPour(t, dt) {
       pourStep(dt, t); drawCupTop(t);
-      if (pourAt) {   // the pitcher tilted over the cup, a white stream
-        spr("pitcher", pourAt[0] + 8, pourAt[1] - 46); R(c, pourAt[0] - 1, pourAt[1] - 34, 3, 34, "#fffaf0"); R(c, pourAt[0], pourAt[1] - 34, 1, 34, "#ffffff");
+      if (pourAt) {
+        var sx = Math.round(pourAt[0]), sy = Math.round(pourAt[1]) - 26, wob = Math.floor(t / 90) % 3 - 1;
+        // the stream: from the spout straight down to the drink, a little wobble in the middle, two pixels wide
+        for (var y = sy + 1; y < pourAt[1]; y++) { var off = (y > sy + 4 && y < pourAt[1] - 3 && ((y - sy + Math.floor(t / 70)) % 7) < 2) ? 1 : 0; R(c, sx - 1 + off, y, 2, 1, "#fffaf0"); R(c, sx - 1 + off, y, 1, 1, "#ffffff"); }
+        R(c, sx - 2, pourAt[1] - 2, 4, 2, "#fffaf0");
+        // the splash: a ring of pixels that keeps spreading, and a few drops
+        var rr = 2 + (Math.floor(t / 80) % 4);
+        for (var k = 0; k < 14; k++) { var a = k / 14 * Math.PI * 2; R(c, sx + Math.round(Math.cos(a) * rr), pourAt[1] + Math.round(Math.sin(a) * rr * .45), 1, 1, "#ffffff"); }
+        if (Math.floor(t / 110) % 2) { R(c, sx - 4, pourAt[1] - 3, 1, 1, "#fffaf0"); R(c, sx + 3, pourAt[1] - 4, 1, 1, "#fffaf0"); }
+        tiltPitcher(sx, sy, -1.05 + (Math.floor(t / 400) % 2) * .05);
+        var dn = cocoa ? null : milk < .35 ? "Macchiato" : foam >= .55 && milk < .8 ? "Cappuccino" : "Latte";
+        if (dn && dn !== drawPour.dn) { drawPour.dn = dn; G_.banner(dn); }
       } else if (milk === 0) { spr("pitcher", 146, 4); arrow(CC[0], CC[1] - 10, t); }
     }
     function toArt() { if (phase !== "pour") return; phase = "pourout"; G_.pause(1000, function () { phase = "art"; G_.banner("Form wählen"); }, CC[0], CC[1]); drink = cocoa ? (foam >= .55 ? "KS" : "K") : milk < .35 ? "M" : foam >= .55 && milk < .8 ? "C" : "L"; G_.banner("Form wählen"); }
@@ -11544,6 +11575,19 @@ window.__EXTRAS = true;
     var u = cv.toDataURL(); CK_URL[id] = u; var im = new Image(); im.src = u; TIMG[id] = im; return id;
   }
   function ckIconUrl(k, big) { var id = ckIcon(k, big); return BK_ART[id] || CK_URL[id]; }
+  // the same picture as square pixels (svg paths), so it stays crisp at any size; falls back to the image until it has loaded
+  var CK_PIX = {}, CK_MAX = 2;
+  function ckPix(k, big) {
+    var id = ckIcon(k, big), w = big ? 32 : 13, h = big ? 26 : 11;
+    if (CK_PIX[id]) return CK_PIX[id];
+    var im = TIMG[id];
+    if (!im || !im.complete || !im.naturalWidth) return { svg: '<image href="' + ckIconUrl(k, big) + '" width="' + w + '" height="' + h + '" style="image-rendering:pixelated"/>', w: w, h: h };
+    var cv = document.createElement("canvas"); cv.width = im.naturalWidth; cv.height = im.naturalHeight; var x = cv.getContext("2d"); x.drawImage(im, 0, 0);
+    var d = x.getImageData(0, 0, cv.width, cv.height).data, by = {};
+    for (var yy = 0; yy < cv.height; yy++) for (var xx = 0; xx < cv.width; xx++) { var o = (yy * cv.width + xx) * 4; if (d[o + 3] < 128) continue; var col = "#" + [d[o], d[o + 1], d[o + 2]].map(function (v) { return ("0" + v.toString(16)).slice(-2); }).join(""); (by[col] = by[col] || []).push("M" + xx + " " + yy + "h1v1h-1z"); }
+    var svg = Object.keys(by).map(function (col) { return '<path fill="' + col + '" d="' + by[col].join("") + '"/>'; }).join("");
+    return (CK_PIX[id] = { svg: svg, w: cv.width, h: cv.height });
+  }
   // the cabinet: up to four cakes, each cut into four pieces
   function ckList() {
     var C_ = cfL();
@@ -11558,7 +11602,7 @@ window.__EXTRAS = true;
     var L_ = ckList().slice(0, 4), o = "";
     [2, 3, 0, 1].forEach(function (i) {
       var e = L_[i]; if (!e) return; var p = CK_POS[i], w = Math.ceil(13 * e.n / 4) + (e.n < 4 ? 0 : 0);
-      o += '<clipPath id="ckc' + i + '"><rect x="' + p[0] + '" y="' + p[1] + '" width="' + w + '" height="11"/></clipPath><image clip-path="url(#ckc' + i + ')" href="' + ckIconUrl(e.k, false) + '" x="' + p[0] + '" y="' + p[1] + '" width="13" height="11" style="image-rendering:pixelated"/>' +
+      o += '<clipPath id="ckc' + i + '"><rect x="' + p[0] + '" y="' + p[1] + '" width="' + w + '" height="11"/></clipPath><g clip-path="url(#ckc' + i + ')"><g transform="translate(' + p[0] + ' ' + p[1] + ')">' + ckPix(e.k, false).svg + '</g></g>' +
         (e.n < 4 ? '<path fill="#3a2414" d="M' + (p[0] + w - 1) + ' ' + (p[1] + 3) + 'h1v7h-1z"/>' : "");
     });
     return o;
@@ -12070,7 +12114,7 @@ window.__EXTRAS = true;
         var ch = -1; pick.forEach(function (id, i) { var q = pickPos(i); if (Math.abs(p[0] - q[0]) < 9 && Math.abs(p[1] - q[1] + 2) < 9) ch = i; });
         if (ch >= 0) { pick.splice(ch, 1); beep([[400, .04]]); G_.banner(pick.length ? ckName(ckFinal(pick)) : "Was kommt in den Kuchen?"); return; }
         if (pick.length && Math.abs(p[0] - BOWLP[0]) < 38 && p[1] > BOWLP[1] - 12 && p[1] < BOWLP[1] + 34) {
-          if (ckList().length >= 4) { G_.banner("Die Vitrine ist schon voll"); beep([[220, .06]]); return; }
+          if (ckList().length >= CK_MAX) { G_.banner("Die Vitrine ist schon voll"); beep([[220, .06]]); return; }
           beep([[523, .05], [659, .05], [784, .06]]); G_.pause(600, startBake, BOWLP[0], BOWLP[1]); return;
         }
         return;
@@ -12133,7 +12177,7 @@ window.__EXTRAS = true;
         var k = deliver; deliver = null;
         cfGlide(Math.min(cfScroll.scrollWidth - cfScroll.clientWidth, (300 - 90) / CF.w * cfScroll.scrollWidth), 900);
         cfHamJob(function () {
-          var tr = cfTray('<image href="' + ckIconUrl(k, false) + '" width="13" height="11" style="image-rendering:pixelated"/>', 13, 11); cfHold(tr.svg, tr.w, tr.h, true);
+          var tr = cfTray(ckPix(k, false).svg, 13, 11); cfHold(tr.svg, tr.w, tr.h, true);
           return cfHamHome().then(function () {
             var L_ = ckList(); L_.push({ k: k, n: 4 }); cfL().cakes = L_.length; cfStock(); if (window.SudokuSave) window.SudokuSave();
             if (cafeOn) { say(N() + " stellt " + ckName(k) + " unter die Glasglocke."); cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); beep([[659, .05], [784, .05], [988, .08]]); setTimeout(function () { cfHamSet({}); }, 900); }
@@ -12195,7 +12239,30 @@ window.__EXTRAS = true;
     return free;
   }
   // ---- what they order
+  // what is already on the counter and not yet promised to another guest
+  function gFreeItems() {
+    var its = gItems(), used = {};
+    guests.forEach(function (q) { if (!q.order || (q.state !== "walk" && q.state !== "wait")) return; for (var i = 0; i < its.length; i++) if (!used[i] && gMatch(q.order, its[i])) { used[i] = 1; break; } });
+    return its.filter(function (it, i) { return !used[i]; });
+  }
+  // an order made from a thing that is ready: the guest asks for exactly that
+  function gOrderFor(it) {
+    if (it.kind === "cake") return { kind: "cake", wish: { t: "cake", v: it.k } };
+    if (it.kind === "tea") return { kind: "tea", wish: (it.x || []).length && Math.random() < .4 ? { t: "add", v: it.x[0] } : { t: "ing", v: it.k.split("+")[0] } };
+    if (it.kind === "kakao") return { kind: "kakao", wish: (it.x || []).length ? { t: "add", v: it.x[0] } : null };
+    var r = Math.random();
+    return { kind: "coffee", wish: it.art && r < .35 ? { t: "art", v: it.art } : it.drink && it.drink !== "E" && r < .75 ? { t: "drink", v: it.drink } : { t: "bean", v: (it.beans || "mittel").split("+")[0] } };
+  }
+  // room on the counter: three teas, three coffees or cocoas, two cakes
+  function gRoom() { var C_ = cfL(), o = []; if ((C_.tea || 0) < 3) o.push("tea"); if ((C_.cof || 0) < 3) o.push("coffee", "kakao"); if (ckList().length < CK_MAX) o.push("cake"); return o; }
   function gOrder(id) {
+    var ready = gFreeItems();
+    if (ready.length) { var pick = ready.filter(function (it) { return it.kind === gPref(id).d; }); pick = pick.length && Math.random() < .7 ? pick : ready; return gOrderFor(pick[Math.floor(Math.random() * pick.length)]); }
+    var o = gOrderNew(id), room = gRoom();
+    for (var k = 0; k < 6 && room.length && room.indexOf(o.kind) < 0; k++) o = gOrderNew(id);
+    return o;
+  }
+  function gOrderNew(id) {
     var p = gPref(id), r = Math.random(), av = ckAvail(), kind = r < .62 ? p.d : (r < .9 && p.cake && av.length) ? "cake" : ["tea", "coffee", "kakao"][Math.floor(Math.random() * 3)];
     var wish = null;
     if (Math.random() < .55) {
@@ -12262,7 +12329,7 @@ window.__EXTRAS = true;
   // ---- drawing: each guest is a small group in the room picture
   function gLayerEl() { return document.getElementById("cf-guests"); }
   function gCk(g) { return g.cakeK || (g.order.wish && g.order.wish.t === "cake" ? g.order.wish.v : null); }
-  function gIcon(kind, v) { if (kind === "cake" && v) return '<image href="' + ckIconUrl(v, false) + '" x="0" y="0" width="13" height="11" style="image-rendering:pixelated"/>'; var k = kind === "cake" ? "cakeA" : kind === "tea" ? "tea" : "cof", p = CF.spr[k]; return '<g>' + p.svg + '</g>'; }
+  function gIcon(kind, v) { if (kind === "cake" && v) return ckPix(v, false).svg; var k = kind === "cake" ? "cakeA" : kind === "tea" ? "tea" : "cof", p = CF.spr[k]; return '<g>' + p.svg + '</g>'; }
   // like the hamster: the body waddles and the feet take turns. The picture is cut into the body and a left and right foot strip.
   var gUid = 0;
   function gMake(g) {
@@ -12272,6 +12339,20 @@ window.__EXTRAS = true;
     el.innerHTML = '<defs><clipPath id="' + id + 'u"><rect x="-30" y="-90" width="60" height="' + (90 - band) + '"/></clipPath><clipPath id="' + id + 'l"><rect x="-30" y="' + (-band) + '" width="30" height="' + (band + 2) + '"/></clipPath><clipPath id="' + id + 'r"><rect x="0" y="' + (-band) + '" width="30" height="' + (band + 2) + '"/></clipPath></defs>' +
       '<g class="gq-item"></g><g class="gq-body"><g class="gq-tilt"><g class="gq-fl"><g clip-path="url(#' + id + 'l)">' + pic + '</g></g><g class="gq-fr"><g clip-path="url(#' + id + 'r)">' + pic + '</g></g><g class="gq-up"><g clip-path="url(#' + id + 'u)">' + pic + '</g></g></g></g><g class="gq-bub"></g><g class="gq-fx"></g>';
     gLayerEl().appendChild(el); g.el = el; g.bh = bh; g.parts = [el.querySelector(".gq-tilt"), el.querySelector(".gq-fl"), el.querySelector(".gq-fr"), el.querySelector(".gq-up")]; gBubble(g);
+  }
+  var G_EAT = 75000, G_STAY = 300000;      // eating takes a while, and a visit lasts about five minutes from being served
+  // a little speech bubble while they chat: a heart, a note, a star, three dots ...
+  function gTalk(g) {
+    var b = g.el && g.el.querySelector(".gq-bub"); if (!b) return;
+    var mate = guests.filter(function (q) { return q !== g && q.table === g.table && q.state === "chat"; })[0];
+    if (mate && mate.lastTalk && performance.now() - mate.lastTalk < 2500) return;
+    g.lastTalk = performance.now();
+    var pics = ["Herz", "Stern", "Blatt", "note", "dots", "dots", "keks"], k = pics[Math.floor(Math.random() * pics.length)];
+    var ic = k === "dots" ? '<path fill="#3a2414" d="M1 4h2v2h-2zM5 4h2v2h-2zM9 4h2v2h-2z"/>' : k === "note" ? '<path fill="#3a2414" d="M5 0h4v1h1v2h-1v-1h-3v5h-1v1h-3v-1h-1v-2h1v-1h3z"/><path fill="#6a9ad8" d="M2 6h3v1h-3z"/>' : gPx(GIC.w[k], gPal());
+    var tw = 16, th = 12;
+    b.innerHTML = '<g class="gq-talk" transform="translate(' + (-tw / 2) + ' -' + (48 + th) + ')"><path fill="#3a2414" d="M0 1h1v-1h' + (tw - 2) + 'v1h1v' + (th - 2) + 'h-1v1h-' + (tw - 2) + 'v-1h-1z"/><path fill="#fff8ec" d="M1 1h' + (tw - 2) + 'v' + (th - 2) + 'h-' + (tw - 2) + 'z"/><path fill="#3a2414" d="M' + (g.face > 0 ? 9 : 4) + ' ' + th + 'h3v1h-1v1h-1v-1h-1z"/><g transform="translate(' + (k === "dots" ? 2 : 4) + ' 2)">' + ic + '</g></g>';
+    setTimeout(function () { if (g.el && g.state === "chat") b.innerHTML = ""; }, 2300);
+    if (Math.random() < .5) beep([[700 + Math.random() * 300, .03], [900 + Math.random() * 300, .03]]);
   }
   var G_DOOR = [26, 104], G_LANE = 125, G_SEAT = 110;
   function gStep(g, dt) {
@@ -12292,6 +12373,7 @@ window.__EXTRAS = true;
   function gPos(g, t) {
     var f = g.mov ? Math.floor((t + g.ph) / 120) % 4 : -1, P = g.parts, cy = (-g.bh / 2).toFixed(1);
     // frames as with the hamster: tilt left with a foot up, both down, tilt right with the other foot up, both down
+    if (f < 0 && g.sip) { P[0].setAttribute("transform", "translate(0 -1)"); } else
     P[0].setAttribute("transform", f < 0 ? "" : "translate(0 " + (f % 2 ? 0 : -1) + ") rotate(" + (f === 0 ? -4 : f === 2 ? 4 : 0) + " 0 " + cy + ")");
     P[1].setAttribute("transform", f === 0 ? "translate(-1 -1)" : ""); P[2].setAttribute("transform", f === 2 ? "translate(-1 -1)" : "");
     g.el.setAttribute("transform", "translate(" + Math.round(g.x) + " " + Math.round(g.y) + ")");
@@ -12307,14 +12389,17 @@ window.__EXTRAS = true;
     // on the table top, a little towards the guest's side
     var sk = g.srv || g.order.kind, tb = TABLES[g.table], cake = sk === "cake", w = cake ? 13 : 8, h = cake ? 11 : 8, side = g.x < tb.top[0] ? -1 : 1;
     var x = Math.round(tb.top[0] - w / 2 + side * 3 - g.x), y = Math.round(96 - h - g.y);
-    it.innerHTML = '<g transform="translate(' + x + ' ' + y + ')">' + gIcon(sk, gCk(g)) + '</g>';
+    var st = g.stage || 0, inner = gIcon(sk, gCk(g));
+    if (cake) inner = '<clipPath id="gqc' + g.table + '_' + g.seat + '"><rect x="0" y="-2" width="' + [13, 10, 7, 4][st] + '" height="14"/></clipPath><g clip-path="url(#gqc' + g.table + '_' + g.seat + ')">' + inner + '</g>';
+    else if (st < 2) inner += '<path class="gq-steam" fill="#ffffff" opacity=".8" d="M2 -3h1v1h-1zM3 -5h1v1h-1zM5 -4h1v1h-1z"/>';
+    it.innerHTML = '<g transform="translate(' + x + ' ' + y + ')">' + inner + '</g>';
   }
   // ---- arriving
   // only so many animals come by on their own each day; more can be asked in at the door
-  var G_DAY = 8, G_COOL = 30 * 60 * 1000;
+  var G_DAY = 9999, G_COOL = 30 * 60 * 1000;
   function gDay() { var C_ = cfL(), d = new Date(), k = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); if (!C_.gday || C_.gday.d !== k) C_.gday = { d: k, n: 0 }; return C_.gday; }
   function gSpawn(manual) {
-    var free = gTablesFree(), pool = gKnown(); if (manual && !pool.length) pool = gAnyone();
+    var free = gTablesFree(), pool = gKnown(); if (!pool.length) pool = gAnyone();
     if (!free.length || !pool.length) return false;
     if (!manual && gDay().n >= G_DAY) return false;
     var pair = pool.length > 1 && Math.random() < .5, tables = free.filter(function (i) { return pair ? TABLES[i].seats.length === 2 : true; });
@@ -12382,13 +12467,21 @@ window.__EXTRAS = true;
     if (!cafeOn) { gRaf = 0; return; }
     var dt = Math.min(.05, (t - (gLast || t)) / 1000); gLast = t;
     var paused = typeof cfGameOn !== "undefined" && cfGameOn;
-    if (!paused) { gNext -= dt; if (gNext <= 0) { gNext = guests.length ? 35 + Math.random() * 35 : 20; gSpawn(); } }
+    if (!paused) { gNext -= dt; if (gNext <= 0) { if (gTablesFree().length) { gSpawn(); gNext = 20 + Math.random() * 30; } else gNext = 5; } }
     guests.forEach(function (g) {
       if (g.state === "walk") { if (gStep(g, dt)) { g.mov = false; g.state = "wait"; g.wait = 0; gBubble(g); if (g === guests.filter(function (q) { return q.table === g.table; })[0]) say(ALLANI[g.id].name + " setzt sich und möchte " + gOrderText(g.order) + "."); } }
       else if (g.state === "wait") { if (!paused) g.wait += dt; if (g.wait > 170) { gGo(g); gBubble(g); say(ALLANI[g.id].name + " konnte nicht länger warten. Vielleicht ein andermal."); } }
       else if (g.state === "fly") { var u = Math.min(1, (t - g.t0) / 650); if (u >= 1) { g.state = "eat"; g.t0 = t; gItemOnTable(g, true); } }
-      else if (g.state === "eat") { if (t - g.t0 > 4500) { gItemOnTable(g, false); gPay(g); g.state = "pay"; g.t0 = t; } }
-      else if (g.state === "pay") { if (t - g.t0 > 1800) gGo(g); }
+      else if (g.state === "eat") {
+        if (!g.ts) g.ts = g.t0;
+        var st = Math.min(3, Math.floor((t - g.t0) / G_EAT * 4)); if (st !== g.stage) { g.stage = st; gItemOnTable(g, true); }
+        g.sip = ((t - g.t0) % 4200) < 450 ? 1 : 0;
+        if (t - g.t0 > G_EAT) { g.sip = 0; gItemOnTable(g, false); gPay(g); g.state = "chat"; g.t0 = t; g.talkAt = t + 2200 + Math.random() * 2500; }
+      }
+      else if (g.state === "chat") {
+        if (t >= g.talkAt) { gTalk(g); g.talkAt = t + 4000 + Math.random() * 4500; }
+        if (t - g.ts > G_STAY) gGo(g);
+      }
       else if (g.state === "leave") { if (gStep(g, dt)) { g.state = "gone"; if (g.el) g.el.remove(); g.el = null; } }
       if (g.el) gPos(g, t);
     });
@@ -12399,7 +12492,7 @@ window.__EXTRAS = true;
     guests = guests.filter(function (g) { return g.state !== "gone"; });
     gRaf = requestAnimationFrame(gLoop);
   }
-  function guestsStart() { guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; gNext = 12 + Math.random() * 6; gLast = 0; if (!gRaf) gRaf = requestAnimationFrame(gLoop); }
+  function guestsStart() { guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; gNext = 6 + Math.random() * 6; gLast = 0; if (!gRaf) gRaf = requestAnimationFrame(gLoop); }
   var _gq_open = openCafe; openCafe = function () { _gq_open.apply(this, arguments); var svg = cfTrack.querySelector(".cf-svg"); if (svg && !svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st); svg.insertBefore(gf, st.nextSibling); } guestsStart(); };
   var _gq_close = closeCafe; closeCafe = function () { if (cafeOn && guests.length) say("Die Gäste verabschieden sich."); guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; return _gq_close.apply(this, arguments); };
   // tapping a guest at a table: serve them, or hear what they would like
@@ -12411,6 +12504,7 @@ window.__EXTRAS = true;
     if (g.state === "wait") gAsk(g);
     else if (g.state === "walk") say(ALLANI[g.id].name + " sucht sich gerade einen Platz.");
     else if (g.state === "eat") say(ALLANI[g.id].name + " lässt es sich schmecken.");
+    else if (g.state === "chat") say(ALLANI[g.id].name + (guests.some(function (q) { return q !== g && q.table === g.table; }) ? " plaudert gemütlich." : " genießt die Ruhe im Café."));
   });
   function cfDoorAsk() {
     var old = cafeEl.querySelector(".cf-door-ask"); if (old) old.remove();
@@ -12463,7 +12557,7 @@ window.__EXTRAS = true;
     minis.filter(Boolean).slice(0, 2).forEach(function (m, i) { o += '<g transform="translate(' + (w + 1 + i * 9) + ' ' + (h - 8) + ')">' + m + '</g>'; });
     var n = Math.min(2, minis.filter(Boolean).length); return { svg: o, w: w + (n ? n * 9 + 1 : 0), h: h };
   }
-  function gCakeImg(k, big) { var w = big ? 32 : 13, h = big ? 26 : 11; return { svg: '<image href="' + ckIconUrl(k, big) + '" width="' + w + '" height="' + h + '" style="image-rendering:pixelated"/>', w: w, h: h }; }
+  function gCakeImg(k, big) { return ckPix(k, big); }
   // what a guest would like, as a picture
   function gWishPic(o) {
     var w = o.wish;
@@ -12485,7 +12579,7 @@ window.__EXTRAS = true;
       var f = cl[j] || { k: "mittel|C", x: [], gen: 1 }, isK = f.k.indexOf("kakao") === 0, pp = f.k.split("|");
       out.push({ src: "cof", i: j, kind: isK ? "kakao" : "coffee", k: f.k, beans: pp[0], drink: pp[1], x: f.x || [], art: f.art, name: f.gen ? "Kaffee" : cofName(pp[0].split("+"), pp[1]) + (f.x && f.x.length ? (/ mit /.test(cofName(pp[0].split("+"), pp[1])) ? " und " : " mit ") + f.x.map(function (a) { return COF_ADD[a] || a; }).join(" und ") : "") });
     }
-    ckList().forEach(function (e, q) { out.push({ src: "cake", i: q, kind: "cake", k: e.k, n: e.n, name: ckName(e.k) }); });
+    ckList().forEach(function (e, q) { out.push({ src: "cake", i: q, kind: "cake", k: e.k, n: e.n, name: ckName(e.k) + (e.n < 4 ? " (" + e.n + " Stück)" : "") }); });
     if (!ckList().length && garden.harvest.cake > 0) out.push({ src: "kitchen", kind: "cake", k: "moehre", name: ckName("moehre") });
     return out;
   }
@@ -12526,7 +12620,7 @@ window.__EXTRAS = true;
     var nm = ALLANI[g.id].name, its = gItems(), star = gPx(GIC.w.Stern, gPal());
     var tiles = its.map(function (it, n) { var ok = gMatch(g.order, it); return '<button type="button" data-n="' + n + '" class="gq-tile' + (ok ? " gq-ok" : "") + '">' + gSvg(gItemPic(it), 2) + '<span>' + it.name + '</span>' + (ok ? '<i>' + gSvg({ svg: star, w: 8, h: 8 }, 2) + '</i>' : "") + '</button>'; }).join("");
     var make = { tea: "Tee machen", coffee: "Kaffee machen", kakao: "Kakao machen", cake: "Kuchen backen" }[g.order.kind], has = its.some(function (it) { return it.kind === g.order.kind; });
-    var html = '<div class="gq-head">' + gSvg(gWishPic(g.order), 3) + '<p class="ga-h">' + nm + ' möchte ' + gOrderText(g.order) + '</p></div>' +
+    var html = '<div class="gq-head">' + gSvg(gWishPic(g.order), 2) + '<p class="ga-h">' + nm + ' möchte ' + gOrderText(g.order) + '</p></div>' +
       (its.length ? '<div class="ga-grid gq-grid">' + tiles + '</div>' : '<p class="gq-none">Auf der Theke steht noch nichts.</p>') +
       '<div class="ga-row"><button type="button" class="ga-no" data-k="later">Später</button>' + (!has ? '<button type="button" class="ga-yes pbtn" data-k="make">' + make + '</button>' : "") + '</div>';
     gPopup(html, function (b, el) {
@@ -12555,15 +12649,15 @@ window.__EXTRAS = true;
   }
   // ---- tapping the cups on the counter: see what is there and pour away what nobody wants
   function gCounterAsk(sel) {
-    var its = gItems().filter(function (it) { return it.kind !== "cake"; });
-    if (!its.length) { say("Auf der Theke steht noch kein Getränk."); beep([[523, .04]]); return; }
+    var its = gItems().filter(function (it) { return it.src !== "kitchen"; });
+    if (!its.length) { say("Auf der Theke steht noch nichts."); beep([[523, .04]]); return; }
     var tiles = its.map(function (it, n) { return '<button type="button" data-n="' + n + '" class="gq-tile' + (sel === n ? " gq-sel" : "") + '">' + gSvg(gItemPic(it), 2) + '<span>' + it.name + '</span></button>'; }).join("");
     var html = '<p class="ga-h">Auf der Theke</p><div class="ga-grid gq-grid">' + tiles + '</div><div class="ga-row"><button type="button" class="ga-no" data-k="close">Schließen</button>' +
-      (sel != null ? '<button type="button" class="ga-yes pbtn" data-k="away">Wegschütten</button>' : "") + '</div>';
+      (sel != null ? '<button type="button" class="ga-yes pbtn" data-k="away">' + (its[sel].kind === "cake" ? "Wegräumen" : "Wegschütten") + '</button>' : "") + '</div>';
     gPopup(html, function (b, el) {
       if (b.dataset.n != null) { gCounterAsk(+b.dataset.n); return; }
       el.remove();
-      if (b.dataset.k === "away" && its[sel]) { gRemove(its[sel]); say(N() + " schüttet " + (its[sel].kind === "tea" ? "den Tee" : its[sel].kind === "kakao" ? "den Kakao" : "den Kaffee") + " weg."); beep([[500, .05], [380, .05], [260, .08]]); cfHamSet({ eyes: "half", mouth: "flat" }); setTimeout(function () { cfHamSet({}); }, 900); }
+      if (b.dataset.k === "away" && its[sel]) { var it0 = its[sel]; if (it0.kind === "cake") { var CL = ckList(); CL.splice(it0.i, 1); cfL().cakes = CL.length; cfStock(); if (window.SudokuSave) window.SudokuSave(); } else gRemove(it0); say(it0.kind === "cake" ? N() + " räumt " + ckName(it0.k) + " aus der Vitrine." : N() + " schüttet " + (it0.kind === "tea" ? "den Tee" : it0.kind === "kakao" ? "den Kakao" : "den Kaffee") + " weg."); beep([[500, .05], [380, .05], [260, .08]]); cfHamSet({ eyes: "half", mouth: "flat" }); setTimeout(function () { cfHamSet({}); }, 900); }
     });
   }
   window.__guests = { list: function () { return guests.map(function (g) { return { id: g.id, state: g.state, order: g.order, x: g.x }; }); }, spawn: function () { return gSpawn(); }, serve: function (i) { if (guests[i]) gServe(guests[i]); }, ask: function (i) { if (guests[i]) gAsk(guests[i]); }, items: gItems, counter: gCounterAsk, text: gOrderText, take: gTake, order: gOrder };
