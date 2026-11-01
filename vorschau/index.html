@@ -10127,7 +10127,12 @@ window.__EXTRAS = true;
     var h = document.getElementById("cf-hold"); if (h) h.innerHTML = CFH.hold ? '<g transform="translate(' + Math.round(hx_) + ' ' + Math.round(hy_ + CFH.bob) + ')">' + CFH.hold + '</g>' : "";
     // out in the room he walks in front of the counter (and of the guests), behind it he is half hidden
     var w = document.getElementById("cf-hamw"), svg = w && w.parentNode;
-    if (svg) { var ref = CFH.y > 92 ? svg.querySelector("#cf-stock") : svg.querySelector("#cf-front"); if (ref && w.nextSibling !== ref) svg.insertBefore(w, ref); }
+    // out in the room he joins the guests' layer, where everyone is drawn by depth (who is lower in the picture is in front)
+    if (svg || (w && w.parentNode)) {
+      var root = cfTrack.querySelector(".cf-svg"), gl = root && root.querySelector("#cf-guests");
+      if (CFH.y > 92 && gl) { if (w.parentNode !== gl) gl.appendChild(w); }
+      else if (root) { var ref = CFH.y > 92 ? root.querySelector("#cf-stock") : root.querySelector("#cf-front"); if (ref && (w.parentNode !== root || w.nextSibling !== ref)) root.insertBefore(w, ref); }
+    }
   }
   function cfHamWalk(pts) {
     return new Promise(function (res) {
@@ -10227,7 +10232,7 @@ window.__EXTRAS = true;
     if (wt === "snow") for (i = 0; i < 22; i++) { var w2 = CF.wins[i % 2]; wx += '<rect class="cf-snow" x="' + (w2[0] - w2[2] + (i * 7) % (2 * w2[2])) + '" y="' + (w2[1] - w2[2] + (i * 5) % (2 * w2[2])) + '" width="1" height="1" fill="#ffffff" style="animation-delay:-' + (i * 0.4).toFixed(2) + 's"/>'; }
     for (i = 0; i < 12 && (wt === "rain" || wt === "storm" || wt === "snow"); i++) wx += '<rect class="' + (wt === "snow" ? "cf-snow" : "cf-rain") + '" x="' + (17 + (i * 5) % 19) + '" y="' + (51 + (i * 3) % 13) + '" width="1" height="' + (wt === "snow" ? 1 : 3) + '" fill="#e8f0f8" style="animation-delay:-' + (i * 0.3).toFixed(2) + 's"/>';
     document.getElementById("cf-wx").innerHTML = wx;
-    document.getElementById("cf-dim").setAttribute("opacity", night ? ".3" : eve ? ".12" : (wt === "rain" || wt === "storm") ? ".1" : "0");
+    document.getElementById("cf-dim").setAttribute("opacity", "0");   // inside it is always light; only the view outside gets dark
     cafeEl.classList.toggle("cf-dark", night || eve);
   }
   // festival decoration in the café, with the same sprites as in the house
@@ -10390,6 +10395,13 @@ window.__EXTRAS = true;
     cfHamJob(function () { return cfHamGo([452, 114]); }).then(function () { cfBakeWalk = false; if (cafeOn && !cfGameOn) { cfHamSet({ eyes: "happy", mouth: "grin" }); bakeGame(); } });
   }
   var cfGameOn = false;
+  // the tap that closes a close-up must not land on the café behind it (the counter, a guest, the door ...)
+  function cfSwallow() {
+    var t0 = performance.now();
+    function eat(e) { if (performance.now() - t0 < 700) { e.stopPropagation(); e.preventDefault(); } document.removeEventListener("click", eat, true); }
+    document.addEventListener("click", eat, true);
+    setTimeout(function () { document.removeEventListener("click", eat, true); }, 700);
+  }
   function cfGameEl(title) {
     var el = document.createElement("div"); el.className = "bee-pov cf-game";
     el.innerHTML = '<canvas width="180" height="135"></canvas><b class="bp-ban cf-ban"></b><div class="cf-gauge"></div><button type="button" class="bp-x" aria-label="Abbrechen">×</button>';
@@ -10420,7 +10432,7 @@ window.__EXTRAS = true;
     ["pointerdown", "pointermove"].forEach(function (tp) { el.addEventListener(tp, function (e) { if (performance.now() < lockUntil && e.target === cv) { e.stopImmediatePropagation(); } }, true); });
     // pause(ms, fn, x, y): a step is done; show it for a moment, then go on
     function pause(ms, fn, x, y) { hold(ms); if (x != null) spark(x, y); setTimeout(function () { if (el.parentNode) fn(); }, ms); }
-    return { el: el, cv: cv, c: c, banner: banner, spark: spark, hold: hold, pause: pause, gauge: el.querySelector(".cf-gauge"), close: function () { cfGameOn = false; cancelAnimationFrame(fxRaf); el.remove(); } };
+    return { el: el, cv: cv, c: c, banner: banner, spark: spark, hold: hold, pause: pause, gauge: el.querySelector(".cf-gauge"), close: function () { cfGameOn = false; cancelAnimationFrame(fxRaf); el.remove(); cfSwallow(); } };
   }
   function R(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); }
   function disc(c, cx, cy, r, col) { c.fillStyle = col; for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) { var h = r * r - (y + .5 - cy) * (y + .5 - cy); if (h <= 0) continue; var w = Math.sqrt(h); c.fillRect(Math.round(cx - w), y, Math.round(2 * w) || 1, 1); } }
@@ -10679,7 +10691,7 @@ window.__EXTRAS = true;
     var col = night ? "#1e2a54" : eve ? "#f4b88a" : wt === "storm" ? "#46506a" : (wt === "rain" || wt === "snow") ? "#a8b8c8" : wt === "clouds" ? "#bcd0de" : "#a8dcf6";
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="135" viewBox="0 0 180 135" shape-rendering="crispEdges">' +
       '<svg x="0" y="0" width="180" height="135" viewBox="180 0 180 135">' + CF.bg + '</svg>' +
-      (night ? '<rect width="180" height="135" fill="#1e2a54" opacity=".22"/>' : eve ? '<rect width="180" height="135" fill="#1e2a54" opacity=".08"/>' : "") + '</svg>';
+      '</svg>';
     var im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); wallImg = im; return im;
   }
   // ---- the big window in the close-ups: only a part of it is in the picture, the garden is outside, the weather moves
@@ -12603,11 +12615,22 @@ window.__EXTRAS = true;
     guests.forEach(function (g) { if (g.state !== "fly") return; var u = Math.min(1, (t - g.t0) / 650), tb = TABLES[g.table], x = 288 + (tb.top[0] - 288) * u, y = 70 + (tb.top[1] - 8 - 70) * u - Math.sin(u * Math.PI) * 26; fh += '<g transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')">' + gIcon(g.order.kind, gCk(g)) + '</g>'; });
     if (fl && fl._h !== fh) { fl.innerHTML = fh; fl._h = fh; }
     guests = guests.filter(function (g) { return g.state !== "gone"; });
+    gDepth();
     gRaf = requestAnimationFrame(gLoop);
   }
   function guestsStart() { guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; gNext = 6 + Math.random() * 6; gLast = 0; if (!gRaf) gRaf = requestAnimationFrame(gLoop); }
   var _gq_open = openCafe; openCafe = function () { _gq_open.apply(this, arguments); var svg = cfTrack.querySelector(".cf-svg"); if (svg && !svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st); svg.insertBefore(gf, st.nextSibling); } guestsStart(); };
   var _gq_close = closeCafe; closeCafe = function () { if (cafeOn && guests.length) say("Die Gäste verabschieden sich."); guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; return _gq_close.apply(this, arguments); };
+  // everyone out in the room is drawn by depth: whoever stands lower in the picture is in front
+  function gDepth() {
+    var L = gLayerEl(); if (!L) return;
+    var hw = document.getElementById("cf-hamw"), it = guests.filter(function (g) { return g.el && g.el.parentNode === L; }).map(function (g) { return { el: g.el, y: g.y }; });
+    if (hw && hw.parentNode === L) it.push({ el: hw, y: CFH.y + .5 });
+    it.sort(function (a, b) { return a.y - b.y; });
+    var ch = L.children, same = ch.length === it.length;
+    for (var i = 0; same && i < it.length; i++) if (ch[i] !== it[i].el) same = false;
+    if (!same) it.forEach(function (q) { L.appendChild(q.el); });
+  }
   function gReattach() {
     var svg = cfTrack.querySelector(".cf-svg"); if (!svg) return;
     if (!svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st); svg.insertBefore(gf, st.nextSibling); }
@@ -12740,7 +12763,7 @@ window.__EXTRAS = true;
     var make = { tea: "Tee machen", coffee: "Kaffee machen", kakao: "Kakao machen", cake: "Kuchen backen" }[g.order.kind], has = its.some(function (it) { return it.kind === g.order.kind; });
     var html = '<div class="gq-head">' + gSvg(gWishPic(g.order), 2) + '<p class="ga-h">' + nm + ' möchte ' + gOrderText(g.order) + '</p></div>' +
       (its.length ? '<div class="ga-grid gq-grid">' + tiles + '</div>' : '<p class="gq-none">Auf der Theke steht noch nichts.</p>') +
-      '<div class="ga-row"><button type="button" class="ga-no" data-k="later">Später</button>' + (!has ? '<button type="button" class="ga-yes pbtn" data-k="make">' + make + '</button>' : "") + '</div>';
+      '<div class="ga-row"><button type="button" class="ga-no" data-k="later">Später</button><button type="button" class="ga-yes pbtn" data-k="make">' + make + '</button></div>';
     gPopup(html, function (b, el) {
       el.remove();
       if (b.dataset.k === "make") { if (g.order.kind === "cake") cfStartBake(); else if (g.order.kind === "tea") teaGame(); else coffeeGame(); return; }
