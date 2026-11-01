@@ -1849,6 +1849,10 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .cf-game.cf-pouring .cf-ban { opacity: 0; transition: opacity .2s; }
 .cf-bookv .cf-bn { max-height: 3.5em; overflow: hidden; }
 .cf-bookv .cf-btab { font-size: .8rem; font-weight: 800; color: #3a2414; transform: translateX(-50%); }
+
+.cf-game .bk-cnt { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.cf-game .bk-cnt span { position: absolute; transform: translate(-50%, -50%); font-weight: 800; font-size: .72rem; line-height: 1; color: #3a2414; background: #fff8ec; padding: 1px 3px 2px; box-shadow: 0 0 0 1.5px #3a2414; }
+.cf-game .bk-cnt span.no { opacity: .5; }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -4371,7 +4375,8 @@ window.__EXTRAS = true;
     setTimeout(function () { var e = document.getElementById(id); if (e) e.remove(); }, 1500);
   }
   function svgPt(ev) { var r = svgEl.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * 180, y: (ev.clientY - r.top) / r.height * 135 }; }
-  function stationOf(s) { return s[0] === "bake" ? "oven" : (s[0] === "cut" || s[0] === "knead" || s[0] === "decorate" || s[1] === "bowl") ? "board" : "stove"; }
+  function stationOf(s) { return s[0] === "bake" ? "oven" : (s[0] === "cut" || s[0] === "knead" || s[0] === "decorate" || s[0] === "planer" || s[0] === "shake" || s[1] === "bowl") ? "board" : "stove"; }
+  var COOK_EXT = {};   // more kinds of steps can be added from outside (preview)
   function carryFor(prev, next, d) {
     if (prev && prev[0] === "bake") return DISHES[d].art;
     if (next[0] === "bake") return next[1] === "cake" ? "carry_tin" : "carry_dough";
@@ -4391,11 +4396,11 @@ window.__EXTRAS = true;
       var R = DISHES[d], plan = PLAN[d], target = DISH_COLOR[d], items = [], cut = {}, grades = [], cancelled = false, raf, t0 = performance.now(), heatFn = null, bakeFn = null;
       for (var k in R.need) for (var n = 0; n < R.need[k]; n++) items.push(k);
       floaters = []; setLiquid(null); pov.hidden = false; $p("pov-done").hidden = true;
-      function head(i, txt) { var nm = { cut: "Schneiden", add: "Zutaten rein", stir: "Umrühren", heat: "Erhitzen", mash: "Zerdrücken", knead: "Kneten", bake: "Backen" }[plan[i][0]] || "Verzieren"; $p("pov-step").textContent = (i + 1) + " · " + nm; $p("pov-text").textContent = txt; pov.classList.toggle("c2-gauge", plan[i][0] === "heat"); }
+      function head(i, txt) { var nm = { cut: "Schneiden", add: "Zutaten rein", stir: "Umrühren", heat: "Erhitzen", mash: "Zerdrücken", knead: "Kneten", bake: "Backen", season: "Abschmecken", skim: "Abschöpfen", gel: "Gelierprobe", planer: "Hobeln", shake: "Schütteln" }[plan[i][0]] || "Verzieren"; $p("pov-step").textContent = (i + 1) + " · " + nm; $p("pov-text").textContent = txt; pov.classList.toggle("c2-gauge", plan[i][0] === "heat"); }
       function bar(f) { setPixBar($p("pov-ring"), f); }
       // ---- step: cut every ingredient that needs it on the board, in its own view ----
       function stepCut(i) {
-        var list = items.filter(function (k) { return CUTS[k]; });
+        var list = items.filter(function (k) { return CUTS[k] && !cut[k]; });
         setView("board");
         return list.reduce(function (p, k, idx) { return p.then(function () { return cutOne(i, k, idx, list.length); }); }, Promise.resolve());
       }
@@ -4565,6 +4570,7 @@ window.__EXTRAS = true;
         });
       }
       function stepFor(s, i) {
+        if (COOK_EXT[s[0]]) return COOK_EXT[s[0]]({ d: d, i: i, s: s, head: head, bar: bar, grades: grades, items: items, cut: cut, target: target });
         if (s[0] === "cut") return stepCut(i);
         if (s[0] === "add") return stepAdd(i, s[1], s[2]);
         if (s[0] === "stir") return stepStir(i, s[1]);
@@ -9830,7 +9836,7 @@ window.__EXTRAS = true;
       var CL = ckList(), have = garden.harvest.cake || 0, room = 4 - CL.length;
       if (room <= 0) { say("Die Vitrine ist voll mit Kuchen."); return; }
       if (!have) { say("Kein Kuchen in der Küche. " + N() + " backt hier in der Backstube einen."); bakeGame(); return; }
-      var n = Math.min(have, room); garden.harvest.cake -= n; for (var q = 0; q < n; q++) CL.push("moehre"); C_.cakes = CL.length; if (typeof renderFoods === "function") renderFoods();
+      var n = Math.min(have, room); garden.harvest.cake -= n; for (var q = 0; q < n; q++) CL.push({ k: "moehre", n: 4 }); C_.cakes = CL.length; if (typeof renderFoods === "function") renderFoods();
       cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); beep([[659, .05], [784, .05], [988, .08]]); setTimeout(function () { cfHamSet({}); }, 900);
       say(N() + " stellt " + (n === 1 ? "einen Kuchen" : n + " Kuchen") + " in die Vitrine."); cfStock(); if (window.SudokuSave) window.SudokuSave(); return;
     }
@@ -10011,7 +10017,7 @@ window.__EXTRAS = true;
   function openTeaBook(host, kind, tabs) {
     kind = kind || "tea";
     var B, keys, newest;
-    function load() { B = kind === "coffee" ? cofBook() : teaBook(); keys = Object.keys(B).sort(function (a, b) { return (B[a].t || 0) - (B[b].t || 0); }); newest = keys[keys.length - 1]; }
+    function load() { B = kind === "coffee" ? cofBook() : kind === "cake" ? ckBook() : teaBook(); keys = Object.keys(B).sort(function (a, b) { return (B[a].t || 0) - (B[b].t || 0); }); newest = keys[keys.length - 1]; }
     load();
     var el = document.createElement("div"); el.className = "bee-pov cf-game cf-bookv";
     el.innerHTML = '<canvas width="180" height="135"></canvas><div class="cf-btext"></div><button type="button" class="bp-x" aria-label="Buch schließen">×</button>';
@@ -10034,14 +10040,15 @@ window.__EXTRAS = true;
       sp("book_open", 0, 0);
       var list = slotsOf(page), html = "";
       if (page === 0) {
-        html += '<b class="cf-bt" style="left:' + (16 / 1.8) + '%;top:' + (14 / 1.35) + '%">' + (kind === "coffee" ? "Kaffeebuch" : "Teebuch") + '</b><span class="cf-bc" style="left:' + (16 / 1.8) + '%;top:' + (25 / 1.35) + '%">' + keys.length + ' von ' + (kind === "coffee" ? COF_TOTAL : TEA_TOTAL) + ' Sorten</span>';
+        html += '<b class="cf-bt" style="left:' + (16 / 1.8) + '%;top:' + (14 / 1.35) + '%">' + ({ coffee: "Kaffeebuch", cake: "Kuchenbuch" }[kind] || "Teebuch") + '</b><span class="cf-bc" style="left:' + (16 / 1.8) + '%;top:' + (25 / 1.35) + '%">' + keys.length + ' von ' + ({ coffee: COF_TOTAL, cake: CK_TOTAL }[kind] || TEA_TOTAL) + ' Sorten</span>';
         sp("ic_minze", 70, 118); sp("ic_kamille", 150, 116);
       }
-      if (!keys.length) html += '<span class="cf-bn" style="left:' + (16 / 1.8) + '%;top:' + (50 / 1.35) + '%;width:' + (70 / 1.8) + '%">Noch leer. Misch deinen ersten Tee!</span>';
+      if (!keys.length) html += '<span class="cf-bn" style="left:' + (16 / 1.8) + '%;top:' + (50 / 1.35) + '%;width:' + (70 / 1.8) + '%">' + (kind === "cake" ? "Noch leer. Back deinen ersten Kuchen!" : kind === "coffee" ? "Noch leer. Mach deinen ersten Kaffee!" : "Noch leer. Misch deinen ersten Tee!") + '</span>';
       list.forEach(function (o, i) {
         if (!o.k) return; var e = B[o.k], x = o.sl[0], y = o.sl[1], ids = o.k.split("|")[0].split("+");
-        cup(x, y + 1, e.c, t + i * 300);
-        ids.forEach(function (id, j) { sp((kind === "coffee" ? "ib_" : "ic_") + id, x + 19 + j * 13, y + (j % 2)); });
+        if (kind === "cake") { sp(ckIcon(o.k, false), x + 1, y + 4); ids.forEach(function (id, j) { sp(BK_ING[id].top, x + 19 + j * 13, y + 2 + (j % 2)); }); }
+        else { cup(x, y + 1, e.c, t + i * 300);
+        ids.forEach(function (id, j) { sp((kind === "coffee" ? "ib_" : "ic_") + id, x + 19 + j * 13, y + (j % 2)); }); }
         if (kind === "coffee" && e.art) { R(c, x + 6, y + 6, 4, 2, "#fff8ec"); }
         for (var q = 0; q < 3; q++) star(x + 62, y + 1 + q * 5, q < e.s);
         if (o.k === newest) {   // a little red "NEU" tag
@@ -10065,9 +10072,9 @@ window.__EXTRAS = true;
         if (k >= 1) flip = null; else html = "";
       }
       if (tabs) {
-        [["tea", 20, "#86c870", "#5aa04e"], ["coffee", 100, "#c8925a", "#8a5a30"]].forEach(function (tb) {
+        [["tea", 12, "#86c870", "#5aa04e"], ["coffee", 70, "#c8925a", "#8a5a30"], ["cake", 128, "#f6a8b8", "#e8809a"]].forEach(function (tb) {
           var on = tb[0] === kind, y0 = on ? 0 : 3; R(c, tb[1], y0, 40, 12 - y0, "#3a2414"); R(c, tb[1] + 1, y0 + 1, 38, 10 - y0, on ? tb[2] : tb[3]); R(c, tb[1] + 1, y0 + 1, 38, 1, "rgba(255,255,255,.35)");
-          html += '<span class="cf-btab" style="left:' + ((tb[1] + 20) / 1.8) + '%;top:' + ((y0 + 1.5) / 1.35) + '%">' + (tb[0] === "tea" ? "Tee" : "Kaffee") + '</span>';
+          html += '<span class="cf-btab" style="left:' + ((tb[1] + 20) / 1.8) + '%;top:' + ((y0 + 1.5) / 1.35) + '%">' + ({ tea: "Tee", coffee: "Kaffee", cake: "Kuchen" }[tb[0]]) + '</span>';
         });
       }
       if (tx._h !== html) { tx.innerHTML = html; tx._h = html; }
@@ -10076,7 +10083,7 @@ window.__EXTRAS = true;
     cv.addEventListener("pointerdown", function (e) {
       var b = cv.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * 180, y = (e.clientY - b.top) / b.height * 135;
       if (flip) return;
-      if (tabs && y < 13) { var nk = x < 90 ? "tea" : "coffee"; if (nk !== kind) { kind = nk; load(); page = 0; flip = { t0: performance.now(), dir: nk === "coffee" ? 1 : -1 }; beep([[700, .03], [900, .04]]); } return; }
+      if (tabs && y < 13) { var ORD = ["tea", "coffee", "cake"], nk = x < 62 ? "tea" : x < 120 ? "coffee" : "cake"; if (nk !== kind) { var dir = ORD.indexOf(nk) > ORD.indexOf(kind) ? 1 : -1; kind = nk; load(); page = 0; flip = { t0: performance.now(), dir: dir }; beep([[700, .03], [900, .04]]); } return; }
       if (x > 120 && page < pages() - 1) { page++; flip = { t0: performance.now(), dir: 1 }; beep([[700, .03], [900, .04]]); }
       else if (x < 60 && page > 0) { page--; flip = { t0: performance.now(), dir: -1 }; beep([[900, .03], [700, .04]]); }
     });
@@ -10900,98 +10907,573 @@ window.__EXTRAS = true;
     window.__cofG = { st: function () { return { pourAt: pourAt, F: !!F, phase: phase, grind: grind, spd: spd, press: press, shot: shot, temp: temp, foam: foam, milk: milk, art: sArt, drink: drink, adds: adds.slice(), sG: sGrind, sT: sTamp, sS: sShot, sM: sMilk }; } };
   };
   window.__cof = { name: cofName, book: cofBook, total: COF_TOTAL, guide: function (k) { return COF_ART['gl_' + k]; } };
+  // ===================== kitchen (preview): more to do while cooking =====================
+  // soups: season and taste (the hamster's face says if it is right), jam: skim the foam and test on a cold plate,
+  // salad: slice the cucumber on the mandoline and shake the dressing
+  (function () {
+    var K2 = {"sh_salz": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAeCAYAAAAhDE4sAAAAmUlEQVR4nGNkQAJWKiL/GUgAx+68YYSx4QwrFZH/607cIcUchiALFbhhLLgU3bnzAKcB127cwhBjwqW4LMaFIJsog7qW7CHIJmhQkIUKQRcQZRByoONyAVEGkQMYGRggUZ9QM40sAxa0ZCHSk5WKyP//f7+RhWGJGGc6wgdOHt6HIUa1MBo1aNSgUYNGDRp2BqHU/eQYACv4AQgZZrVhdo2CAAAAAElFTkSuQmCC", 18, 30], "sh_pfeffer": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAeCAYAAAAhDE4sAAAAnUlEQVR4nGNkQAJWKiL/GUgAx+68YYSx4QwrFZH/607cIcUchiALFbhhLLgU3bnzAKcB127cwhBjwqW4LMaFIJsog7qW7CHIJmhQkIUKQRcQZRByoONyAVEGkQMYGRggUZ9QM40sAxa0ZDEcu/OGER79Dy6co8hFWNPRgwcP8Gp68OAehhjVwmjUoFGDRg0aNWjYGYRS95NjAKzuBwAFQjIbaK1DXgAAAABJRU5ErkJggg==", 18, 30], "sh_kraut": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAaCAYAAAC3g3x9AAABwUlEQVR4nM2VsWrbUBSGP5VAhqzBWTSJYO6gBwjp0kFDDMJP0MmUDFpEBy/BoyCDJ3XQEIIfoYMRKIOmQk26ZdCgCKPpQoswJUP2ZLonUTCNIAr0TEJH59N//v8iQc9lARwf7j/0AVutN5Z1fLj/8PP0tA8eHy8u2AG4zX/0AgT40BvpvYA7ADfN396AkvL3Gy03f9/ddwbc6j8AfPv8idV6Y7VWPtjb5WBv900K//9Q3iflbZXpiKKscZXD1fIaezhg6i0ACBMfezjAVQ4OX7opLMoaXTWM7BlxkKKrhkxHzPMJcZDiKoeirEmWHYBh4rfUZDrCHg5EcZj4jOwZrnI4GR+9DoyDlDDx5eGRPUNXjagCmOcTirLutrJZywyHiS89o3zqLZh6C5bl2evAl8NxkIraTEfEQSrXrnJaM1tT1lUD3pPSeT5pvWCeTyT9Th6aIV01AnKVQ6YjMh0BCOxqed0NqKuGk/ERmY7Ew6KsJSCT+sv6p4dFWVOUtQT03FNdNeiqIRhftma2emgPB7KuWXXqLcRLo3BbtYDnv77K4XWVw8ieSc9AATL15GOtLltnsfcPrGUab/03r9YbC+ARys/bOh78MpUAAAAASUVORK5CYII=", 20, 26], "taste_spoon": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAqCAYAAACHgLrMAAAAy0lEQVR4nGNkQAJWKiL/GbCAY3feMGIIWqmI/P//9xsKfvHmw/8Xbz78xzAIn+IXbz78P3LiAlwTEzYnvHz/C86+c+cBihyjlYrI/6M3HxGluCzGBdUGfIphAK6BkOJrN24hNBCrGMUGYhSjaCBGMQMDAwPTsTtvGIMsVAgqXtCSxXDszhtGrPGAzWQUJx2784axLMYFp2KY6QwMDAwoiQoW/fNaQhhePHrBcOrCA4YNp56gJD4UJ2FNldicRAoY1TCqYVTDqIaRpwEA0WWVcJGEzT4AAAAASUVORK5CYII=", 12, 42], "hface_meh": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAoCAYAAACB4MgqAAACuklEQVR4nO2Zv2sbMRTHvw4dPN3k4PUGp2QqHQIF24OHEoynYPwneMgYSqbg0WTqkKl4MJ06lWA6hVIyOoZAh46Ha4ooHRrq6SbT5TrUuuh0OunpTrl06AcM90vvffXu3ZMsAf8pl4ruZrNRi8TzxWqtfb4oNv6UN7iB6+kwcf3lcGo0mIc8/lIXmo1aJBsIWZA474/nzsTn9bdjawQAZqN26rXmoYi/J1rLPzvwqp17o5uJVgRFrPZNWfiLjYi9D1kAr3qsbCAa64/n8bEcuSx43optbPzxjqcirnpVKtiSkcWKXE+HCR82/kQSwk1GwuA74AOev49n/j5NqcY+1Z8sGjDluGgAgNf5BsBeMEAQuZnE6cL9AWrRgFQOm41aNBu143OveiyJzg81JcB694e/38THr97/SHzY2oiHm0mcGqXhX2VGWSRRxxerdUWsFGzJyhW9xX/qJ87laAOWQ74JcjoQ4UFU1f6d1NNbbESHLHAuGvg7YmaRKZzKQwimQJpkqShTsHGSReWxoiySquO6aIuC++M5br7+QmtvF7NRG/XBBcnh3eWJsr0JOeqkkVMWzWnt7QIAWXTi2fFB3N6Eqq4bU0VVMWyEFiVrMMoUnlXiHkK0yiZbMu0IqkwViuCbL5+txMnI7bn92/MjUvtUxP+FikGBVA7zpMfd60/xz4YXZx9IzxmFl/khcijitbPDItRPD9F/d4b66WFhW6rZYeG5io6iH7COlHCXUXeBKtqAxchJpfX8IPOeyzegFL6NekSZQ8i4FJcVbUCT4zxl+KSoTG7Pj7SiAcPH+RjiKaIBw/o4p9moRVcfL90oM9DrDkgrwaRyuFitK73uAJv5RWFhWQRvT8iiAWLEOfzfv+vo97oDAHYbBrkW5111II9gTqFdBXFNnNoJLhYotiXjbC/HycK+BX8AN3aS+1aSGf4AAAAASUVORK5CYII=", 46, 40], "hface_happy": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAoCAYAAACB4MgqAAAC4UlEQVR4nO2Zv4saQRTHvx4pTLOVYLuFhKvkiqs8C4sQRFIcsn+ChaWEFCks5UiRwipYSP6AIFbhCOFKFQ4s5Co5JCwhRQQrm0iaTXHOOrs7P97M7nkp8ql2x/G977x982Z2FvjPccmpfqyUCgF/P1ttlP3TYuJP+AMzcDNsRdpftoZagzbY+Es0VEqFIG5g6y8j983eJDPxtv5OTI0AwLhbTTxWG9L4e6a0/KsGJ187GN0NlCIoYpVPysBfaIQf/dZfwsm3hX/gjTV7k/A6HjkZLG/5/5j4YwNPRFz0qET49z5ZLM/NsBXxYeKPJyJcZ2S7/AG4gOOeouye0pQq7FP9xUUDuhznDQBwat8BmAsGCCJ3gzBdmD9ALBqIlcNKqRCMu9Xw3sm3Y6LtoaYE/Mbh8s/H8PrN55+Ria2M+HY3CFPjaLjX0ijzROr4bLXJ8ZXCv/ePK3qP+8KN3MejDRgu+TrI6UCEBVFU+08SvfeYiN76y8xFAw8rpgypcCqPIZgCaZMl4piCtZssKk8VZZ5EHVdFWyW46PVJDtejDqlfnHjUSSsnEBXNl0zG1KPZKXp9XJydJ9pVE9FqyRdt6qeLeaLfxdm5sJ3Sbz3qoNmbCMXLFiOpcFlayMRRRMv6Fb0+xuhE2nSrp1C4SDQ1h21h9m+vLkn9E1XlX6gYFEiT08m38fvLYUDPX+v3L+sP38Lr4ttX2v7Mfrn8HgBwd/dO2V9bxx87RWwRrpz87E4jnFppRPC5Ltodpt6r8MTrc1y0qH7bksjx/Z48UC0IMqaLuVKcTfRF0QYMVk4q08U8MjEZlAlqgjBV4m9CT4Us2gDhtHbcrR69stxeXSpFA5rJySJvu6OzgSIa0EScUSkVguuvo2yUaWjUPdJJMKkczlabXKPuYTfppxYmY/mpQxYNECPOYG//WUe/UX/YzJucuVsdzmc1ABvBjFRfFfgzceogmFgg3SeZzL7lZHKwb8BfJlaY5ZnIp0sAAAAASUVORK5CYII=", 46, 40], "hface_much": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAoCAYAAACB4MgqAAAC/UlEQVR4nO2ZP2jbQBTGP5cO7qJJwasGpWQyHjIU2YOHUozJYIz3dvDgqYTSoRSPJnToYDoUD6ZkLsFdQiglQwfHJNChZDLGFFE6JODJFGq6qIN78kk63T39sbr0B8aSLb333dO7944T8J9sycn+tEzd4c8n84X0+qRE8Sf8gxk4H7Y9vz9sD5UG4xDHX+AHy9Qdv4GlPfWcN3vj1MTH9XcnqhEAGHUrgccahyT+7kot31Sh5asbo6uBVARFrPRJRfDnGuFHv7Sn0PId4Q28sWZv7B77IxcGy1v+nij+2MADERc9KhH2zCaL5Tkftj0+ovjj8QhXGVlOvwMGoBl7KBp7NKUS+1R/ftGAKsd5AwC06jcA0QUDBJGrgZsuzB8gFg34yqFl6s6oW3HPtXzHJzo+1JSAXd8c/n7rHj97/8MzsaURX64GbmpkhnEWGmUeTx2fzBc5vlLYMztb0X8x7huec3+0gYgtXwU5HYiwIJJaPiDuaDLSFsxTePwB5d0decuPwzZFA0B5dwdPT+eBzkxaZInYtmDG5wfHeHNgphNxvm2nAV8Q/FQvn6gjroo2H+Vmbwy+5hdafZLI25PDgGjeThj+pS2pcwLB1Bh1K2j2xrj4+oVqAsB6gEw8VbSoritTZWlPA6ILrX4s0X7Y4GWENaNQ4SLBwFp0ubSfWDQjTLw9s6UdVJgqYYIZSUX758NFa3N8ddQg2QhEPKsylxTS5NTyHfw63Qzo3oF6/XL7+pN7XHj+SHk9s18svgIAXF+/kF6vnJzUMpc1ws4Zpz6LSDKJ+VwXrQ4Tr1VkpFV5RASE+9fk/xpRtIEUI14u7Uf63hqWqTs3xw3H+WmTP5apk74pn8uXJUe2yaTcrR11K5lXlqujRmiKMKSpwvLdv6LbJhTRgCLiDMvUnbOPJ+koU1CvtUg7waTJOZkvcvVaC6txP7GwMKbvDsmiAWLEGWyypB39em29yoqy5x5rcz6tAcQRzEj0VoEvV9RBMLFAslcyqb3LSWVjPwJ/AK+3Davf12XfAAAAAElFTkSuQmCC", 46, 40], "skimmer": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAASCAYAAAAZk42HAAABV0lEQVR4nGNkwAGsVET+YxM/ducNIy49AwkwHAXzwNHbr7FqsFYVZWBgGLweYmBggHgCF3jx5gMKxhVjAwWYYAwrFZH/uGLh5duPGGJdS/bgTH4DARgZGEjzxJ07D1D4ZTEugyKZMeGSePn2I9wTTS1dDAwMmJ4YTIAJW2y8fPsR7ngGBgaGupoyuCeWrViFonawJDFGdI8QSkrYQFmMC7XdRTKAewRbhibGE9du3MIQs+PYRw23kQRYGBgwY6GppYshKiKMgYEBkpRwsQ0MDLAa+uLRC1q5FydgtFIR+b/uxB24ALmxgAw+7Gqj1F0kAxZkDrmeWNCSRTUHkQvg9UjXkj0oEsjJiIEB4YELFy6gJKkFLVmDux5B9gRykYsrXww0gIcktlhhYMCfHwZLbDAwoLV+kT1DKEMPJk8wMOBpxifUTMOqAZaxB5MnGBiweAQGhlrHCgCsT9O2mJPqmAAAAABJRU5ErkJggg==", 50, 18], "plate_cold": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAAiCAYAAADiS6/IAAACbElEQVR4nOWav2vCQBTHv4YO7gqCSCeh/0GHtPgnSGdx69atf4H0L+jm1k06F/8EsRnaqWNBHEQKgu7d7NKTl5d79yNGTeIHBC93ucQP7y7Pu1RwRMJ2fbvP+dFsXcnqXmwc5EKSgPfvxV793lxdao8fQlgmHXIRJgF3zx+prvH2eC3WcWFZiErdAZWhE8EFmH6YDy79UlFpJXmdZJJBbzgrCa6Yrp1WklNDJSRPMiT4PW1Wy1252wkBuAmyNgjb9a0kJC8yOErG/esPAOCl14zVdzuhVY5YqYuSogjh6ATZokd7kEdJ3oUoJDEKSZBOTuJAUaVQTIJc5cQKOilFEsKxCTLJCdSXskkBgFqjJda99Jq76AGA8SSKpSMBIA+fMmCSA0CUE/CGRZxTbEhy1FCichSBLk8pkxQbPMcZjkYI2/XtxYnu5+jUGi3jZLxczGPl2FAq09xiY7mY7z4AMJhWY/VnEzFAMipMxCLmnOYWztPtb6yceCqVla/PiVf7IJqtK3wF7JzmGj63PPT7iGbrSiJi1HDSydmsltY/anlEihYlhQ8j4H8o8aihc42SQYUUSY5tCFEpKloA4U8kXejhCRDFlm6fGpOUwbQqSgGEZYfxJNqVpVUwSt4E2YQAcqQoxIUqXznA6QXZho2rFMBhaTONIOB4klwew5IQwHNpk8KjB/ATpMhKlE8+Ij11pCiheG2fSIIAd0k+aXkaaF6iEwJktH1CoStcPpLyIAM4wIabDpMkILn4o0ui0sAzVV2/aWVQDrKpPxyNxLb8h7liEktFACfe1DchvQZiEuYCF6DI7WsgrhTpxaE/kwWVttg8zTEAAAAASUVORK5CYII=", 70, 34], "mandoline": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAAAiCAYAAACHpl23AAABhElEQVR4nO3aMUvDUBAH8It07JChbh3rV3CofggHkeLo4OBHEMfih3AQJxFx8ENooZ3qIqIdRBwKdsjQvQ76pKXh5YX03XnX/w9C0zbQS6539wIhAgAAAFAocTvtVmMmGQiU0xtNEqLfBLZbjdlld182Iijl6OyOeqNJsiEdCFRTczvjj7FkHJWdXjyUOv78eDdSJLxqxYfo8fj29fPaf8r9/vnllYiIrronbDHFZrqFXt/cSocQnekEHnYOpEOILjeBWTZd2LRahwrMnYFpWl94n2XTpc80kKrAvD99rOsX1EKr/rhUJUtVYJrWl7ZYWFah7gTmk8hR0VZmoO+6sS5iOP6R86zMQN91U3kfGNqOrVSgj8rbiNAZY6UCfVRWYKjQCuRcNa6aygoMFVqBnKvGVTOdQMxA5dZhBppOICpQOVSgcqhA+PdM3QfubG1Kh8DuL4GD4btgGNXtbTdLHa/9fB20UOW8LfR+8MkVB3j4ukvhDHRPAIOMoifm0UKVQwKV+wYPP2X29HEP8wAAAABJRU5ErkJggg==", 112, 34], "jar": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAuCAYAAABJcBuEAAAA0klEQVR4nO3YIQ7CMBgF4FdCMjG7ZGaKVCCnyy12BMQONcEROAGKhOlJSBYUZmTBIVBFNE0KzK4/4j3VzLwvf5uJHxCOAgCjMytR3vajUkZn9lTXEv3YNA0WIs1BlgBwORzFAB8T6O6PaOdJgESU0ZndrdYi5dvr2b2BqdHEivwVAO5HtO9uUYurskDbj0p8Aj+APE2Qp4kcIHYIIIAAAggggAACJgHD8yULiBkCCCCAAAKUP/hl5dx7gqosALglJRBMwH+IkbDrf67AZ+698fek3xyORGl83yuPAAAAAElFTkSuQmCC", 32, 46]};
+    Object.keys(K2).forEach(function (k) { A[k] = '<image href="' + K2[k][0] + '" width="' + K2[k][1] + '" height="' + K2[k][2] + '" style="image-rendering:pixelated"/>'; SZ[k] = [K2[k][1], K2[k][2]]; });
+    PLAN.psoup = [["cut"], ["add", "pot"], ["stir", "pot"], ["season"], ["heat"]];
+    PLAN.tsoup = [["cut"], ["add", "pot"], ["stir", "pot"], ["season"], ["heat"]];
+    PLAN.jam = [["add", "pot"], ["mash"], ["skim"], ["gel"]];
+    PLAN.salad = [["planer"], ["cut"], ["add", "bowl"], ["shake"], ["stir", "bowl"]];
+    function img(k, x, y, extra) { return '<g transform="translate(' + Math.round(x) + ' ' + Math.round(y) + ')' + (extra || "") + '">' + A[k] + '</g>'; }
+    function loop(fn) { var t0 = performance.now(), last = t0, on = true; (function f(now) { if (!on || pov.hidden) return; var dt = Math.min(.05, (now - last) / 1000); last = now; fn(dt, (now - t0) / 1000); requestAnimationFrame(f); })(t0); return function () { on = false; }; }
+    function sq(x, y, w, h, c) { return '<rect x="' + Math.round(x) + '" y="' + Math.round(y) + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'; }
+
+    // ---- soups: three spices, a tasting spoon; each soup wants its own mix
+    var SPICE = { salz: { n: "Salz", c: "#ffffff" }, pfeffer: { n: "Pfeffer", c: "#3a3036" }, kraut: { n: "Kräuter", c: "#5aa04e" } };
+    COOK_EXT.season = function (X) {
+      return new Promise(function (res) {
+        setView("pot"); X.head(X.i, "Würzen und abschmecken");
+        var WANT = X.d === "tsoup" ? { salz: 1, kraut: 2 } : { salz: 1, pfeffer: 2 }, got = { salz: 0, pfeffer: 0, kraut: 0 }, tastes = 0;
+        var SH = [{ k: "salz", x: 152, y: 34 }, { k: "pfeffer", x: 152, y: 66 }, { k: "kraut", x: 150, y: 98 }], busy = false, act = null, face = null, done = false;
+        var SP = { x: 6, y: 64 };
+        function render(t) {
+          var o = "";
+          SH.forEach(function (s) {
+            var key = "sh_" + s.k, x = s.x, y = s.y, extra = "";
+            if (act && act.k === s.k) { var u = act.u; x = s.x + (112 - s.x) * Math.min(1, u * 2.5); y = s.y + (22 - s.y) * Math.min(1, u * 2.5); var rot = Math.min(1, u * 2.5) * 140 + (u > .4 && u < .85 ? Math.sin(t * 40) * 12 : 0); if (u > .85) { var b = (u - .85) / .15; x = 112 + (s.x - 112) * b; y = 22 + (s.y - 22) * b; rot = 140 * (1 - b); } extra = " rotate(" + rot.toFixed(0) + " " + SZ[key][0] / 2 + " " + SZ[key][1] / 2 + ")"; }
+            o += img(key, x, y, extra);
+          });
+          o += img("taste_spoon", SP.x, SP.y);
+          if (face) {
+            o += img(face.k, 8, 88);
+            if (face.want) o += '<g transform="translate(56 82)">' + sq(0, 4, 26, 22, "#3a2414") + sq(1, 5, 24, 20, "#fff8ec") + sq(-3, 22, 3, 3, "#3a2414") + sq(-6, 26, 2, 2, "#3a2414") + img("sh_" + face.want, 4, 0, " scale(.66)") + '</g>';
+          }
+          $p("pov-tool").innerHTML = o;
+        }
+        var specks = [];
+        var stop = loop(function (dt, t) {
+          if (act) { act.u += dt / 1.4; if (act.u > .45 && act.u < .85 && Math.random() < .5) specks.push({ x: 118 + Math.random() * 6, y: 40, vy: 30, c: SPICE[act.k].c }); if (act.u >= 1) { act = null; busy = false; } }
+          specks.forEach(function (p) { p.y += p.vy * dt; p.vy += 120 * dt; }); specks = specks.filter(function (p) { return p.y < 74; });
+          $p("pov-fx").innerHTML = specks.map(function (p) { return sq(p.x, p.y, 1, 1, p.c); }).join("");
+          render(t);
+        });
+        function finish(g) { done = true; X.grades.push(g); setTimeout(function () { stop(); $p("pov-tool").innerHTML = ""; $p("pov-fx").innerHTML = ""; res(); }, 1500); }
+        svgEl.onclick = function (ev) {
+          if (busy || done) return; var p = svgPt(ev);
+          var s = SH.filter(function (q) { return p.x >= q.x - 3 && p.x <= q.x + 22 && p.y >= q.y - 3 && p.y <= q.y + 32; })[0];
+          if (s) { busy = true; face = null; act = { k: s.k, u: 0 }; got[s.k]++; beep([[1200, .02], [1000, .02], [1300, .02]]); return; }
+          if (p.x < 30 && p.y > 56 && p.y < 110) {
+            tastes++; beep([[600, .04], [800, .05]]);
+            var over = Object.keys(got).some(function (k) { return got[k] > (WANT[k] || 0); }), miss = Object.keys(WANT).filter(function (k) { return got[k] < WANT[k]; });
+            if (over) { face = { k: "hface_much" }; X.head(X.i, "Etwas zu viel"); beep([[300, .08], [220, .1]]); finish(1); }
+            else if (miss.length) { face = { k: "hface_meh", want: miss[0] }; X.head(X.i, "Da fehlt noch was"); }
+            else { face = { k: "hface_happy" }; X.head(X.i, "Lecker!"); beep([[784, .06], [988, .06], [1319, .1]]); finish(tastes <= 3 ? 3 : 2); }
+          }
+        };
+      });
+    };
+
+    // ---- jam: skim the foam off the top
+    COOK_EXT.skim = function (X) {
+      return new Promise(function (res) {
+        setView("pot"); X.head(X.i, "Schaum abschöpfen"); $p("pov-ring").hidden = false; X.bar(0);
+        var foams = [], n = 0, N = 8, next = .2, drag = null, done = false; window.__k2foams = function () { return foams.map(function (f) { return [f.x, f.y]; }); };
+        function inside(x, y) { return Math.pow((x - 102) / 38, 2) + Math.pow((y - 72) / 17, 2) <= 1; }
+        var stop = loop(function (dt, t) {
+          next -= dt; if (next <= 0 && foams.length < 5 && n + foams.length < N + 2) { next = .6 + Math.random() * .5; for (var g = 0; g < 20; g++) { var x = 102 + (Math.random() - .5) * 72, y = 72 + (Math.random() - .5) * 30; if (inside(x, y)) { foams.push({ x: x, y: y, a: 0, s: Math.random() * 10 }); break; } } }
+          var o = "";
+          foams.forEach(function (f) {
+            f.a = Math.min(1, f.a + dt * 2); var r = 2 + f.a * 3;
+            [[0, 0, r], [-r * .8, 1, r * .7], [r * .8, .5, r * .65], [0, -r * .5, r * .6]].forEach(function (b) { o += '<ellipse cx="' + (f.x + b[0]).toFixed(1) + '" cy="' + (f.y + b[1] + Math.sin(t * 3 + f.s) * .4).toFixed(1) + '" rx="' + b[2].toFixed(1) + '" ry="' + (b[2] * .6).toFixed(1) + '" fill="#fbe4e6"/>'; });
+            o += '<ellipse cx="' + (f.x - 1).toFixed(1) + '" cy="' + (f.y - 1).toFixed(1) + '" rx="1.2" ry=".8" fill="#ffffff"/>';
+          });
+          $p("pov-fx").innerHTML = o;
+          $p("pov-tool").innerHTML = drag ? img("skimmer", drag.x - 9, drag.y - 9) : img("skimmer", 120, 104);
+        });
+        function collect(p) {
+          foams = foams.filter(function (f) {
+            if (Math.hypot(f.x - p.x, f.y - p.y) > 9) return true;
+            n++; X.bar(n / N); beep([[700 + n * 40, .03]]);
+            if (n >= N && !done) { done = true; setTimeout(function () { stop(); $p("pov-fx").innerHTML = ""; $p("pov-tool").innerHTML = ""; res(); }, 400); }
+            return false;
+          });
+        }
+        svgEl.onpointerdown = function (ev) { drag = svgPt(ev); collect(drag); try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} };
+        svgEl.onpointermove = function (ev) { if (!drag) return; drag = svgPt(ev); collect(drag); };
+        svgEl.onpointerup = function () { drag = null; };
+      });
+    };
+
+    // ---- jam: keep it bubbling and test a drop on the cold plate until it wrinkles
+    COOK_EXT.gel = function (X) {
+      return new Promise(function (res) {
+        setView("pot"); X.head(X.i, "Gelierprobe auf dem kalten Teller"); $p("pov-ring").hidden = true;
+        window.__k2th = function () { return th; };
+        var th = .15, drop = null, done = false, base = liqCol || X.target, lastCol = 0, now = 0;
+        var stop = loop(function (dt, t) {
+          now = t; if (!done) th += dt / 16;
+          if (t - lastCol > .4) { lastCol = t; setLiquid(mix(base, "#6a1420", Math.min(1, th) * .45)); }
+          if (Math.random() < th * .15) puff(102 + (Math.random() - .5) * 60, 70 + (Math.random() - .5) * 20, mix(base, "#ffffff", .4));
+          var o = img("plate_cold", 4, 92), col = mix(base, "#6a1420", Math.min(1, th) * .45);
+          if (drop) {
+            var u = Math.min(1, (t - drop.t0) / .35);
+            if (drop.fly) { var x = 102 + (39 - 102) * u, y = 64 + (108 - 64) * u - Math.sin(u * Math.PI) * 20; o += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="3" ry="2.4" fill="' + col + '"/>'; if (u >= 1) drop.fly = false; }
+            else {
+              var sw = drop.sw || 0, run = drop.res === "run" ? Math.min(1, (t - drop.t1) / .8) : 0;
+              o += '<ellipse cx="' + (39 + sw * .4 + run * 8).toFixed(1) + '" cy="108" rx="' + (8 + run * 12).toFixed(1) + '" ry="' + (5 - run * 2.5).toFixed(1) + '" fill="' + col + '" opacity="' + (1 - run * .4) + '"/>';
+              o += '<ellipse cx="' + (37 + sw * .4).toFixed(1) + '" cy="106.5" rx="3" ry="1.2" fill="#ffffff" opacity=".45"/>';
+              if (drop.res === "wrinkle" || drop.res === "stiff") for (var k = 0; k < 3; k++) o += '<path d="M' + (33 + k * 4) + ' 104q2 4 0 8" stroke="' + mix(col, "#2a0a10", .5) + '" stroke-width="1" fill="none"/>';
+            }
+          } else if (!done) { var on = Math.floor(t * 2.5) % 2; o += sq(100, 40 + on * 2, 3, 4, "#f6c84a") + sq(98, 44 + on * 2, 7, 1, "#f6c84a") + sq(99, 45 + on * 2, 5, 1, "#f6c84a"); }
+          if (drop && drop.swipe) o += img("taste_spoon", drop.swipe.x - 6, drop.swipe.y - 8, " rotate(-60 6 8)");
+          $p("pov-tool").innerHTML = o;
+          if (!done && th >= 1.05) end(1, "Zu lange gekocht, sehr fest geworden");
+        });
+        function end(g, msg) { done = true; X.grades.push(g); X.head(X.i, msg); setTimeout(function () { stop(); $p("pov-tool").innerHTML = ""; res(); }, 1500); }
+        svgEl.onpointerdown = function (ev) {
+          if (done) return; var p = svgPt(ev);
+          if (!drop && Math.pow((p.x - 102) / 46, 2) + Math.pow((p.y - 72) / 26, 2) <= 1) { drop = { fly: true, t0: now }; beep([[500, .04]]); X.head(X.i, "Mit dem Löffel durch den Tropfen fahren"); return; }
+          if (drop && !drop.fly && !drop.res && p.x < 80 && p.y > 88) { drop.swipe = p; drop.sx = p.x; try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} }
+        };
+        svgEl.onpointermove = function (ev) {
+          if (!drop || !drop.swipe || drop.res) return; var p = svgPt(ev); drop.swipe = p; drop.sw = Math.max(-6, Math.min(6, p.x - drop.sx));
+          if (Math.abs(p.x - drop.sx) > 10) {
+            if (th < .55) { drop.res = "run"; drop.t1 = now; X.head(X.i, "Noch zu flüssig, weiterkochen"); beep([[300, .06]]); setTimeout(function () { if (!done) { drop = null; X.head(X.i, "Gelierprobe auf dem kalten Teller"); } }, 1300); }
+            else if (th <= .85) { drop.res = "wrinkle"; beep([[784, .06], [988, .06], [1319, .1]]); end(3, "Sie wirft Falten: perfekt!"); }
+            else { drop.res = "stiff"; end(2, "Schon recht fest, aber gut"); }
+            drop.swipe = null;
+          }
+        };
+        svgEl.onpointerup = function () { if (drop) drop.swipe = null; };
+      });
+    };
+
+    // ---- salad: slice the cucumber on the mandoline
+    COOK_EXT.planer = function (X) {
+      if (X.items.indexOf("cucumber") < 0) return Promise.resolve();
+      return new Promise(function (res) {
+        setView("board"); X.head(X.i, "Gurke hobeln"); $p("pov-ring").hidden = false; X.bar(0);
+        var w = SZ.big_cucumber[0], h = SZ.big_cucumber[1], cx = 50, n = 0, N = 8, travel = 0, drag = null, done = false, pile = [];
+        var BX = 84;   // the blade
+        function render(t) {
+          var len = Math.round(w * (1 - n / N * .8)), x0 = Math.round(cx - len / 2), y0 = 72 - h;
+          var o = img("mandoline", 34, 54);
+          pile.forEach(function (q) { o += img("chunk_cucumber", q[0], q[1]); });
+          o += '<defs><clipPath id="k2cuc"><rect x="' + x0 + '" y="' + (y0 - 2) + '" width="' + len + '" height="' + (h + 4) + '"/></clipPath></defs><g clip-path="url(#k2cuc)">' + img("big_cucumber", x0 - (w - len), y0) + '</g>';
+          if (!drag && !n) { var on = Math.floor(t * 2.5) % 2; o += sq(cx - 1, y0 - 12 + on * 2, 3, 4, "#f6c84a") + sq(cx - 3, y0 - 8 + on * 2, 7, 1, "#f6c84a") + sq(cx - 2, y0 - 7 + on * 2, 5, 1, "#f6c84a"); }
+          $p("pov-float").innerHTML = o;
+        }
+        var stop = loop(function (dt, t) { render(t); });
+        svgEl.onpointerdown = function (ev) { drag = svgPt(ev).x; try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} };
+        svgEl.onpointermove = function (ev) {
+          if (drag == null || done) return; var x = svgPt(ev).x, dx = x - drag; drag = x;
+          var len = w * (1 - n / N * .8), ncx = Math.max(10 + len / 2, Math.min(170 - len / 2, cx + dx));
+          var over = ncx - len / 2 < BX + 6 && ncx + len / 2 > BX;
+          if (over) { travel += Math.abs(ncx - cx); if (travel > 22) { travel = 0; n++; X.bar(n / N); pile.push([BX - 4 + Math.random() * 14, 92 + Math.random() * 14]); beep([[1300 + Math.random() * 200, .02]]); if (n >= N) { done = true; X.cut.cucumber = 4; setTimeout(function () { stop(); $p("pov-float").innerHTML = ""; res(); }, 500); } } }
+          cx = ncx;
+        };
+        svgEl.onpointerup = function () { drag = null; };
+      });
+    };
+
+    // ---- salad: shake the dressing until oil and vinegar are one
+    COOK_EXT.shake = function (X) {
+      return new Promise(function (res) {
+        setView("board"); X.head(X.i, "Dressing schütteln"); $p("pov-ring").hidden = false; X.bar(0);
+        var jy = 0, vy = 0, dir = 0, run = 0, n = 0, N = 12, drag = null, done = false, slosh = 0;
+        function render(t) {
+          var x = 74, y = 34 + jy, m = n / N, oil = "#f0d060", vin = "#c8805a", emu = "#e8b868", o = "";
+          o += sq(x + 4, 104, 26, 2, "rgba(58,36,20,.25)");
+          // the liquid: two layers that turn into one
+          var top = y + 22, bot = y + 43, mid = top + 10 + Math.round(slosh);
+          // the glass first, the dressing inside it, then the shine on the glass
+          o += img("jar", x, y);
+          o += sq(x + 3, top, 26, mid - top, mix(oil, emu, m)) + sq(x + 3, mid, 26, bot - mid, mix(vin, emu, m));
+          o += sq(x + 3, top, 26, 1, mix(mix(oil, emu, m), "#ffffff", .4)) + sq(x + 3, bot - 1, 26, 1, mix(mix(vin, emu, m), "#3a2414", .2));
+          for (var k = 0; k < 8; k++) o += sq(x + 6 + (k * 7) % 22, top + 3 + ((k * 5 + Math.round(t * 6 * m)) % 18), 1, 1, "#5aa04e");
+          o += sq(x + 4, y + 12, 1, 30, "rgba(255,255,255,.75)") + sq(x + 5, y + 12, 1, 18, "rgba(255,255,255,.5)");
+          if (!drag && !n) { var on = Math.floor(t * 2.5) % 2; o += sq(x + 15, y - 12 + on * 2, 3, 4, "#f6c84a") + sq(x + 13, y - 8 + on * 2, 7, 1, "#f6c84a"); }
+          $p("pov-float").innerHTML = o;
+        }
+        var stop = loop(function (dt, t) { if (!drag) jy *= .85; slosh = slosh * .9 + vy * .02; vy *= .8; render(t); });
+        svgEl.onpointerdown = function (ev) { drag = svgPt(ev).y; dir = 0; run = 0; try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} };
+        svgEl.onpointermove = function (ev) {
+          if (drag == null || done) return; var y = svgPt(ev).y, dy = y - drag; drag = y;
+          jy = Math.max(-22, Math.min(22, jy + dy)); vy = dy * 6; var sd = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+          if (sd && sd !== dir) { if (run > 10) { n++; X.bar(n / N); beep([[400 + n * 30, .03]]); if (n >= N) { done = true; setTimeout(function () { stop(); $p("pov-float").innerHTML = ""; res(); }, 500); } } dir = sd; run = 0; }
+          run += Math.abs(dy);
+        };
+        svgEl.onpointerup = function () { drag = null; };
+      });
+    };
+    window.__cook = function (d) { return new Promise(function (r) { if (busy) interrupt(); act("cook", function () { return cookGame(d).then(function (v) { r(v); }); }); }); };
+  })();
   // ===================== café: the bakehouse (preview) =====================
-  // pick a cake, stir the batter, bake it in the stone oven, decorate it; it goes straight onto a cake stand in the café
-  var BK_ART = {"oven": "data:image/png;base64,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", "bowl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAFRElEQVR4nO2dO04cQRCGfziBgw2IEMGeAiHLsY9gWbJk+Q5OEIFFwh0sS0jIR3BsWZZPQYAcERBwAxygwk1vP6qqe6ZrmPpCtPPY/vhrpntnugHHFHujT0DC8XbzoNnuz/XdYr6n2RNNNf6PXz9V+3r7+s3O36xKMnVSoQRt43MJJVmSM/xE5pSQw5KcYQcnEaMkpLj9e42P7z8BGCdm9oO2iPjw/U51zMt3G9HnR4qZ7WAaEVoBNbiCRoiZ/CASETkBFyf3Xc7l8+9Xyb+XBN3+vQaA2cRMuvPj7eZBI+Ly3eapIaYkFnRxco+Dw23ys6GYKaVMsmNuKkIRc0nIEcqhRMZy5khL9x1yUmFJRExNTHiuU6Sl685qMnqIuLm5EX3+6OhIfAygLGZKKd12VJKhFVFr/C+n58m/n52fFreTSOKI6Smly056ykhJyDV8rhFyg5ApURw5c0pp3gFHhkZEKKHXf18oKpYjERPehh8cbrtKado4J0OSilDEFBJy5OTUxKTSEtIqRb1hq4yUiFHjRySHK2ZKKaqNajKo51uTMVpETCyGm5aeUsQbcGRwU2FFRMzxdvMgTUsvKaIP95BhLRU5JGnpKYX9wV4yrIuICdMyh5R98RkKWbIM4DHJlGrpKIEGlhBtOpYug+BIoWSkhvi/XX1lPzFTFbJ2GcRcUlQla20yiFYpHIpCaqO3a5JBtFxTOCkRJyTu/IW8dBlETUpLSrJCSuko3eK+dBlEKCVF7jmAWkpECaF0lErVGil9d2lKkkJq6cid0FrSQXBLV0wpJeyElNIBrE8GUStdgCwlO0K06XD6pISVEE9HmZ4pYZcsTwcPSUpSPBOSKleeDh6alKTKlnq019ORp6VtWEKkj/M7u3DL1pOQ0t2VlysenLIVE5etYkJyrwd4uaqTa6Pa3dbkvxg6MqpCcrXPy1WaUtniXEc8IcbYB8r9D6c/pf6IOCF+QeejaSsvWcZwIcZQCfE7rDKaDiLhCTGGCzGGCzGGCzGGCzGGSsjZ+al6/sM1EL+BJcETYgwXYgyxEO3cIWtE01b7wGPPMp5K1X9Hn474d5HwHUQvWcaoCsn9Bux3WmlKd1icpxc9IcYoCsldR/zCXifXRrXf1Z+EpC7sNbxsPUfTIYwnFWCVLO0bpc5/uj/9HuNlK09L2zwToumPeNl6hFOuSv0Pgp2QVOQ8Jbuk2qTplTZg9+Hq2p3B2lOiSUeOHSF/ru/2aOZmgmbg9JSUkaQjN2VTtmR5Snj0TAeQEZJKCVFKydqk1CY3k6YDqFzUw5QcHG6LptdcukrfXbrURlYIpST19lTprmEtKamVKk06AGHHMEzJmksXt1RpFqIpCimlJMdLl8KdFDMFZzJMdkJISi0lwMuVwpHRkg6AISS84wqTsjYprTK4U8WyEhJLoY7iWqTMJQNoGO3NLZ4Vs3QpLdcMDeKpxr9dfQXwfN0MTt30qcZ5qCbjb5UC2H7pZzGT8ROhFO7JhVhNyyKXqyBqUgBZWgBf0AXosORRixTAlzyK6bIoWEoKIOskLXVRsJDhi4IRHCmATgxgc9m8GDPL5hE9pRBWF5aMMbewJFGSAujFhIxcejWF2aVXiZoUoI+YqZCcm/nFiQmq4UsSIxUBLGT57hBOWoD0QvNzoDnuIhe4D+GmBciPGvcS1LL/KVMRMlvPWCKGmOohb4nguUQQsw9VaMQQWkGahM0tghg2qNciZkpGiSCGj7KGvepRcsKHAkePPA8XEjKnHEsSQsycSExqPEorKfVYrCUJISZPKof2N3mrje8sgH9rOPhwhVyjZAAAAABJRU5ErkJggg==", "plate": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAABoCAYAAAAQAsXmAAAE8UlEQVR4nO2dS05cMRBFi1Z2ABITlEHEOAtgIT1iBSyIFfQoC2EBPUYZREwikR0gkQEyMn4uu6r8775niOj38dGtZ7tf20RgSS5GX0AJd7dX7yWff3p+Xfb+l7nwmKTHw6HomA/395u/rSJz2osMRZVKkhLKnFXkVBfly5KKuvn+w3Sulz+/Rf/ni5xJ4hQX4oSlZFkFaUkJdRJnEDjsAnLp6iUqR0zkDCnsftJcuizC3o57+vbzV/X/9eGSOCqFXU92d3v1PnO6pHAp7Cmvy4m4lOWEWdNRA8m5Q4E909f0BFZhGi6vb0yf+/f3pdo1jBDY7MCxslgqzCpJSqnMmMBW8pocNJRmFdZaVA6rSF9gK3lVDxgrjZy01DNktLAQTmDqHkJ5RHVLZ7UDlZbG2WRxaFLYsnRWOUhJaVxFWIhVYC15xQewSltVWIhUYG15u5IPn7s0Ivm9+G3zeDgUf5doFpeT9nbcbz5zeX1zUtIc3H2FbVBTnimulqSdorAYktJZo2yqEwdpaST3WiN5KtNaaeckLEYufSXJEycO0vTk2qAkeabOCaTJ0cjTIBLnpw3S9EjlaVKXFcd9+Um07e5CGk/YNrHhEpFcnqpUhmnzJ1ghLY/fRuHktLZkJsVpSiQoR1MyWXGpEhmCtMmRtlVOnqhUptIGaXpSbSatbFFx0rRBmh1J26VSl00cnm39kbT5Rpy0Q4K0lSMpmVzqxMMBbtwB6qFp4y+TmtL5SKStLtxkdGoSmk0cnm3jSTlQTzIjbfWxtOmnOMySzAnXSVElDmlrh7Zti97yAuPYEenmJcE4/HK5SRyGAOPg2jjmJFkqMegeR67tk+JG/RoU5NsenZNF2WH8tgbheE6UOHRM+iFta5TKRYG4RYG4RYG4RYG4RWHFYdZkDjgPrDjMmswB5wGlclEgblEgblEgblFE4mqu7QjSSNt69/T8euFWd5Mu6Q7649y4F2NRKhcFry5MCl5dWBT1qwvccw4dlPZIfvzh2BF9LDkb29kJzIX/ix10ThZFJQ7lsh3atv0Uh/HcnITjN/d3dalE6upjaVNWHFI3npSDL+JSvUt/QIjU1cNvS27QHVuEVFwqMRhvj6aNN+KknRSkrpxUG3KdEkc2cXjW9UfS5lFx0pkUpM6OpO1SC2yLnnEomXWRlMgcrDjN/CXkyZG2VW45+2TiMJvSl1yHxEc1cxLKw9hOR2rMpg2GaGcJLF9fjnTXD+mOH6LEaUomkreltjQi4/dxkCdHs7+OBrG4sJcJeXlaboqk3rcM25Dl6bGHnLpUapNHdF7pm3bjPyKZvLC7ew7ywnuMfU1Ta5Pbop1xsbntByN2Ji56y8tSNolOK32jtpPGBu5Glt/A3RFbrPQUBVqFEdWTRlRRHBF9rl4qSd/bcc9+VT+bRE5W6h7ClBFRNWlElcU5Skqnz2iB1mdxi9IY0kQcUXnpjNFaZGmnqWVpDGkmjiheOonqrotplVmzZxsTRlS3NIY0FeewCkw9Q1ojOfcIYY4u4hzcMvmrrUwbG6+2LIsxuooj4tPnsEjUJNOaYm5yoWfKfLqLc/j7xMycQi5djt7CHMPE+eRSSNRPZGrablS6Ygy/AJ9cCmNYhUrnVWdIV4xpLiQk3Be0194/4bukM8nymfKiYsQ2eC2VGXvhd1ZRIUtcJEdqZ3oJq0gCJ8R/ZaJXgdn9nFcAAAAASUVORK5CYII=", "t_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAMCAYAAAC0qUeeAAAApUlEQVR4nGNgQAJWKiL/rVRE/qOzYYAFWaFCjRWE03Lsv8+SGAg7Zsn/Y3feMDIwMDAwMWABcIVoAKtiXIAF5oR1ShoM4q90GBgYGBheLjsEV7AF2WSYQmTANysFzl6npMEA8yhWZ3xKm4OhiaCbYZqwKv4epsbwcs8hBlyA6didN4xB925gmARzQtC9GwywcGaESWLzKLJCFMUwDch8ZIUMDAwMAPh1PggUTOB2AAAAAElFTkSuQmCC", "t_nuss": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAeElEQVR4nI2QrQ2AMBSEv5IqJKkiCERDUASFYArmYhQGqSYoREfoDkWVlAeCc/fz7pIHArM1UWpaGmNTAdzc+aD0bE1cpuZx2dZlTmMhq7+gAbrWANAPlvPwt7luO84H9WjKAzl+zRXOB7Vu+8tIUwAqifI/KQBwAU1nIdOv4NFwAAAAAElFTkSuQmCC", "t_apfel": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAeElEQVR4nGNgwAKsVET+W6mI/Mcmx4isCMbes6eHgYGBgcHFpQSu8NidN4xwDVYqIv/71NSwGQgHRbduMRy784aR0UpF5P+ePT0Mn24cwKuBT8OBwcWlhIEJWQCGFy26gELzaTig+gFmCz7g4lICcRKpnsYK8AUrALOQMCk7geYfAAAAAElFTkSuQmCC", "t_moehre": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAMCAYAAABfnvydAAAAjUlEQVR4nGNgQAJWKiL/kWkGBgYGJmRJhRorBisVkf8+S2JQFKGYELXA7z+yJCOykQo1VgwPWo7BNRy784aR0UpF5P+2NDG44I07H+Dson2/GJiO3XnD6DXrFYZ1GI7EBViQOTfufGDQUBFggJl47M4bRiYYw2vWKwYNFQEUB2K1wmvWK7gkBsAaOIQAAPjpNdKVdIuzAAAAAElFTkSuQmCC", "t_sahne": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAZ0lEQVR4nGNgIBIwInOsVET+I/OP3XnDyIAOrFRE/v//9gQFo2vEqghdMRPRbrRSEfl/9NIFhAi7EAPDz3coiqz1DLCYiKaIoBs/PDhBnBv5xWRQ3YhsKgMDAwPMvdZ6BgwMDIiwBAAUPFmIFWnXFQAAAABJRU5ErkJggg==", "t_schoko": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAT0lEQVR4nGNkYGBgsFIR+c+ABRy784aRxUpF5H+AmQw2eQYGBob/LAwMDAwXbn3ApYCBCZnz4A2mQhQFCiICGIpQFMAU4VWADhgZGPB7EwCcOhO/jOd9nQAAAABJRU5ErkJggg==", "t_honig": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAKCAYAAACJxx+AAAAAZ0lEQVR4nGNgIAVYqYj8t1IR+Y9T8sUOg/8vdhigKGKCSa6bIgNXvG6KDANMESO6JDIIynkCMQEG+DQKMBShKOCUDcOv4OVuK0wFx+68YQzKeYLV/mN33jAywgTQ/X/szhtGBgYGBgBYNSTgLtFgOgAAAABJRU5ErkJggg==", "t_kern": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAXklEQVR4nGNggAIrFZH/Vioi/2F8FpigggAPRESF4f+xO28YmZAFJ23axaAgwMNgpSLynwmm1UBNgAEZwCUu3PqAXQId4JY4ducN44MPX+ACDz58YTh25w0jXADdHwC7LR4yMo4sXQAAAABJRU5ErkJggg==", "t_kuerbis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAJCAYAAAALpr0TAAAAcUlEQVR4nGNgwAKsVET+o4uxYJNUqLFiYGg59p+BgYHh2J03jAwMDAyMMEXb0sQYGBgYGG7c+QA3RUNFgMFr1iuGY3feMDIhK8IGtqWJMVipiPxnwqkCDdBA4bE7bxi9Zr3CqQDmGUaYALawY2BABA8Arb0kobpe+SgAAAAASUVORK5CYII=", "ck_honig": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAA4UlEQVR4nGNgGAWjYIABIyEFVioi/ym15NidNzjtYSFk+bopMnhUGCCxL+BUFZTD8B+XI5jwWj6nhOHBI4glDx4ZMDBwREAkOSLg4iiAIwKu5sEjA+xq0ADeEIABXAY9eIRgK8ihOYThBjFG4w4BnAAWChiOMcApvm5OCc60hNUBsOCnByA9BIaqA3BFA4YD6Bn8WB1Ab0BXB2CLBhQHWKmI/O8r86Gnm0ZYFDAwMDD0lfmgRAPcAQMR/CgOGCgwIA5AjgYmBoaBC364AwYSMFGjyUUOgEUD45tntwbEATAAAGZQSaytrHfNAAAAAElFTkSuQmCC", "cs_honig": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAb0lEQVR4nGNgoBdghDGsVET+E1J87M4bRrgmKxWR/31lPgwKcheQlBgwMDAg8TkiGIJSehiO3XnDyAjTwMDAwKCgpsHAwMDA8ODWDRQbkMWLurYwMJHsIQYGBqZ1c0pI0tBX5kOmTXTTxEhM/KADAAC4G//VMaXKAAAAAElFTkSuQmCC", "ck_moehre": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAqklEQVR4nGNgGAWDEVipiPy3UhH5TytxgpZ/6NL6/6FLC0UztcTRASO65dvSxFAUeM16xcDAwMBADfFjd96g2MfAwMDAhMtlAwYGPAqo7SFsADkq4AwrFZH/Ry9doIf9DNZ6BnBHDHgaGHUACzLn5JIaujtgwENg1AEoacA8poU+tnZtgTMHPAQG3AGj2XDAHYASBYcOXKC/A+jVBkAHMHsZ3zy7NSAOgAEAblN2/ULUkNwAAAAASUVORK5CYII=", "cs_moehre": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAWElEQVR4nGNgoDuwUhH5T4iNoeFDl9Z/KxWR//jYMPWMME1HL10g6BprPQOGY3feMDKR4xWyNLHAGCeX1JCu6dCBC0RrIst5jDAGzvhAAsfuvGFkYGBgAABjJSWfHCCdtwAAAABJRU5ErkJggg==", "ck_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAtUlEQVR4nGNgGAWDEVipiPy3UhH5TytxZMCCTdM6JQ0GBgYGhiCGG/+P3XnDSE1xdIAiiKwJBoLu3WBgYGBgoIY4NkcwYXPVgAIrFZH/L9xs/r9ws0GJP2qJowOMKKC2h7AB5KiAM6xURP7vaVlCD/sZXGpi4I4Y8DQw6gDUgsjkA90dMOAhMOoA1DRwRoDuDhjwEBhwB4xmwwF3AEoUXNq3g/4OoFcbAB3A7GV88+zWgDgABgD0Xm4IbTpTKwAAAABJRU5ErkJggg==", "cs_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAXUlEQVR4nGNgoDuwUhH5T4gNAywwiXVKGgxBDDf+MzAwMOBiH7vzhpGBgYGBEaZpT8sSgq5xqYlhOHbnDSMTOV4hSxMLnGXygXRNl/btIFoTWc5jhDGwxQc6gAU5AFskIDcdTwZwAAAAAElFTkSuQmCC", "ck_sonne": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAxUlEQVR4nGNgGAWDEVipiPy3UhH5TytxZMCCTZOCAA+Eo8Lw/9idN4zUFEcHKIIomqDgwYcvDAwMDAzUEMfmCCZsrqInQImCY3feMDKoMMBDAcXV1BJHAxhRQCWP4QXIjoEzrFRE/u/Z00MP+xlcXErgjkBJAykhDXRjYwArFZH/3x4s+B9lovD/24MFNGUjR/WARwFKLvj04AVdHIAMBrwcGHXAqANGHTDqAJSS8MGtG/R3AL3aAOgAZi/jm2e3BsQBMAAAhy/EGN7B7qwAAAAASUVORK5CYII=", "cs_sonne": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAa0lEQVR4nGNgoDuwUhH5T4gNAywwCQUBHgYGFYb/DAwMDLjYx+68YYSbFGWi8P/bgwUEaRRbidUI08QI07RnTw9Bf7u4lDAcu/OGkQUm8OnBC6IDDa7pwa0bRGtiIlolEmCEMbDFBzqABTkAvzFScOAguHAAAAAASUVORK5CYII=", "ck_kuerbis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAvklEQVR4nGNgGAWDEVipiPy3UhH5TytxZMCCTVOfExsDAwMDQxGDyP9jd94wUlMcHaAIImuCgaJ9vxgYGBgYqCGOzRFM2Fw1oMBKReT/iTSp/yfSpFDij1ri6AAjCqjtIWwAOSrgDCsVkf9HL12gh/0M1noGcEcMeBoYdQBKQfRxihvdHTDgITDqAJQ0wJ+ziz62zjKAMwc8BAbcAaPZcMAdgBIFNwTM6GTtFoQD6NUGQAcwexnfPLs1IA6AAQCx0mvbxkRjOgAAAABJRU5ErkJggg==", "cs_kuerbis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAXklEQVR4nGNgoDuwUhH5T4gNAywwiT4nNoYiBogCXOxjd94wMjAwMDDCNB29dIGga6z1DBiO3XnDyESOV8jSxAJjfJziRrqmGwJmRCjfwsDAQKbzGGEMbPGBDmBBDgD6KR4WB+b/vAAAAABJRU5ErkJggg==", "ck_nuss": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAArUlEQVR4nGNgGAWDEVipiPy3UhH5TytxgpbfWJHx/8aKDBTN1BJHB4zols9rCUFRkFSzhoGBgYGBGuLH7rxBsY+BgYGBCZfLBgwMeBRQ20PYAHJUsCBbriDAQw/7GRhUGP7DHDHgaWDUASzInDA3FbpY2rXqApw94CEw6gCUNLBq1x26O2DAQ2DAHTCaDQfcAShRIKEgQydrLyAcQK82ADqA2cv45tmtAXEADAAA8b96EgNcZ7QAAAAASUVORK5CYII=", "cs_nuss": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAX0lEQVR4nGNgoDuwUhH5T4iNoeHGioz/Vioi//GxYeoZYZoUBHgIuubBhy8Mx+68YWQixytkaWKBMcLcVAgq7lp1AVWThIIMEXZANJHlPEYYA2d8IIFjd94wMjAwMAAA6oAmGF3hlHgAAAAASUVORK5CYII="};
+  // put together your own cake from the pantry (Sonnenblume is the flour), prepare each ingredient, crack the eggs, stir,
+  // pour the batter into the tin, bake, decorate and cut it into four pieces for the cabinet. New mixes go into the cake book.
+  var BK_ART = {"oven": "data:image/png;base64,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", "bowl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAFRElEQVR4nO2dO04cQRCGfziBgw2IEMGeAiHLsY9gWbJk+Q5OEIFFwh0sS0jIR3BsWZZPQYAcERBwAxygwk1vP6qqe6ZrmPpCtPPY/vhrpntnugHHFHujT0DC8XbzoNnuz/XdYr6n2RNNNf6PXz9V+3r7+s3O36xKMnVSoQRt43MJJVmSM/xE5pSQw5KcYQcnEaMkpLj9e42P7z8BGCdm9oO2iPjw/U51zMt3G9HnR4qZ7WAaEVoBNbiCRoiZ/CASETkBFyf3Xc7l8+9Xyb+XBN3+vQaA2cRMuvPj7eZBI+Ly3eapIaYkFnRxco+Dw23ys6GYKaVMsmNuKkIRc0nIEcqhRMZy5khL9x1yUmFJRExNTHiuU6Sl685qMnqIuLm5EX3+6OhIfAygLGZKKd12VJKhFVFr/C+n58m/n52fFreTSOKI6Smly056ykhJyDV8rhFyg5ApURw5c0pp3gFHhkZEKKHXf18oKpYjERPehh8cbrtKado4J0OSilDEFBJy5OTUxKTSEtIqRb1hq4yUiFHjRySHK2ZKKaqNajKo51uTMVpETCyGm5aeUsQbcGRwU2FFRMzxdvMgTUsvKaIP95BhLRU5JGnpKYX9wV4yrIuICdMyh5R98RkKWbIM4DHJlGrpKIEGlhBtOpYug+BIoWSkhvi/XX1lPzFTFbJ2GcRcUlQla20yiFYpHIpCaqO3a5JBtFxTOCkRJyTu/IW8dBlETUpLSrJCSuko3eK+dBlEKCVF7jmAWkpECaF0lErVGil9d2lKkkJq6cid0FrSQXBLV0wpJeyElNIBrE8GUStdgCwlO0K06XD6pISVEE9HmZ4pYZcsTwcPSUpSPBOSKleeDh6alKTKlnq019ORp6VtWEKkj/M7u3DL1pOQ0t2VlysenLIVE5etYkJyrwd4uaqTa6Pa3dbkvxg6MqpCcrXPy1WaUtniXEc8IcbYB8r9D6c/pf6IOCF+QeejaSsvWcZwIcZQCfE7rDKaDiLhCTGGCzGGCzGGCzGGCzGGSsjZ+al6/sM1EL+BJcETYgwXYgyxEO3cIWtE01b7wGPPMp5K1X9Hn474d5HwHUQvWcaoCsn9Bux3WmlKd1icpxc9IcYoCsldR/zCXifXRrXf1Z+EpC7sNbxsPUfTIYwnFWCVLO0bpc5/uj/9HuNlK09L2zwToumPeNl6hFOuSv0Pgp2QVOQ8Jbuk2qTplTZg9+Hq2p3B2lOiSUeOHSF/ru/2aOZmgmbg9JSUkaQjN2VTtmR5Snj0TAeQEZJKCVFKydqk1CY3k6YDqFzUw5QcHG6LptdcukrfXbrURlYIpST19lTprmEtKamVKk06AGHHMEzJmksXt1RpFqIpCimlJMdLl8KdFDMFZzJMdkJISi0lwMuVwpHRkg6AISS84wqTsjYprTK4U8WyEhJLoY7iWqTMJQNoGO3NLZ4Vs3QpLdcMDeKpxr9dfQXwfN0MTt30qcZ5qCbjb5UC2H7pZzGT8ROhFO7JhVhNyyKXqyBqUgBZWgBf0AXosORRixTAlzyK6bIoWEoKIOskLXVRsJDhi4IRHCmATgxgc9m8GDPL5hE9pRBWF5aMMbewJFGSAujFhIxcejWF2aVXiZoUoI+YqZCcm/nFiQmq4UsSIxUBLGT57hBOWoD0QvNzoDnuIhe4D+GmBciPGvcS1LL/KVMRMlvPWCKGmOohb4nguUQQsw9VaMQQWkGahM0tghg2qNciZkpGiSCGj7KGvepRcsKHAkePPA8XEjKnHEsSQsycSExqPEorKfVYrCUJISZPKof2N3mrje8sgH9rOPhwhVyjZAAAAABJRU5ErkJggg==", "plate": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAABoCAYAAAAQAsXmAAAE8UlEQVR4nO2dS05cMRBFi1Z2ABITlEHEOAtgIT1iBSyIFfQoC2EBPUYZREwikR0gkQEyMn4uu6r8775niOj38dGtZ7tf20RgSS5GX0AJd7dX7yWff3p+Xfb+l7nwmKTHw6HomA/395u/rSJz2osMRZVKkhLKnFXkVBfly5KKuvn+w3Sulz+/Rf/ni5xJ4hQX4oSlZFkFaUkJdRJnEDjsAnLp6iUqR0zkDCnsftJcuizC3o57+vbzV/X/9eGSOCqFXU92d3v1PnO6pHAp7Cmvy4m4lOWEWdNRA8m5Q4E909f0BFZhGi6vb0yf+/f3pdo1jBDY7MCxslgqzCpJSqnMmMBW8pocNJRmFdZaVA6rSF9gK3lVDxgrjZy01DNktLAQTmDqHkJ5RHVLZ7UDlZbG2WRxaFLYsnRWOUhJaVxFWIhVYC15xQewSltVWIhUYG15u5IPn7s0Ivm9+G3zeDgUf5doFpeT9nbcbz5zeX1zUtIc3H2FbVBTnimulqSdorAYktJZo2yqEwdpaST3WiN5KtNaaeckLEYufSXJEycO0vTk2qAkeabOCaTJ0cjTIBLnpw3S9EjlaVKXFcd9+Um07e5CGk/YNrHhEpFcnqpUhmnzJ1ghLY/fRuHktLZkJsVpSiQoR1MyWXGpEhmCtMmRtlVOnqhUptIGaXpSbSatbFFx0rRBmh1J26VSl00cnm39kbT5Rpy0Q4K0lSMpmVzqxMMBbtwB6qFp4y+TmtL5SKStLtxkdGoSmk0cnm3jSTlQTzIjbfWxtOmnOMySzAnXSVElDmlrh7Zti97yAuPYEenmJcE4/HK5SRyGAOPg2jjmJFkqMegeR67tk+JG/RoU5NsenZNF2WH8tgbheE6UOHRM+iFta5TKRYG4RYG4RYG4RYG4RWHFYdZkDjgPrDjMmswB5wGlclEgblEgblEgblFE4mqu7QjSSNt69/T8euFWd5Mu6Q7649y4F2NRKhcFry5MCl5dWBT1qwvccw4dlPZIfvzh2BF9LDkb29kJzIX/ix10ThZFJQ7lsh3atv0Uh/HcnITjN/d3dalE6upjaVNWHFI3npSDL+JSvUt/QIjU1cNvS27QHVuEVFwqMRhvj6aNN+KknRSkrpxUG3KdEkc2cXjW9UfS5lFx0pkUpM6OpO1SC2yLnnEomXWRlMgcrDjN/CXkyZG2VW45+2TiMJvSl1yHxEc1cxLKw9hOR2rMpg2GaGcJLF9fjnTXD+mOH6LEaUomkreltjQi4/dxkCdHs7+OBrG4sJcJeXlaboqk3rcM25Dl6bGHnLpUapNHdF7pm3bjPyKZvLC7ew7ywnuMfU1Ta5Pbop1xsbntByN2Ji56y8tSNolOK32jtpPGBu5Glt/A3RFbrPQUBVqFEdWTRlRRHBF9rl4qSd/bcc9+VT+bRE5W6h7ClBFRNWlElcU5Skqnz2iB1mdxi9IY0kQcUXnpjNFaZGmnqWVpDGkmjiheOonqrotplVmzZxsTRlS3NIY0FeewCkw9Q1ojOfcIYY4u4hzcMvmrrUwbG6+2LIsxuooj4tPnsEjUJNOaYm5yoWfKfLqLc/j7xMycQi5djt7CHMPE+eRSSNRPZGrablS6Ygy/AJ9cCmNYhUrnVWdIV4xpLiQk3Be0194/4bukM8nymfKiYsQ2eC2VGXvhd1ZRIUtcJEdqZ3oJq0gCJ8R/ZaJXgdn9nFcAAAAASUVORK5CYII=", "t_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAMCAYAAAC0qUeeAAAApUlEQVR4nGNgQAJWKiL/rVRE/qOzYYAFWaFCjRWE03Lsv8+SGAg7Zsn/Y3feMDIwMDAwMWABcIVoAKtiXIAF5oR1ShoM4q90GBgYGBheLjsEV7AF2WSYQmTANysFzl6npMEA8yhWZ3xKm4OhiaCbYZqwKv4epsbwcs8hBlyA6didN4xB925gmARzQtC9GwywcGaESWLzKLJCFMUwDch8ZIUMDAwMAPh1PggUTOB2AAAAAElFTkSuQmCC", "t_nuss": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAeElEQVR4nI2QrQ2AMBSEv5IqJKkiCERDUASFYArmYhQGqSYoREfoDkWVlAeCc/fz7pIHArM1UWpaGmNTAdzc+aD0bE1cpuZx2dZlTmMhq7+gAbrWANAPlvPwt7luO84H9WjKAzl+zRXOB7Vu+8tIUwAqifI/KQBwAU1nIdOv4NFwAAAAAElFTkSuQmCC", "t_apfel": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAeElEQVR4nGNgwAKsVET+W6mI/Mcmx4isCMbes6eHgYGBgcHFpQSu8NidN4xwDVYqIv/71NSwGQgHRbduMRy784aR0UpF5P+ePT0Mn24cwKuBT8OBwcWlhIEJWQCGFy26gELzaTig+gFmCz7g4lICcRKpnsYK8AUrALOQMCk7geYfAAAAAElFTkSuQmCC", "t_moehre": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAMCAYAAABfnvydAAAAjUlEQVR4nGNgQAJWKiL/kWkGBgYGJmRJhRorBisVkf8+S2JQFKGYELXA7z+yJCOykQo1VgwPWo7BNRy784aR0UpF5P+2NDG44I07H+Dson2/GJiO3XnD6DXrFYZ1GI7EBViQOTfufGDQUBFggJl47M4bRiYYw2vWKwYNFQEUB2K1wmvWK7gkBsAaOIQAAPjpNdKVdIuzAAAAAElFTkSuQmCC", "t_sahne": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAZ0lEQVR4nGNgIBIwInOsVET+I/OP3XnDyIAOrFRE/v//9gQFo2vEqghdMRPRbrRSEfl/9NIFhAi7EAPDz3coiqz1DLCYiKaIoBs/PDhBnBv5xWRQ3YhsKgMDAwPMvdZ6BgwMDIiwBAAUPFmIFWnXFQAAAABJRU5ErkJggg==", "t_schoko": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAT0lEQVR4nGNkYGBgsFIR+c+ABRy784aRxUpF5H+AmQw2eQYGBob/LAwMDAwXbn3ApYCBCZnz4A2mQhQFCiICGIpQFMAU4VWADhgZGPB7EwCcOhO/jOd9nQAAAABJRU5ErkJggg==", "t_honig": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAKCAYAAACJxx+AAAAAZ0lEQVR4nGNgIAVYqYj8t1IR+Y9T8sUOg/8vdhigKGKCSa6bIgNXvG6KDANMESO6JDIIynkCMQEG+DQKMBShKOCUDcOv4OVuK0wFx+68YQzKeYLV/mN33jAywgTQ/X/szhtGBgYGBgBYNSTgLtFgOgAAAABJRU5ErkJggg==", "t_kern": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAXklEQVR4nGNggAIrFZH/Vioi/2F8FpigggAPRESF4f+xO28YmZAFJ23axaAgwMNgpSLynwmm1UBNgAEZwCUu3PqAXQId4JY4ducN44MPX+ACDz58YTh25w0jXADdHwC7LR4yMo4sXQAAAABJRU5ErkJggg==", "t_kuerbis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAJCAYAAAALpr0TAAAAcUlEQVR4nGNgwAKsVET+o4uxYJNUqLFiYGg59p+BgYHh2J03jAwMDAyMMEXb0sQYGBgYGG7c+QA3RUNFgMFr1iuGY3feMDIhK8IGtqWJMVipiPxnwqkCDdBA4bE7bxi9Zr3CqQDmGUaYALawY2BABA8Arb0kobpe+SgAAAAASUVORK5CYII=", "ck_honig": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAA4UlEQVR4nGNgGAWjYIABIyEFVioi/ym15NidNzjtYSFk+bopMnhUGCCxL+BUFZTD8B+XI5jwWj6nhOHBI4glDx4ZMDBwREAkOSLg4iiAIwKu5sEjA+xq0ADeEIABXAY9eIRgK8ihOYThBjFG4w4BnAAWChiOMcApvm5OCc60hNUBsOCnByA9BIaqA3BFA4YD6Bn8WB1Ab0BXB2CLBhQHWKmI/O8r86Gnm0ZYFDAwMDD0lfmgRAPcAQMR/CgOGCgwIA5AjgYmBoaBC364AwYSMFGjyUUOgEUD45tntwbEATAAAGZQSaytrHfNAAAAAElFTkSuQmCC", "cs_honig": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAb0lEQVR4nGNgoBdghDGsVET+E1J87M4bRrgmKxWR/31lPgwKcheQlBgwMDAg8TkiGIJSehiO3XnDyAjTwMDAwKCgpsHAwMDA8ODWDRQbkMWLurYwMJHsIQYGBqZ1c0pI0tBX5kOmTXTTxEhM/KADAAC4G//VMaXKAAAAAElFTkSuQmCC", "ck_moehre": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAqklEQVR4nGNgGAWDEVipiPy3UhH5TytxgpZ/6NL6/6FLC0UztcTRASO65dvSxFAUeM16xcDAwMBADfFjd96g2MfAwMDAhMtlAwYGPAqo7SFsADkq4AwrFZH/Ry9doIf9DNZ6BnBHDHgaGHUACzLn5JIaujtgwENg1AEoacA8poU+tnZtgTMHPAQG3AGj2XDAHYASBYcOXKC/A+jVBkAHMHsZ3zy7NSAOgAEAblN2/ULUkNwAAAAASUVORK5CYII=", "cs_moehre": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAWElEQVR4nGNgoDuwUhH5T4iNoeFDl9Z/KxWR//jYMPWMME1HL10g6BprPQOGY3feMDKR4xWyNLHAGCeX1JCu6dCBC0RrIst5jDAGzvhAAsfuvGFkYGBgAABjJSWfHCCdtwAAAABJRU5ErkJggg==", "ck_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAtUlEQVR4nGNgGAWDEVipiPy3UhH5TytxZMCCTdM6JQ0GBgYGhiCGG/+P3XnDSE1xdIAiiKwJBoLu3WBgYGBgoIY4NkcwYXPVgAIrFZH/L9xs/r9ws0GJP2qJowOMKKC2h7AB5KiAM6xURP7vaVlCD/sZXGpi4I4Y8DQw6gDUgsjkA90dMOAhMOoA1DRwRoDuDhjwEBhwB4xmwwF3AEoUXNq3g/4OoFcbAB3A7GV88+zWgDgABgD0Xm4IbTpTKwAAAABJRU5ErkJggg==", "cs_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAXUlEQVR4nGNgoDuwUhH5T4gNAywwiXVKGgxBDDf+MzAwMOBiH7vzhpGBgYGBEaZpT8sSgq5xqYlhOHbnDSMTOV4hSxMLnGXygXRNl/btIFoTWc5jhDGwxQc6gAU5AFskIDcdTwZwAAAAAElFTkSuQmCC", "ck_sonne": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAxUlEQVR4nGNgGAWDEVipiPy3UhH5TytxZMCCTZOCAA+Eo8Lw/9idN4zUFEcHKIIomqDgwYcvDAwMDAzUEMfmCCZsrqInQImCY3feMDKoMMBDAcXV1BJHAxhRQCWP4QXIjoEzrFRE/u/Z00MP+xlcXErgjkBJAykhDXRjYwArFZH/3x4s+B9lovD/24MFNGUjR/WARwFKLvj04AVdHIAMBrwcGHXAqANGHTDqAJSS8MGtG/R3AL3aAOgAZi/jm2e3BsQBMAAAhy/EGN7B7qwAAAAASUVORK5CYII=", "cs_sonne": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAa0lEQVR4nGNgoDuwUhH5T4gNAywwCQUBHgYGFYb/DAwMDLjYx+68YYSbFGWi8P/bgwUEaRRbidUI08QI07RnTw9Bf7u4lDAcu/OGkQUm8OnBC6IDDa7pwa0bRGtiIlolEmCEMbDFBzqABTkAvzFScOAguHAAAAAASUVORK5CYII=", "ck_kuerbis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAAvklEQVR4nGNgGAWDEVipiPy3UhH5TytxZMCCTVOfExsDAwMDQxGDyP9jd94wUlMcHaAIImuCgaJ9vxgYGBgYqCGOzRFM2Fw1oMBKReT/iTSp/yfSpFDij1ri6AAjCqjtIWwAOSrgDCsVkf9HL12gh/0M1noGcEcMeBoYdQBKQfRxihvdHTDgITDqAJQ0wJ+ziz62zjKAMwc8BAbcAaPZcMAdgBIFNwTM6GTtFoQD6NUGQAcwexnfPLs1IA6AAQCx0mvbxkRjOgAAAABJRU5ErkJggg==", "cs_kuerbis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAXklEQVR4nGNgoDuwUhH5T4gNAywwiT4nNoYiBogCXOxjd94wMjAwMDDCNB29dIGga6z1DBiO3XnDyESOV8jSxAJjfJziRrqmGwJmRCjfwsDAQKbzGGEMbPGBDmBBDgD6KR4WB+b/vAAAAABJRU5ErkJggg==", "ck_nuss": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAaCAYAAADWm14/AAAArUlEQVR4nGNgGAWDEVipiPy3UhH5TytxgpbfWJHx/8aKDBTN1BJHB4zols9rCUFRkFSzhoGBgYGBGuLH7rxBsY+BgYGBCZfLBgwMeBRQ20PYAHJUsCBbriDAQw/7GRhUGP7DHDHgaWDUASzInDA3FbpY2rXqApw94CEw6gCUNLBq1x26O2DAQ2DAHTCaDQfcAShRIKEgQydrLyAcQK82ADqA2cv45tmtAXEADAAA8b96EgNcZ7QAAAAASUVORK5CYII=", "cs_nuss": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAALCAYAAACksgdhAAAAX0lEQVR4nGNgoDuwUhH5T4iNoeHGioz/Vioi//GxYeoZYZoUBHgIuubBhy8Mx+68YWQixytkaWKBMcLcVAgq7lp1AVWThIIMEXZANJHlPEYYA2d8IIFjd94wMjAwMAAA6oAmGF3hlHgAAAAASUVORK5CYII=", "board": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA4CAYAAAAfFwF8AAADV0lEQVR4nO2dP27bMBTGGaAH6JDBQ1F0yNATBEVOUQQ+gZEjdAo8eswJgsInMIoeIgiCTB0ydMgQFEWhwUNu4C5VIdOWSD6S730k32+SA0mWvnzv8c8TLWMURVEUpWlOfHe8ODvd5bwQRZb75623F3yYPNnQTOvVPOX3Fsvb2Ye9z6/di8h1TNH96oKPub69+7+dwmSjJ7g4O92tV/MDIZW6ee1ezGK5iTbX0YN7UynxxGY4SvaZvZ8FH2MTa66DA3OZSkogFyU0bZwM9bi8uiGb602qC3LBYRIKnEZCDa4hqfQgGasEgRDx0aCWDLqX5rRv5U8rwUXtax1kLB/BOAUKjWCuiC/RJMbw6XNgLDTBQm+cIlQr2ccYvqaVrfOOTIxJaukTUYJriuqMxZ19SjWSTeoMHGws9AiNFQj9/nxAaNqDjVX7vA+akXw1GN53yqadCnRTWGoHWYKhARGadjZjSaXn0pu2UoMLrqST2ghIRkLo+9jkCjyxks7YOey/lxqxx0C8F7YJUh9SCIQocgiI2ScXIU8P9+Uf+JIOKq1o8O3rl6D9L69udvfP2xP4kg4HIdnn4/mnvc+5+3DSgw/q90FPN3AREkyhQscag8tIY8FFTTTVGSu271PzqHSKEAMtlhtjzPQCm+qMVdvMO4WcA4vh81mL5Wb0+T2nsSTb+JZGXilB0MBpLMkIRhBImlKDC76kIz0qkgbBJEPWq7lZLDe7fnsMuJKODfcoLCelZh8bn3UR1a3SQTKSTUtFdfaSTinCuJAKrlL0Yi/p1NK0ITZRSGhJx8QtJKhdr34y1JfRInQoroxSQkmjdnP4MBVcSRashuL6x3M3XbaRfz4+OI9RYwEspkDHNrItGGqfLSUIo3bo5V85BKrRSDYIGRh6+ReCQNIgZB8KbBnLVyDuB+nQQTAJBbaM5StQzUYqNftQqK6kQ1k5zEWpJqEgtkqnJ/VgAM3AQ5o2FvcqnVKbvpZMQkFLOkazTw7Yfo5bweZYcF3f3uH/HDcXWtKhIT7zjo6rpNMCU027PU/YB15qnZyvPNFVOm0S+8qT0Yz14+Hp39bT2C6QdH+20pegGMfbv/rtz+fveK5GEef7429jTPyr5bwO1pdgtkPqF2IqiqIoSqP8Bbp1wBEG3nzjAAAAAElFTkSuQmCC", "grater": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAABOCAYAAABWpoQXAAABlElEQVR4nO2aO07DQBRFXxBL8BIsFKXBHchsIRUFilgCSEjUdCgVJSUVK6BArrIAROkqsiIXiBJR0pvK4Izf4PnizOieKrnKaJ5s3zkpPCEN8jRpruZTnSVS7ouKXurPierv93U3eP/40l3ihL1RdjUgmEGVn5GWPE2ap9eanosVERE9Li+U1olrdJ5PIoNnlGNo0zxNGts9grn1GNQ1GNQ1vdabNNTHGvEk2frSnpG7wOlxujVsuLe+pa7f/nGMX9bVhsqy7OXBXNF4Bz05OvSay9D+U3J5ffPz+Xxx5jyXIT2e/irTutrQbHrgJW/LVBYP9scTt6nLnCOuMvkukEqxlMrku0DdPMsydgblMvksUDe3LpPvAg0VK64ydYGZBoCZbHKOuMoEMzE5zAQzCcBMprkMmMkm54irTDATk8NMMJMAzGSay4CZbHKOuMoEMzE5zAQzCcBMprkMmMkm54irTDATk8NMMJMAzGSay4CZbHKOeMs0FsEM2mv97fJujDkGCeaK9l5Ld/Equgt039PfGb4B7XokLKKrZsIAAAAASUVORK5CYII=", "carrot": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA2CAYAAADOBhlKAAACCklEQVR4nO1XMUjDQBR9KZlc7BA6ZShylCLSUSWCYykldOyU2cHZ0dFJOjs7ZMpYSimditDQOkqHUg5xKA4lQ12chDhI4t3lLk1NBQfflNz/9/67938OAihgESO0iBFuWivIghYxwvK1Bb1NoFqL1nU2uFysYHngKsjA5hZUSUfVA0667TpYLlb48CiXVwAAnwbay42PRusUepsAAGbzZy4xemeJfBpoBVlSGsQcjX1hvfjwKGzXwaA7QaN1ikF3ArNS4qrHR5CdXW+TuNps/gyzUuJ84TyI4NNA6zkuzEpJKn/QnXDVE0dgj2K7DrfWc9y4CLuuS0tBbqi4OVYgjmeE8rUFAHi58aVFfBpoukWMcNyxucDb4vHrYUVxd17H3cX38HijVybTUE9ihMuHYWp8I8Em5CaITRx3bEz7vNwqKSY2RB7cL/QvE9ngSbMOgDExA5RzwGJO1/kI2KM8Ld+52FYm8jOgUMAaKTNRRDzb4kTKjBQ7APyFQdqqjTVzL1sXpv0h1/sqKaJKionNSoKTZj1TB5QE2yAm8GmgnV31Nm5gW7hbBSxEEwH5GCsJRBPndI2auZedQISqhZkJ0rBbAraVsltIbGGqguh+3ErBT5CJIO1SzdzGXARpSBDIPipv9CrtwO8o+CfYISxihOvbw3B9e5j4ydipglSC/cpxPoLcCgD1bRzhE/Z4+wrpJlceAAAAAElFTkSuQmCC", "nut": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAABRUlEQVR4nKWVL2vDQBiHn5SpyXFqhFJxjKoSVcLJicpQMfoZpib7CaYqp6b2AapG5cRkGFNhaoyIMEpVmKy9qQv5c0kv6c+85I57ePLmLufhECWFDvwrAJL9H3Gae6fWjFzAQ3JhG1RS6K5F9XnbGzTASgq9nPtEUehkttt9AOg63GpcWjA4rT3ODken2hs8ub50qk5gJYV+ebwjikKiKCQ7HIt6MxGtdb0KGh/Uq0MBnp7febi/BeD7K+00A3iLf1moMZttUuwQayv6QAEWatwYG9VtTQx0OpNOcKDSksZ2K1tOZ9LZGuAny6vGNqjt2RUKJeM+kC6gyVk/oTZoAY7T3Ntsk7Ohr5/7Yru1/iv6AG0pWuFi3QUt20Lp5JkoKfR6FfSyrEMrxiZ18yFQq7GJOUHLud8KNCK2+ZOXYts1depC/QcanK2ugMI7EAAAAABJRU5ErkJggg==", "kernel": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAMCAYAAABSgIzaAAAAuElEQVR4nGNkQANWKiL/0cUYGBgYjt15w4jMR+FYqYj837NnDjZ9DC4uKSiaWbBp2jVrCobGPXvmMLi4pPyHaWYkZBMDAwPDqwc34OyolB6GY3feMDLi04SsARlEpfQwMBFjCzL48eIBAwMDkh9h4NGJHQwcEgp4NWFofPXgBlZNyBpgAB44y+aUEKUhqWYNw7E7bxiZGBggkRuV0kO0JriNMGClIvJ/XksIhgZ0TRgaYZqxaURPcgAYXlicIDXp7gAAAABJRU5ErkJggg==", "mallet_u": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAsCAYAAAAXb/p7AAABr0lEQVR4nO2YL27DMBSHf5kKC6OqoIoGAgaHAqIdYaCgJygY3AGqwmkHKCzYCQoGeoQqIKiwIKCqpimaAsc9sDlyEsdJk/c8kh+08+fT++znKMCQIUOGDGmd0HdF6LvC5jtHbS6SUPNgJodElGQOF5SaxpeEvitenx4QH8+F8ff4AzYgb0yTEg4AgvtbbhZttIqlUgmny59udtWVh6tV08W26oLi0HfF28vCeINt1TmgCjf1psabVMh5MANn66ndJE2Qajghc8AoyZzleleYNEGWVXNBFiqogzTFxno09kHg/1VXAPuqpk5t/yq3nPSSGh+02h4AgLwntvpYAH6rWAe52h7YmnXtGmyjOj6eKycLdYybxLSr088M3mTMAqWmlRZ1PUrg58e7fP7y9c12Jje2GTXL9Q5RkjlRkjmb/Skf9yZjO426LlK1WqEyJFd6Kwl9V0jdHKqvUtwUDtW9AXWqKSFJKqhCUrceUsUylKrJALlUk1aQQzWLYhkK1eSA1KcMSwUpTxk2xeX12LWKrGtQTVdIVkCK1sNewbLqaz8mrCkGgM3+ZOWfYqd0bTM/se3eiMtK0SkAAAAASUVORK5CYII=", "mallet_d": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAsCAYAAAAXb/p7AAABAUlEQVR4nO2VIQ7CQBBFP2QlkpCKpkEgkKgKzoCo4AQcgAMQJCdAIjgBAtEjEEQVsgJBGkQFdygG1Z3ZdBK6JWSenEknrzOzu4CiKIqiKIqiKP/MfDKsunZwYZI4BABL8np/9fzr2BgA+EjWITvrW9xwCUYaACqfkn3pB0kcet1bE8/GZCK7PXw5OGFH/Cvi4hGfs6fXg8J20EV9B9sUFgv6vpLEgtFoYMVcVxIVlIibIArIRFmUTWuQ0oBMnJNmO0iJl0WJfZpb8fViStYQipMPgGjEm8OF/tM0J0cpFacwq+3JCh53y8YFAMdOEeKcNAdZmHvKvnEq26ytKIqidMAb2EtSx9J4n1gAAAAASUVORK5CYII=", "f_erdbeer": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAmCAYAAACh1knUAAACBUlEQVR4nO2YPU/CQBzGnxpGJtPUxcGQhjD4CTrxAZgYdKCjYWR0cnQyxsHP0JjIwMToQEzo5MhATEMcXGwIk6NJHeSao72X/x2nk88E98L9eP7PHT087KEo9IvGWVi+/xpnSLO1Z/NZB/uAuJQVSBT6hapP1S9Twwail8RAnAgX6yXxz4s4KUzKRBrIf8M0W3sMZhon4DNy3A5w2mlhGic78ylA2gGlA1vxi5xcRXh/zXdA3q5TAJwz2zk6GLIj8+EQADAIFpQpuHvYAAD6q6U7RxiETINgUS4sEgVG2UmBAICPp2ftGB2MdPu6hACASauj3PZCkCj0i/nLrXjGsF0C8BBH4wvhcL5dBSN15LF7I20XuaAaT1GtZrqSUEuhkigvRke8CwiZdkBUbriEEGWF5sg2oFVRAkpp14KwnWEaRJvgSkH4UnSDQ+EYV+1SkN8MpUw1kL+AmOX13yVpaVwFsdouggAkB9qk1cEs3whratvOA9x/5vQDzWVAZS4oQdJs7fVXS+1EqqoQIjeEIC5FcYJJCFJ1xSagIgiZGwDhCc02uCYQWhAehiJZKXQQgMOMmORBJC0IZRepIChukECqMLKT8nx2aQ0BEC9YTFHoF6NmUAbUhRNMRpfwNFt7CFHoTktTCMDQESb2mDdqBjUAgHbpdgLCAzEYGxecyvaPmX/p9A2QNT4RQ9fcEAAAAABJRU5ErkJggg==", "f_chili": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAASCAYAAAAHWr00AAABIElEQVR4nO2WMQqDMBRAv+BUOoonELp2jtAxB/AEHTv2FD1G6TkcC0rHDh1akB5AnLumUyD+JiZRY4P4NkP8P//5DR9gYWFWBHiBJBHrG6ysmp94vhGKDySJWEFp72Ap5J2yfBAS6reYo5OlEjKliHBIC9uiEtLVGWPLCE63ozRZdsilL2zIdsz8WtJcfg4RnRSSRIzvCR/Pt3RTpnj5Vd61BxAZKsjkTtHdHQWlkELOyqoJRv2HZdgKwpgIO69j4zM4L3gotsKudQ0AAJdVe523dIAvLZ0tX+CFcVQFYlqLJInY/iNPsIv/IwIXxjEtEGPc0qrEGBMxprFE+haIUY6Wqi89FWMViFEGkQ0kriTg4gDcTV9WQV1NZT7M2LPlC0MrbLO4ze1dAAAAAElFTkSuQmCC", "f_tomate": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAgCAYAAAB6kdqOAAABo0lEQVR4nM3Xv04CMRwH8C/m4uRkLjc5EHMxDj7BOfgODAyy8wAOTjwBAw/ALqNPYBxMJD4Aww2EiUVDiAMTyzmQ1l6v7f36h+p342iOD9/S0gMCpMjTqsjTKsS9TkJgkn6OpJ8jBMoLpAL4opxBRZ5W3VHRuN4dFV4o7ykTUSqgbTo2g8Vv/j4c8ut3368AgIurDE9fNwCA2+mUvz9fbsifQxrIIAwxyBbU+2My26K3Kskw4wAZosogW/BWGHQy2yrHUmCJCWOCyBgGebg/145/vrw+wFBWOpTyIgUj5vPljTyWpbcqlU01VlkMDHBoS7U91IQ2GFeIHLkpp30oFEYVLqO0cyyI2JJ2lcWAqNIB9O3EhLCWtA3Fwnys17XXDVDMVmQMIIH+qhUxfNn/BwxAXGUh0gZhqe1D7M8vNmS83/F9yPvE6IuR0/gvC9GSDURsBwj8G3JpRE5tyubLTYed6mJg5HYAwwGNOnWuragwWhAF5TM9OowRxFDA71nYFzPe7wCYD/lWj0GPp2dHg1iBZBjQjmMIKsQJJKbt+d0GIeYHvbTjJkg+amoAAAAASUVORK5CYII=", "f_gurke": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAAUCAYAAAAuoXvLAAAA5klEQVR4nGNgGAV4ASMhBVYqIv/p4ZCBAsfuvMEbBizYBJEDxWdJDLXdNLhAzBK4X7EFFoaAlYrI/2EfKDjAlpglGIHEhMwZyYHDwADJLehFChMuxaMAAuDJyUpF5L9CjdVAumXQgActx+BZjWAKqgvIGtZyhMBoCsICSEpBIx2MBhABMBpABABJAfTk1qthLYcNjBbSWADWQvrYnTeMD1qODZyrBglADhwGBiydVVKT4HAHKGXQsTtvGP+sujNQbhlw8GfVHYzOKtaxEOQOG0uYCq3dNaAAOUEQNdyBDkb6gNkoIAAAhnhtIwpdFPQAAAAASUVORK5CYII=", "knife_v": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAA4CAYAAADJnhlcAAAAf0lEQVR4nGNgIBEwogtYqYj8R+Yfu/MGRQ0LuuI8Hw0GBgYGhkevvsCE/yNrYiLVSaMaRjWMdA3ouRBF4v////9fvPmAgnfsO/EfpmmQ+GFUw6iGUQ2jGmisoSnNB95IIaghyEKFgejGCbpivBqwKcYAsNIbZ/GOSxPRiocoAACrSD1kqFNKZwAAAABJRU5ErkJggg==", "pumpkin_half": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFYAAABECAYAAAAbSMJnAAAD2UlEQVR4nO2csWobQRCG/4hgSCUXJq0aFynTGZzOYBcidR4hkNbkMYLbgB8hdVAhg7sElMqlCGrcmhRSZXDjFGaP1Wr3NDM7c7cn3VfJlm5v/fnXSHu3u0CPCa/a7kDI6fHRs+S434t/Rf0trXYmJvHXt4+itj58/bnxuzZlN3riUKRUIpVQdpOizU/ky8wROZtMcTK+YB+3+vunejy+fqgeW0t+bdWwE2qdyhS+UMfk89vq8fgaz4CdYPVGSxRah0uxtmC1xtoWCvCl+mgLVmnk9PjoOSZ0NpkCgKg2cuAKnS+WAIB3x4cbz42vH1TkZjVgktLRoeiw1c1UrQsa6RUfmEopG6HIbWiIzkmv6KBsqUYyU+RIlsplHyCW2rDMFBLJErnkF4vraSFCQ7iCuXWX9CJRSgsVGiIRTJFrM/JSlvp4f7f285vRe7W2h+cXqt8oHFvNs9KaKTQUyCVXOFUwJbW1TzYhNVdmCqlkLbmD1BOhVDeKiiKQ+nh/ZyY1p/3heXqU6EZswMsFnbqL8lGxlkm1Fqpxvjq5PnVyk4kNiY73GVKbFpp7/pjc2LWFFBtiyWllSi2FXLkhqdSSEyulJKmOJvq0JlY7rSVKdVD7Jk0tP7E7INWhKTekEqt2GRDdkOrQ6muYWvMau6/wxBLKQJfS6qD0mVsO+sQaMQD06msX0+rI6ft8scR8scTV2UFVZ+mJ7cj1VUti5cC/fuBjNhNm10kJdWwV6+7ZD0e2cwO6wjahjqTYnFklPYkaO5tMyf+ZnjhriXUp5Vwe64lTJbZ/6+vSDxCMIIu1uEXcNWbff5BfOwBeZnf408ilaN7vbxqNvl/ePlV3bvtSYARLLKUcdDG1lD5zygDQJ9aMSqxWnQW6lVqtvvr1FRAklvrtoAtyqX3klgEgEEtN7S7I1ZQaphVooMaWKLeJPm2I1U4tUJZcTl+kaQUYiY1d7eLKbVMw9/ySuuoTFcv5hsAd6jYtWHI+qtRUWgHCxGN/YW8dktkiQHkTjzWkAsSp8tZyHW1PldeSCjBWzVDlAvmCQywXdwC8ekqRChjdpV3dTFXlWtbk3A+pFOwFdJzkAvrp1YIr9PL2CYDyAjofbllwlCJYklDq299HvEhZItfRtOSct7tEKpC5rD5HrsNKskbtlEoFlDaCyBEcjuhOvnwStaP5IcStpzHUti5JyZ0vltF5CqVOCMlJqY/6Zjvb0luyUKCwzXZ86gSXKFVbqMNstzRf8D4JdTS6Bd/V2YH16WpxMgH7Lfha3TTSWrQvEtixTSPriK1BlcoOJQJ7tM0phV3ZmLfHiP/GGTdzU87QOAAAAABJRU5ErkJggg==", "pkseed": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAFCAYAAABmWJ3mAAAASElEQVR4nGNkYGBgsFIR+c+ABI7decPIYKUi8v//txtw/OLGiv9WKiL/Gf9/u/GfgYGB4eWjC8iaGJis9WwwBIN8chgYcdkBAErOJGRzF72WAAAAAElFTkSuQmCC", "spoon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAABQ0lEQVR4nL3XMW7CMBQG4N8RY6UODbCgTq7EhJgQCgsHYEAcoiNH6NAjdGTkAFUHzhBVnRATgyfE0iodKnVPB+QoCk7qvPeSf4uS+MtzYj9FIZdIhykAvL4bAMD+cAQAPD8uAACxSRSEkg0U6TC1YD4Wtw8ghQdVaDFPm102KyIwAPTvbp0XjEfDRvAgf9AmHvx/iRvn5gouq7qIc6v2rtiFc3IFf37/iAzsBccmUbOHrjcqUXXtqZbCMzg2iVpNNWswEtw27tx3i83Cle16DgB4+ziT9u/KG4oPYGdjvbi839PXLxnvVJ20g62mOrXHUk2C1OIiHabcqknLKTaJetld+vR97wYAsJwMam2h5HXMxckwF2fBHJwNUyMCU6oWq7guLjrVdXDxd+yLN/Jx+eCNfdV53JVWlpOrarGfsLKUNZQ/kDau/mkzzh8AAAAASUVORK5CYII=", "comb": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAAqCAYAAADibUizAAAChUlEQVR4nOVaLU/DQBh+SiYnEJULqgmOIBCkM4jJimU/oQI1iVwIIZXIKcR+wgSpnGhI1iAQ/IAKQhATFQtZgiwCrlzb6/WuH9t1e9SW9rne0/fpex/vaWgQpqFHMvf7Qag11ZdOXQ2xRC1cK/799f4GAFiv1jgd3gEAvlde4tpojEwbdYmvJJQWt3CthJiTyyvp9maTboY3sNz4GVVElyISgXTEgGTUeEiLEeXZzgZAOcFSESUC59NeYafy7FmFR14sibKMYGGhpqFHtD13CVqwqNjCm9I2bdqesjxRO3MjSqKYhybsKcubT4+xXq1hO+BG9yjvgmno0WzS5T5YJSxciztuM9+AaeiRSMLZlj1leLazYdo4Y10ikkAFe8rwFpceM0klrFv0TbYFLBtnIvrx4iX+kzfLQvpeVXkAJZSOpur2FOHNpz2Mxv+ZODfr7hs0IPttqpA96+KRLFw4BVTZniI84HfmdLQvmTYPs0kXpqFHHaA92bNy1lXFZk3xgAPKuh1ALZs1wQMEFt5tsWcR77Csq5LNGsu6fhBqtoNo+fqgjM3q5JGZ0cFYN16cllm9qD7XpXcb9jzrbuLrsXX9INQGlsttrE0YjT8Te0eHt8MA/EbVdhBvjrXDnlnewHIzO4GZrOsHoTYaf3IfqDJYIgFOSUJkA1u1rJu3pwtwsi49kQDUs2caPJFAwfDiB6HWv7hh1kJVAfnMiopMwvXFdNlQhUlBURRpCNdH/8bZuBAM7C7r9i9u4j6J9V6y4k0aJocqlkMZdnWUEUhQ6cQH77AGD7L2JNj6YQ0WWLVJeun3/OTlcs/PjgH8JxYadR2/aewAE5AUf3udPybfP5Y/bSKKHzP7YK7zaGPHAAAAAElFTkSuQmCC", "sunflower_head": "data:image/png;base64,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", "sseed": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAHCAYAAAArkDztAAAATklEQVR4nGNkYGBgsFIR+c+ABI7decPIYqUi8t9BTQwu+ODVNwYGFYb/TDCB1jX7IIJQAJeItrNANg0igazywZsPqDqQBRkYGBgYcbkKAMnFG5dssK7eAAAAAElFTkSuQmCC", "dandelion_head": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAYAAADFeBvrAAACk0lEQVR4nO2ZPW7jMBCFnxY6guDKRRAQRoocwNAJUixcutJRUuooqlQGKnICIgdIERhE4MKVoSMI4BbZEShalMQfx7sBv042Rc7jDB9JG4hEIpFIJBL5VnKWyZxlcq7NNcb+FbrDnGXyd1Ug3TNj0NTmGqKCC7JhSrQrNxP0+vJ2lX6DC+KiTZqiwnqzGs1AzjJ595wDALpagIs2CTm+s6AlC/8WOAnKWSbTPXNeA6fDeTI7PpOV2r5ADgUATVF9iaoh1eC4aBOUXKZ71r9D39095zgdzsa+AYD6R1FJ25K0FsRFm6Co+oFfX94uRFFgT7stsNte9DEmiNbW48O9l2F4LUgKnGa9qwUAZYY13j8+B8/HkoOLNiExx5KDsupqGN4Oo7rW6XD+ysoIuhjiWPJBGdKkuLpfEMu8qH0NkxhCza6vjVuvoTGobPTP54QQIfcjq07UoNUAVOcjloohaD1ZvTTC4gzR3tM/1zDuE7ZiQrJYEBdtoopQxRGuQsgQpjbTpdlbnGK9rEJkwbTBAsB6s8Ljw33/3BTVIlHOa0iHrHspuhhyOUKtABvTsHK5qbOXTT+mzAyMRilvG7MIdnRXN1gTJiEhbdv7PkQn4zGTUJlaL9SPbyyAR4YoABKy3qz6Y4zOnJj1ZgUgzF7kfR/qatGL4aJNjiXv250O50kxXS3Q1WLQxjdT1rOhltfTbov3j8+LmZ0rQf3cpvfZFNXgexucznJ0op4bmDI3GPBv4PqFMK8h0z1DU1ReFzyneqWymLJxKsexzKklOvYe4O58ThmaGmgQNISpmbFf2n9czSHI9SEkN3E5E2rJjJUUF21CrvZf/RRsuoZ/B0EFUQZ+HEv+SvkXf3WNRCKRSCTy0/kD6FefiiQdGk0AAAAASUVORK5CYII=", "tuft": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAArElEQVR4nJ2RIRLCMBREX2cw+IgKBpUDIKpSg0ByhCpO0AMgOQeqR0Aiaoqq4ACoDqICUVfDzEclQ9ogwlObmf27PwlMMFpJSM8wWonRSmQoJaRnZhlKZ/ilARKjlTRtQZ5VAFwvKy9st38CYD2JbWjagrGvAejuPQDrTQrAMt2SZxW3xytxAzbxfFp4DYfj2zu7lQDGvnbplu8WIG6lvy4d/ayOqI+bDoa05QN88JKhYhsU3AAAAABJRU5ErkJggg==", "herbs": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAAmCAYAAACRWlj1AAADyUlEQVR4nM1Zu4oiQRQ9LkYbD0YGgzRi4AcM/QHLBDLBBkZ+xoYTdrjxRhsaGQyLTGC4UeEHGIg00oGR+AmCG8hpbt+uqq5+CHtAxq6pxz33caqq7eEBiKOnG7+b9NIL6T9bLgAAn4tl0JhQdDYRIY0Fqg3W/UPG1MGXLiYhaOxmvcVmvQ3u/0j0HzHp69tL/n22XACL5c2kl55MXQDozyPr+Of3GEjMrYsotiYojfZFQ0Zrs94WnCCx2x9Lc7ch2nggF2dK+gw+Hc7O/9v6DseDQnuWmMYkGw0KrR0ZDQCYTkZB/WxoSrJSZOLo6cZP6KS7/THIaPY9Hc4AkP/VcLWH2OQlyEjxI2vic7EEgJJa+tRTk+YzU1Kn5ulwxnQyytOb69Ph0qZGBDU4oUxRWVu7/bFkpDZY9vVBR006ebZc5Ar8/B57SQarKIWExEJTUBqshcYmKGwHis7T6w/HA2zWW69DgRoR1JGywVdDNnL6mR+CZeBafzgeONckap9kOLk2xrag7KNrU3q+ykgJPc91lXrV1ZmiemPWqcDnLDH3k4cAt4PpZGTdI7W4XFfp3RjHyUaPYWrTMXH05Dz1WBv1Ple33uR+pwlKZ+kazBKTk9Qp6apXzuOKZClFq8jJtJtORqWUzBJTqB05j09lOc91leYRleu7xKgqvZ0R1Glnm1x6maToxaoU5xxMNUlqtlzkxJjmtj1SwxZF7z1NPpOw9LS+90nw9tCfR5WpRVISu/2xkOoyk7RD5Jq6zSkysjPJ+tLh+T0u1kliSpuvFgcfeIph9GR9+ghpBG8T2ii5mK1ObIro25S1/L++vdQWNxuCTjImvfTiFaw3CFt9SG/X3e+oupqcLJGqvU+i8SsLlypmibH2zxKT142tfoB7HQ/HgwI5mdJ1DgREMEHfDYI4Hc6l1MwSY73LcTuQ7T7lluJW515YK4KSpI6U9K4kadJLz2YQ20OV1hX1KnTyVs0m29dViv48CrqU2pAlJnea7whXhdovnSg4/XlUqommXgbctUv051Ht9AQaRtCkl54WDHrZlZKh83IsCRFNyAEtXhvKSDIdXbClKdtCItOUHNDRi18fuY/fP8qN34qP31c/8+8UnSqnBdvWZjCjCNxJ9ucR4hUKd7O/fz6D59PkmKJtXvy2VlHX4rJOHzF/KDpJUVmPOoq/vl4LYqHFw5aGTRXThs5+XdIR08JivcoIIkxPoJ2oaHT68xnBSIbiUeSAjgm2rbuuyQEPiiCAWjLfxXbgQucEGUUpJm3OpP8t9A8lut3Xp0v8AyIgILtmq/zPAAAAAElFTkSuQmCC", "egg": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAWCAYAAADNX8xBAAAAs0lEQVR4nGNgGGyAEZeElYrIf2zix+68wakHwwArFZH/WMG3F/9h8gQNwQm+vUDB6IYxEeXM7y+JUobfNWguweUqJpghR2+/JtklRy9dgUcKbq+R4h2cBpFoCHaDyDAE0yASDbl5bg8WgygwBNNFZBpClkHYDCHZIFyGkGQQPkPgBh2784bRWk+HZEOSEgrgxQrcRbgMI8YQFINIcQk2gFHawTLhvAUTcLqEgQGzpKRaUQsA/CXA9YZqc2kAAAAASUVORK5CYII=", "egg_top": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAMCAYAAABvEu28AAAAkElEQVR4nGNkwAOsVET+I/OP3XnDiEstVgmYAUdvv0YRt1YVJWggiiE4wbcX//9/e/Ef3aVkGYLLMCaCTmRgYGD4/pIoZfhdg+YSXK7C7yISXMIEcw16DBFjyNFLV+AxjN1FpIQJsosoNQTDIFiCY2BgYLDW0yGKDUucjAwMSGFEomtuntvDkJRQwHDszhtGAOOrrC5uDS7hAAAAAElFTkSuQmCC", "egg_bot": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAMCAYAAABvEu28AAAAsklEQVR4nGNgYGBgsFIR+f//24v//7+9+E8s+8aRJf9vHFny30pF5D8DAwMDI8ygo5euMDAwMDB8fPWAgRjw4skdBgYGBoakhAKGY3feMDIRpYsIwIIuwC+mgFPxzXN7cMpRzUVMDAwMDMfuvGG01tPBqxCba2DhQ7SL8HkJxUX4XIXLEGTXEHQRMS7BahCyq/AZgu4aBgZogkQHsNQ6b8EEDANgFqLrwWoQuoHILsalFgCqtWlgEHtNewAAAABJRU5ErkJggg==", "yolk": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAXElEQVR4nGNgoDVgROb8v5HwH5n//cEFBgYGBgYujwuMGBqQFcMUIgOYJiYMGfX5eJ3EguGEB4Z4NcBtwOYMGHh06QF2G/ApxLCBGMUoGpCDDl2xRtkHlOCnLQAAKNkiOgEDbiMAAAAASUVORK5CYII=", "bowl_t0": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABGCAYAAABxLuKEAAABaUlEQVR4nO3ZMU7DMBTG8VfUI4Qb5BQZqs6dGTtVHThEp6qHYEBMjMzMiKFnYIhQ1AmJ3iFMkaKCybPjlzjw/81u4nx6ttMXEQAAAAAAAAAA8D/NNIOKPKutJzKkY3nufO7OAUWe1c+vL1EmlIrVYtkZzlxzoY9TGWdGE3I19gRS5bXHaJfU0BVWVZVq3H53EBHdHqOqGM2FpkL7LCwlB4JxUAdzLM+z1WJpOBVb+93Ba0ugYhwIxsH7tCnyrL6+fbKYi5nPuxvvk1X15vvtRu9vIT+blKD3k67/Tym94Pluuo2gPWYqJ1RoKCJsvk7BwaReNX2qRaRnxaQaTt9QRCIspdTCiRGKSOCp9JN2a2KMU8mnpaARvZ1Q5Fn98Hgf+7K/2qy30VsjJn2WpnqsA9qstyJi0y8ybUC1vy7ECqkJQ8S2gTZYZ+7yE4w2qHYQIsN1E0drWWq/Vf2ltioAAAAAAAAAAMCEfQGp9oiZ+hKnCQAAAABJRU5ErkJggg==", "bowl_t1": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABGCAYAAABxLuKEAAACXklEQVR4nO2aP0vDQBjGH8HB0aGFDlKKZHB0LiJODs5OIg7FQT+Bi1Pp4jdwEEFxdHZwEhFnRweR4lTQwW9QB73r5ezVy+W9xITnN12a/kl+vHnuzaUAIYQQQgghhBBCSBTmQj/YTRpjNX58+Qj+nv9K0Al1k8b45v5Ob2+tb+hxXSRlPolu0hifX52lXmu1Ez2ui6R5iS8Zvb3osVVJlb3cgi8l4FuCKcWmypWUK3zN6gBQK0ki4evCJaoKkkQyxkWrnUyVU4VMiirGBx9JQPGiShdj4pIEFF9NUcXMCuMsn221k8IvueDwbR5cAwAudhrO9+UR48IMbiBeeIf3MZsDNJdXUq/bkmKIsYk1w+W7idwc6G1b0snaZ/BBhSIpSaTB2xo8pPbVQZJo56sPxBBVVUm5rkOXHDNbepcjPY4taTgcAgA6nY7zPbYkl5zofcz5XkuPe5fPqX1HmIiSlKQEAb8l+U4Iuae3rDeTCrOSgPzVZMqYhSmqt7vvrBhxMSFTtIQkXzH948lMGi1jFKacvL1LqKQsYnxmJrFOUcmRbOp8JUlLAYTDV7rTTQf3CO+vk/BuLq/g6GHxZ2sVh0tPor8tegM2baE8Bn9V0jRJWaoFEBYDFCdH4SMpqxQgghigWDlmvvTvF1L7lKT30+3/IQaYPEmILcgVvFrS7XGxN5G+xKyeWbOR6ldClx8KWUeNVT3OagnIFJtCF5ilBdli8laJSSmPKMx/SoRKSoWuoBBF6Q+4TEmAn6je7n5qO8aCeOlibGxR0yj7YRwhhBBCCCGEEEIIIYQQQurMF37iYapY7ZmoAAAAAElFTkSuQmCC", "bowl_t2": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABGCAYAAABxLuKEAAACuUlEQVR4nO2aP2vbQBiHf+mUsYMKHkowRUPHzsKETB08dyqmBeOln6CLJuOln6AdQiCldO6koZMRIXTskMGDCSKUYLAHfwNlOvV8kqXz+T3dCd5nimVJFk9+73t/bIBhGIZhGIZhmojCIHf9DN4RhUG+fbzLWY5EFAb54s+vfPt413k5J1Q3isIgv/pxuXOsdxZieH4BALhdbsg+qw1IH1YkRBbUOwsBAMPzi07JeUZ9wySdFzIAYPWwLI5HYdCZ8iIXI1DlrB6WSNJ5IcjW51JB2mOSdF75nkgN0J3SspYYmX3p8bm0SP5jdWlR6Up6WkmMTF1jbvtZ6iAT8/HnRus8OTHitY+lRZoYXTlV+DZqkfUYvJ3hxavXxbHr90HpPDUt+/BhxkyWmCQeYH2/wPp+AaCcHl0p4lzX6SEtpSQeAEBJziFSBK4bs7Xheji7AYCivL4Mtsb3d1Fa1oZrNT2fb54b38tFaVmdx1x96AGgkwO0V1rWSkntK+PvKwDdKa3WZr7U6bFdWlZW13WjkEgO4Hd6yMXoDs3UpQXQLkZbX0QKfG/M5Hu+6oa4Dj42ZmeJkfGxMZOKuV1uTsajidG1vpUW+RzAtJxkTEsryzL0+/2dY6alZWVy5EJOlmU7r2VBJqOWtQUZpRygWZAqBsBR6bG6UqWQAzSnp0qKjEl6rI5KxzRjmbrG3CRFPUe3Mbeyt0GVHKCcnk8v/2pfKydnPJq4S4yAKjlAOT1f/73RvnY8mkD3OVrdaHaZnGk8KxIShUHutPlWQSFH7hnT9BRAvSBZii5Ovpqo+h3NIagNt06OiRTAkRiBiaB9o5CQA/wXtP72zngh6cUX6bqCdIbmaXoK/I4BHLe69kKMQJ5XqJKapEzjWfE3xWaVV2JkDl0V+/YzEoZhGIZhGIZhGIZhGIZhGMYfngDEvuRhvB6zVwAAAABJRU5ErkJggg==", "bowl_t3": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABGCAYAAABxLuKEAAACt0lEQVR4nO2avWobQRSFj1OlTLEGFSaIMEXK1IMxrlLkGYwNxkXyBGmEC6N3SGNUGVcpXKk2IhiXKVyoWMwighFYhct0kyKezWTZn9mfO3ND7tdYslaW9uOce7VYgCAIgiD812iVmNjvgRVaJUarxDw93BmR84xWiVneXpnl7ZV5erhjL+dFqBe6STdbxwcnAID1Kg31sp0JJqbIepVivrhmO2+CidEqMfPFNUavVf47znKCiLFSLK4crpCLKUqxWDlcU0MqpkpKEY5yyMRolZjtj19rjylWipOcaFvJ4laKEyRitEoM3k/xeL/E0eXG+3mcKkWWmPlkN7/dJIfjCiev0uP9svGYshrFljO4GHcT2dRUVWq9SkulcJg35ImpqlTTyceuVJCtNJ/s5pU6utx4JyKmnKDr2mfecCGYmNnhCMBvOZ+/vfJ+XqzUkItxB6yVA4C9HFIxZbNkdjjKK9VGDhB2hZOJaRqwbedN6BVOIqbpJP6FeRPtIpL7vIl+dd11hVPLiSqmT6WoGVyM+28SH7hWKnqVgO4rnFIOCzEWTpcMJGLa1gngt8JZJYbTvCET0yU1AJ9LBlaJcYl9yUAqpk9qgLjzhm1iYs8bcjFdU2PxrVSWZX/d7ysnSGIoK5VlWS7F/hxi3kT5RlUb6ipVTIlL30oFnTFDrvAqKUNVKvjw7TNzrJy6pLiP96lUlK3U95Lhy4933s/rWqlo67qtnCzLcLr3M7/fJMdNVRc5W97vjAitEjO7OK98vKw2Z4uX2H7zFgDwaed77d8fj8cA/nyj4sPePm7STeN5R/+AZ5NTlp66WeL7+cb9brGvFIBBYlxs1E+nk8Zjm1JzNpnmt2cX5zg+OPGWAjATY3FnQZ2kMjlWiCtBq8S0kQIwFePSdpu0FSAIgiAIgiAIgiAIgiAIrPkFtyX9V1Cbz4cAAAAASUVORK5CYII=", "tin_side": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAaCAYAAAAg0tunAAABEklEQVR4nGNgGAUUAUYYw0pF5P9AOmSogWN33jAyMDAwsDAwQAIvoWbawLpoqIGWrP/H7rxhZIHx/XzcBtI5Qw4saIHQTAPrjKEJmlq6UAWsVET+v3jz4T8ucOTEBZxyI1FNVkHVf1idwQgLwHUn7jDcufOA7rE5FMGyFasYLmyZxXDszhvG0SxMIRgNQArBaABSCFgIKxle4NqNW0Sr1dJQI6hmxAUgAwNxbd5NW3YRZdaIDEBiA4cYMCIDEBlcuHABzjYwMCBZ/2glQiEY8SmQnFSHDEZTIIVgxKVAYpompIDRFEghGA1ACsFoAFIIRgOQQoBSiZDSTxwFEIASgMit8lFAHBid1iQTwKY1RwGFAAAukFwqWqLJ9QAAAABJRU5ErkJggg==", "crate": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAWCAYAAADeiIy1AAAAgUlEQVR4nGNgGAVkAkYGBgYGKxWR/7S05NidN4wsVioi/wPMZBgYGBgY/PwsqGrBpBn7YMz/TFQ1GQ9gQeZs2nSCPhY9ePaNZhbRLehGLSIboCSGvAwnqhqOlI9QLXrx6AVVLUIGKBZ9+PCFZhYNv8QwahHZACXV3XrwhmYW0c1HAPvYGhbVVtxIAAAAAElFTkSuQmCC", "t_chili": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAAU0lEQVR4nGNgIBIwMjAwMFipiPzHp+jYnTeMLFYqIv+PurnhNc2aYdd/FoUaK4abEy7ABdUPlDHcdOiC03CrrVRE/s/jEcNrYtKXV8S7Ea9JyAAAr6IaQsXsc2gAAAAASUVORK5CYII=", "t_kraut": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAJCAYAAAALpr0TAAAAZUlEQVR4nGNgGDDAiMyxUhH5j67g2J03jAwMDAwsyIoUaqwYGBgYGHQ0lBAqY5b8P3bnDSMTsVZjKNTRUGLYsekEhkK41cfuvGFkaDn2n6EGIbklZgncjRjASkXkv12VxX90jwEAJJkcaapb9m4AAAAASUVORK5CYII=", "t_loewe": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAd0lEQVR4nGNgQAJWKiL/sbFRFFipiPz//6HgPzY2XBG6AmwaGGGKj56JYfj+4gCKTZwSDgzWJksYjt15wwhXCJOc18LCwMDAwJBU8wdFEyPMNAYGBobvLw4wPLrwgoGBgYFBzkACbioDAwMDUVaT5Bnig4fYAAcASilwCfO12eQAAAAASUVORK5CYII=", "t_tomate": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAdklEQVR4nGNkQAJWKiL/kfnH7rxhhLFZkBWtU9JAVscQxHDjP0wxEy5FDAwMDOuUNOC2MCIrEnexQ1H4cs8hiMn3bkBMRAFpaqg0FGAqnHULlcapEN1kKGBkYMDtGZj7jt15w8jEwAAJr6B7N3AqgpsIA/gCHACPsDAxA1BB3gAAAABJRU5ErkJggg==", "t_gurke": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAgUlEQVR4nGNkQAJWKiL/kfnH7rxhhLEZkRWxhKkgq2P4s+oOXDELsqJZZQ0oCtMYGhisVjH8P3bnDSMjLkVwxV0NDH9W3WFgwibZtGEahhiGwqYN0xjqArIwFGMorAvIQqHhCo/decP4Z9UdhrQuTDfC3HfszhtGooOHEVkCX4ADAOuKPFxrV2JaAAAAAElFTkSuQmCC"};
   Object.keys(BK_ART).forEach(function (k) { var im = new Image(); im.src = BK_ART[k]; TIMG[k] = im; });
-  // only cakes made from what grows in the garden (and the honey from the hive); baking uses it up
-  var CAKE = {
-    moehre: { n: "Möhrenkuchen", need: { gcarrot: 2, sunflower: 1 }, top: ["t_moehre", "t_sahne"], c: "#c89a60", f: "#fff6e4" },
-    erdbeer: { n: "Erdbeertorte", need: { strawberry: 2, sunflower: 1 }, top: ["t_erdbeer", "t_sahne"], c: "#f6dca8", f: "#f6a8b8" },
-    kuerbis: { n: "Kürbiskuchen", need: { pumpkin: 1, sunflower: 1 }, top: ["t_kuerbis", "t_sahne"], c: "#f08a2a", f: "#fff6e4" },
-    nuss: { n: "Nusskuchen", need: { nut: 2, sunflower: 1 }, top: ["t_nuss", "t_sahne"], c: "#b07a44", f: "#5a3420" },
-    honig: { n: "Honiggugelhupf", need: { honey: 1, sunflower: 1 }, top: ["t_honig", "t_nuss"], c: "#e8c088", f: "#e8b830" },
-    sonne: { n: "Sonnenblumenkuchen", need: { sunflower: 2 }, top: ["t_kern", "t_honig"], c: "#e8c088", f: "#f6e0a0" }
+  var BK_ING = {
+    erdbeer: { h: "strawberry", n: "Erdbeere", pre: "Erdbeer", top: "t_erdbeer", sp: "#f6dca8", cr: "#f6a8b8", dc: "#e8463c", prep: "slice", fr: "f_erdbeer", v: "schneiden" },
+    moehre: { h: "gcarrot", n: "Möhre", pre: "Möhren", top: "t_moehre", sp: "#d8a060", cr: "#fff6e4", dc: "#f08a2a", prep: "grate", v: "raspeln" },
+    kuerbis: { h: "pumpkin", n: "Kürbis", pre: "Kürbis", top: "t_kuerbis", sp: "#f0a040", cr: "#fff6e4", dc: "#c8661a", prep: "scoop", v: "aushöhlen" },
+    nuss: { h: "nut", n: "Haselnuss", pre: "Nuss", top: "t_nuss", sp: "#b07a44", cr: "#5a3420", dc: "#d8a868", prep: "crack", v: "knacken" },
+    honig: { h: "honey", n: "Honig", pre: "Honig", top: "t_honig", sp: "#e8c088", cr: "#e8b830", dc: "#f6d860", prep: "drip", v: "abtropfen lassen" },
+    sonne: { h: "sunflower", n: "Sonnenblume", pre: "Sonnenblumen", top: "t_kern", sp: "#e8c088", cr: "#f6e0a0", dc: "#5a3420", prep: "pluck", v: "Kerne zupfen" },
+    loewe: { h: "dandelion", n: "Löwenzahn", pre: "Löwenzahn", top: "t_loewe", sp: "#f0d890", cr: "#fff070", dc: "#f6c830", prep: "pluck2", v: "Blüten zupfen" },
+    kraut: { h: "herbs", n: "Kräuter", pre: "Kräuter", top: "t_kraut", sp: "#d8c890", cr: "#c8e8a8", dc: "#5aa04e", prep: "chop", v: "hacken" },
+    chili: { h: "chili", n: "Chili", pre: "Chili", top: "t_chili", sp: "#e8b070", cr: "#f6a890", dc: "#d8302a", prep: "slice", fr: "f_chili", v: "schneiden" },
+    tomate: { h: "tomato", n: "Tomate", pre: "Tomaten", top: "t_tomate", sp: "#f0c890", cr: "#ff9a8a", dc: "#e8463c", prep: "slice", fr: "f_tomate", v: "schneiden" },
+    gurke: { h: "cucumber", n: "Gurke", pre: "Gurken", top: "t_gurke", sp: "#e0d8a0", cr: "#d8f0b8", dc: "#5aa04e", prep: "slice", fr: "f_gurke", v: "schneiden" }
   };
-  var CAKE_IDS = Object.keys(CAKE);
-  function ckHave(k) { return garden.harvest[k] || 0; }
-  var CK_NM = { gcarrot: "Möhren", sunflower: "Sonnenblume", strawberry: "Erdbeeren", pumpkin: "Kürbis", nut: "Haselnüsse", honey: "Honig" };
-  function ckName(k) { return CK_NM[k] || k; }
-  function ckCan(id) { var nd = CAKE[id].need; return Object.keys(nd).every(function (k) { return ckHave(k) >= nd[k]; }); }
-  function ckUse(id) { var nd = CAKE[id].need; Object.keys(nd).forEach(function (k) { garden.harvest[k] -= nd[k]; }); if (typeof renderFoods === "function") renderFoods(); }
-  // which cakes a guest could get right now: in the cabinet, in the kitchen, or bakeable from the stores
-  function ckAvail() { var o = {}; ckList().forEach(function (k) { o[k] = 1; }); if (garden.harvest.cake > 0) o.moehre = 1; CAKE_IDS.forEach(function (k) { if (ckCan(k)) o[k] = 1; }); return Object.keys(o); }
-  // the cake stands now know which cake is which
-  function ckList() { var C_ = cfL(); if (!C_.cakeList) { C_.cakeList = []; for (var i = 0; i < (C_.cakes || 0); i++) C_.cakeList.push("moehre"); } C_.cakeList = C_.cakeList.map(function (k) { return CAKE[k] ? k : k === "mamor" ? "honig" : "moehre"; }); C_.cakes = C_.cakeList.length; return C_.cakeList; }
-  // the cakes in the cabinet: two under the domes, more in front of them
-  // two under each dome: the second one peeks out behind the first
+  var BK_IDS = Object.keys(BK_ING), CK_TOTAL = BK_IDS.length * 2 + BK_IDS.length * (BK_IDS.length - 1) / 2;
+  // a cake is one or two ingredients (sorted, joined with +); the classics are just mixes with a name of their own
+  var CK_CLASSIC = ["moehre", "erdbeer+erdbeer", "kuerbis", "nuss", "honig", "sonne"];
+  var CK_ICON = { moehre: "moehre", "erdbeer+erdbeer": "erdbeer", kuerbis: "kuerbis", nuss: "nuss", honig: "honig", sonne: "sonne" };
+  var CK_SPEC = { honig: "Honiggugelhupf", sonne: "Sonnenblumenkuchen", "erdbeer+erdbeer": "Erdbeertorte", "moehre+nuss": "Rüeblitorte", "kuerbis+nuss": "Herbstkuchen", "erdbeer+honig": "Sommerwolke",
+    "honig+loewe": "Wiesenhonig-Traum", "kraut+tomate": "Pizzakuchen", "chili+nuss": "Feuerknusper", "erdbeer+gurke": "Gartenparty-Torte", "chili+chili": "Drachenkuchen", "honig+honig": "Bienenkönigin-Gugel",
+    "loewe+loewe": "Pusteblumen-Torte", "gurke+kraut": "Picknick-Schnitte", "chili+honig": "Feuerhonig-Gugel", "kuerbis+kuerbis": "Kürbiskönig", "nuss+nuss": "Doppelnusstorte", "kraut+kraut": "Waldwiesen-Torte" };
+  var CK_NOUN = ["Schnitte", "Wolke", "Torte", "Traum", "Gugel", "Zauber", "Kuchen"];
+  function ckKey(a) { return a.slice().sort().join("+"); }
+  function ckName(k) {
+    if (CK_SPEC[k]) return CK_SPEC[k];
+    var p = k.split("+"), A_ = BK_ING[p[0]], B_ = BK_ING[p[1]];
+    if (!A_) return k;
+    if (p.length === 1) return A_.pre + "kuchen";
+    if (p[0] === p[1]) return A_.pre + "torte";
+    var h = 0; for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 997;
+    return A_.pre + "-" + B_.pre + "-" + CK_NOUN[h % CK_NOUN.length];
+  }
+  function ckNeed(k) { var nd = { sunflower: 1 }; k.split("+").forEach(function (id) { var h = BK_ING[id].h; nd[h] = (nd[h] || 0) + 1; }); return nd; }
+  function ckHave(h) { return garden.harvest[h] || 0; }
+  function ckCan(k) { var nd = ckNeed(k); return Object.keys(nd).every(function (h) { return ckHave(h) >= nd[h]; }); }
+  function ckUse(k) { var nd = ckNeed(k); Object.keys(nd).forEach(function (h) { garden.harvest[h] -= nd[h]; }); if (typeof renderFoods === "function") renderFoods(); }
+  function ckBook() { var C_ = cfL(); C_.kbook = C_.kbook || {}; return C_.kbook; }
+  // cake pictures: the classics are drawn, everything else is put together from the ingredient colours
+  var CK_URL = {};
+  function ckIcon(k, big) {
+    var id = (big ? "ckb_" : "cks_") + k;
+    if (CK_ICON[k]) return (big ? "ck_" : "cs_") + CK_ICON[k];
+    if (TIMG[id]) return id;
+    var p = k.split("+"), A_ = BK_ING[p[0]] || BK_ING.sonne, B_ = BK_ING[p[1] || p[0]] || A_, W_ = big ? 32 : 13, H_ = big ? 26 : 11;
+    var cv = document.createElement("canvas"); cv.width = W_; cv.height = H_; var x = cv.getContext("2d");
+    function r(a, b, w, h, col) { x.fillStyle = col; x.fillRect(a, b, w, h); }
+    if (big) {
+      r(2, 8, 28, 17, "#3a2414"); r(3, 9, 26, 15, A_.sp); r(3, 9, 26, 3, B_.cr); r(3, 9, 26, 1, lerpC(B_.cr, "#ffffff", .35)); r(3, 16, 26, 2, A_.cr); r(3, 22, 26, 1, lerpC(A_.sp, "#3a2414", .25)); r(0, 25, 32, 1, "#ece6da");
+      for (var i = 0; i < 4; i++) { var dx = 5 + i * 6; r(dx, 4, 5, 5, "#3a2414"); r(dx + 1, 5, 3, 3, i % 2 ? A_.dc : B_.dc); r(dx + 1, 5, 1, 1, "#ffffff"); }
+    } else {
+      r(1, 3, 11, 7, "#3a2414"); r(2, 4, 9, 5, A_.sp); r(2, 4, 9, 1, B_.cr); r(2, 6, 9, 1, A_.cr); r(2, 8, 9, 1, lerpC(A_.sp, "#3a2414", .25));
+      [3, 6, 9].forEach(function (dx, i) { r(dx - 1, 1, 3, 3, "#3a2414"); r(dx, 2, 1, 1, i % 2 ? A_.dc : B_.dc); });
+    }
+    var u = cv.toDataURL(); CK_URL[id] = u; var im = new Image(); im.src = u; TIMG[id] = im; return id;
+  }
+  function ckIconUrl(k, big) { var id = ckIcon(k, big); return BK_ART[id] || CK_URL[id]; }
+  // the cabinet: up to four cakes, each cut into four pieces
+  function ckList() {
+    var C_ = cfL();
+    if (!C_.cakeList) { C_.cakeList = []; for (var i = 0; i < (C_.cakes || 0); i++) C_.cakeList.push("moehre"); }
+    var OLD = { erdbeer: "erdbeer+erdbeer", mamor: "honig", apfel: "moehre" };
+    C_.cakeList = C_.cakeList.map(function (e) { if (typeof e === "string") e = { k: OLD[e] || e, n: 4 }; if (OLD[e.k]) e.k = OLD[e.k]; return e; }).filter(function (e) { return e.n > 0 && e.k.split("+").every(function (id) { return BK_ING[id]; }); });
+    C_.cakes = C_.cakeList.length; return C_.cakeList;
+  }
+  function ckAvail() { var o = {}; ckList().forEach(function (e) { o[e.k] = 1; }); if (garden.harvest.cake > 0) o.moehre = 1; CK_CLASSIC.forEach(function (k) { if (ckCan(k)) o[k] = 1; }); return Object.keys(o); }
   var CK_POS = [[306, 67], [321, 67], [309, 64], [324, 64]];
   function ckStockSvg() {
     var L_ = ckList().slice(0, 4), o = "";
-    [2, 3, 0, 1].forEach(function (i) { var k = L_[i]; if (!k) return; var p = CK_POS[i]; o += '<image href="' + BK_ART["cs_" + k] + '" x="' + p[0] + '" y="' + p[1] + '" width="13" height="11" style="image-rendering:pixelated"/>'; });
+    [2, 3, 0, 1].forEach(function (i) {
+      var e = L_[i]; if (!e) return; var p = CK_POS[i], w = Math.ceil(13 * e.n / 4) + (e.n < 4 ? 0 : 0);
+      o += '<clipPath id="ckc' + i + '"><rect x="' + p[0] + '" y="' + p[1] + '" width="' + w + '" height="11"/></clipPath><image clip-path="url(#ckc' + i + ')" href="' + ckIconUrl(e.k, false) + '" x="' + p[0] + '" y="' + p[1] + '" width="13" height="11" style="image-rendering:pixelated"/>' +
+        (e.n < 4 ? '<path fill="#3a2414" d="M' + (p[0] + w - 1) + ' ' + (p[1] + 3) + 'h1v7h-1z"/>' : "");
+    });
     return o;
   }
+  // 3x5 pixel digits for the crate labels
+  var DIG = ["111101101101111", "010110010010111", "111001111100111", "111001111001111", "101101111001001", "111100111001111", "111100111101111", "111001010010010", "111101111101111", "111101111001111"];
+  function digits(c, n, x, y, col) { String(n).split("").forEach(function (d, j) { var m = DIG[+d]; for (var i = 0; i < 15; i++) if (m[i] === "1") R(c, x + j * 4 + i % 3, y + Math.floor(i / 3), 1, 1, col); }); }
+
   function bakeGame() {
-    var G_ = cfGameEl("Welcher Kuchen?"), c = G_.c, phase = "pick", raf = 0, last = performance.now(), sel = null;
-    var stir = 0, ang = null, oven = 0, ovenIn = 0, sBake = 0, tops = [], drag = null, stars = 0;
-    var CARD = CAKE_IDS.map(function (id, i) { return { id: id, x: 18 + (i % 3) * 50, y: 26 + Math.floor(i / 3) * 50, w: 44, h: 44 }; });
-    var BC = [90, 70], PC = [104, 68], CRK = 30;
-    function inR(p, r) { return p[0] >= r.x && p[0] <= r.x + r.w && p[1] >= r.y && p[1] <= r.y + r.h; }
+    var G_ = cfGameEl("Was kommt in den Kuchen?"), c = G_.c, phase = "pick", raf = 0, last = performance.now(), T = 0;
+    var pick = [], key = null, items = [], it = null, pr = null, parts = [], flies = [];
+    var eggN = 0, egg = null, shards = [], yolks = [], sEgg = 1;
+    var stir = 0, ang = null, tilt = 0, tilt0 = null, fill = 0, spill = false, sFill = 0, fillEnd = 0;
+    var oven = 0, ovenIn = 0, sBake = 0, tops = [], drag = null, cuts = [], swipe = null, sCut = 0, stars = 0;
+    var BC = [90, 70], PC = [104, 68], CRK = 30, BOARD = [15, 74];
+    var CRATE = BK_IDS.map(function (id, i) { return { id: id, x: i < 6 ? 4 + i * 29 : 18 + (i - 6) * 29, y: i < 6 ? 22 : 48 }; });
+    var BOWLP = [90, 108], BOOK = [136, 94], CNT = document.createElement("div"); CNT.className = "bk-cnt"; G_.el.appendChild(CNT);
     function pt(e) { var b = G_.cv.getBoundingClientRect(); return [(e.clientX - b.left) / b.width * 180, (e.clientY - b.top) / b.height * 135]; }
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function wall() { var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); drawCafeWindow(c, performance.now()); drawFest(c, "win", performance.now()); spr("bg_counter", 0, 0); }
     function arrow(x, y, t) { var on = Math.floor(t / 300) % 2; R(c, x - 1, y + on * 2, 3, 4, "#f6c84a"); R(c, x - 3, y + 4 + on * 2, 7, 1, "#f6c84a"); R(c, x - 2, y + 5 + on * 2, 5, 1, "#f6c84a"); R(c, x - 1, y + 6 + on * 2, 3, 1, "#f6c84a"); }
     function gauge(frac, zone, col) { G_.gauge.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: Math.max(0, Math.min(1, frac)), zone: zone, col: function (k) { return typeof col === "function" ? col(k) : col; } }); }
-    // ---- 1: the recipe cards
-    function drawPick(t) {
-      wall();
-      CARD.forEach(function (cd) {
-        var ok = ckCan(cd.id), x = cd.x, y = cd.y;
-        R(c, x + 2, y + cd.h, cd.w - 2, 2, "rgba(58,36,20,.25)");
-        R(c, x, y, cd.w, cd.h, "#3a2414"); R(c, x + 1, y + 1, cd.w - 2, cd.h - 2, ok ? "#fff8ec" : "#e6dccb"); R(c, x + 1, y + 1, cd.w - 2, 2, "#ffffff"); R(c, x + 1, y + cd.h - 3, cd.w - 2, 2, "#ecdcc4");
-        R(c, x + 4, y + 4, cd.w - 8, 1, "#e8c088"); R(c, x + 4, y + cd.h - 8, cd.w - 8, 1, "#e8c088");
-        if (!ok) c.globalAlpha = .45; spr("ck_" + cd.id, x + 6, y + 9); c.globalAlpha = 1;
-        // what it needs: one dot per ingredient, green when there is enough
-        var nd = CAKE[cd.id].need, ks = Object.keys(nd);
-        ks.forEach(function (k, i) { var have = ckHave(k) >= nd[k]; R(c, x + 6 + i * 6, y + cd.h - 6, 4, 3, "#3a2414"); R(c, x + 7 + i * 6, y + cd.h - 5, 2, 1, have ? "#7ac860" : "#d8463c"); });
-        if (!ks.length) { R(c, x + 6, y + cd.h - 6, 4, 3, "#3a2414"); R(c, x + 7, y + cd.h - 5, 2, 1, "#7ac860"); }
+    function noGauge() { G_.gauge.innerHTML = ""; }
+    function units() { return key.split("+"); }
+    function A0() { return BK_ING[units()[0]]; }
+    function A1() { var u = units(); return BK_ING[u[1] || u[0]]; }
+    function shadow(x, y, w) { R(c, x, y, w, 2, "rgba(58,36,20,.22)"); }
+    function burst(x, y, col, n, sp) { for (var i = 0; i < n; i++) { var a = -Math.PI * Math.random(), v = (sp || 40) * (.5 + Math.random()); parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, col: col, w: 1 + (Math.random() < .5 ? 1 : 0), h: 1 + (Math.random() < .4 ? 1 : 0), life: .9 + Math.random() * .5, floor: 128 }); } }
+    function fly(img, x, y, tx, ty, done) { flies.push({ img: img, x: x, y: y, tx: tx, ty: ty, t0: T, done: done }); }
+    function stepParts(dt) {
+      parts.forEach(function (q) { q.vy += 160 * dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.y > q.floor) { q.y = q.floor; q.vx *= .5; q.vy = 0; } q.life -= dt; });
+      parts = parts.filter(function (q) { return q.life > 0; });
+      parts.forEach(function (q) { R(c, q.x, q.y, q.w, q.h, q.col); });
+      flies = flies.filter(function (f) {
+        var u = Math.min(1, (T - f.t0) / .45), x = f.x + (f.tx - f.x) * u, y = f.y + (f.ty - f.y) * u - Math.sin(u * Math.PI) * 18;
+        spr(f.img, x - 5, y - 5); if (u >= 1) { if (f.done) f.done(); return false; } return true;
       });
     }
-    // ---- 2: stirring the batter
+    // ================= 1: the pantry
+    function drawPick(t) {
+      wall();
+      R(c, 0, 43, 180, 4, "#3a2414"); R(c, 0, 43, 180, 1, "#c8905a"); R(c, 0, 69, 180, 4, "#3a2414"); R(c, 0, 69, 180, 1, "#c8905a");
+      var html = "";
+      CRATE.forEach(function (cr) {
+        var I = BK_ING[cr.id], n = ckHave(I.h), x = cr.x, y = cr.y;
+        if (!n) c.globalAlpha = .4; spr("crate", x, y); spr(I.top, x + 8, y + 2); c.globalAlpha = 1;
+        html += '<span style="left:' + ((x + 20) / 1.8) + '%;top:' + ((y + 17) / 1.35) + '%"' + (n ? "" : ' class="no"') + '>' + n + '</span>';
+      });
+      if (CNT._h !== html) { CNT.innerHTML = html; CNT._h = html; }
+      // the cake book: the tea book's binding with a cake on the cover
+      spr("book", BOOK[0], BOOK[1]); R(c, BOOK[0] + 12, BOOK[1] + 9, 19, 16, "#3a2414"); R(c, BOOK[0] + 13, BOOK[1] + 10, 17, 14, "#fff8ec"); spr("cs_erdbeer", BOOK[0] + 15, BOOK[1] + 12);
+      // the bowl: flour always, plus what you picked
+      spr("bowl_t0", BOWLP[0] - 35, BOWLP[1] - 35);
+      R(c, BOWLP[0] - 20, BOWLP[1] - 13, 40, 2, "#fff6e4");
+      pick.forEach(function (id, i) { var x = BOWLP[0] - 14 + i * 18, y = BOWLP[1] - 30 + Math.round(Math.sin(t / 300 + i) * 1.5); R(c, x - 2, y - 2, 16, 16, "#3a2414"); R(c, x - 1, y - 1, 14, 14, "#fff8ec"); spr(BK_ING[id].top, x + 1, y + 1); });
+      if (pick.length) { arrow(BOWLP[0] + 30, BOWLP[1] - 36, t); var k = ckKey(pick); spr(ckIcon(k, true), 8, 96); if (ckBook()[k]) { R(c, 36, 96, 4, 4, "#7ac860"); } }
+      else arrow(CRATE[0].x + 13, 4, t);
+    }
+    function startBake() {
+      key = ckKey(pick); CNT.remove();
+      items = units().map(function (id) { return { id: id }; });
+      nextItem();
+    }
+    // ================= 2: preparing each ingredient
+    function nextItem() {
+      it = items.shift();
+      if (!it) { phase = "egg"; eggN = 0; newEgg(); G_.banner("Eier aufschlagen"); return; }
+      var I = BK_ING[it.id]; phase = "prep"; pr = { p: 0, t: 0 };
+      G_.banner(I.n + " " + I.v); beep([[523, .05], [659, .05]]);
+      if (I.prep === "grate") { pr.cy = 2; pr.pile = []; }
+      if (I.prep === "crack") { pr.stage = 0; pr.hit = 0; }
+      if (I.prep === "slice") { pr.cuts = []; pr.need = I.fr === "f_erdbeer" || I.fr === "f_tomate" ? 4 : 5; }
+      if (I.prep === "scoop") { pr.seeds = []; for (var i = 0; i < 20; i++) { var a = i * 2.4, r = 3 + (i * 7 % 16); pr.seeds.push({ x: 90 + Math.cos(a) * r * 1.3, y: 88 + Math.sin(a) * r * .8 }); } }
+      if (I.prep === "drip") { pr.level = 0; pr.hold = false; }
+      if (I.prep === "pluck") { pr.seeds = []; for (var j = 0; j < 15; j++) { var a2 = j * 2.39996, r2 = 4 + Math.sqrt(j) * 4.4; pr.seeds.push({ x: 90 + Math.cos(a2) * r2, y: 62 + Math.sin(a2) * r2 }); } }
+      if (I.prep === "pluck2") { pr.seeds = []; for (var q = 0; q < 7; q++) { var a3 = q * 2.39996, r3 = q ? 7 + (q % 3) * 3 : 0; pr.seeds.push({ x: 90 + Math.cos(a3) * r3, y: 70 + Math.sin(a3) * r3 }); } }
+      if (I.prep === "chop") { pr.taps = 0; pr.bits = []; pr.knife = 0; }
+    }
+    function itemDone() { beep([[784, .05], [988, .08]]); pr.done = T; setTimeout(function () { if (phase === "prep") nextItem(); }, 650); }
+    function drawPrep(t, dt) {
+      wall(); spr("board", BOARD[0], BOARD[1]);
+      var I = BK_ING[it.id];
+      if (I.prep === "grate") {
+        (pr.pile || []).forEach(function (b) { R(c, b[0], b[1], 1, 2, b[2]); });
+        shadow(100, 106, 44); spr("grater", 100, 30);
+        var len = Math.max(0, Math.round(42 * (1 - pr.p))), top = pr.cy;
+        if (len > 0 || pr.p < 1) { var im = TIMG.carrot; if (im && im.complete) c.drawImage(im, 0, 0, 16, 12 + len, 113, top, 16, 12 + len); }
+        if (!pr.drag && pr.p === 0) arrow(121, top + 58, t);
+        gauge(pr.p, [.97, 1], "#f08a2a");
+      }
+      if (I.prep === "crack") {
+        shadow(80, 106, 24);
+        if (pr.stage < 3) {
+          spr("nut", 80, 86);
+          if (pr.stage >= 1) { R(c, 88, 90, 1, 4, "#3a2414"); R(c, 89, 94, 1, 3, "#3a2414"); }
+          if (pr.stage >= 2) { R(c, 92, 95, 1, 5, "#3a2414"); R(c, 85, 96, 3, 1, "#3a2414"); R(c, 93, 92, 3, 1, "#3a2414"); }
+        } else spr("kernel", 84, 94);
+        spr(T - pr.hit < .14 ? "mallet_d" : "mallet_u", T - pr.hit < .14 ? 82 : 92, T - pr.hit < .14 ? 62 : 48);
+        if (pr.stage === 0) arrow(110, 40, t);
+      }
+      if (I.prep === "slice") {
+        var im2 = TIMG[I.fr], w = im2.naturalWidth || 30, h = im2.naturalHeight || 30, x0 = Math.round(90 - w / 2), y0 = Math.round(100 - h / 2);
+        shadow(x0 + 2, y0 + h - 1, w - 2);
+        var cs = pr.cuts.slice().sort(function (a, b) { return a - b; }), edges = [0].concat(cs.map(function (q) { return q - x0; })).concat([w]), sep = pr.done ? Math.min(3, (T - pr.done) * 10) : 1;
+        if (im2.complete) for (var s_ = 0; s_ < edges.length - 1; s_++) { var a_ = edges[s_], b_ = edges[s_ + 1]; if (b_ - a_ < 1) continue; var off = (s_ - (edges.length - 2) / 2) * (cs.length ? sep : 0); c.drawImage(im2, a_, 0, b_ - a_, h, x0 + a_ + off, y0, b_ - a_, h); if (s_ > 0 && cs.length) R(c, x0 + a_ + off, y0 + 2, 1, h - 4, lerpC(I.cr, "#ffffff", .4)); }
+        if (pr.knife) spr("knife_v", pr.knife[0] - 6, pr.knife[1] - 50);
+        else if (!pr.cuts.length) { spr("knife_v", x0 + w / 2 - 6, y0 - 54 + Math.round(Math.sin(t / 250) * 2)); arrow(x0 + w / 2 + 12, y0 - 16, t); }
+        gauge(pr.cuts.length / pr.need, [.97, 1], I.dc);
+      }
+      if (I.prep === "scoop") {
+        disc(c, 160, 112, 13, "#3a2414"); disc(c, 160, 112, 12, "#fffdf6"); disc(c, 160, 112, 9, "#ece6da");
+        for (var k2 = 0; k2 < (pr.got || 0); k2++) spr("pkseed", 154 + (k2 * 5) % 10, 106 + Math.floor(k2 / 2) % 3 * 3);
+        shadow(50, 122, 80); spr("pumpkin_half", 47, 56);
+        pr.seeds.forEach(function (sd, i) { if (sd.gone) return; R(c, sd.x - 4, sd.y + 1, 8, 1, "#e8a040"); spr("pkseed", sd.x - 3, sd.y - 2); });
+        if (pr.drag) spr("spoon", pr.drag[0] - 15, pr.drag[1] - 15); else if (!pr.got) { spr("spoon", 128, 60); arrow(143, 50, t); }
+        gauge((pr.got || 0) / pr.seeds.length, [.97, 1], "#f6b040");
+      }
+      if (I.prep === "drip") {
+        if (pr.hold) pr.level += dt * .32;
+        var jx = 76, jy = 82, lv = Math.min(1, pr.level);
+        R(c, jx - 1, jy - 1, 30, 38, "#3a2414"); R(c, jx, jy, 28, 36, "#e8f4f8"); R(c, jx, jy + 36 - Math.round(lv * 32), 28, Math.round(lv * 32), "#e8b830");
+        if (lv > 0) R(c, jx, jy + 36 - Math.round(lv * 32), 28, 1, "#f6d860");
+        R(c, jx + 2, jy + 2, 2, 30, "rgba(255,255,255,.7)"); R(c, jx - 2, jy - 3, 32, 3, "#3a2414"); R(c, jx - 1, jy - 2, 30, 1, "#c8ccd4");
+        if (pr.spill) { R(c, jx + 27, jy, 2, 14 + Math.min(20, (T - pr.spill) * 30), "#e8b830"); R(c, jx + 24, jy + 36, 12, 2, "#e8b830"); }
+        spr("comb", 61, 18 + (pr.hold ? 1 : 0));
+        if (pr.hold) { for (var d = 0; d < 4; d++) { var dy = ((t / 6 + d * 7) % 26); R(c, 89, 60 + dy, 2, 3, "#e8b830"); R(c, 89, 60 + dy, 1, 1, "#fff0a0"); } R(c, 89, 58, 2, 4, "#e8b830"); }
+        else if (!pr.level) arrow(90, 6, t);
+        gauge(pr.level, [.75, .92], "#e8b830");
+      }
+      if (I.prep === "pluck" || I.prep === "pluck2") {
+        disc(c, 160, 112, 13, "#3a2414"); disc(c, 160, 112, 12, "#fffdf6"); disc(c, 160, 112, 9, "#ece6da");
+        for (var k3 = 0; k3 < (pr.got || 0); k3++) R(c, 154 + (k3 * 3) % 12, 108 + Math.floor(k3 / 4) * 2, 2, 2, I.prep === "pluck" ? "#5a3420" : "#f6d830");
+        if (I.prep === "pluck") { R(c, 89, 100, 3, 28, "#3e7a38"); spr("sunflower_head", 52, 24); pr.seeds.forEach(function (sd) { if (!sd.gone) spr("sseed", sd.x - 3, sd.y - 3); }); }
+        else { R(c, 89, 92, 2, 34, "#3e7a38"); spr("dandelion_head", 64, 44); pr.seeds.forEach(function (sd) { if (!sd.gone) spr("tuft", sd.x - 6, sd.y - 6); }); }
+        if (!pr.got) { var s0 = pr.seeds.filter(function (q) { return !q.gone; })[0]; if (s0) arrow(s0.x, s0.y - 14, t); }
+        gauge((pr.got || 0) / pr.seeds.length, [.97, 1], I.dc);
+      }
+      if (I.prep === "chop") {
+        var k4 = pr.taps / 14;
+        shadow(64, 108, 52);
+        if (k4 < 1) { c.globalAlpha = 1 - k4 * .85; spr("herbs", 62, 72); c.globalAlpha = 1; }
+        pr.bits.forEach(function (b) { R(c, b[0], b[1], 2, 1, b[2]); });
+        if (T - pr.knife < .12) spr("knife_v", pr.kx - 6, 64); else spr("knife_v", (pr.kx || 120) - 6, 44);
+        if (!pr.taps) arrow(90, 50, t);
+        gauge(k4, [.97, 1], "#5aa04e");
+      }
+      stepParts(dt);
+    }
+    function prepDown(p) {
+      var I = BK_ING[it.id]; if (pr.done) return;
+      if (I.prep === "grate") { pr.drag = p[1]; return; }
+      if (I.prep === "crack") {
+        pr.hit = T; pr.stage++; beep([[200 + pr.stage * 60, .05]]);
+        if (pr.stage === 3) { for (var i = 0; i < 10; i++) parts.push({ x: 90, y: 96, vx: (Math.random() - .5) * 120, vy: -60 - Math.random() * 60, col: i % 2 ? "#b07a44" : "#8a5a30", w: 3, h: 2, life: 1.2, floor: 120 }); itemDone(); }
+        return;
+      }
+      if (I.prep === "slice") { pr.sw = p; pr.knife = p; return; }
+      if (I.prep === "scoop") { pr.drag = p; scoopAt(p); return; }
+      if (I.prep === "drip") { if (pr.level < 1) { pr.hold = true; } return; }
+      if (I.prep === "pluck" || I.prep === "pluck2") {
+        var sd = pr.seeds.filter(function (q) { return !q.gone && Math.hypot(q.x - p[0], q.y - p[1]) < 7; })[0]; if (!sd) return;
+        sd.gone = true; beep([[900 + Math.random() * 200, .03]]);
+        fly(I.prep === "pluck" ? "sseed" : "tuft", sd.x, sd.y, 160, 110, function () { pr.got = (pr.got || 0) + 1; if (pr.got >= pr.seeds.length) itemDone(); });
+        return;
+      }
+      if (I.prep === "chop") {
+        pr.knife = T; pr.kx = Math.max(64, Math.min(116, p[0])); pr.taps++; beep([[500 + Math.random() * 80, .025]]);
+        for (var b = 0; b < 5; b++) pr.bits.push([pr.kx - 8 + Math.random() * 18, 96 + Math.random() * 14, ["#5aa04e", "#86c870", "#3e7a38"][b % 3]]);
+        if (pr.taps >= 14) itemDone();
+      }
+    }
+    function scoopAt(p) {
+      pr.seeds.forEach(function (sd) {
+        if (sd.gone || Math.hypot(sd.x - p[0], sd.y - p[1]) > 8) return; sd.gone = true; beep([[600 + Math.random() * 200, .02]]);
+        fly("pkseed", sd.x, sd.y, 160, 110, function () { pr.got = (pr.got || 0) + 1; if (pr.got >= pr.seeds.length && !pr.done) itemDone(); });
+      });
+    }
+    function prepMove(p) {
+      var I = BK_ING[it.id]; if (pr.done) return;
+      if (I.prep === "grate" && pr.drag != null) {
+        var ny = Math.max(-10, Math.min(56, pr.cy + (p[1] - pr.drag))), dy = Math.abs(ny - pr.cy); pr.drag = p[1]; pr.cy = ny;
+        var tip = ny + 12 + Math.round(42 * (1 - pr.p));
+        if (tip > 34 && tip < 104 && dy > 0) {
+          pr.p = Math.min(1, pr.p + dy / 300);
+          if (Math.random() < .5) { var bx = 104 + Math.random() * 34; pr.pile.push([bx, 108 + Math.random() * 8, Math.random() < .5 ? "#f08a2a" : "#ffb060"]); if (Math.random() < .2) beep([[1400 + Math.random() * 300, .01]]); }
+          if (pr.p >= 1) { pr.drag = null; itemDone(); }
+        }
+        return;
+      }
+      if (I.prep === "slice" && pr.sw) { pr.knife = p; return; }
+      if (I.prep === "scoop" && pr.drag) { pr.drag = p; scoopAt(p); }
+    }
+    function prepUp(p) {
+      var I = BK_ING[it.id];
+      if (I.prep === "grate") pr.drag = null;
+      if (I.prep === "scoop") pr.drag = null;
+      if (I.prep === "drip" && pr.hold) {
+        pr.hold = false;
+        if (pr.level >= .75) { pr.good = pr.level <= .92; if (pr.level > 1) pr.spill = pr.spill || T; itemDone(); }
+      }
+      if (I.prep === "slice" && pr.sw) {
+        var im2 = TIMG[I.fr], w = im2.naturalWidth || 30, h = im2.naturalHeight || 30, x0 = 90 - w / 2, y0 = 100 - h / 2, s0 = pr.sw, cx = (s0[0] + p[0]) / 2;
+        pr.sw = null; pr.knife = 0;
+        if (p[1] - s0[1] >= h * .7 && s0[1] < y0 + h * .4 && p[1] > y0 + h * .6 && cx > x0 + 3 && cx < x0 + w - 3 && pr.cuts.every(function (q) { return Math.abs(q - cx) > 3; })) {
+          pr.cuts.push(Math.round(cx)); beep([[1200, .02], [800, .03]]); burst(cx, y0 + h / 2, I.cr, 3, 20);
+          if (pr.cuts.length >= pr.need) itemDone();
+        }
+      }
+    }
+    // ================= 3: eggs over the bowl
+    function newEgg() { egg = { f: 0, hold: false, crack: false, open: 0 }; }
+    function drawEgg(t, dt) {
+      wall();
+      shadow(24, 120, 96); disc(c, 70, 72, 37, "#f6ead0");
+      yolks.forEach(function (y) { spr("yolk", y[0] - 6, y[1] - 6); });
+      shards.forEach(function (s) { R(c, s.x - 1, s.y - 1, 5, 4, "#3a2414"); R(c, s.x, s.y, 3, 2, "#fff6e8"); R(c, s.x, s.y, 1, 1, "#ffffff"); });
+      spr("bowl", 20, 22);
+      if (egg) {
+        if (egg.hold) egg.f = Math.min(1.05, egg.f + dt * .85);
+        var shake = egg.hold ? Math.round(Math.sin(t / 30) * egg.f * 2) : 0;
+        if (!egg.open) {
+          spr("egg", 122 + shake, 40);
+          if (egg.crack) { R(c, 128 + shake, 52, 3, 1, "#8a7a64"); R(c, 131 + shake, 51, 2, 1, "#8a7a64"); R(c, 133 + shake, 52, 2, 1, "#8a7a64"); }
+          if (!egg.hold && !egg.f && !egg.crack) arrow(131, 28, t);
+        } else {
+          var u = Math.min(1, (T - egg.open) / .5);
+          spr("egg_top", 122 - u * 6, 38 - u * 10); spr("egg_bot", 122 + u * 6, 52 + u * 4);
+        }
+        gauge(egg.f, [.45, .75], "#f6b830");
+      } else noGauge();
+      stepParts(dt);
+    }
+    function eggUp() {
+      if (!egg || !egg.hold) return; egg.hold = false; var f = egg.f;
+      if (f < .45 && !egg.crack) { egg.crack = true; egg.f = 0; beep([[300, .04]]); return; }
+      egg.open = T; beep([[260, .04], [180, .05]]);
+      var yx = 56 + Math.random() * 28, yy = 60 + Math.random() * 22;
+      setTimeout(function () { yolks.push([yx, yy]); burst(yx, yy, "#fff6e8", 4, 20); }, 260);
+      if (f > .75) { sEgg = 0; for (var i = 0; i < 3; i++) shards.push({ x: 50 + Math.random() * 40, y: 52 + Math.random() * 36 }); setTimeout(function () { G_.banner("Schalen rausfischen"); }, 400); }
+      setTimeout(function () { eggN++; if (eggN < 2) { newEgg(); } else { egg = null; checkEggsDone(); } }, 700);
+    }
+    function checkEggsDone() { if (egg || shards.length || phase !== "egg") return; setTimeout(function () { if (phase === "egg") { phase = "stir"; G_.banner("Teig rühren"); noGauge(); } }, 400); }
+    // ================= 4: stirring
+    function batterCol(k) { return lerpC(lerpC("#f6ead0", "#f6d890", Math.min(1, yolks.length / 2) * .5), A0().sp, .2 + k * .6); }
     function drawStir(t) {
       wall();
-      var k = Math.min(1, stir / (10 * Math.PI)), cake = CAKE[sel];
-      R(c, BC[0] - 44, BC[1] + 46, 90, 3, "rgba(58,36,20,.25)");
-      disc(c, BC[0], BC[1], 37, lerpC("#f6ead0", cake.c, .4 + k * .6));
-      // lumps that disappear while stirring
-      for (var i = 0; i < 18; i++) { if (i / 18 < k) continue; var a = i * 2.39 + (ang || 0) * .4, r = 6 + (i * 7) % 26; R(c, BC[0] + Math.cos(a) * r, BC[1] + Math.sin(a) * r, 3, 2, i % 3 ? "#fff6e4" : "#d8c090"); }
-      // a swirl that follows the spoon
-      for (var q = 0; q < 40; q++) { var a2 = (ang || 0) - q * .12, r2 = 8 + q * .6; R(c, BC[0] + Math.cos(a2) * r2, BC[1] + Math.sin(a2) * r2, 1, 1, lerpC(cake.c, "#3a2414", .25)); }
+      var k = Math.min(1, stir / (10 * Math.PI));
+      shadow(46, 118, 90);
+      disc(c, BC[0], BC[1], 37, batterCol(k));
+      var ids = units();
+      for (var i = 0; i < 24; i++) { if (i / 24 < k * .8) continue; var a = i * 2.39 + (ang || 0) * .4, r = 6 + (i * 7) % 26; R(c, BC[0] + Math.cos(a) * r, BC[1] + Math.sin(a) * r, 3, 2, i % 3 === 0 ? "#fff6e4" : BK_ING[ids[i % ids.length]].dc); }
+      if (k < .5) yolks.forEach(function (y) { c.globalAlpha = 1 - k * 2; spr("yolk", y[0] + 20 - 6, y[1] - 2 - 6); c.globalAlpha = 1; });
+      for (var q = 0; q < 40; q++) { var a2 = (ang || 0) - q * .12, r2 = 8 + q * .6; R(c, BC[0] + Math.cos(a2) * r2, BC[1] + Math.sin(a2) * r2, 1, 1, lerpC(batterCol(k), "#3a2414", .25)); }
       spr("bowl", BC[0] - 50, BC[1] - 50);
       var a3 = ang == null ? -0.6 : ang, sx = BC[0] + Math.cos(a3) * 22, sy = BC[1] + Math.sin(a3) * 22;
       for (var s_ = 0; s_ < 40; s_++) R(c, sx + s_ * .55 - 1, sy - s_ * 1.1 - 1, 3, 3, s_ < 6 ? "#c8905a" : "#a8703c");
       disc(c, sx, sy, 4, "#3a2414"); disc(c, sx, sy, 3, "#c8905a");
       if (ang == null && stir === 0) arrow(sx, sy - 14, t);
-      gauge(k, [.97, 1], cake.c);
+      gauge(k, [.97, 1], batterCol(1));
     }
-    // ---- 3: the oven
-    function cakeCol(k) { return k < .55 ? lerpC("#f6e6c0", "#e8b060", k / .55) : lerpC("#e8b060", "#5a3018", (k - .55) / .45); }
+    // ================= 5: pouring into the tin
+    var BWC = [58, 48], FR = [0, 0, .2, .38];
+    function lip(i) { var a = [0, 18, 36, 54][i] * Math.PI / 180; return [BWC[0] + 26 * Math.cos(a) + 12 * Math.sin(a), BWC[1] + 26 * Math.sin(a) - 12 * Math.cos(a)]; }
+    function drawFill(t, dt) {
+      wall(); spr("board", BOARD[0], BOARD[1]);
+      var fi = Math.min(3, Math.round(tilt * 3)), L = lip(fi), col = batterCol(1);
+      if (phase === "fill" && FR[fi] > 0) { fill += FR[fi] * dt; if (fill > 1 && !spill) { spill = T; sFill = 0; } }
+      // the tin and the batter in it
+      shadow(72, 124, 78);
+      var lv = Math.round(Math.min(1, fill) * 15);
+      spr("tin_side", 70, 100);
+      if (lv > 0) { R(c, 73, 120 - lv, 74, lv, col); R(c, 73, 120 - lv, 74, 1, lerpC(col, "#ffffff", .3)); R(c, 72, 104, 1, 18, "#e8ecf0"); }
+      if (spill) { var sl = Math.min(18, (T - spill) * 24); R(c, 146, 102, 3, sl, col); R(c, 70, 102, 3, sl * .8, col); }
+      if (FR[fi] > 0 && phase === "fill") { var top = Math.round(L[1]), bot = 120 - lv; for (var y = top; y < bot; y++) R(c, Math.round(L[0] + Math.sin((y + t / 20) / 4) * .6), y, 3, 1, y % 3 ? col : lerpC(col, "#ffffff", .25)); }
+      spr("bowl_t" + fi, BWC[0] - 35, BWC[1] - 35);
+      if (!tilt && !fill) arrow(BWC[0], BWC[1] - 32, t);
+      gauge(fill, [.8, .95], col);
+      if (phase === "fill" && fill >= 1.05) endFill();
+    }
+    function endFill() {
+      if (phase !== "fill") return; phase = "filled"; tilt = 0;
+      sFill = !spill && fill >= .8 && fill <= .95 ? 1 : 0;
+      G_.banner(sFill ? "Genau richtig!" : spill ? "Etwas übergeschwappt" : "Passt schon"); beep([[523, .05], [659, .05]]);
+      setTimeout(function () { if (phase === "filled") { phase = "bake"; oven = 0; ovenIn = 0; G_.banner("Ab in den Ofen!"); } }, 1100);
+    }
+    // ================= 6: the oven
+    function cakeCol(k) { var b = A0().sp; return k < .55 ? lerpC(lerpC(b, "#ffffff", .4), b, k / .55) : lerpC(b, "#5a3018", (k - .55) / .45); }
     function drawOven(t, dt) {
       wall();
       if (phase === "bake") oven = Math.min(1.05, oven + dt / 8);
       ovenIn = phase === "bake" ? Math.min(1, ovenIn + dt * 2.5) : phase === "out" ? Math.max(0, ovenIn - dt * 2.5) : ovenIn;
       var OX = 24, OY = 22;
-      // inside: dark, glowing, with flames at the back
       c.save(); c.beginPath(); c.ellipse(OX + 66, OY + 92, 36, 52, 0, Math.PI, 2 * Math.PI); c.closePath(); c.clip();
       R(c, OX + 26, OY + 38, 80, 56, "#24180f");
       c.fillStyle = "rgba(255,150,50,.25)"; c.fillRect(OX + 26, OY + 60, 80, 34);
       for (var f = 0; f < 6; f++) { var fx = OX + 36 + f * 12, h = 8 + ((Math.floor(t / 120) + f) % 3) * 3; R(c, fx, OY + 76 - h, 5, h, "#e8554a"); R(c, fx + 1, OY + 78 - h + 3, 3, h - 3, "#f6a030"); R(c, fx + 2, OY + 78 - h + 6, 1, h - 6, "#ffe060"); }
-      c.restore();
-      // the tin with the cake, sliding in and out of the mouth
-      c.save(); c.beginPath(); c.ellipse(OX + 66, OY + 92, 36, 52, 0, Math.PI, 2 * Math.PI); c.closePath(); c.clip();
       var tx = OX + 38, ty = OY + 80 + Math.round((1 - ovenIn) * 24), rise = Math.round(4 + Math.min(1, oven) * 12), cc = cakeCol(oven);
       R(c, tx - 1, ty - 1, 58, 13, "#3a2414"); R(c, tx, ty, 56, 11, "#8a909a"); R(c, tx, ty, 56, 2, "#c8ccd4"); R(c, tx, ty + 9, 56, 2, "#5a606a");
-      // the cake rises in a dome over the rim of the tin
       for (var cx_ = 0; cx_ < 52; cx_++) { var u = (cx_ - 26) / 26, hh = Math.round(rise * Math.sqrt(Math.max(0, 1 - u * u * .7))); R(c, tx + 2 + cx_, ty - hh - 1, 1, hh + 2, "#3a2414"); R(c, tx + 2 + cx_, ty - hh, 1, hh + 1, cc); R(c, tx + 2 + cx_, ty - hh, 1, 1, lerpC(cc, "#ffffff", .35)); if (cx_ % 9 === 4 && oven > .3) R(c, tx + 2 + cx_, ty - hh + 3, 2, 1, lerpC(cc, "#3a2414", .3)); }
       c.fillStyle = "rgba(255,140,40," + (.12 + .06 * Math.sin(t / 200)) + ")"; c.fillRect(OX + 26, OY + 40, 80, 56);
       c.restore();
@@ -11004,79 +11486,151 @@ window.__EXTRAS = true;
       if (phase !== "bake") return; phase = "out";
       sBake = oven >= .55 && oven <= .75 ? 1 : 0;
       G_.banner(sBake ? "Goldbraun!" : oven < .55 ? "Noch etwas hell" : "Etwas dunkel geworden"); beep([[523, .05], [659, .05]]);
-      setTimeout(function () { if (phase === "out") { phase = "deco"; G_.gauge.innerHTML = ""; G_.banner("Verzieren"); } }, 1300);
+      setTimeout(function () { if (phase === "out") { phase = "deco"; noGauge(); G_.banner("Verzieren"); } }, 1300);
     }
-    // ---- 4: decorating on the plate
-    var TRAY = [{ x: 4, y: 30 }, { x: 4, y: 78 }];
+    // ================= 7: decorating, 8: cutting
+    var TRAY = [{ x: 3, y: 16 }, { x: 3, y: 54 }, { x: 3, y: 92 }];
+    function topList() { var o = []; units().forEach(function (id) { if (o.indexOf(BK_ING[id].top) < 0) o.push(BK_ING[id].top); }); o.push("t_sahne"); return o.slice(0, 3); }
+    function cakeTop(ox, oy) {
+      var X = PC[0] + ox, Y = PC[1] + oy, f = A1().cr;
+      disc(c, X, Y, CRK + 1, "#3a2414"); disc(c, X, Y, CRK, cakeCol(Math.max(.4, Math.min(.9, oven))));
+      disc(c, X, Y, CRK - 3, f); disc(c, X - 6, Y - 7, 8, lerpC(f, "#ffffff", .25));
+      for (var k = 0; k < 24; k++) { var a = k * Math.PI / 12; R(c, X + Math.cos(a) * (CRK - 2), Y + Math.sin(a) * (CRK - 2), 2, 2, lerpC(f, "#ffffff", .4)); }
+      tops.forEach(function (tp) { spr(tp.k, tp.x - 5 + ox, tp.y - 5 + oy); });
+    }
     function drawDeco(t) {
       wall(); R(c, 0, 0, 180, 135, "rgba(58,36,20,.12)");
-      var cake = CAKE[sel];
       spr("plate", PC[0] - 55, PC[1] - 52);
       disc(c, PC[0] + 1, PC[1] + 2, CRK + 1, "rgba(58,36,20,.25)");
-      disc(c, PC[0], PC[1], CRK + 1, "#3a2414"); disc(c, PC[0], PC[1], CRK, cakeCol(Math.max(.4, Math.min(.9, oven))));
-      disc(c, PC[0], PC[1], CRK - 3, cake.f); disc(c, PC[0] - 6, PC[1] - 7, 8, lerpC(cake.f, "#ffffff", .25));
-      for (var k = 0; k < 24; k++) { var a = k * Math.PI / 12; R(c, PC[0] + Math.cos(a) * (CRK - 2), PC[1] + Math.sin(a) * (CRK - 2), 2, 2, lerpC(cake.f, "#ffffff", .4)); }
-      tops.forEach(function (tp) { spr(tp.k, tp.x - 5, tp.y - 5); });
-      // the topping dishes on the left
-      cake.top.forEach(function (k, i) { var d = TRAY[i]; disc(c, d.x + 18, d.y + 18, 17, "#3a2414"); disc(c, d.x + 18, d.y + 18, 16, "#fffdf6"); disc(c, d.x + 18, d.y + 18, 13, "#ece6da"); for (var q = 0; q < 4; q++) spr(k, d.x + 8 + (q % 2) * 10, d.y + 8 + Math.floor(q / 2) * 9); });
-      if (drag) spr(drag.k, drag.x - 5, drag.y - 5);
-      if (phase === "deco" && !tops.length) arrow(22, 20, t);
-      if (phase === "deco" && tops.length >= 3) { var on = Math.floor(t / 400) % 2; R(c, PC[0] + 44, PC[1] + 30 + on, 3, 3, "#f6c84a"); }
+      var sep = cuts.length >= 2 ? Math.min(3, (T - cuts.t2) * 8) : 0;
+      if (cuts.length >= 2) {
+        // four pieces, pulled a little apart
+        var a1 = cuts[0], a2 = cuts[1], ang4 = [a1, a2, a1 + Math.PI, a2 + Math.PI].sort(function (p, q) { return ((p % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) - ((q % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); });
+        ang4 = ang4.map(function (a) { return ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); });
+        for (var i = 0; i < 4; i++) {
+          var s0 = ang4[i], s1 = i < 3 ? ang4[i + 1] : ang4[0] + 2 * Math.PI, mid = (s0 + s1) / 2, ox = Math.round(Math.cos(mid) * sep), oy = Math.round(Math.sin(mid) * sep);
+          c.save(); c.beginPath(); c.moveTo(PC[0] + ox, PC[1] + oy); for (var q = 0; q <= 8; q++) { var aa = s0 + (s1 - s0) * q / 8; c.lineTo(PC[0] + ox + Math.cos(aa) * 50, PC[1] + oy + Math.sin(aa) * 50); } c.closePath(); c.clip();
+          cakeTop(ox, oy); c.restore();
+        }
+      } else {
+        cakeTop(0, 0);
+        cuts.forEach(function (a) { for (var r = -CRK; r <= CRK; r++) R(c, PC[0] + Math.cos(a) * r, PC[1] + Math.sin(a) * r, 1, 1, "#3a2414"); });
+      }
+      if (phase === "deco") {
+        topList().forEach(function (k, i) { var d = TRAY[i]; disc(c, d.x + 18, d.y + 18, 17, "#3a2414"); disc(c, d.x + 18, d.y + 18, 16, "#fffdf6"); disc(c, d.x + 18, d.y + 18, 13, "#ece6da"); for (var q = 0; q < 4; q++) spr(k, d.x + 8 + (q % 2) * 10, d.y + 8 + Math.floor(q / 2) * 9); });
+        if (drag) spr(drag.k, drag.x - 5, drag.y - 5);
+        if (!tops.length) arrow(22, 6, t);
+        if (tops.length >= 3) { var on = Math.floor(t / 400) % 2; R(c, PC[0] + 44, PC[1] + 30 + on, 3, 3, "#f6c84a"); }
+      }
+      if (phase === "cut") {
+        if (swipe && swipe.p) { var dx = swipe.p[0] - swipe.s[0], dy = swipe.p[1] - swipe.s[1], n = Math.max(1, Math.hypot(dx, dy)); for (var k2 = 0; k2 < n; k2 += 2) R(c, swipe.s[0] + dx * k2 / n, swipe.s[1] + dy * k2 / n, 1, 1, "#ffffff"); spr("knife_v", swipe.p[0] - 6, swipe.p[1] - 50); }
+        else if (!cuts.length) { var ww = Math.round((t / 20) % 70); R(c, PC[0] - 35 + ww, PC[1] - 36, 2, 2, "#f6c84a"); arrow(PC[0], PC[1] - 48, t); }
+        gauge(cuts.length / 2, [.97, 1], "#e8c088");
+      }
       if (phase === "done") starsAt(c, stars, PC[0], 126);
+      stepParts(0);
+    }
+    function cutUp(p) {
+      if (!swipe) return; var s0 = swipe.s; swipe = null;
+      var dx = p[0] - s0[0], dy = p[1] - s0[1], L = Math.hypot(dx, dy); if (L < CRK * 1.3) return;
+      var off = Math.abs((PC[0] - s0[0]) * dy - (PC[1] - s0[1]) * dx) / L; if (off > 12) return;
+      var a = Math.atan2(dy, dx); if (a < 0) a += Math.PI; if (a >= Math.PI) a -= Math.PI;
+      if (cuts.length && Math.abs(Math.sin(a - cuts[0])) < .5) { G_.banner("Quer dazu schneiden"); return; }
+      cuts.push(a); cuts["o" + cuts.length] = off; beep([[1100, .02], [700, .04]]);
+      if (cuts.length === 2) { cuts.t2 = T; sCut = Math.abs(Math.cos(cuts[0] - cuts[1])) < .3 && cuts.o1 < 6 && cuts.o2 < 6 ? 1 : 0; G_.banner(sCut ? "Vier gleiche Stücke!" : "Vier Stücke"); setTimeout(finish, 900); }
     }
     function finish() {
-      if (phase !== "deco") return; phase = "done";
-      var goods = 1 + sBake + (tops.length >= 5 ? 1 : 0); stars = Math.min(3, goods);
-      ckUse(sel); var L_ = ckList(); L_.push(sel); cfL().cakes = L_.length; cfStock(); if (window.SudokuSave) window.SudokuSave();
-      G_.banner(CAKE[sel].n + " steht in der Vitrine!");
+      if (phase !== "cut") return; phase = "done"; noGauge();
+      var goods = sEgg + sFill + sBake + sCut; stars = goods >= 4 ? 3 : goods >= 2 ? 2 : 1;
+      ckUse(key); var L_ = ckList(); L_.push({ k: key, n: 4 }); cfL().cakes = L_.length; cfStock();
+      var B = ckBook(), isNew = !B[key]; B[key] = { n: ckName(key), c: A0().sp, s: Math.max(stars, (B[key] || {}).s || 0), t: isNew ? Date.now() : B[key].t };
+      if (window.SudokuSave) window.SudokuSave();
+      G_.banner(isNew ? "Neu im Kuchenbuch: " + ckName(key) + "!" : ckName(key) + " steht in der Vitrine!");
       beep(stars === 3 ? [[1047, .1], [1319, .1], [1568, .22]] : [[880, .12], [1047, .2]]);
       cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); setTimeout(function () { cfHamSet({}); }, 1400);
-      setTimeout(function () { G_.el.addEventListener("pointerdown", function () { G_.close(); }, { once: true }); }, 600);
+      setTimeout(function () { G_.el.addEventListener("pointerdown", function () { G_.close(); }, { once: true }); }, 700);
     }
     function draw(t) {
-      var dt = Math.min(.05, (t - last) / 1000); last = t;
-      if (phase === "pick") drawPick(t); else if (phase === "stir") drawStir(t); else if (phase === "bake" || phase === "out") drawOven(t, dt); else drawDeco(t);
+      var dt = Math.min(.05, (t - last) / 1000); last = t; T += dt;
+      if (phase === "pick") { drawPick(t); stepParts(dt); }
+      else if (phase === "prep") drawPrep(t, dt);
+      else if (phase === "egg") drawEgg(t, dt);
+      else if (phase === "stir") drawStir(t);
+      else if (phase === "fill" || phase === "filled") drawFill(t, dt);
+      else if (phase === "bake" || phase === "out") drawOven(t, dt);
+      else drawDeco(t);
       if (phase !== "gone") raf = requestAnimationFrame(draw);
     }
     G_.cv.addEventListener("pointerdown", function (e) {
       e.preventDefault(); var p = pt(e); try { G_.cv.setPointerCapture(e.pointerId); } catch (er) {}
       if (phase === "pick") {
-        var cd = CARD.filter(function (q) { return inR(p, q); })[0]; if (!cd) return;
-        if (ckList().length >= 4) { G_.banner("Die Vitrine ist schon voll"); beep([[220, .06]]); return; }
-        if (!ckCan(cd.id)) { var nd = CAKE[cd.id].need; G_.banner(CAKE[cd.id].n + ": " + Object.keys(nd).map(function (k) { return nd[k] + " " + ckName(k) + " (" + ckHave(k) + " da)"; }).join(", ")); beep([[220, .06]]); return; }
-        sel = cd.id; phase = "stir"; G_.banner(CAKE[sel].n + ": Teig rühren"); beep([[523, .05], [659, .05]]); return;
+        if (p[0] >= BOOK[0] && p[0] <= BOOK[0] + 42 && p[1] >= BOOK[1] && p[1] <= BOOK[1] + 38) { openTeaBook(cafeEl, "cake", true); return; }
+        var cr = CRATE.filter(function (q) { return p[0] >= q.x && p[0] <= q.x + 26 && p[1] >= q.y && p[1] <= q.y + 22; })[0];
+        if (cr) {
+          if (pick.length >= 2) { G_.banner("Höchstens zwei Zutaten"); beep([[220, .06]]); return; }
+          var trial = pick.concat([cr.id]), nd = ckNeed(ckKey(trial)), I = BK_ING[cr.id];
+          if (ckHave("sunflower") < 1) { G_.banner("Ohne Sonnenblume gibt es kein Mehl"); beep([[220, .06]]); return; }
+          if (ckHave(I.h) < nd[I.h]) { G_.banner(ckHave(I.h) ? "Nicht genug " + I.n : "Keine " + I.n + " da"); beep([[220, .06]]); return; }
+          beep([[700 + pick.length * 120, .04]]);
+          fly(I.top, cr.x + 13, cr.y + 8, BOWLP[0] - 10 + pick.length * 18, BOWLP[1] - 24);
+          pick = trial; G_.banner(ckName(ckKey(pick))); return;
+        }
+        var ch = -1; pick.forEach(function (id, i) { var x = BOWLP[0] - 14 + i * 18, y = BOWLP[1] - 30; if (p[0] >= x - 2 && p[0] <= x + 14 && p[1] >= y - 2 && p[1] <= y + 14) ch = i; });
+        if (ch >= 0) { pick.splice(ch, 1); beep([[400, .04]]); G_.banner(pick.length ? ckName(ckKey(pick)) : "Was kommt in den Kuchen?"); return; }
+        if (pick.length && Math.abs(p[0] - BOWLP[0]) < 30 && Math.abs(p[1] - BOWLP[1]) < 22) {
+          if (ckList().length >= 4) { G_.banner("Die Vitrine ist schon voll"); beep([[220, .06]]); return; }
+          beep([[523, .05], [659, .05], [784, .06]]); startBake(); return;
+        }
+        return;
+      }
+      if (phase === "prep") { prepDown(p); return; }
+      if (phase === "egg") {
+        var sh = shards.filter(function (s) { return Math.hypot(s.x + 1 - p[0], s.y + 1 - p[1]) < 7; })[0];
+        if (sh) { shards.splice(shards.indexOf(sh), 1); burst(sh.x, sh.y, "#fff6e8", 3, 30); beep([[900, .03]]); if (!shards.length && !egg) checkEggsDone(); return; }
+        if (egg && !egg.open && !shards.length && p[0] > 108 && p[1] < 80) { egg.hold = true; egg.f = 0; }
+        return;
       }
       if (phase === "stir") { ang = Math.atan2(p[1] - BC[1], p[0] - BC[0]); return; }
+      if (phase === "fill") { tilt0 = p[1]; return; }
       if (phase === "bake") { if (oven > .1) takeOut(); return; }
       if (phase === "deco") {
-        var hit = -1; CAKE[sel].top.forEach(function (k, i) { var d = TRAY[i]; if (Math.hypot(p[0] - d.x - 18, p[1] - d.y - 18) < 18) hit = i; });
-        if (hit >= 0) { if (tops.length >= 14) { G_.banner("Genug verziert"); return; } drag = { k: CAKE[sel].top[hit], x: p[0], y: p[1] }; return; }
+        var hit = -1; topList().forEach(function (k, i) { var d = TRAY[i]; if (Math.hypot(p[0] - d.x - 18, p[1] - d.y - 18) < 18) hit = i; });
+        if (hit >= 0) { if (tops.length >= 14) { G_.banner("Genug verziert"); return; } drag = { k: topList()[hit], x: p[0], y: p[1] }; return; }
         var dPlate = Math.hypot(p[0] - PC[0], p[1] - PC[1]);
-        if (dPlate > CRK + 2 && dPlate < 50) { if (tops.length) finish(); else G_.banner("Erst etwas drauflegen"); }
+        if (dPlate > CRK + 2 && dPlate < 56) { if (tops.length) { phase = "cut"; G_.banner("In vier Stücke schneiden"); beep([[523, .05], [659, .05]]); } else G_.banner("Erst etwas drauflegen"); }
+        return;
       }
+      if (phase === "cut") { swipe = { s: p, p: null }; }
     });
     G_.cv.addEventListener("pointermove", function (e) {
       var p = pt(e);
+      if (phase === "prep") { prepMove(p); return; }
       if (phase === "stir" && ang != null) {
         var a = Math.atan2(p[1] - BC[1], p[0] - BC[0]), da = a - ang; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI;
         ang = a; stir += Math.abs(da); if (Math.random() < .08) beep([[300 + Math.random() * 100, .02]]);
-        if (stir >= 10 * Math.PI) { ang = null; phase = "bake"; oven = 0; ovenIn = 0; G_.banner("Ab in den Ofen!"); beep([[392, .06], [523, .06]]); }
+        if (stir >= 10 * Math.PI) { ang = null; phase = "fill"; fill = 0; tilt = 0; G_.banner("In die Form füllen"); beep([[392, .06], [523, .06]]); }
         return;
       }
+      if (phase === "fill" && tilt0 != null) { tilt = Math.max(0, Math.min(1, (p[1] - tilt0) / 45)); return; }
+      if (phase === "cut" && swipe) { swipe.p = p; return; }
       if (drag) { drag.x = p[0]; drag.y = p[1]; }
     });
-    function up() {
-      if (phase === "gone") return;
+    function up(e) {
+      if (phase === "gone") return; var p = e && e.clientX != null ? pt(e) : [0, 0];
+      if (phase === "prep") prepUp(p);
+      if (phase === "egg") eggUp();
       if (phase === "stir") ang = null;
+      if (phase === "fill") { tilt0 = null; tilt = 0; if (fill >= .8) endFill(); }
+      if (phase === "cut") cutUp(p);
       if (drag) { if (Math.hypot(drag.x - PC[0], drag.y - PC[1]) < CRK - 4) { tops.push({ k: drag.k, x: drag.x, y: drag.y }); beep([[660 + tops.length * 30, .03]]); } drag = null; }
     }
     G_.cv.addEventListener("pointerup", up); G_.cv.addEventListener("pointercancel", up);
     var _close = G_.close; G_.close = function () { phase = "gone"; cancelAnimationFrame(raf); _close(); };
     G_.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); G_.close(); });
-    G_.gauge.innerHTML = ""; raf = requestAnimationFrame(draw);
-    window.__bakeG = { st: function () { return { phase: phase, sel: sel, stir: stir, oven: oven, tops: tops.length, stars: stars }; } };
+    noGauge(); raf = requestAnimationFrame(draw);
+    window.__bakeG = { st: function () { return { phase: phase, key: key, item: it && it.id, pr: pr && { p: pr.p, stage: pr.stage, cuts: pr.cuts && pr.cuts.length, got: pr.got, level: pr.level, taps: pr.taps }, eggN: eggN, shards: shards.length, sh: shards.map(function (q) { return [q.x + 1, q.y + 1]; }), stir: stir, fill: fill, oven: oven, tops: tops.length, cuts: cuts.length, stars: stars }; } };
   }
-  window.__bake = { cakes: CAKE, list: ckList, avail: ckAvail, give: function (k, n) { garden.harvest[k] = n; }, stock: function () { cfStock(); } };
+  window.__bake = { list: ckList, avail: ckAvail, name: ckName, can: ckCan, give: function (k, n) { garden.harvest[k] = n; }, stock: function () { cfStock(); } };
   // ===================== café guests (preview) =====================
   // animals you know come in while the café is open (while you are in it): alone or in pairs, they take a table,
   // order what they like, and pay with a material of their own once they are served. A wish fulfilled earns a heart.
@@ -11087,12 +11641,12 @@ window.__EXTRAS = true;
     robin: { d: "tea", ing: "hagebutte", add: "honig", mat: "rote Feder" },
     tit: { d: "tea", ing: "zitrone", add: "zitrone", mat: "blaue Feder" },
     fox: { d: "coffee", bean: "dunkel", add: "sahne", mat: "Waldbeere", night: 1 },
-    mouse: { d: "kakao", add: "keks", cake: "erdbeer", mat: "Strohhalm" },
+    mouse: { d: "kakao", add: "keks", cake: "erdbeer+erdbeer", mat: "Strohhalm" },
     badger: { d: "kakao", add: "sahne", cake: "honig", mat: "Glitzerstein", night: 1 },
     owl: { d: "tea", ing: "lavendel", add: "honig", mat: "Eulenfeder", night: 1, only: 1 },
     otter: { d: "coffee", drink: "L", add: "zimt", mat: "Muschel" },
     frog: { d: "tea", ing: "minze", mat: "Seerosenblatt" },
-    duck: { d: "tea", ing: "zitrone", cake: "erdbeer", mat: "Entenfeder" },
+    duck: { d: "tea", ing: "zitrone", cake: "erdbeer+erdbeer", mat: "Entenfeder" },
     beaver: { d: "coffee", bean: "mittel", cake: "sonne", mat: "Holzspan" },
     turtle: { d: "tea", ing: "kamille", mat: "Kieselstein" },
     hedgehog: { d: "tea", ing: "apfel", mat: "Herbstblatt" }
@@ -11102,7 +11656,7 @@ window.__EXTRAS = true;
     if (GPREF[id]) return GPREF[id];
     var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
     var ings = ["minze", "kamille", "apfel", "hagebutte", "lavendel", "honig", "zitrone", "brombeer"];
-    return { d: ["tea", "coffee", "kakao"][h % 3], ing: ings[h % 8], add: ["honig", "zitrone", "milch", "sahne", "zimt"][h % 5], cake: h % 2 ? CAKE_IDS[h % CAKE_IDS.length] : 0, mat: GMAT_DEF[h % 5], drink: ["C", "L", "M"][h % 3] };
+    return { d: ["tea", "coffee", "kakao"][h % 3], ing: ings[h % 8], add: ["honig", "zitrone", "milch", "sahne", "zimt"][h % 5], cake: h % 2 ? CK_CLASSIC[h % CK_CLASSIC.length] : 0, mat: GMAT_DEF[h % 5], drink: ["C", "L", "M"][h % 3] };
   }
   var TABLES = [{ seats: [78], top: [92, 92] }, { seats: [126, 170], top: [148, 90] }, { seats: [192, 236], top: [214, 90] }];
   var guests = [], gNext = 0, gRaf = 0, gLast = 0;
@@ -11128,7 +11682,7 @@ window.__EXTRAS = true;
   function gOrderText(o) {
     var w = o.wish, base = { tea: "einen Tee", coffee: "einen Kaffee", kakao: "einen Kakao", cake: "ein Stück Kuchen" }[o.kind];
     if (!w) return base;
-    if (w.t === "cake") return "ein Stück " + CAKE[w.v].n;
+    if (w.t === "cake") return "ein Stück " + ckName(w.v);
     if (w.t === "ing") return "einen Tee mit " + TEA_ING[teaIdx(w.v)].n;
     if (w.t === "add") return base + " mit " + ({ honig: "Honig", zitrone: "Zitrone", milch: "Milch", zucker: "Zucker", sahne: "Sahne", zimt: "Zimt", kakao: "Kakaopulver", sirup: "Karamell", keks: "einem Keks" }[w.v] || w.v);
     if (w.t === "drink") return { C: "einen Cappuccino", L: "eine Latte", M: "einen Macchiato", E: "einen Espresso" }[w.v];
@@ -11141,10 +11695,16 @@ window.__EXTRAS = true;
     var C_ = cfL(), w = o.wish;
     if (o.kind === "cake") {
       // from the cabinet first; if it is empty, a cake from the kitchen is brought over
-      var CL = ckList(), ci = w ? CL.indexOf(w.v) : -1;
-      if (!CL.length) { if (!(garden.harvest.cake > 0)) return null; if (!dry) { garden.harvest.cake--; if (typeof renderFoods === "function") renderFoods(); } return { wished: !!(w && w.v === "moehre"), kitchen: true }; }
-      if (!dry) { CL.splice(ci >= 0 ? ci : CL.length - 1, 1); C_.cakes = CL.length; }
-      return { wished: ci >= 0 };
+      // one piece from the cabinet; if it is empty, a cake from the kitchen is brought over and cut
+      var CL = ckList(), ci = -1; CL.forEach(function (e, i) { if (w && e.k === w.v) ci = i; });
+      if (!CL.length) {
+        if (!(garden.harvest.cake > 0)) return null;
+        if (!dry) { garden.harvest.cake--; CL.push({ k: "moehre", n: 3 }); C_.cakes = CL.length; if (typeof renderFoods === "function") renderFoods(); }
+        return { wished: !!(w && w.v === "moehre"), kitchen: true, k: "moehre" };
+      }
+      var pk = ci >= 0 ? ci : CL.length - 1, kk = CL[pk].k;
+      if (!dry) { CL[pk].n--; if (CL[pk].n <= 0) CL.splice(pk, 1); C_.cakes = CL.length; }
+      return { wished: ci >= 0, k: kk };
     }
     if (o.kind === "tea") {
       if (!(C_.tea > 0)) return null;
@@ -11175,7 +11735,7 @@ window.__EXTRAS = true;
   // ---- drawing: each guest is a small group in the room picture
   function gLayerEl() { return document.getElementById("cf-guests"); }
   function gCk(g) { return g.cakeK || (g.order.wish && g.order.wish.t === "cake" ? g.order.wish.v : null); }
-  function gIcon(kind, v) { if (kind === "cake" && v && BK_ART["cs_" + v]) return '<image href="' + BK_ART["cs_" + v] + '" x="0" y="0" width="13" height="11" style="image-rendering:pixelated"/>'; var k = kind === "cake" ? "cakeA" : kind === "tea" ? "tea" : "cof", p = CF.spr[k]; return '<g>' + p.svg + '</g>'; }
+  function gIcon(kind, v) { if (kind === "cake" && v) return '<image href="' + ckIconUrl(v, false) + '" x="0" y="0" width="13" height="11" style="image-rendering:pixelated"/>'; var k = kind === "cake" ? "cakeA" : kind === "tea" ? "tea" : "cof", p = CF.spr[k]; return '<g>' + p.svg + '</g>'; }
   // like the hamster: the body waddles and the feet take turns. The picture is cut into the body and a left and right foot strip.
   var gUid = 0;
   function gMake(g) {
@@ -11243,7 +11803,7 @@ window.__EXTRAS = true;
   function gServe(g) {
     var got = gTake(g.order, true);
     if (!got) { say(ALLANI[g.id].name + " möchte " + gOrderText(g.order) + ". " + (g.order.kind === "cake" ? "Back in der Backstube einen Kuchen." : g.order.kind === "tea" ? "Mach am Wasserkessel einen Tee." : "Mach an der Kaffeemaschine " + (g.order.kind === "kakao" ? "einen Kakao." : "einen Kaffee."))); beep([[392, .05]]); return; }
-    var CLb = ckList().slice(); got = gTake(g.order, false); g.wished = got.wished; if (g.order.kind === "cake") { var CLa = ckList(); g.cakeK = got.kitchen ? "moehre" : CLb.filter(function (k) { var i = CLa.indexOf(k); if (i >= 0) { CLa = CLa.slice(0, i).concat(CLa.slice(i + 1)); return false; } return true; })[0]; if (got.kitchen) say(N() + " holt schnell einen Kuchen aus der Küche."); }
+    got = gTake(g.order, false); g.wished = got.wished; if (g.order.kind === "cake") { g.cakeK = got.k; if (got.kitchen) say(N() + " holt schnell einen Kuchen aus der Küche und schneidet ihn an."); }
     g.state = "fly"; g.t0 = performance.now(); gBubble(g); cfStock();
     if (window.SudokuSave) window.SudokuSave();
     cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); setTimeout(function () { cfHamSet({}); }, 900);
