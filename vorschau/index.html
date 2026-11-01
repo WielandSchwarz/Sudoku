@@ -10724,31 +10724,45 @@ window.__EXTRAS = true;
       gauge(1 - left, [.97, 1], function () { return beanCol(); });
     }
     // ---------- 3: tamping ----------
+    // the basket of the portafilter seen a little from above: grounds heaped in it, the tamper comes down and presses them into a smooth puck
+    function ell(cx, cy, rx, ry, col) { c.fillStyle = col; c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI); c.fill(); }
+    function pxEll(cx, cy, rx, ry, fn) { for (var y = Math.floor(cy - ry); y <= cy + ry; y++) for (var x = Math.floor(cx - rx); x <= cx + rx; x++) { var u = (x + .5 - cx) / rx, v = (y + .5 - cy) / ry; if (u * u + v * v <= 1) { var cl = fn(u, v, x, y); if (cl) { c.fillStyle = cl; c.fillRect(x, y, 1, 1); } } } }
+    function steel(u) { return u < -.6 ? "#ffffff" : u < -.15 ? "#e2e6ec" : u < .45 ? "#c8ccd4" : u < .8 ? "#9aa0aa" : "#6a707a"; }
     function drawTamp(t, dt) {
       wall();
       if (pressing) press = Math.min(1.1, press + dt / 2.2);
-      var p_ = Math.min(1, press), BX = 46, BY = 74, BWd = 72, BHt = 30, gc = beanCol();
-      shadow(BX - 4, BY + BHt + 8, BWd + 60);
-      // the handle to the right, the spouts below
-      R(c, BX + BWd, BY + 10, 16, 8, "#3a2414"); R(c, BX + BWd, BY + 11, 16, 6, "#c8ccd4"); R(c, BX + BWd, BY + 11, 16, 1, "#ffffff");
-      R(c, BX + BWd + 16, BY + 8, 40, 12, "#3a2414"); R(c, BX + BWd + 17, BY + 9, 38, 10, "#6a4026"); R(c, BX + BWd + 17, BY + 9, 38, 2, "#8a5a30"); R(c, BX + BWd + 50, BY + 9, 5, 10, "#4a2a18");
-      R(c, BX + 24, BY + BHt + 2, 24, 6, "#3a2414"); R(c, BX + 25, BY + BHt + 2, 22, 5, "#8a909a"); R(c, BX + 28, BY + BHt + 7, 6, 3, "#3a2414"); R(c, BX + 38, BY + BHt + 7, 6, 3, "#3a2414");
-      // the basket in cut-away: steel walls, the grounds inside
-      R(c, BX - 3, BY - 2, BWd + 6, BHt + 5, "#3a2414"); R(c, BX - 2, BY - 1, BWd + 4, BHt + 3, "#c8ccd4"); R(c, BX - 2, BY - 1, BWd + 4, 2, "#ffffff"); R(c, BX - 2, BY + BHt, BWd + 4, 2, "#8a909a");
-      R(c, BX + 2, BY + 2, BWd - 4, BHt - 4, "#4a4650");
-      var flat = BY + 8 + Math.round(p_ * 6), peak = Math.round((1 - p_) * 16);
-      for (var x = 0; x < BWd - 4; x++) {
-        var u = (x - (BWd - 4) / 2) / ((BWd - 4) / 2), top = flat - Math.round(peak * (1 - u * u));
-        for (var y = top; y < BY + BHt - 2; y++) { var hv = (x * 13 + y * 7) % 9; R(c, BX + 2 + x, y, 1, 1, hv === 0 ? "rgba(255,255,255,.18)" : hv === 4 ? "rgba(0,0,0,.18)" : gc); }
-        if (top < BY + 2) R(c, BX + 2 + x, top, 1, 1, lerpC("#ffffff", "#3a2414", .5));
+      var p_ = Math.min(1, press), CXB = 86, RY0 = 84, RX = 34, RYY = 10, DEP = 15, gc = lerpC(beanCol(), "#a8703c", .35);   // ground coffee is lighter than the whole bean
+      // shadow and the handle reaching out to the front right
+      ell(CXB + 10, RY0 + DEP + 12, RX + 26, 7, "rgba(58,36,20,.22)");
+      for (var i = 0; i < 46; i++) { var hx = CXB + 28 + i * 1.1, hy = RY0 + 8 + i * .42, w = i < 10 ? 4 : 5; R(c, hx, hy - w - 1, 2, w * 2 + 2, "#3a2414"); R(c, hx, hy - w, 2, w * 2, i < 10 ? steel(-.2) : (i % 9 === 0 ? "#4a2a18" : "#6a4026")); R(c, hx, hy - w, 2, 1, i < 10 ? "#ffffff" : "#8a5a30"); }
+      // the outer wall of the basket
+      for (var x = -RX - 1; x <= RX + 1; x++) { var u = x / RX, yt = RY0 + RYY * Math.sqrt(Math.max(0, 1 - u * u)); R(c, CXB + x, yt, 1, DEP + 1, Math.abs(x) > RX ? "#3a2414" : steel(u)); R(c, CXB + x, yt + DEP, 1, 1, "#3a2414"); }
+      // the inside: dark steel wall at the back
+      ell(CXB, RY0, RX + 1, RYY + 1, "#3a2414"); ell(CXB, RY0, RX - 1, RYY - 1, "#4a4650"); ell(CXB, RY0 + 2, RX - 3, RYY - 3, "#3a3640");
+      // the grounds: a mound that flattens into a smooth puck
+      var surf = RY0 + 3 + Math.round(p_ * 2), hgt = (1 - p_) * 15, N = 12;
+      c.save(); c.beginPath(); c.ellipse(CXB, RY0, RX - 2, RYY - 1.5, 0, 0, 2 * Math.PI); c.rect(CXB - RX + 2, 0, 2 * RX - 4, RY0); c.clip();
+      for (var k = 0; k <= N; k++) {
+        var f = k / N, rx = (RX - 3) * (1 - f * .8), ry = (RYY - 2.5) * (1 - f * .8), cy = surf - hgt * Math.sin(f * Math.PI / 2);
+        pxEll(CXB, cy, rx, ry, function (u, v, x, y) {
+          var d = -u * .6 - v * .8, cl = d > .5 ? lerpC(gc, "#ffffff", .3) : d > .1 ? lerpC(gc, "#ffffff", .12) : d > -.4 ? gc : lerpC(gc, "#1a0a04", .3);
+          var h = (x * 73856093 ^ y * 19349663) & 15;
+          if (p_ < .9 && (h === 0 || h === 9)) cl = lerpC(cl, "#ffffff", .3); else if (p_ < .9 && (h === 7 || h === 3)) cl = lerpC(cl, "#1a0a04", .35);
+          return cl;
+        });
       }
-      // the tamper: a wide steel disc on a wooden knob, sinking as you press
-      var dTop = flat - 10 - (pressing ? 0 : 14) - peak * (pressing ? 0 : 1);
-      R(c, BX + 4, dTop, BWd - 8, 10, "#3a2414"); R(c, BX + 5, dTop + 1, BWd - 10, 8, "#c8ccd4"); R(c, BX + 5, dTop + 1, BWd - 10, 2, "#ffffff"); R(c, BX + 5, dTop + 7, BWd - 10, 2, "#8a909a");
-      R(c, BX + BWd / 2 - 5, dTop - 12, 10, 12, "#3a2414"); R(c, BX + BWd / 2 - 4, dTop - 12, 8, 12, "#6a4026"); R(c, BX + BWd / 2 - 4, dTop - 12, 2, 12, "#8a5a30");
-      disc(c, BX + BWd / 2, dTop - 20, 11, "#3a2414"); disc(c, BX + BWd / 2, dTop - 20, 10, "#8a5a30"); disc(c, BX + BWd / 2 - 3, dTop - 24, 4, "#b07a44"); R(c, BX + BWd / 2 - 5, dTop - 26, 2, 1, "#d8a868");
-      if (pressing && p_ > .1) for (var k = 0; k < 3; k++) R(c, BX + 8 + ((t / 40 + k * 23) % (BWd - 16)), flat - 1, 1, 1, "rgba(255,255,255,.4)");
-      if (!pressing && press === 0) arrow(BX + BWd / 2, dTop - 40, t);
+      if (p_ > .55) { c.globalAlpha = Math.min(1, (p_ - .55) * 2.5) * .55; pxEll(CXB - 4, surf - 1, 18, 4, function (u, v) { return u * u + v * v > .55 ? "#ffffff" : null; }); c.globalAlpha = 1; }
+      c.restore();
+      // the tamper: a steel disc on a wooden knob, coming down into the basket
+      var tY = surf - hgt - 6 - (pressing ? 0 : 16), TRX = RX - 4, TRY = RYY - 2.5;
+      for (var x2 = -TRX; x2 <= TRX; x2++) { var u2 = x2 / TRX, y2 = tY + TRY * Math.sqrt(Math.max(0, 1 - u2 * u2)); R(c, CXB + x2, y2, 1, 7, steel(u2)); R(c, CXB + x2, y2 + 6, 1, 1, "#3a2414"); }
+      ell(CXB, tY, TRX + 1, TRY + 1, "#3a2414"); pxEll(CXB, tY, TRX, TRY, function (u, v) { return u * u + v * v > .7 ? "#9aa0aa" : steel(u * .6 - v * .4); });
+      R(c, CXB - 5, tY - 16, 10, 16, "#3a2414"); R(c, CXB - 4, tY - 16, 8, 16, "#6a4026"); R(c, CXB - 4, tY - 16, 3, 16, "#8a5a30"); R(c, CXB + 2, tY - 16, 2, 16, "#4a2a18");
+      ell(CXB, tY - 24, 12, 11, "#3a2414"); pxEll(CXB, tY - 24, 11, 10, function (u, v) { var d = -u * .6 - v * .8; return d > .55 ? "#d8a868" : d > .1 ? "#b07a44" : d > -.5 ? "#8a5a30" : "#6a4026"; });
+      // the front of the rim over everything inside
+      for (var x3 = -RX; x3 <= RX; x3++) { var u3 = x3 / RX, yb = RY0 + RYY * Math.sqrt(Math.max(0, 1 - u3 * u3)); R(c, CXB + x3, yb - 2, 1, 2, steel(u3 * .7)); R(c, CXB + x3, yb, 1, 1, "#3a2414"); }
+      if (pressing && p_ > .1 && p_ < 1) for (var q = 0; q < 4; q++) R(c, CXB - 26 + ((t / 30 + q * 17) % 52), surf - 2 + (q % 2), 1, 1, lerpC(gc, "#ffffff", .4));
+      if (!pressing && press === 0) arrow(CXB, tY - 46, t);
       gauge(press, [.55, .8], function (k) { return k > .8 ? "#e8554a" : "#c8925a"; });
     }
     // ---------- 4: the shot ----------
@@ -10995,6 +11009,7 @@ window.__EXTRAS = true;
     var _close = G_.close; G_.close = function () { phase = "gone"; cancelAnimationFrame(raf); _close(); };
     G_.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); G_.close(); });
     G_.gauge.innerHTML = ""; raf = requestAnimationFrame(draw);
+    window.__cofTamp = function (pv, pr) { phase = "tamp"; press = pv; pressing = pr; };
     window.__cofAdds = function (list, art) { hasMilk = true; initCup(); milk = 1; for (var i = 0; i < F.length; i++) { var x = i % FW - 35, y = Math.floor(i / FW) - 35; F[i] = Math.hypot(x, y) < 20 ? 1 : 0; } artShown = art || null; phase = "adds"; list.forEach(function (a) { adds.push(a); addT[a] = true; }); };
     window.__cofG = { st: function () { return { pourAt: pourAt, F: !!F, phase: phase, grind: grind, spd: spd, press: press, shot: shot, temp: temp, foam: foam, milk: milk, art: sArt, drink: drink, adds: adds.slice(), sG: sGrind, sT: sTamp, sS: sShot, sM: sMilk }; } };
   };
