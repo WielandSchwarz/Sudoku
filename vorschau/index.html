@@ -10939,10 +10939,10 @@ window.__EXTRAS = true;
       sp("book_open", 0, 0);
       var list = slotsOf(page), html = "";
       if (page === 0) {
-        html += '<b class="cf-bt" style="left:' + (16 / 1.8) + '%;top:' + (14 / 1.35) + '%">' + ({ coffee: "Kaffeebuch", cake: "Kuchenbuch" }[kind] || "Teebuch") + '</b><span class="cf-bc" style="left:' + (16 / 1.8) + '%;top:' + (25 / 1.35) + '%">' + keys.length + ' von ' + ({ coffee: COF_TOTAL, cake: CK_TOTAL }[kind] || TEA_TOTAL) + ' Sorten</span>';
+        html += '<b class="cf-bt" style="left:' + (16 / 1.8) + '%;top:' + (14 / 1.35) + '%">' + ({ coffee: "Kaffeebuch", cake: "Backbuch" }[kind] || "Teebuch") + '</b><span class="cf-bc" style="left:' + (16 / 1.8) + '%;top:' + (25 / 1.35) + '%">' + keys.length + ' von ' + ({ coffee: COF_TOTAL, cake: CK_TOTAL }[kind] || TEA_TOTAL) + ' Sorten</span>';
         sp("ic_minze", 70, 118); sp("ic_kamille", 150, 116);
       }
-      if (!keys.length) html += '<span class="cf-bn" style="left:' + (16 / 1.8) + '%;top:' + (50 / 1.35) + '%;width:' + (70 / 1.8) + '%">' + (kind === "cake" ? "Noch leer. Back deinen ersten Kuchen!" : kind === "coffee" ? "Noch leer. Mach deinen ersten Kaffee!" : "Noch leer. Misch deinen ersten Tee!") + '</span>';
+      if (!keys.length) html += '<span class="cf-bn" style="left:' + (16 / 1.8) + '%;top:' + (50 / 1.35) + '%;width:' + (70 / 1.8) + '%">' + (kind === "cake" ? "Noch leer. Back deine erste Tarte!" : kind === "coffee" ? "Noch leer. Mach deinen ersten Kaffee!" : "Noch leer. Misch deinen ersten Tee!") + '</span>';
       list.forEach(function (o, i) {
         if (!o.k) return; var e = B[o.k], x = o.sl[0], y = o.sl[1], ids = o.k.split("|")[0].split("+");
         if (kind === "cake") { sp(ckIcon(o.k, false), x + 1, y + 4); ids.forEach(function (id, j) { sp(BK_ING[id].top, x + 19 + j * 13, y + 2 + (j % 2)); }); }
@@ -10973,7 +10973,7 @@ window.__EXTRAS = true;
       if (tabs) {
         [["tea", 12, "#86c870", "#5aa04e"], ["coffee", 70, "#c8925a", "#8a5a30"], ["cake", 128, "#f6a8b8", "#e8809a"]].forEach(function (tb) {
           var on = tb[0] === kind, y0 = on ? 0 : 3; R(c, tb[1], y0, 40, 12 - y0, "#3a2414"); R(c, tb[1] + 1, y0 + 1, 38, 10 - y0, on ? tb[2] : tb[3]); R(c, tb[1] + 1, y0 + 1, 38, 1, "rgba(255,255,255,.35)");
-          html += '<span class="cf-btab" style="left:' + ((tb[1] + 20) / 1.8) + '%;top:' + ((y0 + 1.5) / 1.35) + '%">' + ({ tea: "Tee", coffee: "Kaffee", cake: "Kuchen" }[tb[0]]) + '</span>';
+          html += '<span class="cf-btab" style="left:' + ((tb[1] + 20) / 1.8) + '%;top:' + ((y0 + 1.5) / 1.35) + '%">' + ({ tea: "Tee", coffee: "Kaffee", cake: "Tartes" }[tb[0]]) + '</span>';
         });
       }
       if (tx._h !== html) { tx.innerHTML = html; tx._h = html; }
@@ -11909,24 +11909,27 @@ window.__EXTRAS = true;
   // a cake is one or two ingredients (sorted, joined with +); the classics are just mixes with a name of their own
   var CK_CLASSIC = ["moehre", "erdbeer+erdbeer", "kuerbis", "nuss", "honig", "sonne"];
   var CK_ICON = { moehre: "moehre", "erdbeer+erdbeer": "erdbeer", kuerbis: "kuerbis", nuss: "nuss", honig: "honig", sonne: "sonne" };
-  var CK_SPEC = { honig: "Honiggugelhupf", sonne: "Sonnenblumenkuchen", "erdbeer+erdbeer": "Erdbeertorte", "moehre+nuss": "Rüeblitorte", "kuerbis+nuss": "Herbstkuchen", "erdbeer+honig": "Sommerwolke",
-    "honig+loewe": "Wiesenhonig-Traum", "kraut+tomate": "Pizzakuchen", "chili+nuss": "Feuerknusper", "erdbeer+gurke": "Gartenparty-Torte", "chili+chili": "Drachenkuchen", "honig+honig": "Bienenkönigin-Gugel",
-    "loewe+loewe": "Pusteblumen-Torte", "gurke+kraut": "Picknick-Schnitte", "chili+honig": "Feuerhonig-Gugel", "kuerbis+kuerbis": "Kürbiskönig", "nuss+nuss": "Doppelnusstorte", "kraut+kraut": "Waldwiesen-Torte" };
-  var CK_NOUN = ["Schnitte", "Wolke", "Torte", "Traum", "Gugel", "Zauber", "Kuchen"];
+  // mostly vegetables and only one berry: these are tarts. Sweet fillings make a tart, savoury ones a quiche
+  var CK_SPEC = { honig: "Honigtarte", sonne: "Sonnenblumentarte", "erdbeer+erdbeer": "Erdbeertarte", "moehre+nuss": "Rüeblitarte", "kuerbis+nuss": "Herbsttarte", "erdbeer+honig": "Sommerwolke",
+    "honig+loewe": "Wiesenhonig-Tarte", "kraut+tomate": "Tomaten-Kräuter-Quiche", "chili+nuss": "Feuerknusper", "erdbeer+gurke": "Gartenparty-Tarte", "chili+chili": "Drachen-Quiche", "honig+honig": "Bienenkönigin-Tarte",
+    "loewe+loewe": "Pusteblumen-Tarte", "gurke+kraut": "Picknick-Quiche", "chili+honig": "Feuerhonig-Tarte", "kuerbis+kuerbis": "Kürbiskönig", "nuss+nuss": "Doppelnusstarte", "kraut+kraut": "Waldwiesen-Quiche" };
+  var CK_SAVORY = { kraut: 1, tomate: 1, gurke: 1, chili: 1 };
+  var CK_NOUN = ["Tarte", "Tartelette", "Galette"], CK_NOUN_S = ["Quiche", "Galette"];
   function ckKey(a) { var cr = a.indexOf("creme") >= 0; return a.filter(function (q) { return q !== "creme"; }).sort().concat(cr ? ["creme"] : []).join("+"); }
   function ckName(k) {
-    if (/\+creme$/.test(k)) { var rest = k.replace(/\+creme$/, ""); return rest.indexOf("+") < 0 && BK_ING[rest] ? BK_ING[rest].pre + "-Cremetorte" : "Creme-" + ckName(rest); }
+    if (/\+creme$/.test(k)) { var rest = k.replace(/\+creme$/, ""); return rest.indexOf("+") < 0 && BK_ING[rest] ? BK_ING[rest].pre + "-Cremetarte" : "Creme-" + ckName(rest); }
     if (CK_SPEC[k]) return CK_SPEC[k];
     var p = k.split("+"), A_ = BK_ING[p[0]], B_ = BK_ING[p[1]];
     if (!A_) return k;
     var h = 0; for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 997;
-    if (p.length === 1) return A_.pre + "kuchen";
-    if (p.length === 2) return p[0] === p[1] ? A_.pre + "torte" : A_.pre + "-" + B_.pre + "-" + CK_NOUN[h % CK_NOUN.length];
+    var sav = p.some(function (q) { return CK_SAVORY[q]; }), one = function (I) { return sav ? I.pre + "-Quiche" : I.pre + "tarte"; }, noun = sav ? CK_NOUN_S[h % CK_NOUN_S.length] : CK_NOUN[h % CK_NOUN.length];
+    if (p.length === 1) return one(A_);
+    if (p.length === 2) return p[0] === p[1] ? "Große " + one(A_) : A_.pre + "-" + B_.pre + "-" + noun;
     // three: a triple, a double with one more, or three different
-    if (p[0] === p[1] && p[1] === p[2]) return "Dreifach-" + A_.pre + "-Torte";
+    if (p[0] === p[1] && p[1] === p[2]) return "Dreifach-" + one(A_);
     var dbl = p[0] === p[1] ? p[0] : p[1] === p[2] ? p[1] : null;
-    if (dbl) { var one = p.filter(function (q) { return q !== dbl; })[0]; return "Doppel-" + BK_ING[dbl].pre + "-" + BK_ING[one].pre + "-" + CK_NOUN[h % CK_NOUN.length]; }
-    return ["Gartenwunder", "Kunterbunt-Gugel", "Hamsterglück", "Erntefest-Torte", "Bunte Wiese", "Sommerfest-Kuchen", "Waldfee-Schnitte", "Regenbogen-Torte"][h % 8];
+    if (dbl) { var o1 = p.filter(function (q) { return q !== dbl; })[0]; return "Doppel-" + BK_ING[dbl].pre + "-" + BK_ING[o1].pre + "-" + noun; }
+    return (sav ? ["Gartenwunder", "Gemüsegarten-Quiche", "Hamsterglück", "Erntefest-Quiche", "Bunte Wiese", "Sommerfest-Galette", "Waldfee-Quiche", "Regenbogen-Galette"] : ["Gartenwunder", "Kunterbunt-Tarte", "Hamsterglück", "Erntefest-Tarte", "Bunte Wiese", "Sommerfest-Galette", "Waldfee-Tartelette", "Regenbogen-Tarte"])[h % 8];
   }
   function ckNeed(k) { var nd = /\+creme$/.test(k) ? {} : { sunflower: 1 }; k.split("+").forEach(function (id) { var h = BK_ING[id].h; if (h) nd[h] = (nd[h] || 0) + 1; }); return nd; }
   // the key a pick turns into: with flour if a sunflower is left over for it, otherwise a cream cake
@@ -11991,8 +11994,8 @@ window.__EXTRAS = true;
   function digits(c, n, x, y, col) { String(n).split("").forEach(function (d, j) { var m = DIG[+d]; for (var i = 0; i < 15; i++) if (m[i] === "1") R(c, x + j * 4 + i % 3, y + Math.floor(i / 3), 1, 1, col); }); }
 
   function bakeGame() {
-    var G_ = cfGameEl("Was kommt in den Kuchen?"), c = G_.c, phase = "pick", raf = 0, last = performance.now(), T = 0;
-    var pick = [], key = null, items = [], it = null, pr = null, parts = [], flies = [];
+    var G_ = cfGameEl("Was kommt in die Tarte?"), c = G_.c, phase = "pick", raf = 0, last = performance.now(), T = 0;
+    var pick = [], pend = [], key = null, items = [], it = null, pr = null, parts = [], flies = [];
     var eggN = 0, egg = null, shards = [], yolks = [], sEgg = 1;
     var stir = 0, ang = null, sAng = 0, spA = -0.6, mill = 0, mAng = null, mTurn = 0, tilt = 0, tilt0 = null, fill = 0, spill = false, sFill = 0, fillEnd = 0;
     var oven = 0, ovenIn = 0, sBake = 0, tops = [], drag = null, cuts = [], swipe = null, sCut = 0, stars = 0;
@@ -12043,7 +12046,7 @@ window.__EXTRAS = true;
     }
     function pickPos(i) { return [BOWLP[0] + [-18, 0, 18][i], BOWLP[1] + [2, 0, 3][i]]; }
     function startBake() {
-      key = ckFinal(pick); CNT.remove(); if (/\+creme$/.test(key)) G_.banner("Ohne Mehl wird es eine Cremetorte");
+      key = ckFinal(pick); CNT.remove(); if (/\+creme$/.test(key)) G_.banner("Ohne Mehl wird es eine Cremetarte");
       items = units().filter(function (id) { return BK_ING[id].prep; }).map(function (id) { return { id: id }; });   // honey comes ready from the hive
       nextItem();
     }
@@ -12459,7 +12462,7 @@ window.__EXTRAS = true;
       ckUse(key); deliver = key;
       var B = ckBook(), isNew = !B[key]; B[key] = { n: ckName(key), c: A0().sp, s: Math.max(stars, (B[key] || {}).s || 0), t: isNew ? Date.now() : B[key].t };
       if (window.SudokuSave) window.SudokuSave();
-      G_.banner(isNew ? "Neu im Kuchenbuch: " + ckName(key) + "!" : ckName(key) + " ist fertig!");
+      G_.banner(isNew ? "Neu im Backbuch: " + ckName(key) + "!" : ckName(key) + " ist fertig!");
       beep(stars === 3 ? [[1047, .1], [1319, .1], [1568, .22]] : [[880, .12], [1047, .2]]);
       cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); setTimeout(function () { cfHamSet({}); }, 1400);
       setTimeout(function () { G_.el.addEventListener("pointerdown", function () { G_.close(); }, { once: true }); }, 700);
@@ -12482,16 +12485,19 @@ window.__EXTRAS = true;
         if (p[0] >= BOOK[0] && p[0] <= BOOK[0] + 42 && p[1] >= BOOK[1] && p[1] <= BOOK[1] + 38) { openTeaBook(cafeEl, "cake", true); return; }
         var cr = CRATE.filter(function (q) { return p[0] >= q.x && p[0] <= q.x + 26 && p[1] >= q.y && p[1] <= q.y + 22; })[0];
         if (cr) {
-          if (pick.length >= 3) { G_.banner("Höchstens drei Zutaten"); beep([[220, .06]]); return; }
-          var trial = pick.concat([cr.id]), nd = ckNeed(ckKey(trial.concat(["creme"]))), I = BK_ING[cr.id];
+          if (pick.length + pend.length >= 3) { G_.banner("Höchstens drei Zutaten"); beep([[220, .06]]); return; }
+          var trial = pick.concat(pend).concat([cr.id]), nd = ckNeed(ckKey(trial.concat(["creme"]))), I = BK_ING[cr.id];
           if (ckHave(I.h) < nd[I.h]) { G_.banner(ckHave(I.h) ? "Nicht genug " + I.n : "Keine " + I.n + " da"); beep([[220, .06]]); return; }
           beep([[700 + pick.length * 120, .04]]);
-          var tq = pickPos(pick.length); fly("ig_" + cr.id, cr.x + 16, cr.y + 11, tq[0] + 2, tq[1] - 3);
-          pick = trial; G_.banner(I.n + " dazu"); var nowKey = ckKey(pick); setTimeout(function () { if (phase === "pick" && ckKey(pick) === nowKey) G_.banner(ckName(ckFinal(pick))); }, 900); return;
+          var tq = pickPos(pick.length + pend.length), cid = cr.id; pend.push(cid);
+          fly("ig_" + cid, cr.x + 16, cr.y + 11, tq[0] + 2, tq[1] - 3, function () {
+            pend.splice(pend.indexOf(cid), 1); if (phase !== "pick") return; pick.push(cid); beep([[520, .03]]);
+            var nowKey = ckKey(pick); G_.banner(I.n + " dazu"); setTimeout(function () { if (phase === "pick" && ckKey(pick) === nowKey) G_.banner(ckName(ckFinal(pick))); }, 900);
+          }); return;
         }
         var ch = -1; pick.forEach(function (id, i) { var q = pickPos(i); if (Math.abs(p[0] - q[0]) < 9 && Math.abs(p[1] - q[1] + 2) < 9) ch = i; });
-        if (ch >= 0) { pick.splice(ch, 1); beep([[400, .04]]); G_.banner(pick.length ? ckName(ckFinal(pick)) : "Was kommt in den Kuchen?"); return; }
-        if (pick.length && Math.abs(p[0] - BOWLP[0]) < 38 && p[1] > BOWLP[1] - 12 && p[1] < BOWLP[1] + 34) {
+        if (ch >= 0) { pick.splice(ch, 1); beep([[400, .04]]); G_.banner(pick.length ? ckName(ckFinal(pick)) : "Was kommt in die Tarte?"); return; }
+        if (pick.length && !pend.length && Math.abs(p[0] - BOWLP[0]) < 38 && p[1] > BOWLP[1] - 12 && p[1] < BOWLP[1] + 34) {
           if (ckList().length >= CK_MAX) { G_.banner("Die Vitrine ist schon voll"); beep([[220, .06]]); return; }
           beep([[523, .05], [659, .05], [784, .06]]); G_.pause(600, startBake, BOWLP[0], BOWLP[1]); return;
         }
@@ -12652,7 +12658,7 @@ window.__EXTRAS = true;
     return { kind: kind, wish: wish };
   }
   function gOrderText(o) {
-    var w = o.wish, base = { tea: "einen Tee", coffee: "einen Kaffee", kakao: "einen Kakao", cake: "ein Stück Kuchen" }[o.kind];
+    var w = o.wish, base = { tea: "einen Tee", coffee: "einen Kaffee", kakao: "einen Kakao", cake: "ein Stück Tarte" }[o.kind];
     if (!w) return base;
     if (w.t === "cake") return "ein Stück " + ckName(w.v);
     if (w.t === "ing") return "einen Tee mit " + TEA_ING[teaIdx(w.v)].n;
@@ -12857,7 +12863,7 @@ window.__EXTRAS = true;
   }
   function gServe(g) {
     var got = gTake(g.order, true);
-    if (!got) { say(ALLANI[g.id].name + " möchte " + gOrderText(g.order) + ". " + (g.order.kind === "cake" ? "Back in der Backstube einen Kuchen." : g.order.kind === "tea" ? "Mach am Wasserkessel einen Tee." : "Mach an der Kaffeemaschine " + (g.order.kind === "kakao" ? "einen Kakao." : "einen Kaffee."))); beep([[392, .05]]); return; }
+    if (!got) { say(ALLANI[g.id].name + " möchte " + gOrderText(g.order) + ". " + (g.order.kind === "cake" ? "Back in der Backstube eine Tarte." : g.order.kind === "tea" ? "Mach am Wasserkessel einen Tee." : "Mach an der Kaffeemaschine " + (g.order.kind === "kakao" ? "einen Kakao." : "einen Kaffee."))); beep([[392, .05]]); return; }
     got = gTake(g.order, false); g.wished = got.wished; if (g.order.kind === "cake") { g.cakeK = got.k; if (got.kitchen) say(N() + " holt schnell einen Kuchen aus der Küche und schneidet ihn an."); }
     g.state = "bring"; gBubble(g); cfStock();
     var ic = gIcon(g.order.kind, g.order.kind === "cake" ? g.cakeK : null), iw = g.order.kind === "cake" ? 13 : 8;
@@ -12973,7 +12979,7 @@ window.__EXTRAS = true;
     gPay(g); g.state = "pay"; gBubble(g);
     var sk = g.srv || g.order.kind, it = document.createElementNS("http://www.w3.org/2000/svg", "g"); it.setAttribute("class", "gq-carry"); g.el.appendChild(it);   // held in front of the body
     it.innerHTML = '<g transform="translate(' + (sk === "cake" ? -6 : -4) + ' -15)">' + gIcon(sk, gCk(g)) + '</g>';
-    say(ALLANI[g.id].name + " nimmt " + (sk === "cake" ? "den Kuchen" : sk === "tea" ? "den Tee" : sk === "kakao" ? "den Kakao" : "den Kaffee") + " mit nach Hause.");
+    say(ALLANI[g.id].name + " nimmt " + (sk === "cake" ? "die Tarte" : sk === "tea" ? "den Tee" : sk === "kakao" ? "den Kakao" : "den Kaffee") + " mit nach Hause.");
     setTimeout(function () { gGo(g); }, 1200);
   }
   function gSign() {
@@ -13110,7 +13116,7 @@ window.__EXTRAS = true;
   function gAsk(g) {
     var nm = ALLANI[g.id].name, its = gItems(), star = gPx(GIC.w.Stern, gPal());
     var tiles = its.map(function (it, n) { var ok = gMatch(g.order, it); return '<button type="button" data-n="' + n + '" class="gq-tile' + (ok ? " gq-ok" : "") + '">' + gSvg(gItemPic(it), 2) + '<span>' + it.name + '</span>' + (ok ? '<i>' + gSvg({ svg: star, w: 8, h: 8 }, 2) + '</i>' : "") + '</button>'; }).join("");
-    var make = { tea: "Tee machen", coffee: "Kaffee machen", kakao: "Kakao machen", cake: "Kuchen backen" }[g.order.kind], has = its.some(function (it) { return it.kind === g.order.kind; });
+    var make = { tea: "Tee machen", coffee: "Kaffee machen", kakao: "Kakao machen", cake: "Tarte backen" }[g.order.kind], has = its.some(function (it) { return it.kind === g.order.kind; });
     var html = '<div class="gq-head">' + gSvg(gWishPic(g.order), 2) + '<p class="ga-h">' + nm + ' möchte ' + gOrderText(g.order) + '</p></div>' +
       (its.length ? '<div class="ga-grid gq-grid">' + tiles + '</div>' : '<p class="gq-none">Auf der Theke steht noch nichts.</p>') +
       '<div class="ga-row"><button type="button" class="ga-no" data-k="later">Später</button><button type="button" class="ga-yes pbtn" data-k="make">' + make + '</button></div>';
