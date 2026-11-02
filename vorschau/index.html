@@ -13526,6 +13526,11 @@ window.__EXTRAS = true;
   function spotNear(x, y) { var best = null, bd = 1e9; Object.keys(SPOTS).forEach(function (k) { var s_ = SPOTS[k], d = Math.hypot((x - s_.x) * .8, y - s_.y); if (d < bd) { bd = d; best = k; } }); return best; }
   function iceNow() { return fi && fi.se === "winter"; }
   function landAt() { return iceNow() ? HOLE : JETTY; }
+  function aimMarks() { return iceNow() ? { eis: { x: HOLE[0], y: HOLE[1], n: "Ins Eisloch" } } : SPOTS; }
+  function markAt(x, y) { var m = aimMarks(), best = null, bd = 24; Object.keys(m).forEach(function (k) { var d = Math.hypot((x - m[k].x) * .8, y - m[k].y); if (d < bd) { bd = d; best = k; } }); return best; }
+  // a big pixel arrow pointing down, dark outline, yellow body with a light edge; (x, y) is the top centre
+  var ARROW = ["    ooooooooo    ", "    oLYYYYYYo    ", "    oLYYYYYYo    ", "    oLYYYYYYo    ", "    oLYYYYYYo    ", "    oLYYYYYYo    ", "    oLYYYYYYo    ", "    oLYYYYYYo    ", "oooooLYYYYYYooooo", "oLLLLYYYYYYYYYYDo", " oLYYYYYYYYYYYDo ", "  oLYYYYYYYYYDo  ", "   oLYYYYYYYDo   ", "    oLYYYYYDo    ", "     oLYYYDo     ", "      oLYDo      ", "       oDo       ", "        o        "];
+  function bigArrow(x, y) { var C = { o: "#3a2414", Y: "#ffd34a", L: "#fff1a8", D: "#e0a020" }; ARROW.forEach(function (row, j) { for (var i = 0; i < row.length; i++) { var c = C[row[i]]; if (c) R(x - 8 + i, y + j, 1, 1, c); } }); }
   function aimTarget(a) { if (iceNow()) return HOLE.slice(); var dx = a.x - a.x0, dy = a.y - a.y0, pw = Math.max(0, Math.min(1, Math.hypot(dx, dy) / 55)); return [Math.max(18, Math.min(166, 92 - dx * 1.7)), Math.max(58, Math.min(108, 110 - pw * 52))]; }
   function draw(t) {
     if (!fiOpen) return;
@@ -13533,7 +13538,6 @@ window.__EXTRAS = true;
     img("bg_" + fi.se, 0, 0);
     var P = fi.phase, tipx = TIP[0] + (P === "reel" ? fi.rs * 10 : 0), tipy = TIP[1];
     if (P === "bite" || (P === "reel" && fi.pull)) { tipx += 3; tipy += 5; }
-    if (P === "aim" && fi.aim) { tipx -= 6; tipy += 8; }
     var FL = fi.fl || FLOAT;
     // waiting: a shadow circles near the float
     if ((P === "wait" || P === "bite") && fi.T > fi.shadowAt && !fi.shy) { var an = fi.T * .9; shadowAt(FL[0] - 6 + Math.cos(an) * 12, FL[1] + 8 + Math.sin(an) * 3, 6); }
@@ -13543,35 +13547,16 @@ window.__EXTRAS = true;
       else { fx = FL[0] + (JETTY[0] - FL[0]) * fi.prog + fi.lx * 26; fy = FL[1] + (JETTY[1] - FL[1]) * fi.prog; shadowAt(fx, fy + 3, 6 + fi.prog * 2); }
     }
     if (P === "aim") {
-      // aiming: the rod bends back the further you pull, every spot shows a little ring on the water,
-      // the chosen one glows and a ghost float bobs where it will land, a dotted arc leads there
-      var pw = fi.aim ? Math.max(0, Math.min(1, Math.hypot(fi.aim.x - fi.aim.x0, fi.aim.y - fi.aim.y0) / 55)) : 0;
-      tipx = TIP[0] - 12 * pw; tipy = TIP[1] + 16 * pw;
-      var chosen = fi.aim && pw > .12 ? (iceNow() ? "eis" : spotNear.apply(null, aimTarget(fi.aim))) : null, marks = iceNow() ? { eis: { x: HOLE[0], y: HOLE[1] } } : SPOTS;
+      // aiming: every spot shows a little ring on the water; tap one to choose it (a big arrow floats above it),
+      // tap it again to cast there. The rod leans back once a spot is chosen.
+      var chosen = fi.sel || null, marks = aimMarks();
+      if (chosen) { tipx = TIP[0] - 8; tipy = TIP[1] + 10; }
       Object.keys(marks).forEach(function (k) {
         var m = marks[k], on = k === chosen, pulse = on ? (Math.floor(t / 160) % 3) : 0, rx = 7 + pulse, ry = 2.6 + pulse * .4;
         for (var a3 = 0; a3 < 32; a3++) { var an3 = a3 / 32 * Math.PI * 2; if (!on && a3 % 4 > 1) continue; var qx = m.x + Math.cos(an3) * rx, qy = m.y + Math.sin(an3) * ry; R(qx, qy + 1, 1, 1, "#2e5a86"); R(qx, qy, 1, 1, on ? "#ffd34a" : "#fff8ec"); }
         if (!on) { R(m.x - 1, m.y - 1, 3, 3, "#3a2414"); R(m.x, m.y, 1, 1, "#fff8ec"); }
-        if (on) { var gb = Math.floor(t / 300) % 2; floatAt(m.x, m.y + gb, false); var ay2 = m.y - 16 + gb; R(m.x - 1, ay2, 3, 4, "#ffd34a"); R(m.x - 3, ay2 + 4, 7, 1, "#ffd34a"); R(m.x - 2, ay2 + 5, 5, 1, "#ffd34a"); R(m.x - 1, ay2 + 6, 3, 1, "#ffd34a"); }
+        else bigArrow(m.x, m.y - 25 + [0, 1, 2, 1][Math.floor(t / 180) % 4]);
       });
-      if (chosen) {
-        var mm = marks[chosen];
-        // one clean, continuous pixel line (no doubled corners) with a dark outline, ending just above the arrow;
-        // a small bright glint runs along it towards the target
-        var ex = mm.x, ey = mm.y - 18, hgt = 16 + pw * 14, pts = [];
-        for (var i = 0; i <= 200; i++) {
-          var u = i / 200, px_ = Math.round(tipx + (ex - tipx) * u), py_ = Math.round(tipy + (ey - tipy) * u - Math.sin(u * Math.PI) * hgt), lp = pts[pts.length - 1];
-          if (lp && lp[0] === px_ && lp[1] === py_) continue;
-          pts.push([px_, py_]);
-          var n_ = pts.length;                                         // drop the inner pixel of an L-corner so the line stays one pixel wide
-          if (n_ >= 3) { var a_ = pts[n_ - 3], c_ = pts[n_ - 1]; if (Math.abs(a_[0] - c_[0]) === 1 && Math.abs(a_[1] - c_[1]) === 1) pts.splice(n_ - 2, 1); }
-        }
-        var skip = 4;                                                  // leave a little gap at the rod tip
-        for (var j = skip; j < pts.length; j++) { var q_ = pts[j]; R(q_[0] - 1, q_[1], 3, 1, "#3a2414"); R(q_[0], q_[1] - 1, 1, 3, "#3a2414"); }
-        var gl = Math.floor(t / 28) % (pts.length + 20);
-        for (var j2 = skip; j2 < pts.length; j2++) { var q2 = pts[j2], d_ = gl - j2; R(q2[0], q2[1], 1, 1, d_ >= 0 && d_ < 4 ? "#fffbe6" : "#ffd34a"); }
-        fiBanner(iceNow() ? "Ins Eisloch" : SPOTS[chosen].n);
-      }
       line(tipx, tipy, tipx + 1, tipy + 10, "#f6f2ea", 0); floatAt(tipx + 1, tipy + 17, false);
     } else if (P === "cast") {
       var u2 = Math.min(1, (fi.T - fi.castT) / .6), cx = tipx + (FL[0] - tipx) * u2, cy = tipy + (FL[1] - tipy) * u2 - Math.sin(u2 * Math.PI) * 24;
@@ -13678,14 +13663,19 @@ window.__EXTRAS = true;
     var a = b.dataset.a;
     if (a === "book") { showBook(); return; }
     if (a === "back") { showBait(); return; }
-    if (a === "cast") { fi.bait = fishL().bait; fiCard.hidden = true; fi.phase = "aim"; fi.aim = null; fiBanner("Zurückziehen und loslassen"); return; }
+    if (a === "cast") { fi.bait = fishL().bait; fiCard.hidden = true; fi.phase = "aim"; fi.aim = null; fi.sel = null; fiBanner(iceNow() ? "Eisloch antippen" : "Angelstelle antippen"); return; }
     if (a === "again") { fiCard.hidden = true; if (!FISH[fi.catchK].find) { splashAt(90, 112, 8); beep([[392, .05], [262, .07]]); } showBait(); }
   });
   // ---- touch ----
   function pt(e) { var r = fiCv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 180, (e.clientY - r.top) / r.height * 135]; }
   fiCv.addEventListener("pointerdown", function (e) {
     if (!fi) return; e.preventDefault(); var p = pt(e); try { fiCv.setPointerCapture(e.pointerId); } catch (x) {}
-    if (fi.phase === "aim") { fi.aim = { x0: p[0], y0: p[1], x: p[0], y: p[1] }; return; }
+    if (fi.phase === "aim") {
+      var k = markAt(p[0], p[1]);
+      if (!k) return;
+      if (k !== fi.sel) { fi.sel = k; fiBanner(aimMarks()[k].n); beep([[660, .03]]); return; }   // first tap chooses the spot
+      var M = aimMarks()[k]; fi.sel = null; fi.spot = k; fi.fl = [M.x, M.y]; fi.phase = "cast"; fi.castT = fi.T; fiBanner(M.n); beep([[520, .04], [780, .05]]); return;   // second tap casts
+    }
     if (fi.phase === "wait") { if (!fi.shy) tooEarly(); return; }
     if (fi.phase === "bite") { fi.phase = "reel"; fi.prog = 0; fi.tension = 0; fi.pull = false; fi.nextPull = fi.T + 1.5; fi.ang = -Math.PI / 2; fi.lx = 0; fi.rs = 0; fiBanner("Kurbeln"); beep([[784, .05]]); return; }
     if (fi.phase === "reel") { if (Math.hypot(p[0] - CRANK[0], p[1] - CRANK[1]) < 30) fi.grab = Math.atan2(p[1] - CRANK[1], p[0] - CRANK[0]); else { fi.steer = true; fi.rs = Math.max(-1, Math.min(1, (p[0] - 90) / 45)); } return; }
@@ -13693,7 +13683,6 @@ window.__EXTRAS = true;
   });
   fiCv.addEventListener("pointermove", function (e) {
     if (!fi) return; var p = pt(e);
-    if (fi.phase === "aim" && fi.aim) { fi.aim.x = p[0]; fi.aim.y = p[1]; return; }
     if (fi.phase === "net" && fi.net && fi.net.drag) { fi.net.x = p[0]; fi.net.y = p[1]; return; }
     if (fi.phase !== "reel") return;
     if (fi.steer) { fi.rs = Math.max(-1, Math.min(1, (p[0] - 90) / 45)); return; }
@@ -13705,14 +13694,6 @@ window.__EXTRAS = true;
   });
   function up() {
     if (!fi) return;
-    if (fi.phase === "aim" && fi.aim) {
-      var a = fi.aim, pw = Math.hypot(a.x - a.x0, a.y - a.y0); fi.aim = null;
-      if (pw < 8) { fiBanner("Weiter zurückziehen"); return; }       // a tiny tug does not cast
-      var tg = aimTarget(a);
-      if (iceNow()) { fi.spot = "eis"; fi.fl = HOLE.slice(); fi.phase = "cast"; fi.castT = fi.T; fiBanner("Ins Eisloch"); beep([[520, .04], [780, .05]]); return; }
-      fi.spot = spotNear(tg[0], tg[1]); var S_ = SPOTS[fi.spot];
-      fi.fl = [S_.x, S_.y]; fi.phase = "cast"; fi.castT = fi.T; fiBanner(S_.n); beep([[520, .04], [780, .05]]); return;
-    }
     if (fi.phase === "net" && fi.net) { fi.net.drag = false; var LA = landAt(); if (Math.hypot(fi.net.x - LA[0], fi.net.y - LA[1] - 2) < 14) landFish(); else fiBanner("Unter den Fisch schieben"); return; }
     fi.grab = null; if (fi.steer) { fi.steer = false; }
   }
