@@ -1506,9 +1506,9 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .fi-pov .fi-dark { position: absolute; inset: 0; pointer-events: none; }
 .fi-pov .fi-dark.e { background: rgba(74, 46, 72, .22); } .fi-pov .fi-dark.n { background: rgba(12, 16, 48, .42); }
 .fi-pov .fi-ban:empty { display: none; }
-.fi-card { position: absolute; inset: 0; z-index: 4; padding-top: 6%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: rgba(43, 29, 18, .32); }
+.fi-card { position: absolute; inset: 0; z-index: 4; padding-top: 2%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: rgba(43, 29, 18, .32); }
 .fi-card[hidden] { display: none; }
-.fi-c { position: relative; background: #fff8ec; color: #3a2414; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; padding: 10px 12px 12px; text-align: center; width: 78%; max-width: 320px; max-height: 84%; overflow-y: auto; overscroll-behavior: contain; }
+.fi-c { position: relative; background: #fff8ec; color: #3a2414; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; padding: 10px 12px 12px; text-align: center; width: 78%; max-width: 320px; max-height: 92%; overflow-y: auto; overscroll-behavior: contain; }
 .fi-h { margin: 0 0 8px; font-size: 1.05rem; font-weight: 800; }
 .fi-hl { text-align: left; }
 .fi-baits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -1538,6 +1538,23 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .fi-tip { font-weight: 800; color: #b84c06; }
 .fi-hint { font-size: 0.85rem; margin: -2px 0 8px; text-align: left; min-height: 2.4em; }
 .fi-t:disabled { opacity: .45; cursor: default; }
+/* the house style for menus: cards with stepped pixel corners, buttons with the two-step notch and drawn corner pixels */
+.fi-c { box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .18), inset 0 -2px 0 0 #ecdcc4 !important; }
+.fi-t, .fi-b, .fi-b2, .fi-bt, #scene .seedtabs button { position: relative; clip-path: var(--px-notch2); }
+.fi-new, .fi-gold { clip-path: var(--px-notch); }
+.fi-t::after, .fi-b::after, .fi-b2::after, .fi-bt::after, #scene .seedtabs button::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#3a2414, #3a2414) 2px 2px / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#3a2414, #3a2414) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat; }
+.fi-sel::after { background: linear-gradient(#e8650c, #e8650c) 2px 2px / 2px 2px no-repeat, linear-gradient(#e8650c, #e8650c) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#e8650c, #e8650c) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#e8650c, #e8650c) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat !important; }
+.fi-new, .fi-gold { box-shadow: inset 0 0 0 2px #3a2414 !important; }
+
+.fi-c .fi-h { margin-bottom: 4px; }
+.fi-c .fi-st { margin: -2px 0 2px; }
+.fi-c .fi-cm { margin: 2px 0 0; }
+.fi-c .fi-s { margin: 3px 0 0; font-size: 0.8rem; line-height: 1.25; }
+.fi-c .fi-row { margin-top: 8px; }
 
 /* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
 #scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
@@ -13487,7 +13504,9 @@ window.__EXTRAS = true;
   }
   function gauge(f) {                                 // the line tension: a wooden frame with fourteen cells, a little fish marks the level
     var x0 = 6, y0 = 14, w = 13, h = 72;
-    R(x0 - 1, y0 - 4, w + 2, h + 8, "#3a2414"); R(x0, y0 - 3, w, h + 6, "#8a5a34"); R(x0, y0 - 3, 2, h + 6, "#c89060"); R(x0 + w - 2, y0 - 3, 2, h + 6, "#6e4428");
+    // frame with stepped corners: the dark outline leaves out its corner pixel, the wood steps in one more
+    R(x0, y0 - 4, w, h + 8, "#3a2414"); R(x0 - 1, y0 - 3, w + 2, h + 6, "#3a2414");
+    R(x0 + 1, y0 - 3, w - 2, h + 6, "#8a5a34"); R(x0, y0 - 2, w, h + 4, "#8a5a34"); R(x0, y0 - 2, 2, h + 4, "#c89060"); R(x0 + w - 2, y0 - 2, 2, h + 4, "#6e4428");
     [[x0 + 1, y0 - 2], [x0 + w - 2, y0 - 2], [x0 + 1, y0 + h + 1], [x0 + w - 2, y0 + h + 1]].forEach(function (q) { R(q[0], q[1], 1, 1, "#e0b040"); });
     var cells = 14, ch = h / cells;
     for (var i = 0; i < cells; i++) {
