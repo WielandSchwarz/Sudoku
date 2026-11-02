@@ -10008,48 +10008,44 @@ window.__EXTRAS = true;
       });
     };
 
-    // ---- salad: push the cucumber back and forth over the mandoline (side view); slices drop through the blade into the bowl
+    // ---- salad: slice the cucumber on the mandoline, seen from above: a slice only on each push from left to right over the blade
     COOK_EXT.planer = function (X) {
       if (X.items.indexOf("cucumber") < 0) return Promise.resolve();
       return new Promise(function (res) {
         setView("board"); X.head(X.i, "Gurke hobeln"); $p("pov-ring").hidden = false; X.bar(0);
-        var w = SZ.big_cucumber[0], h = SZ.big_cucumber[1], n = 0, N = 8, travel = 0, drag = null, done = false, falling = [], pile = [], face = null, faceT = 0, now = 0, hearts = [];
-        var MX = 26, MY = 30, SL = 14 / 122, BX = MX + 61, cx = MX + 34;   // the board's place, its slope, the blade
-        window.__k2plan = function () { return { n: n, cx: cx }; };
-        function len() { return w * (1 - n / N * .7); }
-        function surf(x) { return MY + 8 + (x - MX) * SL; }
-        function bowlBack() { return E(BX + 2, 98, 22, 4, "#3a2414") + E(BX + 2, 98, 21, 3.2, "#e8dcc8"); }
-        function bowlFront() { return '<path d="M' + (BX - 20) + ' 98Q' + (BX + 2) + ' 124 ' + (BX + 24) + ' 98Z" fill="#3a2414"/><path d="M' + (BX - 19) + ' 98.5Q' + (BX + 2) + ' 122 ' + (BX + 23) + ' 98.5Z" fill="#f6efe2"/><path d="M' + (BX - 12) + ' 106Q' + (BX + 2) + ' 114 ' + (BX + 16) + ' 106" stroke="#6a9ad8" stroke-width="1.4" fill="none"/>'; }
+        var w = SZ.big_cucumber[0], h = SZ.big_cucumber[1], cx = 84 - 14 - SZ.big_cucumber[0] / 2, n = 0, N = 8, drag = null, done = false, pile = [], falling = [], armed = true, face = null, faceT = 0, now = 0, hearts = [], warned = 0;
+        var BX = 84;   // the blade
+        window.__k2plan = function () { return { n: n, cx: cx, len: len() }; };
+        function len() { return Math.round(w * (1 - n / N * .8)); }
         function render(t) {
-          var l = len(), x1 = cx + l / 2, x0 = x1 - l, ang = Math.atan(SL) * 180 / Math.PI, o = "";
-          o += E(92, 118, 56, 3, "rgba(58,36,20,.22)") + bowlBack();
+          var l = len(), x0 = Math.round(cx - l / 2), y0 = 72 - h;
+          var o = img("mandoline", 34, 54);
           pile.forEach(function (q) { o += img("chunk_cucumber", q[0], q[1]); });
-          o += bowlFront() + img("mandoline2", MX, MY);
-          falling.forEach(function (f) { o += '<g transform="translate(' + f.x.toFixed(1) + ' ' + f.y.toFixed(1) + ') rotate(' + (f.r).toFixed(0) + ' 4 3)">' + A.chunk_cucumber + '</g>'; });
-          // the cucumber lies on the slanted board; it gets shorter from the end that goes over the blade, showing its pale cut face
-          var by = surf(cx) - h + 2;
-          o += '<g transform="rotate(' + ang.toFixed(2) + ' ' + cx.toFixed(1) + ' ' + (by + h).toFixed(1) + ')"><defs><clipPath id="k2cuc"><rect x="' + x0.toFixed(1) + '" y="' + (by - 2).toFixed(1) + '" width="' + l.toFixed(1) + '" height="' + (h + 4) + '"/></clipPath></defs><g clip-path="url(#k2cuc)">' + img("big_cucumber", x0, by) + '</g>' +
-            (n ? E(x1, by + h / 2, 2.4, h / 2 - 1, "#3a2414") + E(x1 - .4, by + h / 2, 1.8, h / 2 - 2, "#d8f0b8") + E(x1 - .4, by + h / 2, .9, h / 2 - 5, "#eef8dc") : "") + '</g>';
-          if (!drag && !n) { var on = Math.floor(t * 2.5) % 2; o += sq(cx - 10 + on * 4, by - 10, 12, 1, "#f6c84a") + sq(cx - 11 + on * 4, by - 11, 1, 3, "#f6c84a") + sq(cx + 2 + on * 4, by - 11, 1, 3, "#f6c84a"); }
+          falling.forEach(function (f) { o += '<g transform="translate(' + f.x.toFixed(1) + ' ' + f.y.toFixed(1) + ') rotate(' + f.r.toFixed(0) + ' 4 3)">' + A.chunk_cucumber + '</g>'; });
+          // the cucumber gets shorter at its right end, where the blade cuts; the pale cut face shows there
+          o += '<defs><clipPath id="k2cuc"><rect x="' + x0 + '" y="' + (y0 - 2) + '" width="' + l + '" height="' + (h + 4) + '"/></clipPath></defs><g clip-path="url(#k2cuc)">' + img("big_cucumber", x0, y0) + '</g>';
+          if (n) o += E(x0 + l - 1, y0 + h / 2, 2.6, h / 2 - 1, "#3a2414") + E(x0 + l - 1.4, y0 + h / 2, 2, h / 2 - 2, "#d8f0b8") + E(x0 + l - 1.4, y0 + h / 2, 1, h / 2 - 5, "#eef8dc");
+          if (!drag && n < N) { var on = Math.floor(t * 2.5) % 2; o += sq(x0 + l / 2 - 8 + on * 4, y0 - 9, 14, 1, "#f6c84a") + sq(x0 + l / 2 + 4 + on * 4, y0 - 11, 1, 5, "#f6c84a") + sq(x0 + l / 2 + 5 + on * 4, y0 - 10, 1, 3, "#f6c84a"); }
           var f0 = face && t < faceT ? face : done ? { eyes: "happy", mouth: "grin", blush: true, paws: "up" } : drag ? { eyes: "wide", mouth: "open", paws: "cover" } : { eyes: "look_l", mouth: "smile", paws: "hold" };
           o += watcher(f0, t, face && t < faceT ? -1 : 0) + heartsSvg(hearts, t);
           $p("pov-float").innerHTML = crisp(o);
         }
         var stop = loop(function (dt, t) {
           now = t;
-          falling = falling.filter(function (f) { f.v += 220 * dt; f.y += f.v * dt; f.x += f.vx * dt; f.r += f.vr * dt; if (f.y >= f.ty) { pile.push([f.x, f.ty]); beep([[900 + Math.random() * 200, .015]]); return false; } return true; });
+          falling = falling.filter(function (f) { f.v += 220 * dt; f.y += f.v * dt; f.x += f.vx * dt; f.r += f.vr * dt; if (f.y >= f.ty) { pile.push([f.x, f.ty]); return false; } return true; });
           render(t);
         });
         svgEl.onpointerdown = function (ev) { drag = svgPt(ev).x; try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} };
         svgEl.onpointermove = function (ev) {
           if (drag == null || done) return; var x = svgPt(ev).x, dx = x - drag; drag = x;
-          var l = len(), ncx = Math.max(MX + 6 + l / 2, Math.min(MX + 118 - l / 2, cx + dx));
-          var over = ncx + l / 2 > BX - 2 && ncx - l / 2 < BX + 4;
-          if (over) {
-            travel += Math.abs(ncx - cx);
-            if (travel > 20) {
-              travel = 0; n++; X.bar(n / N);
-              falling.push({ x: BX - 3, y: surf(BX) + 4, v: 8, vx: (Math.random() - .5) * 16, vr: (Math.random() - .5) * 400, r: 0, ty: 96 + (Math.random() - .5) * 3 - Math.min(4, pile.length * .5) });
+          var l = len(), ncx = Math.max(24 - l / 2, Math.min(172 - l / 2, cx + dx)), endA = cx + l / 2, endB = ncx + l / 2;
+          // back to the left of the blade: ready for the next slice
+          if (endB < BX - 6) armed = true;
+          // pushing right: the right end crosses the blade and one slice comes off
+          if (dx > 0 && endA <= BX + 2 && endB > BX + 2) {
+            if (armed) {
+              armed = false; n++; X.bar(n / N);
+              falling.push({ x: BX + 2, y: 66, v: 10, vx: 6 + Math.random() * 10, vr: (Math.random() - .5) * 400, r: 0, ty: 92 + Math.random() * 14 });
               beep([[1300 + Math.random() * 200, .02]]); face = { eyes: "happy", mouth: "smile", paws: "hold" }; faceT = now + .35;
               if (n === 4) tip("Schön dünn!", 1200);
               if (n >= N) { done = true; X.cut.cucumber = 4; tip("Fertig gehobelt!", 1400); beep([[784, .06], [988, .06], [1319, .1]]); for (var k = 0; k < 4; k++) hearts.push({ x: 140 + k * 8, y: 96, t0: now + k * .15 }); setTimeout(function () { stop(); $p("pov-float").innerHTML = ""; res(); }, 1400); }
