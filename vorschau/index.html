@@ -2115,6 +2115,8 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .bs-fly { z-index: 7; transition: left .45s steps(5), top .45s steps(5); }
 .bs-shelf { z-index: 3; }
 
+.bs-away { display: none !important; }
+
 </style>
 
 <div class="page">
@@ -3870,8 +3872,7 @@ window.__EXTRAS = true;
     });
   }
   function giveSeed(fromX) {
-    var c = pick(Object.keys(CROPS)); garden.seeds[c]++;
-    fx("seed_" + c, fromX, vHead() + 6, "up", 1.4); return c;
+    var r = seedOrFurn(); if (r.seed) fx("seed_" + r.seed, fromX, vHead() + 6, "up", 1.4); else fx("heart", fromX, vHead() + 6, "up"); return r;
   }
   var SCENES = {
     igel: async function (v) {
@@ -3931,7 +3932,7 @@ window.__EXTRAS = true;
       await wait(300);
     }
     body(""); vCls("sing", false); vCls("m-flutter", false); front({ paws: "down" });
-    if (!v.gifted && Math.random() < 0.6) { v.gifted = true; var c = giveSeed(v.x); say(v.an.name + " lässt ein Tütchen " + CROPS[c].name + "-Samen da."); await wait(900); }   // a present only once per visit
+    if (!v.gifted && Math.random() < 0.6) { v.gifted = true; var gr_ = giveSeed(v.x); say(gr_.none ? v.an.name + " schaut in dein Samenlager: alles randvoll! Dafür gibt es ein Küsschen." : v.an.name + " lässt " + gr_.text + " da."); await wait(900); }   // a present only once per visit
   }
   // visits: at most one every 5 minutes, after that a 20 % chance each minute
   garden.lastVisit = 0;
@@ -4072,7 +4073,7 @@ window.__EXTRAS = true;
   document.addEventListener("click", function (e) { var p = document.getElementById("scarf-pop"); if (p && !p.hidden && !e.target.closest("#scarf-pop")) p.hidden = true; });
   renderScarfBtn();
   if (H.sprite === "front") front();
-  $g("d-solve").addEventListener("click", function () { var c = pick(Object.keys(CROPS)); garden.seeds[c]++; setTimeout(function () { say("Sudoku gelöst: +1 Apfel und ein Tütchen " + CROPS[c].name + "-Samen."); }, 1500); });
+  $g("d-solve").addEventListener("click", function () { var gr_ = seedOrFurn(); setTimeout(function () { say("Sudoku gelöst: +1 Apfel" + (gr_.none ? "." : " und " + gr_.text + ".")); }, 1500); });
   var SEASONS = [null, "spring", "summer", "autumn", "winter"], SEASON_NAME = { spring: "Frühling", summer: "Sommer", autumn: "Herbst", winter: "Winter" };
   $g("d-season").addEventListener("click", function () {
     seasonOverride = SEASONS[(SEASONS.indexOf(seasonOverride) + 1) % SEASONS.length];
@@ -4766,12 +4767,13 @@ window.__EXTRAS = true;
     return garden.seedBag.pop();
   }
   function giveFriendGift(id) {
-    var g = FGIFT[id] || { seeds: [seedPick(), 1] }, got = [];
+    var g = FGIFT[id] || {}, got = [];
     if (g.meadow && item("meadow", g.meadow) && home.owned.meadow.indexOf(g.meadow) < 0) { home.owned.meadow.push(g.meadow); got.push(item("meadow", g.meadow).name); }
     if (g.deco && item("deco", g.deco) && home.owned.deco.indexOf(g.deco) < 0) { home.owned.deco.push(g.deco); got.push(item("deco", g.deco).name); }
-    if (g.seeds && !got.length) { garden.seeds[g.seeds[0]] = (garden.seeds[g.seeds[0]] || 0) + 1; got.push("ein Tütchen " + CROPS[g.seeds[0]].name + "-Samen"); }
+    if (g.seeds && !got.length && seedRoom(g.seeds[0])) { seedAdd(g.seeds[0], 1); got.push("ein Tütchen " + CROPS[g.seeds[0]].name + "-Samen"); }
     if (g.nut && !got.length) { garden.harvest.nut += 1; got.push("eine Haselnuss"); renderFoods(); }
-    if (!got.length) { var c = seedPick(); garden.seeds[c] = (garden.seeds[c] || 0) + 1; got.push("ein Tütchen " + CROPS[c].name + "-Samen"); }
+    if (!got.length) { var rr_ = seedOrFurn(); if (!rr_.none) got.push(rr_.text); }
+    if (!got.length) got.push("eine dicke Umarmung, denn dein Samenlager ist schon randvoll");
     got = got.slice(0, 1);
     renderCosy(); if (decor) renderCatalog();
     var an = ANIMALS[id];
@@ -5142,7 +5144,7 @@ window.__EXTRAS = true;
     if (garden.advent.opened.indexOf(today) >= 0) { say("Türchen " + today + " ist schon offen. Morgen kommt das nächste."); return; }
     garden.advent.opened.push(today);
     var r = Math.random(), what;
-    if (r < 0.4) { s.treats++; what = "einen Apfel"; } else if (r < 0.75) { var c = pick(Object.keys(CROPS)); garden.seeds[c]++; what = "ein Tütchen " + CROPS[c].name + "-Samen"; } else { garden.harvest.nut++; renderFoods(); what = "eine Haselnuss"; }
+    if (r < 0.4) { s.treats++; what = "einen Apfel"; } else if (r < 0.75) { var gr_ = seedOrFurn(); what = gr_.none ? "einen Apfel" : gr_.text; if (gr_.none) s.treats++; } else { garden.harvest.nut++; renderFoods(); what = "eine Haselnuss"; }
     renderNeeds(); renderFest();
     say("Türchen " + today + ": " + N() + " findet " + what + ".");
     if (!busy && !s.asleep) act("look", async function () { front({ eyes: "wide", ears: "up", mouth: "open", paws: "up" }); pulse("bighop", 620); await wait(650); front({ eyes: "happy", mouth: "grin", paws: "down", blush: true }); await wait(500); });
@@ -5150,8 +5152,8 @@ window.__EXTRAS = true;
   function openXmas() {
     var y = new Date().getFullYear();
     if (garden.xmas === y) { say("Frohe Weihnachten, " + N() + "!"); return; }
-    garden.xmas = y; var c = pick(Object.keys(CROPS)); garden.seeds[c] += 1; renderNeeds(); renderFest();
-    say("Unterm Baum liegt ein Tütchen " + CROPS[c].name + "-Samen für " + N() + ". Frohe Weihnachten!");
+    garden.xmas = y; var gr_ = seedOrFurn(); renderNeeds(); renderFest();
+    say("Unterm Baum liegt " + (gr_.none ? "ein großer Apfel" : gr_.text) + " für " + N() + ". Frohe Weihnachten!"); if (gr_.none) s.treats++;
     if (!busy && !s.asleep) act("look", async function () { front({ eyes: "happy", mouth: "grin", paws: "up", blush: true }); pulse("bighop", 620); for (var i = 0; i < 3; i++) { fx("heart", H.x + rnd(-12, 12), headY(), "up"); await wait(300); } front({ paws: "down" }); });
   }
   function findEgg(i, e) {
@@ -6089,9 +6091,9 @@ window.__EXTRAS = true;
         if (final >= 60) seeds.push(pick(crops));
         if ((final >= 180 || clean) && isHappy()) gift = pickGift();
       }
-      s.treats += apples; seeds.forEach(function (c) { garden.seeds[c] = (garden.seeds[c] || 0) + 1; });
+      var furns = []; seeds = seeds.map(function () { var r_ = seedOrFurn(); if (r_.furn) furns.push(r_.furn); return r_.seed; }).filter(Boolean);
       renderNeeds(); renderCosy(); if (typeof renderStart === "function") renderStart();
-      return { apples: apples, seeds: seeds, gift: !!gift, name: s.name };
+      return { apples: apples, seeds: seeds, furns: furns, gift: !!gift, name: s.name };
     }
     function renderResult() {
       var b = board(), el = $w("w-result");
@@ -6107,6 +6109,7 @@ window.__EXTRAS = true;
       else {
         if (rw.apples) rows += '<div class="w-rw"><span class="ri">' + svgOf(A.apple, SZ.apple[0], SZ.apple[1]) + '</span><span>+' + rw.apples + (rw.apples === 1 ? " Apfel" : " Äpfel") + ' für ' + esc(rw.name) + '</span></div>';
         rw.seeds.forEach(function (c) { rows += '<div class="w-rw"><span class="ri">' + svgOf(A["seed_" + c], 8, 10) + '</span><span>Ein Tütchen ' + esc(CROPS[c].name) + '-Samen für den Garten</span></div>'; });
+        (rw.furns || []).forEach(function (f) { rows += '<div class="w-rw"><span class="ri">' + svgOf(f.it.svg, f.it.w, f.it.h) + '</span><span>Neu für dein Zuhause: ' + esc(f.name) + '</span></div>'; });
         if (rw.gift && home.pending) rows += '<div class="w-rw w-giftrow"><span class="ri">' + svgOf(PROPS.gift.svg, 24, 24) + '</span><span><b>Ein Paket für ' + esc(rw.name) + '!</b><br>Es wartet in seinem Zimmer.</span><button type="button" id="w-gift">Öffnen</button></div>';
         if (!rows) rows = '<div class="w-rw dim">Ab 60 Punkten gibt es Äpfel und Samen für ' + esc(rw.name) + '.</div>';
         if (b.mode === "endless" && !rw.gift) rows += '<div class="w-rw dim small">Ab 180 Punkten (oder mit leerem Teller) bringt Mumpsch ein Paket, wenn ' + esc(rw.name) + ' glücklich ist.</div>';
@@ -6584,9 +6587,9 @@ window.__EXTRAS = true;
       var chance = n <= 5 ? 0.1 : n <= 11 ? 0.2 : 0.3;
       if (Math.random() < chance) { if (Math.random() < 0.5) apples = 1; else seeds.push(pick(crops)); }
       if (!apples && !seeds.length && !gift) return null;
-      s.treats += apples; seeds.forEach(function (c) { garden.seeds[c] = (garden.seeds[c] || 0) + 1; });
+      var furns = []; seeds = seeds.map(function () { var r_ = seedOrFurn(); if (r_.furn) furns.push(r_.furn); return r_.seed; }).filter(Boolean);
       renderNeeds(); renderCosy(); if (typeof renderStart === "function") renderStart();
-      return { apples: apples, seeds: seeds, gift: !!gift, name: s.name };
+      return { apples: apples, seeds: seeds, furns: furns, gift: !!gift, name: s.name };
     }
     function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
     function renderOver() {
@@ -6602,6 +6605,7 @@ window.__EXTRAS = true;
       else if (rw) {
         if (rw.apples) rows += '<div class="w-rw"><span class="ri">' + svgOf(A.apple, SZ.apple[0], SZ.apple[1]) + '</span><span>+' + rw.apples + (rw.apples === 1 ? " Apfel" : " Äpfel") + ' für ' + esc(rw.name) + '</span></div>';
         rw.seeds.forEach(function (k) { rows += '<div class="w-rw"><span class="ri">' + svgOf(A["seed_" + k], 8, 10) + '</span><span>Ein Tütchen ' + esc(CROPS[k].name) + '-Samen</span></div>'; });
+        (rw.furns || []).forEach(function (f) { rows += '<div class="w-rw"><span class="ri">' + svgOf(f.it.svg, f.it.w, f.it.h) + '</span><span>Neu für dein Zuhause: ' + esc(f.name) + '</span></div>'; });
         if (rw.gift && home.pending) rows += '<div class="w-rw w-giftrow"><span class="ri">' + svgOf(PROPS.gift.svg, 24, 24) + '</span><span><b>Ein Paket für ' + esc(rw.name) + '!</b></span><button type="button" id="t-gift">Öffnen</button></div>';
       }
       el.innerHTML = '<div class="t-card"><p class="w-rk">' + head + '</p>' + (sub ? '<p class="w-next">' + sub + '</p>' : "") + (rows ? '<div class="w-rws">' + rows + '</div>' : "") + '<div class="t-btns">' + btns + '</div></div>';
@@ -7340,8 +7344,9 @@ window.__EXTRAS = true;
     var r = Math.random(), crops = Object.keys(CROPS).filter(function (c) { return c !== "chili"; });
     if (r < 0.3) return { t: "gift", txt: "Und weil du mir so viel bedeutest, kommt bald ein Paket mit etwas Schönem für dein Zuhause!" };
     if (r < 0.55) return { t: "apples", n: 1, txt: "Im Umschlag steckt ein besonders saftiger Apfel, extra für dich ausgesucht." };
-    if (r < 0.75) return { t: "seed", k: "chili", n: 1, txt: "Ich lege dir einen Chili-Samen bei. Der ist selten, am besten wächst er im Gewächshaus." };
-    var k = pick(["pumpkin", "sunflower", "tomato", "strawberry"].filter(function (c) { return CROPS[c]; }).concat(crops.slice(0, 1)));
+    if (r < 0.75 && (garden.seeds.chili || 0) < 15) return { t: "seed", k: "chili", n: 1, txt: "Ich lege dir einen Chili-Samen bei. Der ist selten, am besten wächst er im Gewächshaus." };
+    var k = typeof seedPick === "function" ? seedPick() : null;
+    if (!k) return { t: "gift", txt: "Und weil du mir so viel bedeutest, kommt bald ein Paket mit etwas Schönem für dein Zuhause!" };
     return { t: "seed", k: k, n: 1, txt: "Ich habe dir ein Tütchen " + CROPS[k].name + "-Samen eingepackt, meine liebste Sorte." };
   }
   function makeLetter(from, kind) {
@@ -7362,6 +7367,7 @@ window.__EXTRAS = true;
   function grantLetter(l) {
     var r = l.gift || { t: "none" }, got = "", icon = "";
     if (r.t === "apples") { r.n = 1; s.treats += r.n; got = "ein Apfel"; icon = svgOf(A.apple, SZ.apple[0], SZ.apple[1]); }
+    else if ((r.t === "seed" || r.t === "seeds") && (garden.seeds[r.k] || 0) >= 15) { var fz_ = furnNow(); got = fz_ ? fz_.name : "viele liebe Grüße"; icon = fz_ ? furnIcon(fz_) : ""; }
     else if (r.t === "seed" || r.t === "seeds") { r.n = 1; garden.seeds[r.k] = (garden.seeds[r.k] || 0) + r.n; got = "ein Tütchen " + CROPS[r.k].name + "-Samen"; icon = A["seed_" + r.k] ? svgOf(A["seed_" + r.k], 8, 10) : ""; }
     else if (r.t === "gift") { pickGift(); got = "ein Paket"; icon = PROPS && PROPS.gift ? svgOf(PROPS.gift.svg, 24, 24) : ""; }
     addHeart(l.from, true); renderNeeds(); renderCosy();
@@ -9100,7 +9106,7 @@ window.__EXTRAS = true;
   giftName = function (k) { return k === "honey" ? "Honig" : _bk_gn(k); };
   function returnGift(who) {
     var opts = [];
-    Object.keys(CROPS).forEach(function (c) { if (!(garden.seeds[c] || 0) && IBIG["seed_" + c]) opts.push({ kind: "seed", c: c, k: "seed_" + c, label: CROPS[c].name + "-Samen" }); });
+    Object.keys(CROPS).forEach(function (c) { if (!(garden.seeds[c] || 0) && seedRoom(c) && IBIG["seed_" + c]) opts.push({ kind: "seed", c: c, k: "seed_" + c, label: CROPS[c].name + "-Samen" }); });
     Object.keys(CROPS).concat(["nut"]).forEach(function (c) { var key = ibFor(c); if (!(garden.harvest[c] || 0) && key) opts.push({ kind: "harvest", c: c, k: key, label: "1 × " + (c === "nut" ? "Haselnuss" : CROPS[c].name) }); });
     if (!s.treats) opts.push({ kind: "apple", k: "apple", label: "einen Apfel" });
     var g = opts.length ? pick(opts) : { kind: "apple", k: "apple", label: "einen Apfel" };
@@ -9237,10 +9243,10 @@ window.__EXTRAS = true;
       say(N() + " spielt Froschturm mit " + n + " Fröschen."); await wait(700);
       var r = await frogGame(n);
       if (r.ok) {
-        var c = pick(Object.keys(CROPS)), got = r.perfect ? 3 : 2; garden.seeds[c] = (garden.seeds[c] || 0) + got;
+        var gr_ = seedOrFurn(null, r.perfect ? 3 : 2), c = gr_.seed, got = gr_.n;
         L.frogBest = Math.max(L.frogBest || 0, n);
         front({ eyes: "happy", mouth: "grin", paws: "up", blush: true }); pulse("bighop", 600);
-        if (typeof itemPop === "function") itemPop({ k: "seed_" + c, title: "Die Frösche schenken dir " + got + " × " + CROPS[c].name + "-Samen!" });
+        if (typeof itemPop === "function") { if (c) itemPop({ k: "seed_" + c, title: "Die Frösche schenken dir " + got + " × " + CROPS[c].name + "-Samen!" }); else if (gr_.furn) itemPop({ art: furnIcon(gr_.furn), title: "Die Frösche schenken dir: " + gr_.furn.name + "!" }); else say("Die Frösche quaken zufrieden. Dein Samenlager ist schon voll."); }
         if (typeof SudokuSave === "function") SudokuSave();
       } else say("Die Frösche hüpfen davon.");
       front({ paws: "down" });
@@ -9666,7 +9672,11 @@ window.__EXTRAS = true;
   var shoreTbl = document.createElement("button"); shoreTbl.type = "button"; shoreTbl.className = "bs-prop bs-boxbtn bs-shore"; shoreTbl.setAttribute("aria-label", "Schiffe versenken");
   shoreTbl.style.left = gx(42); shoreTbl.style.top = gy(115); shoreTbl.style.width = gx(36);
   shoreTbl.innerHTML = '<span class="bs-sh-t">' + svgOf(A.bs_picnic, 36, 16) + '</span><span class="bs-sh-b">' + svgOf(A.bs_box, 16, 10) + '</span>';
-  pondUi.appendChild(shoreTbl);
+  scene.appendChild(shoreTbl);                                           // in the scene itself, so it can stand in front of the hamster or behind him
+  setInterval(function () {
+    var here = place2 === "pond"; shoreTbl.classList.toggle("bs-away", !here);
+    if (here) shoreTbl.style.zIndex = H.y < 129 ? 6 : 3;               // its legs stand at y 131: whoever is further back is drawn behind it
+  }, 80);
   shoreTbl.addEventListener("click", function (e) {
     e.stopPropagation(); if (bsOpen || s.asleep || decor || bsActive) return;
     if (busy && !interruptible()) return; if (busy) interrupt();
@@ -9809,12 +9819,13 @@ window.__EXTRAS = true;
   var HEARTPX = '<svg viewBox="0 0 9 8" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M2 0h2v1H2zM5 0h2v1H5zM1 1h1v1H1zM4 1h1v1H4zM7 1h1v1H7zM0 2h1v2H0zM8 2h1v2H8zM1 4h1v1H1zM7 4h1v1H7zM2 5h1v1H2zM6 5h1v1H6zM3 6h1v1H3zM5 6h1v1H5zM4 7h1v1H4z"/><path fill="#e8554a" d="M2 1h2v1H2zM5 1h2v1H5zM1 2h7v2H1zM2 4h5v1H2zM3 5h3v1H3zM4 6h1v1H4z"/><path fill="#ffb0a8" d="M2 2h1v1H2z"/><path fill="#b83a30" d="M6 3h1v1H6zM5 4h1v1H5z"/></svg>';
   // a new friend (every third heart): the animal hops in the middle, its hearts pop in one by one, the present lies below
   giveFriendGift = function (id) {
-    var g = FGIFT[id] || { seeds: [seedPick(), 1] }, got = [], icons = [];
+    var g = FGIFT[id] || {}, got = [], icons = [];
     if (g.meadow && item("meadow", g.meadow) && home.owned.meadow.indexOf(g.meadow) < 0) { var im = item("meadow", g.meadow); home.owned.meadow.push(g.meadow); got.push(im.name); icons.push(MBIG && MBIG["mb_" + g.meadow] ? '<svg viewBox="0 0 52 52" aria-hidden="true" shape-rendering="crispEdges">' + tint(MBIG["mb_" + g.meadow].svg) + '</svg>' : itemSVG("meadow", im, "", "")); }
     if (g.deco && item("deco", g.deco) && home.owned.deco.indexOf(g.deco) < 0) { var idc = item("deco", g.deco); home.owned.deco.push(g.deco); got.push(idc.name); icons.push(itemSVG("deco", idc, "", "")); }
-    if (g.seeds && !got.length) { garden.seeds[g.seeds[0]] = (garden.seeds[g.seeds[0]] || 0) + 1; got.push("ein Tütchen " + CROPS[g.seeds[0]].name + "-Samen"); icons.push(ibSvg("seed_" + g.seeds[0]) || ibSvg("packet")); }
+    if (g.seeds && !got.length && seedRoom(g.seeds[0])) { seedAdd(g.seeds[0], 1); got.push("ein Tütchen " + CROPS[g.seeds[0]].name + "-Samen"); icons.push(ibSvg("seed_" + g.seeds[0]) || ibSvg("packet")); }
     if (g.nut && !got.length) { garden.harvest.nut += 1; got.push("eine Haselnuss"); icons.push(ibSvg("nut")); renderFoods(); }
-    if (!got.length) { var c = seedPick(); garden.seeds[c] = (garden.seeds[c] || 0) + 1; got.push("ein Tütchen " + CROPS[c].name + "-Samen"); icons.push(ibSvg("seed_" + c) || ibSvg("packet")); }
+    if (!got.length) { var rr_ = seedOrFurn(); if (rr_.seed) { got.push(rr_.text); icons.push(ibSvg("seed_" + rr_.seed) || ibSvg("packet")); } else if (rr_.furn) { got.push(rr_.text); icons.push(furnIcon(rr_.furn)); } }
+    if (!got.length) { got.push("eine dicke Umarmung, denn dein Samenlager ist schon randvoll"); icons.push(HEARTPX); }
     renderCosy(); if (decor) renderCatalog();
     var h = (garden.friends && garden.friends[id]) || 3, name = (ANIMALS[id] && ANIMALS[id].name) || ANAME[id] || "Ein Tier";
     itemPop({ friend: id, hearts: h, icons: icons, gotText: got.join(" · "), title: h <= 3 ? "Neuer Freund: " + name + "!" : name + " hat dich noch lieber!" });
@@ -13502,7 +13513,8 @@ window.__EXTRAS = true;
     if (!isFind) { var r = FISH[k].cm; cm = Math.round(r[0] + Math.pow(Math.random(), 1.6) * (r[1] - r[0])); }
     book[k] = book[k] || { n: 0, best: 0 }; book[k].n++; if (cm > book[k].best) book[k].best = cm;
     var gift = "";
-    if (isNew && typeof seedPick === "function") { var sc = seedPick(); garden.seeds[sc] = (garden.seeds[sc] || 0) + 1; gift = '<p class="fi-s">Für den neuen Eintrag: ein Tütchen ' + CROPS[sc].name + '-Samen</p>'; }
+    var sc = isNew && typeof seedPick === "function" ? seedPick() : null;
+    if (sc) { seedAdd(sc, 1); gift = '<p class="fi-s">Für den neuen Eintrag: ein Tütchen ' + CROPS[sc].name + '-Samen</p>'; }
     if (window.SudokuSave) window.SudokuSave();
     var art = { rotauge: "Ein", barsch: "Ein", karpfen: "Ein", hecht: "Ein", schleie: "Eine", forelle: "Eine", brasse: "Eine", stichling: "Ein", doebel: "Ein", wels: "Ein", aal: "Ein", goldfisch: "Ein", stiefel: "Ein", flasche: "Eine", muschel: "Eine", schluessel: "Ein" }[k] || "Ein";
     cardHTML((isNew ? '<b class="fi-new">Neu!</b>' : "") + '<p class="fi-h">' + art + " " + FNAME[k] + '!</p><div class="fi-pic">' + pic("f_" + k, PXS) + '</div>' + (cm ? '<p class="fi-cm">' + cm + ' cm</p>' : "") + gift +
@@ -13647,6 +13659,38 @@ window.__EXTRAS = true;
     }, true);
   });
   window.__fruit = { close: function () { closePop(); if (typeof closeLPop === 'function') closeLPop(); }, gh: function (i, c, pg) { life().gh[i] = { crop: c, prog: pg, wetUntil: 0 }; }, tap: function (i) { plotTap(i); }, plant: function (i, c, pg) { garden.plots[i] = { crop: c, prog: pg, wetUntil: 0 }; renderBed(); }, place: function (i, t) { home.owned.meadow = home.owned.meadow || []; if (home.owned.meadow.indexOf('tree_' + t) < 0) home.owned.meadow.push('tree_' + t); home.placed['meadow' + i] = 'tree_' + t; renderGardenDecor(); }, trees: TREES, ripen: function (t) { treeL()[t] = 0; renderGardenDecor(); } };
+  // ===================== seed store: at most 15 packets of a kind; when everything is full, presents become furniture =====================
+  var SEED_MAX = 15;
+  function seedRoom(k) { return !!CROPS[k] && (garden.seeds[k] || 0) < SEED_MAX; }
+  function seedOpen() { return Object.keys(CROPS).filter(seedRoom); }
+  function seedAdd(k, n) { var have = garden.seeds[k] || 0, add = Math.max(0, Math.min(n || 1, SEED_MAX - have)); garden.seeds[k] = have + add; return add; }
+  // seeds as presents still come out of a shuffled bag, but only kinds that still have room
+  seedPick = function (pref) {
+    if (pref && seedRoom(pref)) return pref;
+    var open = seedOpen(); if (!open.length) return null;
+    garden.seedBag = (garden.seedBag || []).filter(seedRoom);
+    if (!garden.seedBag.length) { garden.seedBag = open.slice(); for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = garden.seedBag[i]; garden.seedBag[i] = garden.seedBag[j]; garden.seedBag[j] = t; } }
+    return garden.seedBag.pop();
+  };
+  // a piece of furniture you do not have yet, straight into the catalogue (not the one already on its way)
+  function furnNow() {
+    var pool = [];
+    for (var c in FURN) FURN[c].forEach(function (it) { if (home.owned[c] && home.owned[c].indexOf(it.id) < 0 && !(home.pending && home.pending.cat === c && home.pending.id === it.id)) pool.push([c, it]); });
+    if (!pool.length) return null;
+    var pk = pool[Math.floor(Math.random() * pool.length)]; home.owned[pk[0]].push(pk[1].id);
+    if (typeof renderCosy === "function") renderCosy(); if (decor && typeof renderCatalog === "function") renderCatalog();
+    return { cat: pk[0], id: pk[1].id, name: pk[1].name, it: pk[1] };
+  }
+  // one present: seeds if there is room (a favourite kind first), otherwise furniture, otherwise nothing at all
+  function seedOrFurn(pref, n, noFurn) {
+    var k = seedPick(pref);
+    if (k) { var a = seedAdd(k, n || 1); return { seed: k, n: a, text: (a > 1 ? a + " Tütchen " : "ein Tütchen ") + CROPS[k].name + "-Samen" }; }
+    if (noFurn) return { none: true, text: "" };
+    var f = furnNow(); if (f) return { furn: f, text: f.name + " für dein Zuhause" };
+    return { none: true, text: "" };
+  }
+  function furnIcon(f) { var it = f.it; return '<svg viewBox="0 0 ' + it.w + ' ' + it.h + '" aria-hidden="true" shape-rendering="crispEdges">' + it.svg + '</svg>'; }
+  window.__seedcap = { max: SEED_MAX, open: function () { return seedOpen(); }, fill: function () { Object.keys(CROPS).forEach(function (k) { garden.seeds[k] = SEED_MAX; }); }, give: seedOrFurn };
 
 
   /*TESTHOOK*/
