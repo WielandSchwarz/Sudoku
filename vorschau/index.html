@@ -1473,15 +1473,12 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .visitor-g.va.moving .wl, .visitor-g.va.moving .wr, .visitor-g.va.moving .tail { animation: none !important; }
 /* swimming: how deep each animal sits in the water, and rings around it at the waterline */
 .l-visitor.swim { --ins: .22; }
-.l-visitor.swim.v-duck { --ins: .12; } .l-visitor.swim.v-seal { --ins: .26; } .l-visitor.swim.v-turtle { --ins: .2; }
 .l-visitor.swim svg[data-va] { clip-path: inset(0 0 calc(var(--ins) * 100%) 0); }
-.l-ripple { opacity: 1 !important; animation: none !important; position: absolute; left: -12%; width: 124%; aspect-ratio: 40 / 6; top: calc((1 - var(--ins)) * 100% - 7%); pointer-events: none; }
-.l-ripple svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.l-ripple g { opacity: 0; animation: l-rip 1.2s steps(1) infinite; }
-.l-ripple .lr-b { animation-delay: -.8s; } .l-ripple .lr-c { animation-delay: -.4s; }
-@keyframes l-rip { 0% { opacity: 1; } 33.3%, 100% { opacity: 0; } }
-.l-visitor:not(.swim) .l-ripple { display: none; }
-.l-visitor.swim .l-ripple svg { clip-path: none; animation: none; }
+.va-rip { opacity: 1 !important; position: absolute; overflow: hidden; pointer-events: none; }
+.va-rip b { position: absolute; left: 0; top: 0; width: 800%; height: 100%; background-size: 100% 100%; image-rendering: pixelated; animation: l-ripf .96s steps(8) infinite; }
+@keyframes l-ripf { to { transform: translateX(-100%); } }
+.l-visitor:not(.swim) .va-rip { display: none; }
+.l-visitor.swim .va-rip svg { clip-path: none; animation: none; }
 
 /* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
 #scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
@@ -1893,6 +1890,11 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .gq-pop .cf-pgrid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 .gq-pop .cf-pnone { display: block; font-size: 1.4rem; line-height: 40px; color: #b8a080; }
 .gq-pop .gq-tile svg { image-rendering: pixelated; }
+
+/* the café's furnishing panel below the scene, like the catalogue in the house */
+.cf-cat.gift-ask { position: static; inset: auto; z-index: auto; background: none; display: block; margin: 10px 0 0; }
+.cf-cat[hidden] { display: none !important; }
+.cf-cat .ga-card { width: auto; max-width: none; max-height: none; overflow: visible; }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -6762,7 +6764,8 @@ window.__EXTRAS = true;
   };
   // outdoors: sky, the garden's tree line and the weather, like the house map
   // rings in the water around a swimming animal: the front of the ring and little wavelets drifting outwards
-  var LRIPPLE = '<svg viewBox="0 0 40 6" shape-rendering="crispEdges" aria-hidden="true"><g class="lr-a"><path fill="#3e78ac" opacity=".55" d="M1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM16 5h1v1h-1zM17 5h1v1h-1zM20 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM25 5h1v1h-1zM28 4h1v1h-1zM29 4h1v1h-1zM32 4h1v1h-1zM33 4h1v1h-1zM36 3h1v1h-1zM37 3h1v1h-1zM38 3h1v1h-1z"/><path fill="#cfe6f4" d="M6 3h1v1h-1zM10 3h1v1h-1zM14 3h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM26 3h1v1h-1zM30 3h1v1h-1zM34 3h1v1h-1z"/><path fill="#ffffff" d="M1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM8 3h1v1h-1zM9 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM20 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM25 4h1v1h-1zM28 3h1v1h-1zM29 3h1v1h-1zM32 3h1v1h-1zM33 3h1v1h-1zM36 2h1v1h-1zM37 2h1v1h-1zM38 2h1v1h-1z"/></g><g class="lr-b"><path fill="#3e78ac" opacity=".55" d="M1 3h1v1h-1zM2 3h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM11 4h1v1h-1zM12 4h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM19 5h1v1h-1zM20 5h1v1h-1zM23 5h1v1h-1zM24 5h1v1h-1zM27 4h1v1h-1zM28 4h1v1h-1zM31 4h1v1h-1zM32 4h1v1h-1zM35 3h1v1h-1zM37 3h1v1h-1zM38 3h1v1h-1z"/><path fill="#cfe6f4" d="M0 3h1v1h-1zM5 2h1v1h-1zM9 3h1v1h-1zM13 3h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM25 4h1v1h-1zM29 3h1v1h-1zM33 3h1v1h-1zM39 3h1v1h-1z"/><path fill="#ffffff" d="M0 2h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM11 3h1v1h-1zM12 3h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM27 3h1v1h-1zM28 3h1v1h-1zM31 3h1v1h-1zM32 3h1v1h-1zM35 2h1v1h-1zM37 2h1v1h-1zM38 2h1v1h-1zM39 2h1v1h-1z"/></g><g class="lr-c"><path fill="#3e78ac" opacity=".55" d="M0 3h1v1h-1zM1 3h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM14 4h1v1h-1zM15 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM23 5h1v1h-1zM26 4h1v1h-1zM27 4h1v1h-1zM30 4h1v1h-1zM31 4h1v1h-1zM34 4h1v1h-1zM35 3h1v1h-1zM38 3h1v1h-1zM39 3h1v1h-1z"/><path fill="#cfe6f4" d="M8 3h1v1h-1zM12 3h1v1h-1zM16 4h1v1h-1zM20 4h1v1h-1zM24 4h1v1h-1zM28 3h1v1h-1zM32 3h1v1h-1z"/><path fill="#ffffff" d="M0 2h1v1h-1zM1 2h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM14 3h1v1h-1zM15 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM26 3h1v1h-1zM27 3h1v1h-1zM30 3h1v1h-1zM31 3h1v1h-1zM34 3h1v1h-1zM35 2h1v1h-1zM38 2h1v1h-1zM39 2h1v1h-1z"/></g></svg>';
+  var LRIPPLE = '<b></b>', LRIP = {"png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAANCAYAAACHMDjlAAADGUlEQVR4nO2YO24jMQyGqcUWPoGxh8g2rvY0KYykmDlCDuAjjIsEW/g0rtwkhzB8AneTwtGurKXelMhZ6AMCGGObD5E/KQegsxim43mejueZOw6AWyy535OWB2Usp8u1el41fbSsTS1fHD0mpZ9FcrpcZ/3H4bfUjrSBlfs9KTkA5IvU9flWgxfzQ3m2nHmUIq3HOjdaz10X2b3BmUCpWKSJgiqelkvd50vS2cZAeV4clyoXUuKQghR9AORrRNrFvXh2zV8URdfYj53wbEBh34fLV2khuAYXld//YfBiOXDqg+pMJeijFGn68Gnd957Ei7s9u76lGlZKqZoNRm13/PVD2c/UF5R+MFx+sJhi0UXdrFd/bNSuh7Zt+iyF0hYXWA5c+qA8T259lCBVHzkXRk6NbNYrhfm3Z1fyAjELQVWYmrcerHAzAqXPkO2SXx+PL7/3APe3k5qCN21T//sHe16zHpQ2AfAcuPRBWRtufZQgVR85l0ZXf7XQR+yvqe8xDk6X67xZr9TP5/3efu/9dRgoEsJsa98AZdt4Op5nXUDTz/vrMOjXrhxcjReTM5aTLkDur5CPt3F8BIDDbjvYBaa+sWANpAWqMc82FtuGSQ2hmzZ1L8fE4mOzXiktMm2PQx92TJR+OPRRijR9hAhpx55/tfVh+sS0DnAfc1Qw5kHZRXh4mqb0kP/l420cXX5LC+8a2qHYTQFhhASA5ZQzcPX3AP7mYMd+2G29seZiN5HOybyJpOTjyt/XYznYi8Jnv3Sp+/zW0AeVLmxCPWZTQx9UcOuDAp3DYbcdYns5BZcd7dfOBdNuUQPmJpIibk5CAnI1S+6SCOEbdFSDyoY6R9fiMePHhiXAfW+kPnfZp1weOXHl2qmlk5TzyNWH6SfWVwqY7dr6qKV5gFvs5lmmLpZUTaRQJWEqEbUippmpPlMTqmHYIo9YwbmaPPW5FJZyeXKxBB2YcdT233oRmrgWC0CeJnLmh/iG7aQRaoLYAcAtfP26JA4pg6wjjyUtQh/Ul8ZUOyIPpdMJsQRxdzotoLg0djqdTqfTlE+Dc7bXAUUWLgAAAABJRU5ErkJggg==", "w": 50, "h": 13, "n": 8, "cy": 4};
+  (function () { var st = document.createElement('style'); st.textContent = '.va-rip b { background-image: url(' + LRIP.png + '); }'; document.head.appendChild(st); })();
   function outdoor(mid) {
     var se = season(), wt = weather.type, bliz = wt === "storm" && se === "winter";
     var skyCls = (document.getElementById("sky").className.match(/sky-(eve|night)/) || [""])[0];
@@ -7044,8 +7047,12 @@ window.__EXTRAS = true;
     if (!pool.length) return;
     var id = pick(pool), an = ALLANI[id], vb = an.vb.split(" ").map(Number), h = 34, w = vb[2] * h / vb[3];
     var swim = ["duck", "otter", "beaver", "seal", "turtle"].indexOf(id) >= 0 && !winter;
-    var el = lBtn("l-visitor va v-" + id + (swim ? " swim" : ""), scene, vaSvg(an, id) + (swim ? '<i class="l-ripple">' + LRIPPLE + '</i>' : ""), ANAME[id]);
+    var el = lBtn("l-visitor va v-" + id + (swim ? " swim" : ""), scene, vaSvg(an, id) + (swim ? '<i class="va-rip">' + LRIPPLE + '</i>' : ""), ANAME[id]);
     el.style.width = gx(w);
+    if (swim) {                                                            // the rings sit at the waterline, one sprite pixel to one game pixel
+      var ins = { duck: .12, seal: .26, turtle: .2 }[id] || .22, rp = el.querySelector(".va-rip"); el.style.setProperty("--ins", ins);
+      rp.style.width = (LRIP.w / w * 100) + "%"; rp.style.left = (-(LRIP.w - w) / 2 / w * 100) + "%"; rp.style.height = (LRIP.h / h * 100) + "%"; rp.style.top = (((1 - ins) * h - LRIP.cy) / h * 100) + "%";
+    }
     var v = pondV = { el: el, id: id, w: w, swim: swim, x: 0, y: 0, fed: false, done: false };
     pvPlace(v, swim ? 200 : -40, swim ? 130 : 132, 0);
     lastPondVisit = Date.now();
@@ -10252,6 +10259,16 @@ window.__EXTRAS = true;
       if (u) { var key = "th_" + t + "_" + k; if (!TIMG[key]) { var im = new Image(); im.src = u; TIMG[key] = im; } TIMG[k] = TIMG[key]; } else TIMG[k] = TIMG_DEF[k];
     });
   }
+  // the café is furnished in a panel below the scene, like the rooms in the house
+  var cfCat = document.createElement("div"); cfCat.className = "gift-ask pixtext gq-pop cf-cat"; cfCat.hidden = true;
+  (function () { var db = document.getElementById("decor-btn"); if (db) db.insertAdjacentElement("afterend", cfCat); })();
+  function cfCatClose() { cfCat.hidden = true; cfCat.innerHTML = ""; var db = document.getElementById("decor-btn"); db.setAttribute("aria-pressed", "false"); if (cafeOn) db.textContent = "Café einrichten"; }
+  function cfPanel(html, onClick) {
+    cfCat.innerHTML = '<div class="ga-card">' + html.replace('<div class="ga-row"><button type="button" class="ga-no" data-k="close">Fertig</button></div>', "") + '</div>'; cfCat.hidden = false;
+    var db = document.getElementById("decor-btn"); db.textContent = "Fertig eingerichtet"; db.setAttribute("aria-pressed", "true");
+    cfCat.onclick = function (e) { var b = e.target.closest("button"); if (b) onClick(b, { remove: cfCatClose }); };
+    return cfCat;
+  }
   function cfThemeAsk() {
     var cur = cfTheme(), keys = Object.keys(CF_THEMES);
     var tiles = keys.map(function (k) { return '<button type="button" data-t="' + k + '" class="gq-tile' + (k === cur ? " gq-sel" : "") + '"><img src="' + CF_THEMES[k].thumb + '" width="96" height="72" style="image-rendering:pixelated;width:96px;height:72px" alt=""><span>' + CF_THEMES[k].name + '</span></button>'; }).join("");
@@ -10259,7 +10276,7 @@ window.__EXTRAS = true;
     var floors = T.floors ? '<p class="ga-h">Boden</p><div class="ga-grid gq-grid" style="flex:none;overflow:visible">' + Object.keys(T.floors).map(function (k) { return '<button type="button" data-f="' + k + '" class="gq-tile' + (k === fsel ? " gq-sel" : "") + '"><img src="' + T.floors[k].thumb + '" width="64" height="40" style="image-rendering:pixelated;width:64px;height:40px" alt=""><span>' + T.floors[k].name + '</span></button>'; }).join("") + '</div>' : "";
     var psel = Object.keys(CF_PLANTS).length ? cfPlantSel() : null;
     var plants = psel ? '<p class="ga-h">Pflanzen</p><div class="ga-grid gq-grid cf-pgrid" style="flex:none;overflow:visible">' + psel.map(function (k, i) { return '<button type="button" data-s="' + i + '" class="gq-tile">' + cfPlantPic(k, 2) + '<span>Platz ' + (i + 1) + '</span></button>'; }).join("") + '</div>' : "";
-    gPopup('<p class="ga-h">Café einrichten</p><div class="ga-grid gq-grid" style="flex:none;overflow:visible">' + tiles + '</div>' + floors + plants + '<div class="ga-row"><button type="button" class="ga-no" data-k="close">Fertig</button></div>', function (b, el) {
+    cfPanel('<p class="ga-h">Café einrichten</p><div class="ga-grid gq-grid" style="flex:none;overflow:visible">' + tiles + '</div>' + floors + plants + '<div class="ga-row"><button type="button" class="ga-no" data-k="close">Fertig</button></div>', function (b, el) {
       if (b.dataset.s != null) { cfPlantAsk(+b.dataset.s); return; }
       if (b.dataset.f) {
         if (b.dataset.f !== cfL().floor) { cfL().floor = b.dataset.f; if (window.SudokuSave) window.SudokuSave(); cfRebuild(); beep([[659, .05], [784, .06]]); }
@@ -10279,7 +10296,7 @@ window.__EXTRAS = true;
   }
   document.addEventListener("click", function (e) {
     if (!cafeOn || cfGameOn) return; var b = e.target.closest && e.target.closest("#decor-btn"); if (!b) return;
-    e.stopImmediatePropagation(); e.preventDefault(); cfThemeAsk();
+    e.stopImmediatePropagation(); e.preventDefault(); if (!cfCat.hidden) cfCatClose(); else cfThemeAsk();
   }, true);
   var _cf_decorLabel = decorLabel;
   decorLabel = function () { if (cafeOn) { document.getElementById("decor-btn").textContent = "Café einrichten"; return; } _cf_decorLabel(); };
@@ -10294,7 +10311,7 @@ window.__EXTRAS = true;
   function cfPlantAsk(slot) {
     var sel = cfPlantSel(), keys = [null].concat(Object.keys(CF_PLANTS));
     var tiles = keys.map(function (k) { return '<button type="button" data-p="' + (k || "") + '" class="gq-tile' + (sel[slot] === k ? " gq-sel" : "") + '">' + cfPlantPic(k, 2) + '<span>' + (k ? CF_PLANTS[k].n : "Keine Pflanze") + '</span></button>'; }).join("");
-    gPopup('<p class="ga-h">Pflanze für Platz ' + (slot + 1) + '</p><div class="ga-grid gq-grid" style="flex:none;overflow:visible">' + tiles + '</div><div class="ga-row"><button type="button" class="ga-no" data-k="back">Zurück</button></div>', function (b, el) {
+    cfPanel('<p class="ga-h">Pflanze für Platz ' + (slot + 1) + '</p><div class="ga-grid gq-grid" style="flex:none;overflow:visible">' + tiles + '</div><div class="ga-row"><button type="button" class="ga-no" data-k="back">Zurück</button></div>', function (b, el) {
       if (b.dataset.p != null) { sel[slot] = b.dataset.p || null; if (window.SudokuSave) window.SudokuSave(); cfRebuild(); beep([[659, .05], [784, .06]]); }
       cfThemeAsk();
     });
@@ -10496,6 +10513,7 @@ window.__EXTRAS = true;
     setTimeout(function () { if (cafeOn) cfGlide(Math.min(cfScroll.scrollWidth - cfScroll.clientWidth, (300 - 90) / CF.w * cfScroll.scrollWidth), 1600); }, 700);
   }
   function closeCafe() {
+    cfCatClose();
     if (!cafeOn) return; cafeOn = false; cafeEl.hidden = true; setTimeout(function () { decorLabel(); }, 0);
     var g = cafeEl.querySelector(".cf-game"); if (g) { var x = g.querySelector(".bp-x"); if (x) x.click(); if (g.parentNode) g.remove(); cfGameOn = false; }
   }
