@@ -1666,8 +1666,7 @@ body.dz-on .dz-panel { display: block; }
 .md-finds img.no { opacity: .25; filter: grayscale(1); }
 .mw-n { align-self: center; font-weight: 800; color: #3a2414; }
 /* the wide living room: 360 wide, a camera slides it */
-#scene.wide-room.cam-on #room { left: calc(var(--camp, 0%) * -1); right: var(--camp, 0%); }
-#scene.wide-room.cam-on > .hamster, #scene.wide-room.cam-on > .thought, #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
+#scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #scene.wide-room #room > .wallpaper, #scene.wide-room #room > .floor, #scene.wide-room #room > .baseboard { right: -100%; }
 .wide-rug { position: absolute; image-rendering: pixelated; pointer-events: none; z-index: 1; display: block; }
 .wide-lay { position: absolute; z-index: 1; pointer-events: none; }
@@ -6970,10 +6969,29 @@ window.__EXTRAS = true;
     if (V.lL !== L) { V.l.setAttribute("transform", L); V.lL = L; }
     if (V.lR !== R) { V.r.setAttribute("transform", R); V.lR = R; }
   }
-  (function vaLoop(t) {
-    var els = document.querySelectorAll(".va");
-    for (var i = 0; i < els.length; i++) if (els[i].offsetParent !== null) vaFrame(els[i], t || 0);
-    requestAnimationFrame(vaLoop);
+  (function vaLoop(t) {                                             // frames only while an animal is actually on screen; otherwise a slow check
+    var els = document.querySelectorAll(".va"), any = false;
+    if (!document.hidden) for (var i = 0; i < els.length; i++) if (els[i].offsetParent !== null) { any = true; vaFrame(els[i], t || 0); }
+    if (any) requestAnimationFrame(vaLoop); else setTimeout(function () { requestAnimationFrame(vaLoop); }, 500);
+  })();
+  // battery: the endless ambient animations (curtains, leaves, breathing, clouds, sparkles) run in pixel steps,
+  // about six changes a second instead of a fresh picture every frame; they look the same in pixel art but the phone paints far less
+  (function () {
+    function secs(v) { var m = /([\d.]+)(m?s)/.exec(v || ""); return m ? parseFloat(m[1]) / (m[2] === "ms" ? 1000 : 1) : 0; }
+    function walk(rules) {
+      for (var i = 0; i < rules.length; i++) {
+        var r = rules[i];
+        if (r.cssRules && !r.style) { try { walk(r.cssRules); } catch (e) {} continue; }
+        var st = r.style; if (!st || !st.animationName || st.animationName === "none") continue;
+        if (String(st.animationIterationCount).indexOf("infinite") < 0) continue;
+        if (/steps/.test(st.animationTimingFunction)) continue;
+        var names = st.animationName.split(","), durs = st.animationDuration.split(","), tf = [];
+        for (var k = 0; k < names.length; k++) { var d = secs(durs[k % durs.length]); tf.push(d ? "steps(" + Math.max(2, Math.round(d * 6)) + ", end)" : "linear"); }
+        st.animationTimingFunction = tf.join(", ");
+      }
+    }
+    function run() { for (var i = 0; i < document.styleSheets.length; i++) { try { walk(document.styleSheets[i].cssRules); } catch (e) {} } }
+    run(); setTimeout(run, 3000);
   })();
   window.__va = { pond: function () { lastPondVisit = 0; garden.lastVisit = 0; if (pondV && pondV.el) { pondV.el.remove(); pondV = null; } spawnPondVisitor(true); }, frame: vaFrame };
 
@@ -15755,12 +15773,22 @@ window.__EXTRAS = true;
   // ---- the camera ----
   var camX = 0, camAnim = 0, camUser = 0;
   function camOn() { return place2 === "room" && !decor; }
-  function camSet(x) { camX = Math.max(0, Math.min(180, x)); scene.style.setProperty("--camp", (camX / 180 * 100).toFixed(3) + "%"); }
+  // the camera moves the room and the hamster with a compositor translate (no relayout, no restyling of the whole scene);
+  // the CSS variable for the little effects is only refreshed now and then
+  var camVarT = 0;
+  function camApply() {
+    var on = scene.classList.contains("cam-on"), px = on ? -camX / 180 * scene.clientWidth : 0, tr = px ? px.toFixed(2) + "px 0" : "";
+    wRoom.style.translate = tr;
+    for (var i = 0; i < scene.children.length; i++) { var ch = scene.children[i]; if (ch.classList.contains("hamster") || ch.classList.contains("thought")) ch.style.translate = tr; }
+    if (ham.parentNode !== scene && ham.style.translate) ham.style.translate = "";
+  }
+  function camVar() { camVarT = 0; scene.style.setProperty("--camp", (camX / 180 * 100).toFixed(3) + "%"); }
+  function camSet(x) { camX = Math.max(0, Math.min(180, x)); camApply(); if (!camVarT) camVarT = setTimeout(camVar, 300); }
   function camTo(x, ms) {
     cancelAnimationFrame(camAnim); var x0 = camX, x1 = Math.max(0, Math.min(180, x)), t0 = performance.now(); ms = Math.max(350, ms || 500);
     (function step(t) { var u = Math.min(1, (t - t0) / ms); camSet(x0 + (x1 - x0) * u); if (u < 1) camAnim = requestAnimationFrame(step); })(t0);
   }
-  function camState() { var on = camOn(); scene.classList.toggle("cam-on", on); if (!on && camX) { cancelAnimationFrame(camAnim); camSet(0); } }
+  function camState() { var on = camOn(); scene.classList.toggle("cam-on", on); if (!on && camX) { cancelAnimationFrame(camAnim); camSet(0); } camApply(); }
   var _w_showPlace = showPlace; showPlace = function (p) { var r = _w_showPlace.apply(this, arguments); camState(); return r; };
   setInterval(camState, 700); camState();
   // the hamster walks with the camera: positions stay in room units, the screen follows him when he leaves the view
@@ -16266,13 +16294,205 @@ window.__EXTRAS = true;
   function wkClose() { if (wkS) cancelAnimationFrame(wkS.raf); wkS = null; wkV.el.hidden = true; }
   wkV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); wkClose(); });
   window.__wreck = { open: wkOpen, go: function (d, c) { return wkGo(d, c); }, st: function () { return wkS && { L: wkS.L, pos: wkS.pos, air: wkS.air, keys: wkS.keys, coins: wkS.coins, over: wkS.over, busy: wkS.busy, items: wkS.items }; }, gen: wkGen, need: wkNeed };
-  var _mi_interrupt = interrupt; interrupt = function () { if (!window.__resume) { if (hbS) hClose(); if (dvS) dClose(); if (wkS) wkClose(); } return _mi_interrupt.apply(this, arguments); };
+  // ---------------------------------------------------------------- café: washing up
+  // One piece at a time, one step at a time: into the sink, a squirt of washing-up liquid where it is greasy, scrub it clean,
+  // rinse it under the tap, then put it in its place on the drying rack (plates in the slots, cups on the pegs,
+  // cutlery in the cup, the teapot on the shelf). No clock anywhere.
+  var dwV = mPov("mdw-pov", "Abwasch beenden"), dwS = null, DW = { cx: 86, cy: 64, R: 36 };
+  var DW_RACK = [{ t: "plate", x: 139, y: 62, w: 7, h: 26 }, { t: "plate", x: 148, y: 62, w: 7, h: 26 }, { t: "plate", x: 157, y: 62, w: 7, h: 26 },
+    { t: "cup", x: 139, y: 42, w: 11, h: 16 }, { t: "cup", x: 152, y: 42, w: 11, h: 16 }, { t: "fork", x: 165, y: 42, w: 11, h: 16 }, { t: "pot", x: 165, y: 66, w: 13, h: 22 }];
+  var DW_NAME = { plate: "Kuchenteller", plate2: "Frühstücksteller", cup: "Kaffeetasse", fork: "Kuchengabel", pot: "Teekanne" };
+  function dwShape(k, dx, dy) {                                     // top view of each piece in the sink: 0 outside, 1 outline, 2 body, 3 rim/edge, 4 inside
+    var d = Math.hypot(dx, dy);
+    if (k === "plate" || k === "plate2") return d > 29 ? 0 : d > 28 ? 1 : d > 21 ? 3 : d > 20 ? 5 : 2;
+    if (k === "cup") { if (dx >= 16 && dx <= 25 && Math.abs(dy) <= 5) { var hole = dx >= 19 && dx <= 22 && Math.abs(dy) <= 2; return hole ? 0 : (dx === 25 || Math.abs(dy) === 5 || (dx >= 18 && dx <= 23 && Math.abs(dy) === 3)) ? 1 : 3; } return d > 18 ? 0 : d > 17 ? 1 : d > 14 ? 3 : d > 13 ? 5 : 4; }
+    if (k === "fork") { var ax = Math.abs(dx);
+      if (dy >= -2 && dy <= 30) return ax > 3 ? 0 : ax === 3 ? 1 : 2;
+      if (dy >= -10 && dy < -2) return ax > 7 ? 0 : ax === 7 ? 1 : 2;
+      if (dy >= -30 && dy < -10) { if (ax > 7) return 0; var m = (dx + 7) % 4; return m === 3 ? 0 : (m === 0 || m === 2 || dy === -30) ? 1 : 2; }
+      return 0; }
+    if (k === "pot") { if (dx < -24 && dx >= -36 && Math.abs(dy) <= 4 - (dx + 24) / -6) return Math.abs(dy) >= 3 - (dx + 24) / -6 || dx === -36 ? 1 : 3;
+      if (dx > 24 && dx <= 34 && Math.abs(dy) <= 7) { var h2 = dx > 27 && dx < 32 && Math.abs(dy) < 5; return h2 ? 0 : (dx === 34 || Math.abs(dy) === 7 || (dx >= 27 && dx <= 32 && Math.abs(dy) === 5)) ? 1 : 3; }
+      return d > 27 ? 0 : d > 26 ? 1 : d > 12 ? 2 : d > 11 ? 1 : 4; }
+    return 0;
+  }
+  function dwRack(k) { return k === "plate2" ? "plate" : k; }
+  function dwMake(k) {                                              // the dirt on one piece: a wear value per pixel, higher means stubborn
+    var R = DW.R, N = R * 2, dirt = new Float32Array(N * N), kind = new Uint8Array(N * N), blobs = [];
+    var add = function (x, y, r, hp, ty) { blobs.push([x, y, r, hp, ty]); };
+    if (k === "plate") { for (var i = 0; i < 5; i++) add(Math.random() * 30 - 15, Math.random() * 30 - 15, 2 + Math.random() * 2, 1, 1); add(Math.random() * 16 - 8, Math.random() * 16 - 8, 6, 1, 2); }
+    if (k === "plate2") { add(-6 + Math.random() * 6, -4 + Math.random() * 8, 9, 1, 3); add(8, 6, 5, 1, 3); add(-10, 10, 2, 1, 1); }
+    if (k === "cup") { for (var a = 0; a < 26; a++) { var an = a / 26 * Math.PI * 2; add(Math.cos(an) * 11, Math.sin(an) * 11, 1.6, 1, 4); } add(0, 0, 5, 1.5, 4); }
+    if (k === "fork") { add(0, -18, 7, 1, 2); add(0, -6, 4, 1, 1); add(1, 8, 2, 1, 2); }
+    if (k === "pot") { add(0, 0, 10, 1.4, 5); add(-4, 3, 4, 1.8, 5); }
+    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+      var dx = x - R, dy = y - R, sh = dwShape(k, dx, dy); if (!sh || sh === 1) continue; if (k === "pot" && sh !== 4) continue;
+      blobs.forEach(function (b) { var dd = Math.hypot(dx - b[0], dy - b[1]); if (dd <= b[2] + (((x * 7 + y * 13) % 5) - 2) * .25) { dirt[y * N + x] = Math.max(dirt[y * N + x], b[3]); kind[y * N + x] = b[4]; } });
+    }
+    var tot = 0; for (var j = 0; j < dirt.length; j++) if (dirt[j] > 0) tot++;
+    return { k: k, dirt: dirt, kind: kind, tot: tot, foam: [], greasy: k === "plate2", soaped: false, tool: k === "pot" ? "brush" : "sponge" };
+  }
+  function dwStart() {
+    var pool = ["plate", "cup", "fork", "plate2", "pot"];
+    dwS = { stack: pool.slice().sort(function () { return Math.random() - .5; }), cur: null, step: "take", rack: DW_RACK.map(function () { return null; }), wrong: 0, fx: [], drag: null, rub: null, rinse: 0, squirt: 0, done: 0, over: false, raf: 0, shake: 0 };
+    dwV.card.hidden = true; dwStep("take");
+  }
+  function dwStep(st) {
+    dwS.step = st;
+    mBan(dwV, { take: "Ins Becken", soap: "Spüli", scrub: "Schrubben", rinse: "Abspülen", put: "Einräumen" }[st]);
+  }
+  function dwLeft(it) { var n = 0; for (var i = 0; i < it.dirt.length; i++) if (it.dirt[i] > 0) n++; return n; }
+  // tiny side views for the tray and the rack
+  function dwMini(c, k, x, y, upright) {
+    var O = "#3a2414", W = "#f8f4ec", S = "#d8d0c4";
+    if (k === "plate" || k === "plate2") { if (upright) { mR(c, x, y, 5, 24, O); mR(c, x + 1, y + 1, 3, 22, W); mR(c, x + 3, y + 1, 1, 22, S); mR(c, x + 1, y + 3, 3, 1, k === "plate" ? "#6a9ad8" : "#e8650c"); mR(c, x + 1, y + 20, 3, 1, k === "plate" ? "#6a9ad8" : "#e8650c"); } else { mR(c, x, y, 26, 4, O); mR(c, x + 1, y + 1, 24, 2, W); mR(c, x + 1, y + 2, 24, 1, S); mR(c, x + 3, y + 1, 20, 1, k === "plate" ? "#6a9ad8" : "#e8650c"); } return; }
+    if (k === "cup") { if (upright) { mR(c, x, y, 9, 9, O); mR(c, x + 1, y + 1, 7, 7, W); mR(c, x + 6, y + 1, 2, 7, S); mR(c, x + 1, y + 6, 7, 1, "#e8650c"); mR(c, x + 3, y - 2, 3, 2, O); } else { mR(c, x, y, 9, 8, O); mR(c, x + 1, y + 1, 7, 6, W); mR(c, x + 6, y + 1, 2, 6, S); mR(c, x + 1, y + 2, 7, 1, "#e8650c"); mR(c, x + 9, y + 2, 3, 4, O); mR(c, x + 9, y + 3, 2, 2, W); } return; }
+    if (k === "fork") { mR(c, x, y, 4, 14, O); mR(c, x + 1, y + 1, 2, 12, "#c8d0d8"); mR(c, x + 1, y + 1, 1, 12, "#eef2f6"); return; }
+    if (k === "pot") { mR(c, x + 1, y + 2, 12, 10, O); mR(c, x + 2, y + 3, 10, 8, W); mR(c, x + 9, y + 3, 3, 8, S); mR(c, x + 2, y + 6, 10, 1, "#6fae5a"); mR(c, x + 5, y, 4, 3, O); mR(c, x + 6, y + 1, 2, 1, W); mR(c, x - 2, y + 4, 3, 3, O); mR(c, x - 1, y + 5, 2, 1, W); mR(c, x + 13, y + 4, 2, 5, O); return; }
+  }
+  function dwArrow(c, x, y, t, dir) {                                   // a small bouncing arrow pointing at the next thing to touch
+    var b = Math.round(Math.sin(t / 150) * 2), K = "#3a2414", Y = "#ffd34a";
+    if (dir === "d") { y += b; mR(c, x - 2, y - 8, 5, 6, K); mR(c, x - 1, y - 7, 3, 5, Y); for (var i = 0; i < 4; i++) { mR(c, x - 4 + i, y - 2 + i, 9 - i * 2, 1, K); if (i < 3) mR(c, x - 3 + i, y - 2 + i, 7 - i * 2, 1, Y); } }
+    else { x += b; mR(c, x - 8, y - 2, 6, 5, K); mR(c, x - 7, y - 1, 5, 3, Y); for (var j = 0; j < 4; j++) { mR(c, x - 2 + j, y - 4 + j, 1, 9 - j * 2, K); if (j < 3) mR(c, x - 2 + j, y - 3 + j, 1, 7 - j * 2, Y); } }
+  }
+  function dwDraw(t) {
+    if (!dwS) return; var c = dwV.c, S = dwS; c.clearRect(0, 0, 180, 135);
+    // café kitchen: cream tiles, a wooden counter
+    for (var ty = 0; ty < 92; ty += 10) for (var tx = 0; tx < 180; tx += 10) { mR(c, tx, ty, 10, 10, "#d8c8a8"); mR(c, tx + 1, ty + 1, 9, 9, ((tx + ty) / 10) % 2 ? "#f4ead4" : "#efe2c8"); mR(c, tx + 1, ty + 1, 9, 1, "#fbf4e4"); }
+    mR(c, 0, 0, 180, 2, "#b88a5a");
+    mR(c, 0, 92, 180, 43, "#3a2414"); mR(c, 0, 93, 180, 5, "#c8945a"); mR(c, 0, 93, 180, 1, "#e0b07a"); for (var px = 0; px < 180; px++) mR(c, px, 98, 1, 37, (px % 23 < 1) ? "#6a4424" : (px * 7 % 11 < 2 ? "#8a5a32" : "#9a6638"));
+    // the tray with the dirty pieces
+    mR(c, 2, 89, 34, 4, "#3a2414"); mR(c, 3, 90, 32, 2, "#a87448");
+    var sy = 89; S.stack.forEach(function (k, i) { var h = k === "plate" || k === "plate2" ? 4 : k === "cup" ? 8 : k === "fork" ? 4 : 12; sy -= h; if (k === "fork") { mR(c, 6, sy, 18, 4, "#3a2414"); mR(c, 7, sy + 1, 16, 2, "#c8d0d8"); mR(c, 7, sy + 1, 16, 1, "#eef2f6"); } else dwMini(c, k, k === "cup" ? 12 : k === "pot" ? 10 : 5, sy, false);
+      if (i === S.stack.length - 1 && S.step === "take" && !S.drag) { var gl = Math.floor(t / 300) % 2; if (gl) { mR(c, 3, sy - 1, 30, 1, "#ffd34a"); } } });
+    if (S.step === "take" && S.stack.length && !S.drag) dwArrow(c, 18, sy - 4, t, "d");
+    // washing-up liquid
+    var sq = S.step === "soap"; mR(c, 38, 70, 10, 22, "#3a2414"); mR(c, 39, 72, 8, 19, "#6fc05a"); mR(c, 39, 72, 2, 19, "#a8e890"); mR(c, 45, 72, 2, 19, "#4a9a3a"); mR(c, 41, 66, 4, 5, "#3a2414"); mR(c, 42, 67, 2, 3, "#f4f0e6"); mR(c, 40, 78, 6, 6, "#fff8ec"); mR(c, 41, 80, 4, 1, "#e8650c"); mR(c, 41, 82, 3, 1, "#e8650c");
+    if (sq && !S.squirt) dwArrow(c, 43, 62, t, "d");
+    // the sink: a steel basin let into the counter, soapy water seen from above around the piece
+    mR(c, 52, 91, 72, 6, "#3a2414"); mR(c, 53, 92, 70, 4, "#a8b0b8"); mR(c, 53, 92, 70, 1, "#d8e0e8");
+    // the tap: on the right of the basin, the spout above the middle
+    mR(c, 119, 30, 6, 62, "#3a2414"); mR(c, 120, 31, 4, 61, "#a8b0b8"); mR(c, 120, 31, 1, 61, "#e8eef4"); mR(c, 98, 28, 27, 6, "#3a2414"); mR(c, 99, 29, 25, 4, "#a8b0b8"); mR(c, 99, 29, 25, 1, "#e8eef4"); mR(c, 97, 28, 6, 9, "#3a2414"); mR(c, 98, 29, 4, 7, "#a8b0b8");
+    var lv = S.rinse > 0 ? 3 : 0; mR(c, 124, 44 - lv, 10, 4, "#3a2414"); mR(c, 125, 45 - lv, 8, 2, "#d8463c"); mR(c, 131, 42 - lv, 4, 7, "#3a2414"); mR(c, 132, 43 - lv, 2, 5, "#f06a5a");   // the lever
+    if (S.step === "rinse" && !S.rinse) dwArrow(c, 140, 45, t, "r");
+    // the drying rack
+    mR(c, 136, 38, 43, 54, "#3a2414"); mR(c, 137, 39, 41, 52, "#c8a070"); mR(c, 137, 39, 41, 1, "#e0bc8a"); mR(c, 138, 40, 39, 50, "#e8d8b8");
+    mR(c, 137, 59, 41, 2, "#a87448"); mR(c, 137, 89, 41, 2, "#a87448");
+    DW_RACK.forEach(function (r, i) {
+      var it = S.rack[i], hl = S.drag && !it;
+      if (r.t === "plate") { for (var b = 0; b < 2; b++) mR(c, r.x - 1 + b * 8, 62, 1, 27, "#7a5030"); }
+      if (r.t === "cup") { mR(c, r.x + 4, 44, 2, 6, "#7a5030"); mR(c, r.x + 3, 44, 4, 1, "#7a5030"); }
+      if (r.t === "fork") { mR(c, r.x + 1, 46, 9, 12, "#3a2414"); mR(c, r.x + 2, 47, 7, 10, "#a8b0b8"); mR(c, r.x + 2, 47, 2, 10, "#d8e0e8"); }
+      if (r.t === "pot") { mR(c, r.x, 86, 13, 2, "#7a5030"); }
+      if (hl) { c.globalAlpha = .35 + .2 * Math.sin(t / 200); mR(c, r.x - 1, r.y - 1, r.w + 2, r.h + 2, "#fff4b0"); c.globalAlpha = 1; }
+      if (it) { if (r.t === "plate") dwMini(c, it, r.x + 1, 64, true); else if (r.t === "cup") dwMini(c, it, r.x + 1, 50, true); else if (r.t === "fork") { mR(c, r.x + 3, 40, 4, 10, "#3a2414"); mR(c, r.x + 4, 41, 2, 8, "#eef2f6"); mR(c, r.x + 4, 39, 1, 2, "#3a2414"); mR(c, r.x + 6, 39, 1, 2, "#3a2414"); } else dwMini(c, it, r.x, 74, false); }
+    });
+    // the piece in the sink, big, in a round of soapy water
+    var it = S.cur;
+    if (it && S.step !== "put") {
+      for (var yy = -DW.R; yy < DW.R; yy++) for (var xx = -DW.R; xx < DW.R; xx++) { var dd = Math.hypot(xx, yy); if (dd > DW.R) continue;
+        var foamy = ((xx * 3 + yy * 5 + Math.floor(t / 300)) % 17 === 0); mR(c, DW.cx + xx, DW.cy + yy, 1, 1, dd > DW.R - 1 ? "#3a2414" : dd > DW.R - 3 ? "#8a9aa8" : foamy ? "#f4fbff" : (it.soaped || S.squirt ? ((xx + yy) % 3 ? "#cfe6f2" : "#e4f2fa") : ((xx * 2 + yy) % 7 ? "#7aaed0" : "#9ac6e2"))); }
+      var N = DW.R * 2;
+      for (var y2 = 0; y2 < N; y2++) for (var x2 = 0; x2 < N; x2++) {
+        var dx = x2 - DW.R, dy = y2 - DW.R, sh = dwShape(it.k, dx, dy); if (!sh) continue;
+        var lt = (-dx - dy) / 40, col;
+        if (sh === 1) col = "#3a2414";
+        else if (it.k === "fork") col = lt > .3 ? "#f4f8fc" : lt > -.2 ? "#c8d0d8" : "#9aa4ae";
+        else if (sh === 4) col = it.k === "pot" ? (Math.hypot(dx, dy) > 8 ? "#5a4434" : "#4a3628") : (lt > .1 ? "#f4efe6" : "#e4dcd0");
+        else if (sh === 5) col = it.k === "plate" ? "#6a9ad8" : it.k === "plate2" ? "#e8650c" : "#d8d0c4";
+        else if (sh === 3) col = lt > .35 ? "#ffffff" : lt > -.3 ? "#f4efe6" : "#d8d0c4";
+        else col = lt > .4 ? "#ffffff" : lt > -.25 ? "#f8f4ec" : "#e0d8cc";
+        if (it.k === "cup" && sh === 3 && Math.hypot(dx, dy) > 15 && Math.hypot(dx, dy) < 16.5) col = "#e8650c";
+        if (it.k === "pot" && sh === 2 && Math.abs(Math.hypot(dx, dy) - 19) < 1) col = "#6fae5a";
+        var dv = it.dirt[y2 * N + x2];
+        if (dv > 0) { var kd = it.kind[y2 * N + x2]; col = kd === 1 ? ((x2 + y2) % 2 ? "#c8945a" : "#a87448") : kd === 2 ? (dv > .5 ? "#fff8f0" : "#f4e8dc") : kd === 3 ? ((x2 * 3 + y2) % 4 ? "#f0d870" : "#fff0a0") : kd === 4 ? (dv > 1.1 ? "#5a3418" : "#8a5a32") : (dv > 1.2 ? "#3a2010" : "#6a4020");
+          if (kd === 2 && (x2 + y2) % 5 === 0) col = "#e8c0c8"; }
+        mR(c, DW.cx + dx, DW.cy + dy, 1, 1, col);
+      }
+      it.foam.forEach(function (f) { mR(c, f[0] - 1, f[1], 3, 1, "#ffffff"); mR(c, f[0], f[1] - 1, 1, 3, "#ffffff"); mR(c, f[0], f[1], 1, 1, "#d8eef8"); });
+      if (S.step === "scrub") {                                         // sponge or bottle brush under the finger; before the first rub it shows the motion
+        var first = !S.rubbed, p = S.rub || (first ? [DW.cx + Math.sin(t / 220) * 10, DW.cy + Math.cos(t / 330) * 5] : null);
+        if (p) { c.globalAlpha = S.rub ? 1 : .8;
+          if (it.tool === "sponge") { mR(c, p[0] - 7, p[1] - 5, 14, 10, "#3a2414"); mR(c, p[0] - 6, p[1] - 4, 12, 5, "#ffd34a"); mR(c, p[0] - 6, p[1] + 1, 12, 3, "#6fc05a"); mR(c, p[0] - 5, p[1] - 3, 2, 1, "#fff1a8"); mR(c, p[0] + 1, p[1] - 2, 1, 1, "#e8b84a"); }
+          else { mR(c, p[0] - 1, p[1] - 22, 3, 18, "#3a2414"); mR(c, p[0], p[1] - 21, 1, 16, "#a8b0b8"); mR(c, p[0] - 4, p[1] - 5, 9, 10, "#3a2414"); for (var bb = 0; bb < 4; bb++) mR(c, p[0] - 3, p[1] - 4 + bb * 2, 7, 1, bb % 2 ? "#f4f0e6" : "#d8d0c4"); }
+          c.globalAlpha = 1; }
+        var pct = 1 - dwLeft(it) / Math.max(1, it.tot);                   // a ring of gold dots round the basin fills as it gets clean
+        for (var a = 0; a < 40; a++) { if (a / 40 > pct) break; var an = -Math.PI / 2 + a / 40 * Math.PI * 2; mR(c, DW.cx + Math.cos(an) * (DW.R + 3) - 1, DW.cy + Math.sin(an) * (DW.R + 3) - 1, 2, 2, pct >= .97 ? "#6fd04a" : "#ffd34a"); }
+      }
+      if (S.step === "soap" && S.squirt > 0) { S.squirt -= .016; for (var q = 0; q < 8; q++) { var u = 1 - S.squirt / .9 - q * .05; if (u > 0 && u < 1) mR(c, 44 + (DW.cx - 44) * u, 66 - Math.sin(u * Math.PI) * 18 + (DW.cy - 66) * u, 2, 2, "#8ae070"); } if (S.squirt <= 0) { S.squirt = 0; it.soaped = true; for (var f2 = 0; f2 < 10; f2++) it.foam.push([DW.cx + Math.random() * 30 - 15, DW.cy + Math.random() * 30 - 15]); dwStep("scrub"); } }
+      if (S.rinse > 0) { S.rinse -= .016; for (var r2 = 0; r2 < 24; r2++) mR(c, 98 + (r2 % 3), 36 + ((r2 * 4 + t / 12) % (DW.cy - 36)), 2, 3, r2 % 2 ? "#a8d8f0" : "#e8f6ff");
+        if (it.foam.length && Math.random() < .5) it.foam.shift();
+        if (S.rinse <= 0) { S.rinse = 0; it.foam = []; for (var s3 = 0; s3 < 14; s3++) S.fx.push({ x: DW.cx + Math.random() * 40 - 20, y: DW.cy + Math.random() * 30 - 15, vx: (Math.random() - .5) * 20, vy: -20 - Math.random() * 20, life: .8, c: s3 % 2 ? "#ffffff" : "#ffd34a" }); beep([[880, .05], [1175, .05], [1568, .1]]); dwStep("put"); } }
+    }
+    // the clean piece in the hand on its way to the rack
+    if (it && S.step === "put") {
+      var hp = S.drag ? S.drag : [DW.cx, DW.cy - 4 + Math.sin(t / 300) * 2];
+      if (S.back > 0) { S.back = Math.max(0, S.back - .05); hp = [S.bx + (DW.cx - S.bx) * (1 - S.back), S.by + (DW.cy - 4 - S.by) * (1 - S.back)]; }
+      var rk = dwRack(it.k);
+      if (rk === "plate") dwMini(c, it.k, hp[0] - 3, hp[1] - 12, true); else if (rk === "cup") dwMini(c, it.k, hp[0] - 5, hp[1] - 4, true); else if (rk === "fork") dwMini(c, it.k, hp[0] - 2, hp[1] - 7, false); else dwMini(c, it.k, hp[0] - 7, hp[1] - 6, false);
+      if (!S.drag && !S.back) { var ph = (t / 600) % 1; if (ph < .5) { mR(c, hp[0] + 8, hp[1] - 10, 1, 3, "#ffffff"); mR(c, hp[0] + 7, hp[1] - 9, 3, 1, "#ffffff"); } dwArrow(c, 132, 66, t, "r"); }
+    }
+    S.fx = S.fx.filter(function (f) { f.life -= .016; f.x += f.vx * .016; f.y += f.vy * .016; f.vy += 30 * .016; c.globalAlpha = Math.min(1, f.life * 2); mR(c, f.x, f.y, f.b ? 2 : 1, f.b ? 2 : 1, f.c); c.globalAlpha = 1; return f.life > 0; });
+    // how many are left: little dish icons, top left
+    var all = 5, clean = S.rack.filter(Boolean).length; for (var n = 0; n < all; n++) { var ix = 4 + n * 9; mR(c, ix, 6, 8, 8, "#3a2414"); mR(c, ix + 1, 7, 6, 6, n < clean ? "#6fd04a" : "#f8f4ec"); if (n < clean) { mR(c, ix + 2, 9, 1, 1, "#fff8ec"); mR(c, ix + 3, 10, 1, 1, "#fff8ec"); mR(c, ix + 4, 9, 1, 1, "#fff8ec"); mR(c, ix + 5, 8, 1, 1, "#fff8ec"); } }
+    dwS.raf = requestAnimationFrame(dwDraw);
+  }
+  function dwHit(p, r) { return p[0] >= r.x - 3 && p[0] <= r.x + r.w + 3 && p[1] >= r.y - 3 && p[1] <= r.y + r.h + 3; }
+  dwV.cv.addEventListener("pointerdown", function (e) {
+    if (!dwS || dwS.over) return; var S = dwS, p = mPt(dwV, e); try { dwV.cv.setPointerCapture(e.pointerId); } catch (x) {}
+    if (S.step === "take") { if (p[0] < 40 && p[1] > 50 && p[1] < 96 && S.stack.length) { S.drag = p; S.dragK = S.stack[S.stack.length - 1]; beep([[300, .04]]); } return; }
+    if (S.step === "soap") { if (p[0] > 34 && p[0] < 52 && p[1] > 60 && p[1] < 94 && !S.squirt) { S.squirt = .9; beep([[500, .05], [300, .08]]); } return; }
+    if (S.step === "scrub") { S.rub = p; S.rubbed = true; dwRub(p, p); return; }
+    if (S.step === "rinse") { if (p[0] > 115 && p[0] < 140 && p[1] > 34 && p[1] < 56 && !S.rinse) { S.rinse = 1.2; beep([[200, .05], [260, .05]]); } return; }
+    if (S.step === "put") { if (Math.hypot(p[0] - DW.cx, p[1] - DW.cy) < 30) S.drag = p; return; }
+  });
+  dwV.cv.addEventListener("pointermove", function (e) {
+    if (!dwS) return; var S = dwS, p = mPt(dwV, e);
+    if (S.drag) { S.drag = p; return; }
+    if (S.rub) { var last = S.rub; S.rub = p; dwRub(last, p); }
+  });
+  function dwUp(e) {
+    if (!dwS) return; var S = dwS, p = e ? mPt(dwV, e) : S.drag;
+    if (S.step === "take" && S.drag) { var inSink = Math.hypot(p[0] - DW.cx, p[1] - DW.cy) < DW.R + 6; S.drag = null;
+      if (inSink) { S.stack.pop(); S.cur = dwMake(S.dragK); beep([[260, .05], [180, .1]]); for (var k = 0; k < 10; k++) S.fx.push({ x: DW.cx + Math.random() * 40 - 20, y: DW.cy + 20, vx: (Math.random() - .5) * 40, vy: -30 - Math.random() * 20, life: .7, c: "#cfe6f2", b: 1 }); dwStep(S.cur.greasy ? "soap" : "scrub"); S.rubbed = false; } }
+    else if (S.step === "scrub") S.rub = null;
+    else if (S.step === "put" && S.drag) {
+      var rk = dwRack(S.cur.k), idx = -1; DW_RACK.forEach(function (r, i) { if (idx < 0 && dwHit(p, r)) idx = i; }); S.drag = null;
+      if (idx >= 0 && DW_RACK[idx].t === rk && !S.rack[idx]) {
+        S.rack[idx] = S.cur.k; S.cur = null; beep([[1047, .04], [1319, .04], [1568, .08]]); var r = DW_RACK[idx];
+        for (var s2 = 0; s2 < 10; s2++) S.fx.push({ x: r.x + r.w / 2, y: r.y + r.h / 2, vx: (Math.random() - .5) * 40, vy: -20 - Math.random() * 20, life: .7, c: "#ffd34a" });
+        if (S.stack.length) dwStep("take"); else dwEnd();
+      } else if (idx >= 0 || p[0] > 132) { S.wrong++; S.back = 1; S.bx = p[0]; S.by = p[1]; beep([[160, .08], [130, .1]]); mBan(dwV, rk === "plate" ? "Teller gehören in die Schlitze" : rk === "cup" ? "Tassen kommen auf die Haken" : rk === "fork" ? "Besteck kommt in den Becher" : "Die Kanne gehört aufs Brett"); }
+    }
+  }
+  dwV.cv.addEventListener("pointerup", dwUp); dwV.cv.addEventListener("pointercancel", function () { if (dwS) { dwS.rub = null; dwS.drag = null; } });
+  function dwRub(a, b) {
+    var S = dwS, it = S.cur, N = DW.R * 2, n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))), rr = it.tool === "brush" ? 4 : 5, hit = false;
+    for (var s = 0; s <= n; s++) { var x = a[0] + (b[0] - a[0]) * s / n - DW.cx + DW.R, y = a[1] + (b[1] - a[1]) * s / n - DW.cy + DW.R;
+      for (var yy = -rr; yy <= rr; yy++) for (var xx = -rr; xx <= rr; xx++) { if (xx * xx + yy * yy > rr * rr) continue; var ix = Math.round(x + xx), iy = Math.round(y + yy); if (ix < 0 || iy < 0 || ix >= N || iy >= N) continue; var j = iy * N + ix; if (it.dirt[j] > 0) { it.dirt[j] = Math.max(0, it.dirt[j] - .2); hit = true; } } }
+    if (hit && Math.random() < .3) { it.foam.push([b[0] + Math.random() * 8 - 4, b[1] + Math.random() * 8 - 4]); if (it.foam.length > 40) it.foam.shift(); S.fx.push({ x: b[0], y: b[1], vx: (Math.random() - .5) * 10, vy: -16, life: .9, c: "#ffffff" }); }
+    if (hit && Math.random() < .25) beep([[1400 + Math.random() * 400, .02]]);
+    if (dwLeft(it) <= it.tot * .05) { for (var j2 = 0; j2 < it.dirt.length; j2++) it.dirt[j2] = 0; S.rub = null; beep([[660, .05], [880, .08]]); dwStep("rinse"); }
+  }
+  function dwEnd() {
+    var S = dwS; S.over = true; var st = S.wrong === 0 ? 3 : S.wrong <= 2 ? 2 : 1, M = mL("dishes"); M.best = Math.max(M.best || 0, st);
+    for (var k = 0; k < 30; k++) S.fx.push({ x: 157, y: 64, vx: (Math.random() - .5) * 90, vy: -30 - Math.random() * 40, life: 1.1, c: ["#ffd34a", "#ffffff", "#8ad86a"][k % 3] });
+    setTimeout(function () { if (!dwS) return;
+      dwV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Alles blitzblank!</p>' + mStars(st) + '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Noch ein Tablett</button></div></div>';
+      dwV.card.hidden = false; }, 1100);
+  }
+  dwV.card.addEventListener("click", function (e) { e.stopPropagation(); var b = e.target.closest("button"); if (!b) return; if (b.dataset.a === "again") { dwStart(); } else dwClose(); });
+  function dwOpen() { dwV.el.hidden = false; dwStart(); cancelAnimationFrame(dwS.raf); dwS.raf = requestAnimationFrame(dwDraw); }
+  function dwClose() { if (dwS) cancelAnimationFrame(dwS.raf); dwS = null; dwV.el.hidden = true; }
+  dwV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); dwClose(); });
+  window.__dish = { open: dwOpen, rub: function (a, b) { dwRub(a, b); }, map: function () { var it = dwS.cur, N = DW.R * 2, o = []; for (var j = 0; j < it.dirt.length; j++) if (it.dirt[j] > 0) o.push([j % N - DW.R, Math.floor(j / N) - DW.R, it.dirt[j]]); return o; }, st: function () { return dwS && { rubS: !!dwS.rub, drag: !!dwS.drag, step: dwS.step, stack: dwS.stack.slice(), cur: dwS.cur && dwS.cur.k, rack: dwS.rack.slice(), wrong: dwS.wrong, left: dwS.cur ? dwLeft(dwS.cur) : 0, over: dwS.over }; } };
+  var _mi_interrupt = interrupt; interrupt = function () { if (!window.__resume) { if (hbS) hClose(); if (dvS) dClose(); if (wkS) wkClose(); if (dwS) dwClose(); } return _mi_interrupt.apply(this, arguments); };
   window.__harbor = { open: hOpen, st: function () { return hbS && { lv: hbS.lv, moves: hbS.moves, won: hbS.won, p: hbS.p.map(function (p) { return [p.o, p.L, p.c, p.r]; }) }; }, move: function (i, n) { var p = hbS.p[i], rg = hRange(i); n = Math.max(rg[0], Math.min(rg[1], n)); if (n) { if (p.o === "h") p.c += n; else p.r += n; hbS.moves++; } if (i === 0 && p.c === 3) hbS.won = true; return n; } };
   window.__dive = { open: dOpen, st: function () { return dvS && { air: dvS.air, tr: dvS.tr, tiles: dvS.tiles, busy: dvS.busy, over: dvS.over }; }, dig: function (c, r) { return dDig(c, r); } };
   // in the preview: two buttons to try them
   (function () {
     var row = document.querySelector(".demo .row"); if (!row) return;
-    [["Hafen-Rangieren testen", function () { hOpen(); }], ["Wrack erkunden testen", function () { wkOpen(); }]].forEach(function (b) {
+    [["Hafen-Rangieren testen", function () { hOpen(); }], ["Wrack erkunden testen", function () { wkOpen(); }], ["Abwasch testen", function () { dwOpen(); }]].forEach(function (b) {
       var el = document.createElement("button"); el.type = "button"; el.className = "btn"; el.textContent = b[0];
       el.addEventListener("click", function () { if (window.Nav && window.Nav.current !== "hamster" && window.Nav.go) window.Nav.go("hamster"); b[1](); window.scrollTo({ top: 0, behavior: "smooth" }); });
       row.insertBefore(el, row.firstChild);
