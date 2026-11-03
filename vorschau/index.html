@@ -14265,7 +14265,7 @@ window.__EXTRAS = true;
   window.__mush = { open: function () { return window.__world.warp("forest"); }, st: function () { return mu && { page: mu.page, items: mu.sc.items.slice(), st: mu.sc.st.slice(), found: mu.found, card: !muWrap.hidden, hx: H.x, hy: H.y }; }, data: function () { return muL(); },
     fill: function (k) { if (mu) { mu.sc.items = MSPOTS.map(function (sp) { return k || muPick(sp.t, mu.sc.se); }); mu.sc.st = MSPOTS.map(function () { return 0; }); } }, spots: MSPOTS, fresh: function () { delete muL().scene; mu = null; } };
   // ===================== the stoker of the MS Pausbacke (preview, turn based) =====================
-  // The maiden voyage after the real route of 1912: Southampton, Cherbourg, Queenstown, across the Atlantic to New York.
+  // The maiden voyage after the real route of 1912: Southamsterton, Schnüffelbourg, Backentown, across the Atlantic to Nuss York.
   // Every leg has an order from the bridge (stop, half or full ahead), some need the steam whistle. The player plans each leg in peace:
   // shovels of coal, the red wheel (closed / half / full), the blow-off lever, pump strokes, the whistle cord, the low-pressure turbine.
   // A ghost needle shows where the pressure will end up. "Los!" runs the leg: first the engine room, then the ship outside.
@@ -14342,41 +14342,41 @@ window.__EXTRAS = true;
   var DZ_ORD = { stopp: { n: "Stopp", l: 0 }, halb: { n: "Halbe Fahrt", l: 1 }, voll: { n: "Volle Fahrt", l: 2 } };
   var DZ_LVN = ["Stopp", "Halbe Fahrt", "Volle Fahrt"];
   // the route of April 1912; s = what is outside, i = the bridge's note when the leg comes up
-  // every voyage is rolled anew from three pools: in and out of the harbours, the open Atlantic, the arrival at New York.
+  // every voyage is rolled anew from three pools: in and out of the harbours, the open Atlantic, the arrival at Nuss York.
   // n name, s what is outside, o the bridge's order, wh steam whistle needed, i the bridge's note, d what the story says afterwards
   var DZ_P = {
-    abfahrt: { n: "Southampton", s: "abfahrt", o: "halb", wh: 1, i: "Southampton, 10. April, Mittag: Leinen los! Drei lange Töne mit der Dampfpfeife, dann Halbe Fahrt.", d: "Schlepper ziehen die Pausbacke aus dem Ocean Dock, Hunderte winken am Kai." },
-    newyork: { n: "Die New York", s: "newyork", o: "stopp", i: "Der Sog der Pausbacke reißt die New York von ihren Leinen! Sie treibt heran: Stopp!", d: "Knapp! Nur gut ein Meter fehlte. Schlepper fangen die New York ein, eine Stunde Verspätung." },
-    solent: { n: "Solent", s: "kueste", o: "halb", i: "Durch den Solent an der Isle of Wight vorbei. Halbe Fahrt.", d: "Die Isle of Wight zieht vorbei, die Gäste erkunden das Schiff." },
-    lotse: { n: "Lotse von Bord", s: "lotse", o: "stopp", i: "Beim Feuerschiff Nab geht der Lotse aus Southampton von Bord. Kurz Stopp.", d: "Das Lotsenboot dreht ab, jetzt führt Kapitän Smith allein." },
-    kanal: { n: "Ärmelkanal", s: "see", o: "voll", i: "Offenes Wasser im Ärmelkanal: Volle Fahrt. Bei voller Fahrt spart die Turbine Dampf.", d: "Mit voller Kraft über den Kanal nach Frankreich." },
-    fischer: { n: "Fischerboote", s: "fischer", o: "halb", i: "Eine Flotte bretonischer Fischerboote liegt im Weg. Halbe Fahrt und vorsichtig vorbei.", d: "Die Fischer winken mit ihren Mützen." },
-    cherbourg: { n: "Cherbourg", s: "reede", o: "stopp", i: "Cherbourg am Abend: Die Pausbacke ankert auf der Reede, die Tender Nomadic und Traffic bringen Gäste. Stopp.", d: "Die Tender legen an. Unter den neuen Gästen: Margaret Brown und John Jacob Astor." },
-    cherAus: { n: "Ausfahrt", s: "kueste", o: "halb", wh: 1, i: "Anker auf! Mit der Pfeife verabschieden und Halbe Fahrt aus der Reede.", d: "Die Lichter von Cherbourg werden kleiner." },
-    irisch: { n: "Irische See", s: "see", o: "voll", i: "Nachts über die Irische See nach Queenstown: Volle Fahrt.", d: "Eine ruhige Nacht. Unten schaufeln die Heizer in Wachen von vier Stunden." },
-    queens: { n: "Queenstown", s: "reede", o: "stopp", i: "Queenstown, 11. April: Wieder auf der Reede, die Tender America und Ireland kommen längsseits. Stopp.", d: "Postsäcke und irische Auswanderer kommen an Bord." },
-    queAus: { n: "Ausfahrt", s: "fastnet", o: "halb", wh: 1, i: "Vorbei am Leuchtturm Fastnet hinaus aufs Meer. Pfeife und Halbe Fahrt.", d: "Ein letzter Blick auf Irland, dann nur noch Wasser." },
-    see1: { n: "Atlantik", s: "see", o: "voll", i: "Der Atlantik! Jetzt geht es westwärts: Volle Fahrt.", d: "Die Kessel fressen jeden Tag Hunderte Tonnen Kohle." },
-    see2: { n: "Atlantik", s: "see", o: "voll", i: "Ruhige See, alle Kessel arbeiten. Volle Fahrt.", d: "Oben wird im Speisesaal diniert, unten ist es heiß wie im Backofen." },
-    see3: { n: "Atlantik", s: "see", o: "voll", i: "Weiter westwärts mit Volldampf.", d: "Im Rauchsalon spielt man Karten, im Heizraum fliegt die Kohle." },
-    nebel1: { n: "Nebelbank", s: "nebel", o: "halb", wh: 1, i: "Nebel über der Neufundlandbank! Halbe Fahrt, und die Pfeife warnt andere Schiffe.", d: "Das Nebelhorn hallt über das Wasser." },
+    abfahrt: { n: "Southamsterton", s: "abfahrt", o: "halb", wh: 1, i: "Southamsterton, 10. April, Mittag: Leinen los! Drei lange Töne mit der Dampfpfeife, dann Halbe Fahrt.", d: "Schlepper ziehen die Pausbacke aus dem Nussdock, Hunderte winken am Kai." },
+    newyork: { n: "Die Mümmel", s: "newyork", o: "stopp", i: "Der Sog der Pausbacke reißt die Mümmel von ihren Leinen! Sie treibt heran: Stopp!", d: "Knapp! Nur gut ein Meter fehlte. Schlepper fangen die Mümmel ein, eine Stunde Verspätung." },
+    solent: { n: "Kernsund", s: "kueste", o: "halb", i: "Durch den Kernsund an der Isle of Weizen vorbei. Halbe Fahrt.", d: "Die Isle of Weizen zieht vorbei, die Gäste erkunden das Schiff." },
+    lotse: { n: "Lotse von Bord", s: "lotse", o: "stopp", i: "Beim Feuerschiff Knabber geht der Lotse aus Southamsterton von Bord. Kurz Stopp.", d: "Das Lotsenboot dreht ab, jetzt führt Kapitän Schmatz allein." },
+    kanal: { n: "Pfotenkanal", s: "see", o: "voll", i: "Offenes Wasser im Pfotenkanal: Volle Fahrt. Bei voller Fahrt spart die Turbine Dampf.", d: "Mit voller Kraft über den Kanal nach Frankreich." },
+    fischer: { n: "Fischerboote", s: "fischer", o: "halb", i: "Eine Flotte knabberbretonischer Fischerboote liegt im Weg. Halbe Fahrt und vorsichtig vorbei.", d: "Die Fischer winken mit ihren Mützen." },
+    cherbourg: { n: "Schnüffelbourg", s: "reede", o: "stopp", i: "Schnüffelbourg am Abend: Die Pausbacke ankert auf der Reede, die Tender Nagadic und Trappel bringen Gäste. Stopp.", d: "Die Tender legen an. Unter den neuen Gästen: Margaret Braunpfote und John Jacob Astnuss." },
+    cherAus: { n: "Ausfahrt", s: "kueste", o: "halb", wh: 1, i: "Anker auf! Mit der Pfeife verabschieden und Halbe Fahrt aus der Reede.", d: "Die Lichter von Schnüffelbourg werden kleiner." },
+    irisch: { n: "Irische Knuspersee", s: "see", o: "voll", i: "Nachts über die Irische Knuspersee nach Backentown: Volle Fahrt.", d: "Eine ruhige Nacht. Unten schaufeln die Heizer in Wachen von vier Stunden." },
+    queens: { n: "Backentown", s: "reede", o: "stopp", i: "Backentown, 11. April: Wieder auf der Reede, die Tender Amerikorn und Irischkorn kommen längsseits. Stopp.", d: "Postsäcke und knusperländische Auswanderer kommen an Bord." },
+    queAus: { n: "Ausfahrt", s: "fastnet", o: "halb", wh: 1, i: "Vorbei am Leuchtturm Fastnuss hinaus aufs Meer. Pfeife und Halbe Fahrt.", d: "Ein letzter Blick auf Knusperland, dann nur noch Wasser." },
+    see1: { n: "Hamslantik", s: "see", o: "voll", i: "Der Hamslantik! Jetzt geht es westwärts: Volle Fahrt.", d: "Die Kessel fressen jeden Tag Hunderte Tonnen Kohle." },
+    see2: { n: "Hamslantik", s: "see", o: "voll", i: "Ruhige See, alle Kessel arbeiten. Volle Fahrt.", d: "Oben wird im Speisesaal diniert, unten ist es heiß wie im Backofen." },
+    see3: { n: "Hamslantik", s: "see", o: "voll", i: "Weiter westwärts mit Volldampf.", d: "Im Rauchsalon spielt man Karten, im Heizraum fliegt die Kohle." },
+    nebel1: { n: "Nebelbank", s: "nebel", o: "halb", wh: 1, i: "Nebel über der Neufutterlandbank! Halbe Fahrt, und die Pfeife warnt andere Schiffe.", d: "Das Nebelhorn hallt über das Wasser." },
     nebel2: { n: "Im Nebel", s: "nebel", o: "halb", wh: 1, i: "Noch immer Nebel. Weiter Halbe Fahrt mit Nebelsignal.", d: "Vorsichtig tastet sich die Pausbacke voran." },
     klar: { n: "Klare Sicht", s: "see", o: "voll", i: "Der Nebel lichtet sich: wieder Volle Fahrt.", d: "Die Sonne kommt durch, die See glitzert." },
-    eiswarn: { n: "Eiswarnung", s: "eiswarn", o: "halb", i: "14. April, Funkspruch der Caronia: Eis voraus! Die Brücke lässt langsamer fahren: Halbe Fahrt.", d: "Im Funkraum stapeln sich die Eiswarnungen." },
+    eiswarn: { n: "Eiswarnung", s: "eiswarn", o: "halb", i: "14. April, Funkspruch der Karottonia: Eis voraus! Die Brücke lässt langsamer fahren: Halbe Fahrt.", d: "Im Funkraum stapeln sich die Eiswarnungen." },
     eis: { n: "Eisberg!", s: "eis", o: "stopp", i: "23:40 Uhr, der Ausguck läutet dreimal: Eisberg voraus! Stopp, Maschinen stopp!", d: "Der Eisberg gleitet nur wenige Meter vorbei. Alle atmen auf!" },
     morgen: { n: "Morgengrauen", s: "morgen", o: "voll", i: "Geschafft, der Eisberg zieht vorbei. Im Morgengrauen wieder Volle Fahrt.", d: "Ein neuer Tag. An Deck erzählt man sich vom Eisberg." },
     wale: { n: "Wale!", s: "wale", o: "halb", i: "Finnwale kreuzen den Kurs! Halbe Fahrt, damit sie Platz haben.", d: "Die Gäste drängen sich an der Reling und zählen die Fontänen." },
-    sos: { n: "Notsignal", s: "sos", o: "stopp", i: "Ein Fischerschoner von der Neufundlandbank zeigt Notflaggen! Stopp, ein Rettungsboot fährt hinüber.", d: "Zwei durchnässte Fischer werden an Bord geholt und bekommen heißen Tee." },
-    gruss: { n: "Die Olympic", s: "gruss", o: "voll", wh: 1, i: "Am Horizont die Olympic, das Schwesterschiff, auf dem Weg nach Europa! Gruß mit der Dampfpfeife, Volle Fahrt.", d: "Die Olympic antwortet mit drei tiefen Tönen." },
-    ambrose: { n: "Feuerschiff", s: "feuerschiff", o: "halb", i: "Das Feuerschiff Ambrose vor New York: Der Lotse kommt an Bord. Halbe Fahrt.", d: "Der Lotse steht auf der Brücke, New York ist nah." },
-    quar: { n: "Quarantäne", s: "quar", o: "stopp", i: "Vor Staten Island: Die Ärzte der Quarantänestation kommen an Bord. Stopp.", d: "Alle gesund! Die Ärzte geben den Weg frei." },
-    liberty: { n: "Freiheitsstatue", s: "liberty", o: "halb", wh: 1, i: "Die Freiheitsstatue! Die Auswanderer jubeln an Deck. Ein Gruß mit der Pfeife, Halbe Fahrt.", d: "Viele sehen Amerika zum ersten Mal." },
-    pier: { n: "Pier 59", s: "ny", o: "stopp", wh: 1, i: "Schlepper drücken die Pausbacke an den Pier 59. Pfeife zur Begrüßung, dann Stopp.", d: "" }
+    sos: { n: "Notsignal", s: "sos", o: "stopp", i: "Ein Fischerschoner von der Neufutterlandbank zeigt Notflaggen! Stopp, ein Rettungsboot fährt hinüber.", d: "Zwei durchnässte Fischer werden an Bord geholt und bekommen heißen Tee." },
+    gruss: { n: "Die Backentasche", s: "gruss", o: "voll", wh: 1, i: "Am Horizont die Backentasche, das Schwesterschiff, auf dem Weg nach Europa! Gruß mit der Dampfpfeife, Volle Fahrt.", d: "Die Backentasche antwortet mit drei tiefen Tönen." },
+    ambrose: { n: "Feuerschiff", s: "feuerschiff", o: "halb", i: "Das Feuerschiff Ambrösel vor Nuss York: Der Lotse kommt an Bord. Halbe Fahrt.", d: "Der Lotse steht auf der Brücke, Nuss York ist nah." },
+    quar: { n: "Quarantäne", s: "quar", o: "stopp", i: "Vor Futter Island: Die Ärzte der Quarantänestation kommen an Bord. Stopp.", d: "Alle gesund! Die Ärzte geben den Weg frei." },
+    liberty: { n: "Freiheitshamsterin", s: "liberty", o: "halb", wh: 1, i: "Die Freiheitshamsterin! Die Auswanderer jubeln an Deck. Ein Gruß mit der Pfeife, Halbe Fahrt.", d: "Viele sehen Amerika zum ersten Mal." },
+    pier: { n: "Körnerpier 59", s: "ny", o: "stopp", wh: 1, i: "Schlepper drücken die Pausbacke an den Körnerpier 59. Pfeife zur Begrüßung, dann Stopp.", d: "" }
   };
   function dzShuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
   function dzRoute() {
     var R = function (k) { return Object.assign({ k: k }, DZ_P[k]); }, r = [R("abfahrt")], rnd = Math.random;
-    // leaving: Southampton, maybe the near miss, the Solent or the pilot, the Channel (maybe fishing boats), Cherbourg, Queenstown
+    // leaving: Southamsterton, maybe the near miss, the Kernsund or the pilot, the Channel (maybe fishing boats), Schnüffelbourg, Backentown
     if (rnd() < .6) r.push(R("newyork"));
     r.push(R(rnd() < .5 ? "solent" : "lotse")); r.push(R("kanal")); if (rnd() < .4) r.push(R("fischer"));
     r.push(R("cherbourg"), R("cherAus"));
@@ -14387,7 +14387,7 @@ window.__EXTRAS = true;
     if (rnd() < .5) blocks.push([seas[2]]);
     dzShuffle(blocks); blocks.splice(Math.min(blocks.length, Math.ceil(blocks.length / 2) + Math.floor(rnd() * 2)), 0, ["eiswarn", "eis", "morgen"]);
     blocks.forEach(function (b) { b.forEach(function (k) { r.push(R(k)); }); });
-    // arriving: Ambrose, maybe quarantine, maybe the statue, the pier
+    // arriving: Ambrösel, maybe quarantine, maybe the statue, the pier
     r.push(R("ambrose")); if (rnd() < .5) r.push(R("quar")); if (rnd() < .6) r.push(R("liberty")); r.push(R("pier"));
     return r;
   }
@@ -14454,7 +14454,7 @@ window.__EXTRAS = true;
   }
   function dzLegIntro(pre) {
     var i = dz.leg, L = dz.route[i];
-    if (dz.arrNight && L.k === "ambrose" && !dz.nightSaid) { dz.nightSaid = 1; pre = (pre ? pre + " " : "") + "Es ist schon dunkel, als die Lichter von New York auftauchen."; }
+    if (dz.arrNight && L.k === "ambrose" && !dz.nightSaid) { dz.nightSaid = 1; pre = (pre ? pre + " " : "") + "Es ist schon dunkel, als die Lichter von Nuss York auftauchen."; }
     if (!dz.evs[i] && (L.s === "see") && i - dz.lastEv > 3 && Math.random() < .4) { var E = DZ_EVS[Math.floor(Math.random() * DZ_EVS.length)]; if (!(E.k === "wind" && L.o !== "voll")) { dz.evs[i] = E; dz.lastEv = i; dzPlanDraw(); dzShake(.3); beep([[440, .08], [330, .1]]); } }
     var e = dz.evs[i];
     if (e && e.k === "sturm" && !dz.leaked) { dz.leaked = i; dz.flood = Math.min(2, dz.flood + 1); }
@@ -14784,6 +14784,22 @@ window.__EXTRAS = true;
       if (slope > .6 && (x + Math.floor(t / 70)) % 3 === 0) DR(x, top - 1 - ((x * 7) % 2), 1, 1, P[4]);     // spray blown off the crest
     }
   }
+  // Nuss York's skyline across the whole horizon, behind a veil of haze: blocks with water towers, lit windows at night,
+  // the tall towers standing out (after the Singer Building, the Park Row Building and the Metropolitan Life tower)
+  function dzSkyline(x0, sky, night, haze) {
+    var far = night ? "#161c34" : sky === "fog" ? "#8a949e" : sky === "dawn" ? "#8a7a98" : "#8a9cb4", near = night ? "#1e2440" : sky === "fog" ? "#6a7480" : sky === "dawn" ? "#6a5a78" : "#6a7c98";
+    for (var b = 0; b < 60; b++) { var bh = 5 + (b * 13) % 8, bx = x0 + b * 4; DR(bx, 70 - bh - 4, 4, bh + 4, far); }
+    for (var q = 0; q < 46; q++) { var w = 4 + (q * 7) % 4, h = 7 + (q * 11) % 11, x = x0 + q * 5;
+      DR(x, 70 - h, w, h, near);
+      if (q % 3 === 0) { DR(x + 1, 70 - h - 3, 2, 2, near); DR(x + 1, 70 - h - 1, 1, 1, near); DR(x + 2, 70 - h - 1, 1, 1, near); }      // a water tower on its legs
+      for (var wy = 70 - h + 2; wy < 69; wy += 3) for (var wx = x + 1; wx < x + w - 1; wx += 2) if (((wx * 7 + wy * 3 + q) % 5) < (night ? 3 : 1)) DR(wx, wy, 1, 1, night ? "#ffe08a" : "#a8b8cc"); }
+    var tw = function (cx, top, w) { DR(cx - w, top, w * 2 + 1, 70 - top, near); };
+    tw(x0 + 70, 40, 2); DR(x0 + 68, 37, 5, 3, near); DR(x0 + 69, 34, 3, 3, near); DR(x0 + 70, 30, 1, 4, near);                        // Singer
+    tw(x0 + 104, 46, 3); DR(x0 + 101, 44, 2, 2, near); DR(x0 + 106, 44, 2, 2, near);                                                     // Park Row
+    tw(x0 + 140, 36, 3); DR(x0 + 138, 33, 5, 3, near); DR(x0 + 139, 30, 3, 3, near); DR(x0 + 140, 27, 1, 3, near); DR(x0 + 140, 26, 1, 1, night ? "#ffd34a" : near);   // Met Life with its lantern
+    if (night) { DR(x0 + 70, 38, 1, 1, "#ffe08a"); DR(x0 + 140, 34, 1, 1, "#ffe08a"); }
+    dzc.globalAlpha = night ? .22 : .38; DR(0, 26, 180, 46, haze); dzc.globalAlpha = night ? .1 : .22; DR(0, 52, 180, 20, haze); dzc.globalAlpha = 1;     // the haze lying over the city
+  }
   // ---- the arrival: a celebration (90 % and more right), an ordinary arrival (70-90 %), a dreary one (below) ----
   function dzEndDraw(t, dt) {
     var E = dz.ending, g = E.g; E.t += dt; var S = E.S;
@@ -14792,9 +14808,7 @@ window.__EXTRAS = true;
     if (g === 2 && !night) { DR(150, 10, 8, 8, "#fff6c0"); DR(151, 9, 6, 10, "#fff6c0"); }
     if (night) for (var st = 0; st < 50; st++) DR((st * 53 + st * st) % 180, (st * 29) % 60, 1, 1, (st + Math.floor(t / 400)) % 7 ? "#c8d0f0" : "#ffffff");
     for (var cl = 0; cl < (night ? 0 : g === 0 ? 7 : 3); cl++) { dzc.globalAlpha = g === 0 ? .95 : .8; dzImg("cloud", ((cl * 47 + t / 300) % 240) - 40, 8 + (cl % 3) * 12); dzc.globalAlpha = 1; }
-    var skyl = night ? "#1e2440" : g === 0 ? "#6a7480" : "#7a8ca8", mx0 = 70;
-    for (var bq = 0; bq < 26; bq++) { var bh = 6 + (bq * 7) % 9; DR(mx0 + bq * 4, 70 - bh, 4, bh, skyl); if (night) { DR(mx0 + bq * 4 + 1, 70 - bh + 2, 1, 1, "#ffe08a"); if (bh > 9) DR(mx0 + bq * 4 + 2, 70 - bh + 5, 1, 1, "#ffe08a"); } }
-    DR(mx0 + 30, 44, 5, 26, skyl); DR(mx0 + 31, 41, 3, 3, skyl); DR(mx0 + 64, 40, 6, 30, skyl); DR(mx0 + 65, 36, 4, 4, skyl);
+    dzSkyline(-10, sky, night, sc[2]);
     if (night && g === 2) {                                                                        // fireworks over the harbour
       if (Math.random() < dt * 1.6) { var fx0 = 40 + Math.random() * 120, fy0 = 10 + Math.random() * 30, fc0 = ["#ffd34a", "#e8554a", "#6fd04a", "#4a9ae8", "#e87ab0"][Math.floor(Math.random() * 5)]; for (var fw = 0; fw < 24; fw++) { var fa = fw / 24 * Math.PI * 2; S.fw.push({ x: fx0, y: fy0, vx: Math.cos(fa) * 26, vy: Math.sin(fa) * 26, life: 1.1, c: fc0 }); } dzTone(90, .4, .2, "triangle", .3, 50); dzNoise(.5, 600, .6, .12, .01, .4, .3); }
       S.fw = S.fw.filter(function (f) { f.life -= dt; f.vy += 18 * dt; f.vx *= .985; f.x += f.vx * dt; f.y += f.vy * dt; DR(f.x, f.y, 1, 1, f.life > .4 ? f.c : "#ffffff"); return f.life > 0; });
@@ -14913,12 +14927,7 @@ window.__EXTRAS = true;
     if (sky === "day" || sky === "dawn" || sky === "eve") for (var cl = 0; cl < 4; cl++) { dzc.globalAlpha = sky === "storm" ? .9 : .8; dzImg("cloud", ((cl * 61 + S.x * .08 + t / 400) % 240) - 40, 14 + (cl % 2) * 14); dzc.globalAlpha = 1; }
     var hillC = sky === "night" ? "#1a2a3a" : sky === "fog" ? "#a0acb4" : sky === "eve" ? "#7a6a6a" : sky === "storm" ? "#4a6050" : "#7cb860", hillD = sky === "day" || sky === "dawn" ? "#5a9848" : hillC;
     var coast = kind === "kueste" || kind === "abfahrt" || kind === "reede" || kind === "ny" || kind === "newyork" || kind === "fastnet" || kind === "quar" || kind === "liberty" || kind === "lotse";
-    if (kind === "ny" || kind === "liberty") {                                                       // lower Manhattan, 1912: the Singer Building and the Metropolitan Life tower stand out
-      var mx0 = 60 + S.pier * .1, skyl = sky === "day" ? "#7a8ca8" : sky === "night" ? "#1e2440" : "#5a6a88";
-      for (var bq = 0; bq < 26; bq++) { var bh = 6 + (bq * 7) % 9; DR(mx0 + bq * 4, 70 - bh, 4, bh, skyl); if (bq % 2 || sky === "night") DR(mx0 + bq * 4 + 1 + (bq % 2), 70 - bh + 2, 1, 1, sky === "night" ? "#ffe08a" : "#c8d4e0"); if (sky === "night" && bh > 9) DR(mx0 + bq * 4 + 2, 70 - bh + 5, 1, 1, "#ffe08a"); }
-      DR(mx0 + 30, 44, 5, 26, skyl); DR(mx0 + 31, 41, 3, 3, skyl); DR(mx0 + 32, 38, 1, 3, skyl);                 // Singer
-      DR(mx0 + 64, 40, 6, 30, skyl); DR(mx0 + 65, 36, 4, 4, skyl); DR(mx0 + 66, 33, 2, 3, skyl); DR(mx0 + 67, 31, 1, 2, "#ffd34a");   // Met Life with its lantern
-    }
+    if (kind === "ny" || kind === "liberty") dzSkyline(-20 + S.pier * .1 + S.x * .05, sky, sky === "night", sc[2]);
     if (coast || kind === "feuerschiff") for (var hx = -40; hx < 220; hx += 46) { var bx = ((hx + S.x * .3) % 230 + 230) % 230 - 40, hh0 = coast ? 12 : 5;
       for (var k = 0; k < 40; k++) { var hh = hh0 * Math.sin(k / 40 * Math.PI); DR(bx + k, 70 - hh, 1, hh + 2, k > 24 ? hillD : hillC); }
       if (coast && sky !== "fog") for (var hs = 0; hs < 3; hs++) { var hxx = bx + 10 + hs * 8, hyy = 70 - hh0 * Math.sin((10 + hs * 8) / 40 * Math.PI); DR(hxx, hyy - 2, 3, 2, "#f4f0e6"); DR(hxx, hyy - 3, 3, 1, "#c8463c"); if (sky === "night" || sky === "eve") DR(hxx + 1, hyy - 1, 1, 1, "#ffe8a0"); } }
@@ -15077,7 +15086,7 @@ window.__EXTRAS = true;
     return [good === dz.route.length, dz.blows === 0, dz.shovels <= dz.budget, good];
   }
   function dzArrive() {
-    var gd = dz.res.filter(Boolean).length / dz.route.length; dz.done = true; dz.ending = { t: 0, g: gd >= .9 ? 2 : gd >= .7 ? 1 : 0, S: { puffs: [], smk: [], drops: [], conf: [], fw: [] } }; var gn = dz.res.filter(Boolean).length; dzBanner(gn + ' von ' + dz.route.length + ' Abschnitten richtig (' + Math.round(gd * 100) + ' %). ' + ['Spät und im Nieselregen legt die Pausbacke an. Kaum jemand wartet noch. Ab 70 % gibt es Familien am Pier, ab 90 % den großen Jubel.', 'Die Pausbacke legt am Pier 59 an. Freunde und Familien winken. Ab 90 % gibt es den großen Jubel!', 'New York empfängt die Pausbacke wie eine Königin: Löschboote, Fahnen, Jubel!'][dz.ending.g]);
+    var gd = dz.res.filter(Boolean).length / dz.route.length; dz.done = true; dz.ending = { t: 0, g: gd >= .9 ? 2 : gd >= .7 ? 1 : 0, S: { puffs: [], smk: [], drops: [], conf: [], fw: [] } }; var gn = dz.res.filter(Boolean).length; dzBanner(gn + ' von ' + dz.route.length + ' Abschnitten richtig (' + Math.round(gd * 100) + ' %). ' + ['Spät und im Nieselregen legt die Pausbacke an. Kaum jemand wartet noch. Ab 70 % gibt es Familien am Pier, ab 90 % den großen Jubel.', 'Die Pausbacke legt am Körnerpier 59 an. Freunde und Familien winken. Ab 90 % gibt es den großen Jubel!', 'Nuss York empfängt die Pausbacke wie eine Königin: Löschboote, Fahnen, Jubel!'][dz.ending.g]);
   }
   function dzArriveCard() {
     dz.done = true; var M = dzL(); M.trips++;
@@ -15086,7 +15095,7 @@ window.__EXTRAS = true;
     dzBanner("");
     var st = function (on, i) { return '<em class="dz-star' + (on ? " on" : "") + '" style="animation-delay:' + (.3 + i * .35) + 's">★</em>'; };
     [S[0], S[1], S[2]].forEach(function (on, i) { if (on) setTimeout(function () { beep([[660 + i * 220, .08]]); dzBuzz(30); }, 300 + i * 350); });
-    dzCard.innerHTML = '<div class="fi-c"><p class="fi-h">' + ["Endlich angekommen …", "Angekommen in New York!", "Triumphale Ankunft!"][dz.ending ? dz.ending.g : 1] + '</p><span class="fi-st dz-stars">' + st(S[0], 0) + st(S[1], 1) + st(S[2], 2) + '</span>' +
+    dzCard.innerHTML = '<div class="fi-c"><p class="fi-h">' + ["Endlich angekommen …", "Angekommen in Nuss York!", "Triumphale Ankunft!"][dz.ending ? dz.ending.g : 1] + '</p><span class="fi-st dz-stars">' + st(S[0], 0) + st(S[1], 1) + st(S[2], 2) + '</span>' +
       '<p class="fi-s">' + (S[0] ? "★" : "☆") + ' Jeder Befehl befolgt (' + S[3] + '/' + dz.route.length + ')</p><p class="fi-s">' + (S[1] ? "★" : "☆") + ' Kein Abblasen' + (dz.blows ? " (" + dz.blows + "×)" : "") + '</p><p class="fi-s">' + (S[2] ? "★" : "☆") + ' Sparsam: ' + dz.shovels + ' von ' + dz.budget + ' Schaufeln</p>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Noch eine Fahrt</button></div></div>';
     dzCard.hidden = false;
@@ -15094,8 +15103,8 @@ window.__EXTRAS = true;
   function dzIntro() {
     dz.intro = true; dzGo.disabled = true; dzBanner("");
     dzCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Jungfernfahrt der Pausbacke</p>' +
-      '<p class="dz-route">Southampton → Cherbourg → Queenstown → New York · ' + dz.route.length + ' Abschnitte</p>' +
-      '<p class="fi-s">Du bist Oberheizer. Bring das Schiff sicher über den Atlantik und führe jeden Befehl der Brücke aus.</p>' +
+      '<p class="dz-route">Southamsterton → Schnüffelbourg → Backentown → Nuss York · ' + dz.route.length + ' Abschnitte</p>' +
+      '<p class="fi-s">Du bist Oberheizer. Bring das Schiff sicher über den Hamslantik und führe jeden Befehl der Brücke aus.</p>' +
       '<p class="fi-s">★ Jeden Befehl befolgen<br>★ Nie das Sicherheitsventil abblasen<br>★ Höchstens ' + dz.budget + ' Schaufeln Kohle</p>' +
       '<div class="fi-row"><button type="button" class="fi-b" data-a="go">Leinen los!</button></div></div>';
     dzCard.hidden = false;
