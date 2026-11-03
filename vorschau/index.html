@@ -2419,8 +2419,8 @@ window.__EXTRAS = true;
     { id: "love", label: "Zuneigung", icon: "heart" },
     { id: "fun", label: "Spaß", icon: "note" }
   ];
-  // asleep he recharges about 40 % energy per hour, awake he loses 6 %
-  var DECAY = { food: [-8, -3], energy: [-6, 40], love: [-5, -2], fun: [-7, -2] };
+  // asleep he recharges about 120 % energy per hour (full in under an hour), awake he loses 6 %
+  var DECAY = { food: [-8, -3], energy: [-6, 120], love: [-5, -2], fun: [-7, -2] };
   var s, busy = false, cur = null;
   var scene = document.getElementById("scene"), ham = document.getElementById("hamster"), flipEl = document.getElementById("ham-flip"), bodyEl = document.getElementById("ham-body"), svg = document.getElementById("ham-svg");
   var thought = document.getElementById("thought"), statusEl = document.getElementById("status");
