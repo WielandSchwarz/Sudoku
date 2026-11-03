@@ -15269,8 +15269,7 @@ window.__EXTRAS = true;
   function pcRoom() {
     var M = pcSt(), own = pcOwned(), sig = (M.model ? 1 : 0) + ":" + own.map(function (o) { return o.k + (M.pc[o.k].g ? "*" : ""); }).join(",");
     if (sig === pcSig && PCI.pc_board.complete) return; pcSig = sig;
-    pcModel.hidden = !M.model; pcBoard.hidden = !own.length;
-    if (!own.length) return;
+    pcModel.hidden = !M.model; pcBoard.hidden = false;           // the empty board hangs there from the start: something is still to come
     var c = pcBoardC; c.clearRect(0, 0, 36, 26); if (PCI.pc_board.complete) c.drawImage(PCI.pc_board, 0, 0); else PCI.pc_board.onload = function () { pcSig = ""; pcRoom(); };
     var last = own.slice().sort(function (a, b) { return M.pc[b.k].t - M.pc[a.k].t; }).slice(0, 4), slots = [[5, 5], [17, 4], [8, 14], [21, 13]];
     last.forEach(function (o, i) {
