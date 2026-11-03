@@ -1097,6 +1097,8 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .sleep-pop { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); z-index: 660; width: 74%; max-width: 320px; padding: 8px 10px 10px; background: #fff8ec; border: 2.5px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
 #ham-root .sleep-pop .ph { margin: 0 0 6px; font-weight: 800; font-size: 0.86rem; text-align: center; }
 #ham-root .sleep-pop .sp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#ham-root .sleep-pop .sp-row.sp-3 { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+#ham-root .sleep-pop { width: 86%; max-width: 360px; }
 #ham-root .sp-opt { font: inherit; font-size: 0.8rem; font-weight: 700; border: 0; border-radius: 10px; padding: 6px; background: #fff; box-shadow: inset 0 0 0 1.5px var(--rule); display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--ink); }
 #ham-root .sp-opt:hover { box-shadow: inset 0 0 0 2.5px var(--orange); }
 #ham-root .sp-opt .ic { width: 64px; height: 50px; display: flex; align-items: center; justify-content: center; }
@@ -2733,7 +2735,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 95 · 02.11.2026</p>
+    <p class="opt-version">Version 96 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -6120,16 +6122,58 @@ window.__EXTRAS = true;
     if (s.asleep || decor) return;
     e.stopImmediatePropagation();
     var it = chairItem();
-    if (!it) { sleepSpot = "bed"; sleep(); return; }
-    sleepPop.innerHTML = '<p class="ph">Wo soll ' + N() + ' schlafen?</p><div class="sp-row">' +
-      '<button type="button" class="sp-opt" data-s="chair"><span class="ic">' + svgOf(it.svg, it.w, it.h) + '</span><span>Im Sessel</span></button>' +
-      '<button type="button" class="sp-opt" data-s="bed"><span class="ic">' + bedIcon() + '</span><span>Im Bett</span></button></div>';
+    sleepPop.innerHTML = '<p class="ph">Wo soll ' + N() + ' schlafen?</p><div class="sp-row' + (it ? " sp-3" : "") + '">' +
+      (it ? '<button type="button" class="sp-opt" data-s="chair"><span class="ic">' + svgOf(it.svg, it.w, it.h) + '</span><span>Im Sessel</span></button>' : "") +
+      '<button type="button" class="sp-opt" data-s="bed"><span class="ic">' + bedIcon() + '</span><span>Im Bett</span></button>' +
+      '<button type="button" class="sp-opt" data-s="nap"><span class="ic">' + napIcon() + '</span><span>Hamster-Nap</span></button></div>';
     sleepPop.hidden = false;
   }, true);
   sleepPop.addEventListener("click", function (e) {
     var b = e.target.closest(".sp-opt"); if (!b) return;
-    e.stopPropagation(); sleepPop.hidden = true; sleepSpot = b.dataset.s; sleep();
+    e.stopPropagation(); sleepPop.hidden = true;
+    if (b.dataset.s === "nap") { if (busy) interrupt(); act("nap", napSeq); return; }
+    sleepSpot = b.dataset.s; sleep();
   });
+  // ---- the hamster nap: curls up right where he is; in 10 seconds he gets half his energy back, then wakes by himself ----
+  var NAP_MS = 10000, nap = null;
+  function napIcon() {
+    var z = function (x, y, n, c) { var o = ""; for (var i = 0; i < n; i++) o += '<rect x="' + (x + i) + '" y="' + y + '" width="1" height="1" fill="' + c + '"/><rect x="' + (x + n - 1 - i) + '" y="' + (y + i) + '" width="1" height="1" fill="' + c + '"/><rect x="' + (x + i) + '" y="' + (y + n - 1) + '" width="1" height="1" fill="' + c + '"/>'; return o; };
+    return '<svg viewBox="0 0 30 22" aria-hidden="true"><g transform="translate(0 4)">' + A.mini_ham0 + '</g>' + z(19, 1, 5, "#3a2414") + z(25, 7, 3, "#3a2414") + '</svg>';
+  }
+  async function napSeq() {
+    front({ eyes: "tired", mouth: "yawn", paws: "up" }); pulse("stretch", 800); await wait(800);
+    front({ eyes: "half", mouth: "smile", paws: "down", blush: true }); await wait(250);
+    s.asleep = true; syncButtons(); skyTime();
+    nap = { t0: Date.now(), e0: s.energy };
+    say(N() + " macht ein kurzes Nickerchen.");
+    front({ blanket: 0 }); await wait(220); front({ blanket: 1 }); pulse("squat", 200); await wait(220);
+    front({ blanket: 2, eyes: "sleep", mouth: "flat", ears: "flat" }); body("snooze"); startZzz();
+  }
+  function napTick() {
+    if (!nap) return;
+    if (!s.asleep) { nap = null; return; }
+    var u = Math.min(1, (Date.now() - nap.t0) / NAP_MS);
+    s.energy = Math.max(s.energy, clamp(nap.e0 + 50 * u)); renderNeeds();
+    if (u >= 1 && !busy) { nap.done = true; wake(); }
+  }
+  setInterval(napTick, 250);
+  document.addEventListener("visibilitychange", function () {             // leaving the app mid-nap: the nap counts in full, he is awake on return
+    if (document.visibilityState !== "hidden" || !nap) return;
+    s.energy = Math.max(s.energy, clamp(nap.e0 + 50)); nap = null; s.asleep = false;
+    try { stopZzz(); front({ blanket: null, eyes: "open", mouth: "smile", paws: "down", ears: "up" }); body(""); syncButtons(); skyTime(); renderNeeds(); } catch (e) {}
+    if (window.SudokuSave) window.SudokuSave();
+  }, true);
+  var _h_wakeSeqNap = wakeSeq;
+  wakeSeq = async function (byPoke) {
+    if (!nap) return _h_wakeSeqNap(byPoke);
+    nap = null; s.asleep = false; stopZzz(); syncButtons(); skyTime();
+    front({ eyes: "half", ears: "up", blanket: 2 }); body(""); await wait(350);
+    front({ blanket: 1 }); await wait(220); front({ blanket: 0 }); pulse("squat", 200); await wait(220);
+    front({ blanket: null, eyes: "happy", mouth: "yawn", paws: "up" }); pulse("stretch", 900); await wait(900);
+    say(N() + " ist wieder fit!");
+    for (var i = 0; i < 4; i++) { front({ paws: i % 2 ? "wash_r" : "wash_l", eyes: "sleep", mouth: "flat" }); await wait(160); }
+    front({ paws: "down", eyes: "open", mouth: "smile" }); pulse("fluff", 520); await wait(500);
+  };
   document.addEventListener("click", function (e) { if (!sleepPop.hidden && !e.target.closest(".sleep-pop") && !e.target.closest("#a-sleep")) sleepPop.hidden = true; });
   var _h_wakeSeq3 = wakeSeq;
   wakeSeq = async function (byPoke) { await _h_wakeSeq3(byPoke); if (H.where === "bed") await hopOutOfBed(); };
