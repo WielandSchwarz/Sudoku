@@ -2020,6 +2020,16 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .dz-gift { background: #fff3d0; box-shadow: inset 0 0 0 2px #e8b84a; padding: 4px 6px; }
 #ham-root .dz-gift .dz-pcb { margin-left: 6px; padding: 2px 8px; font-size: .8rem; }
 #ham-root .pc-board { z-index: 2; }
+#ham-root #scene.wide-room.cam-on #room { left: calc(var(--camp, 0%) * -1); right: var(--camp, 0%); }
+#ham-root #scene.wide-room.cam-on > .hamster, #ham-root #scene.wide-room.cam-on > .thought, #ham-root #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
+#ham-root #scene.wide-room #room > .wallpaper, #ham-root #scene.wide-room #room > .floor, #ham-root #scene.wide-room #room > .baseboard { right: -100%; }
+#ham-root .wide-rug { position: absolute; image-rendering: pixelated; pointer-events: none; z-index: 1; display: block; }
+#ham-root .wide-lay { position: absolute; z-index: 1; pointer-events: none; }
+#ham-root .wide-lay .wide-art { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+#ham-root .wide-lay .wide-view { position: absolute; overflow: hidden; }
+#ham-root .wide-lay .wide-sky { position: absolute; inset: 0; background: #bfe6fa; }
+#ham-root .wide-lay .wide-gbg { position: absolute; width: 173.08%; left: -28.85%; top: -59.09%; image-rendering: pixelated; }
+#ham-root .wide-lay .wide-hit { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; pointer-events: auto; }
 #ham-root #scr-hamster, #ham-root #scr-hamster button, #ham-root #scr-hamster input, #ham-root .ham-album, #ham-root .ham-album button, #ham-root .map-ov, #ham-root .map-card, #ham-root .map-card button, #ham-root #scene .gpop, #ham-root #scene .l-pop, #ham-root #scene .f-card, #ham-root #scene .say-box, #ham-root .pz-ui, #ham-root .l-recipes { font-family: system-ui, sans-serif !important; letter-spacing: 0; }
 #ham-root #scr-hamster > .top { gap: 8px; align-items: center; }
 #ham-root #scr-hamster > .top > div:first-child { min-width: 0; flex: 1; }
@@ -2719,7 +2729,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 90 · 02.11.2026</p>
+    <p class="opt-version">Version 91 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -15828,6 +15838,110 @@ window.__EXTRAS = true;
     give: function (k, g) { var M = pcSt(); M.pc[k] = { t: Date.now(), p: 100, g: g ? 1 : 0 }; pcRoom(); }, model: function () { pcSt().model = Date.now(); pcRoom(); },
     reset: function () { var M = pcSt(); M.pc = {}; M.model = 0; pcSig = ""; pcRoom(); },
     shelf: function (id) { if (home.owned.shelf.indexOf(id) < 0) home.owned.shelf.push(id); home.placed.shelf = id; renderRoom(); renderCosy(); pcRoom(); } };
+  // ===================== the wide living room: to the right of the old room, a music nook with a piano and a bay window seat =====================
+  // The room is now 360 wide. A camera (camX, 0..180) slides the room, the hamster and his little effects together;
+  // swipe the room to look around, and the camera follows the hamster when he walks out of view.
+  var WA = {"art":"data:image/png;base64,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","rug":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAACaklEQVR42u3brW7bUBiAYU8aHoqiwoHgwoHg4OFdxdRL6CVMuYriYeOCoWk4ILCKigZGPdC6jaxj+/j/pH0eVCtS09hvvhzbaZYBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC8bx/sgrRsN6tiyee/PzxedBMfJZRWpN83u4X/2ry45PhN6BnCbYr06+3fQc/558fnxsevb46Dfv/P20+1j+0PeXKhC3rEeEPhtgXbFmTV1dX65eeHh1Pn7a7a3hCh4EOhzxW5oHsG3CXepmjL4PrEOcd205ugLvaYyKcKXNBnwYZ2chlybMB18aYY6xSTPhR5U+DVfV53HATd0b/T72K33b3s4LqQqxG3BfwW4h0yyauBV+M+D3u7WRX5fZ6dHwdBjzCht5tVMTTkueNaf/sV/LRIJe6YsMuoTegRJ3R1KscsK8qDuGS8sU53XxZblrQtR/aHPDOhRz7pS20yD4m3y6W/1CZ139fixsqzcjL0MXa8T1vH2V77U2Svz7fOsux0N845QM/j0HvZIehnrx9zedF0I+T65lg7pYce/NCkHHpjZMllSOxlvvPpvN8Om9CWHIGrHH1PCq2h19Hr57qrHdbQE1zlSHlNXbcdmn5LngD2uWwXOg6CnulkMfYKSDXw93bdORRxKOSxCLpj2KWxb32nGm/7yWTWKeCSW9+JB9418pjYp5j0Xb+g5MtJIs9iQo8Nvo2vjwo6mdC7xj+HukhTC1fQbzD+KVz6v2ABAMzgP9azEGO5Wq61AAAAAElFTkSuQmCC"};
+  var wRoom = document.getElementById("room");
+  scene.classList.add("wide-room");
+  var wRug = xEl("img", "wide-rug", wRoom); wRug.src = WA.rug; wRug.alt = ""; place(wRug, 180, 0, 180);
+  var wLay = xEl("div", "wide-lay", wRoom); place(wLay, 180, 0, 180); wLay.style.height = gy(135);
+  wLay.innerHTML = '<div class="wide-view"><div class="wide-sky"></div><img class="wide-gbg" alt=""></div><img class="wide-art" alt="" src="' + WA.art + '">' +
+    '<button type="button" class="wide-hit" data-w="piano" aria-label="Klavier"></button><button type="button" class="wide-hit" data-w="seat" aria-label="Fensterbank"></button><button type="button" class="wide-hit" data-w="guitar" aria-label="Gitarre"></button>';
+  var wView = wLay.querySelector(".wide-view"); place(wView, 64, 29, 104); wView.style.height = gy(44);
+  var wGbg = wView.querySelector(".wide-gbg"), wSky = wView.querySelector(".wide-sky");
+  var WHIT = { piano: [6, 54, 56, 48], seat: [62, 76, 114, 22], guitar: [132, 66, 14, 38] };
+  Object.keys(WHIT).forEach(function (k) { var b = wLay.querySelector('[data-w="' + k + '"]'), r = WHIT[k]; place(b, r[0], r[1], r[2]); b.style.height = gy(r[3]); });
+  function wViewSync() {                                           // the garden and the sky through the bay window, as they are right now
+    var g = document.getElementById("g-bg"), sk = document.getElementById("sky");
+    var src = g && g.src ? g.src : (typeof WBG === "object" && typeof season === "function" ? WBG["bg_" + season()] : "");
+    if (src && wGbg.src !== src) wGbg.src = src;
+    if (sk) { var cs = getComputedStyle(sk); wSky.style.background = cs.background; }
+  }
+  setInterval(wViewSync, 4000); setTimeout(wViewSync, 300);
+  // ---- the camera ----
+  var camX = 0, camAnim = 0, camUser = 0;
+  function camOn() { return place2 === "room" && !decor; }
+  function camSet(x) { camX = Math.max(0, Math.min(180, x)); scene.style.setProperty("--camp", (camX / 180 * 100).toFixed(3) + "%"); }
+  function camTo(x, ms) {
+    cancelAnimationFrame(camAnim); var x0 = camX, x1 = Math.max(0, Math.min(180, x)), t0 = performance.now(); ms = Math.max(350, ms || 500);
+    (function step(t) { var u = Math.min(1, (t - t0) / ms); camSet(x0 + (x1 - x0) * u); if (u < 1) camAnim = requestAnimationFrame(step); })(t0);
+  }
+  function camState() { var on = camOn(); scene.classList.toggle("cam-on", on); if (!on && camX) { cancelAnimationFrame(camAnim); camSet(0); } }
+  var _w_showPlace = showPlace; showPlace = function (p) { var r = _w_showPlace.apply(this, arguments); camState(); return r; };
+  setInterval(camState, 700); camState();
+  // the hamster walks with the camera: positions stay in room units, the screen follows him when he leaves the view
+  var _w_moveTo = moveTo;
+  moveTo = function (x, y, ms) {
+    _w_moveTo.apply(this, arguments);
+    if (!camOn() || Date.now() - camUser < 2500) return;
+    if (x < camX + 26 || x > camX + 154) camTo(x - 90, ms);
+  };
+  freeze = function () {
+    var r = ham.getBoundingClientRect(), sc = scene.getBoundingClientRect(); if (!sc.width) return;
+    var off = scene.classList.contains("cam-on") && ham.parentNode === scene ? camX : 0;
+    _w_moveTo((r.left + r.width / 2 - sc.left) / sc.width * GW + off, (r.bottom - sc.top) / sc.height * GH, 0);
+  };
+  // ---- swiping the room ----
+  var wPan = null, wSwallow = false;
+  scene.addEventListener("pointerdown", function (e) {
+    if (!camOn() || e.button > 0) return;
+    if (!wRoom.contains(e.target) || e.target.closest(".hamster")) return;
+    wPan = { x: e.clientX, c: camX, w: scene.getBoundingClientRect().width, on: false, id: e.pointerId };
+  }, true);
+  scene.addEventListener("pointermove", function (e) {
+    if (!wPan || e.pointerId !== wPan.id) return; var dx = e.clientX - wPan.x;
+    if (!wPan.on && Math.abs(dx) > 9) { wPan.on = true; cancelAnimationFrame(camAnim); }
+    if (wPan.on) { camUser = Date.now(); camSet(wPan.c - dx / wPan.w * 180); }
+  }, true);
+  function wPanEnd() { if (wPan && wPan.on) wSwallow = true; wPan = null; }
+  scene.addEventListener("pointerup", wPanEnd, true); scene.addEventListener("pointercancel", wPanEnd, true);
+  scene.addEventListener("click", function (e) { if (wSwallow) { wSwallow = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  // ---- what he does over here ----
+  IDLE_ACTS.push("piano", "seat", "nook");
+  var PIANO = [[523, .16], [587, .16], [659, .16], [523, .16], [659, .2], [784, .3], [698, .16], [659, .16], [587, .16], [523, .36]];
+  async function playPiano() {
+    await walkTo(214, 118); H.dir = 1;
+    front({ eyes: "happy", mouth: "smile" }); pulse("hop", 300); await wait(250);
+    _w_moveTo(214, 90, 260); await wait(300);
+    for (var i = 0; i < PIANO.length; i++) {
+      backFrame(i % 2); beep([PIANO[i]]);
+      if (i % 2 === 0) fx("note", 214 + rnd(-18, 18), 44 + rnd(-6, 4), "up", 1.1);
+      await wait(PIANO[i][1] * 1000 + 140);
+    }
+    backFrame(0); await wait(500);
+    front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); await wait(700);
+    _w_moveTo(214, 118, 260); await wait(320); settle();
+  }
+  async function sitInNook() {
+    var x = rnd(270, 320);
+    await walkTo(x, 118); H.dir = 1;
+    pulse("hop", 300); _w_moveTo(x, 82, 300); await wait(340);
+    backFrame(0); await wait(900);
+    for (var i = 0; i < 5; i++) { backFrame(i % 2); await wait(i % 2 ? 1100 : 700); }
+    front({ eyes: "happy", mouth: "smile", blush: true }); await nibbleNose(4); await wait(1400);
+    front({ eyes: "sleep", mouth: "flat" }); await wait(1600); front(mood()); await wait(500);
+    pulse("hop", 300); _w_moveTo(x, 118, 300); await wait(340); settle();
+  }
+  async function strollRight() { await walkTo(rnd(200, 330), rnd(119, 128)); front(mood()); await nibbleNose(5); await wait(600); }
+  var _w_wander = wander;
+  wander = async function () {
+    if (place2 !== "room") return _w_wander();
+    var r = Math.random();
+    if (r < .14) return playPiano();
+    if (r < .28) return sitInNook();
+    if (r < .55) return strollRight();
+    return _w_wander();
+  };
+  wLay.addEventListener("click", function (e) {
+    var b = e.target.closest(".wide-hit"); if (!b) return; e.stopPropagation();
+    if (decor || s.asleep) return;
+    if (b.dataset.w === "guitar") { beep([[196, .12], [247, .12], [294, .12], [392, .3]]); say(N() + " zupft an der Gitarre."); return; }
+    if (busy && !interruptible()) return; if (busy) interrupt();
+    if (b.dataset.w === "piano") { say(N() + " setzt sich ans Klavier."); act("piano", playPiano); }
+    else { say(N() + " macht es sich auf der Fensterbank gemütlich."); act("seat", sitInNook); }
+  });
+  window.__wide = { cam: function (x) { if (x == null) return camX; camSet(x); }, piano: function () { act("piano", playPiano); }, seat: function () { act("seat", sitInNook); } };
 
 
   
