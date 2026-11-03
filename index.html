@@ -2719,7 +2719,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 89 · 02.11.2026</p>
+    <p class="opt-version">Version 90 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -15646,12 +15646,9 @@ window.__EXTRAS = true;
   var pcBoardC = pcBoard.querySelector("canvas").getContext("2d"); pcBoardC.imageSmoothingEnabled = false;
   var pcSig = "";
   function pcOwned() { var M = pcSt(); return PC_LIST.filter(function (o) { return M.pc[o.k]; }); }
-  // the board hangs over the shelf; over a tall shelf there is no room, so it moves to the wall above the door, next to the picture
   var pcBoardAt = "";
-  function pcPlaceBoard() {
-    var it = home.placed && home.placed.shelf ? item("shelf", home.placed.shelf) : null, top = it && it.h ? 106 - it.h : 54, y = top - 29;
-    var at = y >= 2 ? "3," + Math.min(22, y) : "128,8";
-    if (at === pcBoardAt) return; pcBoardAt = at; var xy = at.split(","); place(pcBoard, +xy[0], +xy[1], 36);
+  function pcPlaceBoard() {                                       // always on the wall right above the door, a little behind the model
+    if (pcBoardAt) return; pcBoardAt = "128,8"; place(pcBoard, 128, 8, 36);
   }
   function pcRoom() {
     pcPlaceBoard();
