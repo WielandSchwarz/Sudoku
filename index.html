@@ -2729,7 +2729,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 91 · 02.11.2026</p>
+    <p class="opt-version">Version 92 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -15859,6 +15859,16 @@ window.__EXTRAS = true;
     if (sk) { var cs = getComputedStyle(sk); wSky.style.background = cs.background; }
   }
   setInterval(wViewSync, 4000); setTimeout(wViewSync, 300);
+  // wallpaper and floor are twice as wide now: their tiles are sized in % of the element, so halve the % to keep the pixel size
+  function wTiles() {
+    ["wallpaper", "floor", "wp-twinkle"].forEach(function (id) {
+      var el = document.getElementById(id); if (!el) return; var bs = el.style.backgroundSize;
+      if (!bs || el._wfix === bs) return; var m = /^([\d.]+)%(.*)$/.exec(bs); if (!m) return;
+      el.style.backgroundSize = (parseFloat(m[1]) / 2) + "%" + m[2]; el._wfix = el.style.backgroundSize;
+    });
+  }
+  var _w_renderRoom = renderRoom; renderRoom = function () { var r = _w_renderRoom.apply(this, arguments); wTiles(); return r; };
+  wTiles(); setInterval(wTiles, 1000);
   // ---- the camera ----
   var camX = 0, camAnim = 0, camUser = 0;
   function camOn() { return place2 === "room" && !decor; }
