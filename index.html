@@ -2026,8 +2026,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .md-finds img { width: 34px; image-rendering: pixelated; }
 #ham-root .md-finds img.no { opacity: .25; filter: grayscale(1); }
 #ham-root .mw-n { align-self: center; font-weight: 800; color: #3a2414; }
-#ham-root #scene.wide-room.cam-on #room { left: calc(var(--camp, 0%) * -1); right: var(--camp, 0%); }
-#ham-root #scene.wide-room.cam-on > .hamster, #ham-root #scene.wide-room.cam-on > .thought, #ham-root #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
+#ham-root #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #ham-root #scene.wide-room #room > .wallpaper, #ham-root #scene.wide-room #room > .floor, #ham-root #scene.wide-room #room > .baseboard { right: -100%; }
 #ham-root .wide-rug { position: absolute; image-rendering: pixelated; pointer-events: none; z-index: 1; display: block; }
 #ham-root .wide-lay { position: absolute; z-index: 1; pointer-events: none; }
@@ -2735,7 +2734,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 96 · 02.11.2026</p>
+    <p class="opt-version">Version 97 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -7348,10 +7347,29 @@ window.__EXTRAS = true;
     if (V.lL !== L) { V.l.setAttribute("transform", L); V.lL = L; }
     if (V.lR !== R) { V.r.setAttribute("transform", R); V.lR = R; }
   }
-  (function vaLoop(t) {
-    var els = document.querySelectorAll(".va");
-    for (var i = 0; i < els.length; i++) if (els[i].offsetParent !== null) vaFrame(els[i], t || 0);
-    requestAnimationFrame(vaLoop);
+  (function vaLoop(t) {                                             // frames only while an animal is actually on screen; otherwise a slow check
+    var els = document.querySelectorAll(".va"), any = false;
+    if (!document.hidden) for (var i = 0; i < els.length; i++) if (els[i].offsetParent !== null) { any = true; vaFrame(els[i], t || 0); }
+    if (any) requestAnimationFrame(vaLoop); else setTimeout(function () { requestAnimationFrame(vaLoop); }, 500);
+  })();
+  // battery: the endless ambient animations (curtains, leaves, breathing, clouds, sparkles) run in pixel steps,
+  // about six changes a second instead of a fresh picture every frame; they look the same in pixel art but the phone paints far less
+  (function () {
+    function secs(v) { var m = /([\d.]+)(m?s)/.exec(v || ""); return m ? parseFloat(m[1]) / (m[2] === "ms" ? 1000 : 1) : 0; }
+    function walk(rules) {
+      for (var i = 0; i < rules.length; i++) {
+        var r = rules[i];
+        if (r.cssRules && !r.style) { try { walk(r.cssRules); } catch (e) {} continue; }
+        var st = r.style; if (!st || !st.animationName || st.animationName === "none") continue;
+        if (String(st.animationIterationCount).indexOf("infinite") < 0) continue;
+        if (/steps/.test(st.animationTimingFunction)) continue;
+        var names = st.animationName.split(","), durs = st.animationDuration.split(","), tf = [];
+        for (var k = 0; k < names.length; k++) { var d = secs(durs[k % durs.length]); tf.push(d ? "steps(" + Math.max(2, Math.round(d * 6)) + ", end)" : "linear"); }
+        st.animationTimingFunction = tf.join(", ");
+      }
+    }
+    function run() { for (var i = 0; i < document.styleSheets.length; i++) { try { walk(document.styleSheets[i].cssRules); } catch (e) {} } }
+    run(); setTimeout(run, 3000);
   })();
   window.__va = { pond: function () { lastPondVisit = 0; garden.lastVisit = 0; if (pondV && pondV.el) { pondV.el.remove(); pondV = null; } spawnPondVisitor(true); }, frame: vaFrame };
 
@@ -16133,12 +16151,22 @@ window.__EXTRAS = true;
   // ---- the camera ----
   var camX = 0, camAnim = 0, camUser = 0;
   function camOn() { return place2 === "room" && !decor; }
-  function camSet(x) { camX = Math.max(0, Math.min(180, x)); scene.style.setProperty("--camp", (camX / 180 * 100).toFixed(3) + "%"); }
+  // the camera moves the room and the hamster with a compositor translate (no relayout, no restyling of the whole scene);
+  // the CSS variable for the little effects is only refreshed now and then
+  var camVarT = 0;
+  function camApply() {
+    var on = scene.classList.contains("cam-on"), px = on ? -camX / 180 * scene.clientWidth : 0, tr = px ? px.toFixed(2) + "px 0" : "";
+    wRoom.style.translate = tr;
+    for (var i = 0; i < scene.children.length; i++) { var ch = scene.children[i]; if (ch.classList.contains("hamster") || ch.classList.contains("thought")) ch.style.translate = tr; }
+    if (ham.parentNode !== scene && ham.style.translate) ham.style.translate = "";
+  }
+  function camVar() { camVarT = 0; scene.style.setProperty("--camp", (camX / 180 * 100).toFixed(3) + "%"); }
+  function camSet(x) { camX = Math.max(0, Math.min(180, x)); camApply(); if (!camVarT) camVarT = setTimeout(camVar, 300); }
   function camTo(x, ms) {
     cancelAnimationFrame(camAnim); var x0 = camX, x1 = Math.max(0, Math.min(180, x)), t0 = performance.now(); ms = Math.max(350, ms || 500);
     (function step(t) { var u = Math.min(1, (t - t0) / ms); camSet(x0 + (x1 - x0) * u); if (u < 1) camAnim = requestAnimationFrame(step); })(t0);
   }
-  function camState() { var on = camOn(); scene.classList.toggle("cam-on", on); if (!on && camX) { cancelAnimationFrame(camAnim); camSet(0); } }
+  function camState() { var on = camOn(); scene.classList.toggle("cam-on", on); if (!on && camX) { cancelAnimationFrame(camAnim); camSet(0); } camApply(); }
   var _w_showPlace = showPlace; showPlace = function (p) { var r = _w_showPlace.apply(this, arguments); camState(); return r; };
   setInterval(camState, 700); camState();
   // the hamster walks with the camera: positions stay in room units, the screen follows him when he leaves the view
