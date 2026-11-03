@@ -15169,11 +15169,11 @@ window.__EXTRAS = true;
   });
   function steamGame() {
     return new Promise(function (resolve) {
-      dz = dzNew(); dzEl.hidden = false; dzOpen = true; document.body.classList.add("dz-on"); dz.resolve = resolve;
+      dz = dzNew(); dzEl.hidden = false; dzOpen = true; document.body.classList.add("dz-on"); dzPanel.style.display = "block";   // set directly: the app scopes CSS under its root, so a body.dz-on rule would not reach dz.resolve = resolve;
       dzPlanDraw(); dzIntro(); dzRaf = requestAnimationFrame(dzDraw);
     });
   }
-  function steamEnd() { if (!dzOpen) return; dzOpen = false; document.body.classList.remove("dz-on"); dzMsg.textContent = ""; cancelAnimationFrame(dzRaf); dzEl.hidden = true; dzCard.hidden = true; var r = dz && dz.resolve; dz = null; if (r) r(); }
+  function steamEnd() { if (!dzOpen) return; dzOpen = false; document.body.classList.remove("dz-on"); dzPanel.style.display = "none"; dzMsg.textContent = ""; cancelAnimationFrame(dzRaf); dzEl.hidden = true; dzCard.hidden = true; var r = dz && dz.resolve; dz = null; if (r) r(); }
   dzEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); steamEnd(); });
   var _dz_interrupt = interrupt; interrupt = function () { if (dzOpen) steamEnd(); return _dz_interrupt.apply(this, arguments); };
   var dzPic = xEl("button", "dz-pic", document.getElementById("room")); dzPic.type = "button"; dzPic.setAttribute("aria-label", "Bild mit Dampfer");
