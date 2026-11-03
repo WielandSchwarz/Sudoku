@@ -2729,7 +2729,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 92 · 02.11.2026</p>
+    <p class="opt-version">Version 93 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -14746,7 +14746,15 @@ window.__EXTRAS = true;
   function dzSparks(x, y, n, cols) { for (var i = 0; i < n; i++) dz.sparks.push({ x: x, y: y, vx: (Math.random() - .5) * 70, vy: -20 - Math.random() * 50, life: .5 + Math.random() * .5, c: (cols || ["#fff1a8", "#f6a040", "#ffd34a"])[i % 3] }); }
   function dzSparkDraw(dt) { dz.sparks = dz.sparks.filter(function (p) { p.life -= dt; p.vy += 120 * dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.life > 0) DR(p.x, p.y, 1, 1, p.c); return p.life > 0; }); }
   function DR(x, y, w, h, c) { dzc.fillStyle = c; dzc.fillRect(Math.round(x), Math.round(y), w, h); }
-  function dzImg(k, x, y) { var im = DZI[k]; if (im && im.complete) dzc.drawImage(im, Math.round(x), Math.round(y)); }
+  // an image the phone dropped (complete but no pixels) is loaded again instead of breaking the drawing
+  var dzReload = {};
+  function dzOk(im, k) {
+    if (!im || !im.complete) return false;
+    if (im.naturalWidth > 0) return true;
+    if (k && (!dzReload[k] || Date.now() - dzReload[k] > 2000)) { dzReload[k] = Date.now(); im.src = DZ[k]; }
+    return false;
+  }
+  function dzImg(k, x, y) { var im = DZI[k]; if (dzOk(im, k)) try { dzc.drawImage(im, Math.round(x), Math.round(y)); } catch (e) {} }
   function dzLine(x0, y0, x1, y1, c) { var n = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)))); for (var i = 0; i <= n; i++) DR(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, 1, 1, c); }
   var DZW = { red: { y: 26, c: "#d8463c" }, yellow: { y: 67 }, blue: { y: 108 } };
   var DZ_WX = 150, DZ_AL = 133, DZ_AR = 168;
@@ -15044,7 +15052,12 @@ window.__EXTRAS = true;
     } else m.rub = null;
   }
   // ---- drawing: the engine room ----
+  // a drawing error must never stop the game: the frame is dropped, the next one comes
   function dzDraw(t) {
+    try { dzDraw0(t); }
+    catch (e) { try { dzc.setTransform(1, 0, 0, 1, 0, 0); dzc.globalAlpha = 1; } catch (e2) {} if (dzOpen) { cancelAnimationFrame(dzRaf); dzRaf = requestAnimationFrame(dzDraw); } }
+  }
+  function dzDraw0(t) {
     if (!dzOpen) return;
     var dt = Math.min(.05, (t - (dz.last || t)) / 1000); dz.last = t;
     if (dz.anim) dzAnimStep(dt);
@@ -15230,7 +15243,7 @@ window.__EXTRAS = true;
     }
     dzWater(t, 0, sky, false, false);
     var SX = 64, SYY = 42, shipIm = DZI.sv_ship;
-    if (shipIm && shipIm.complete) { dzc.save(); dzc.globalAlpha = .16; dzc.translate(0, 144); dzc.scale(1, -1); dzc.drawImage(shipIm, 0, 0, 140, 30, SX, SYY, 140, 30); dzc.restore(); }
+    if (dzOk(shipIm, "sv_ship")) { dzc.save(); dzc.globalAlpha = .16; dzc.translate(0, 144); dzc.scale(1, -1); dzc.drawImage(shipIm, 0, 0, 140, 30, SX, SYY, 140, 30); dzc.restore(); }
     if (Math.random() < dt * (g === 0 ? 2 : 6)) S.puffs.push({ x: SX + 49 + Math.floor(Math.random() * 3) * 15, y: SYY + 2, life: 1.8 });
     S.puffs = S.puffs.filter(function (p) { p.life -= dt; p.x += 8 * dt; p.y -= 8 * dt; dzc.globalAlpha = Math.min(1, p.life); dzImg("puff", p.x - 4, p.y - 4); dzc.globalAlpha = 1; return p.life > 0; });
     dzImg("sv_ship", SX, SYY);
@@ -15357,7 +15370,7 @@ window.__EXTRAS = true;
     if (kind === "fastnet") dzImg("sv_harb", ((S.x * .6 + 20) % 260) - 60, 16);
     if (kind === "quar") { var qx = 30 + S.x * .3; DR(qx, 58, 22, 10, "#d8c8a8"); DR(qx, 56, 22, 2, "#8a3a3a"); for (var qw = 0; qw < 4; qw++) DR(qx + 3 + qw * 5, 61, 2, 3, "#3a3028"); DR(qx + 9, 50, 3, 6, "#d8c8a8"); DR(qx + 9, 48, 3, 2, "#8a3a3a"); DR(qx + 10, 44, 1, 4, "#5a4a40"); DR(qx + 11, 44, 3, 2, "#e8e8f0"); }   // the quarantine station with its flag
     if (kind === "lotse") { var nb = 10 + S.x * .5; dzImg("sv_lightship", nb, 38); }
-    if (kind === "gruss") { var oim = DZI.sv_ship; if (oim && oim.complete) { var ox = -10 + Math.min(1, tt / 5) * 200; dzc.save(); dzc.translate(Math.round(ox), 52); dzc.scale(-.6, .6); dzc.drawImage(oim, 0, 0); dzc.restore();
+    if (kind === "gruss") { var oim = DZI.sv_ship; if (dzOk(oim, "sv_ship")) { var ox = -10 + Math.min(1, tt / 5) * 200; dzc.save(); dzc.translate(Math.round(ox), 52); dzc.scale(-.6, .6); dzc.drawImage(oim, 0, 0); dzc.restore();
       if (Math.random() < dt * 6) S.smk.push({ x: ox - 33 - Math.floor(Math.random() * 3) * 9, y: 54, vx: -8, life: 1.6, c: "#8a8e96" });
       if (dz.whistle && !S.answered && tt > 2.5) { S.answered = 1; dzWhistle(1.2); } } }   // her sister Olympic far off, steaming east
     if (kind === "kueste") for (var sb = 0; sb < 2; sb++) { var sbx = ((sb * 90 + S.x * .4) % 220) - 20, sby = 66 + sb * 2; DR(sbx, sby + 3, 7, 2, "#5a3a28"); DR(sbx + 3, sby - 4, 1, 7, "#5a3a28"); DR(sbx + 4, sby - 3, 3, 5, "#f4f0e6"); }   // little sailing boats
@@ -15376,7 +15389,7 @@ window.__EXTRAS = true;
     if (vent && Math.random() < dt * 40) { var fv = Math.floor(Math.random() * 3); S.vent.push({ x: SX + 46 + fv * 15 + Math.random() * 2, y: SYY - 1, vy: -30 - Math.random() * 20, life: .9 }); }
     if (vent && !S.roared && a.t > DZ_OUT + .4) { S.roared = 1; beep([[150, .5], [140, .5]]); dzShake(.4); dzBuzz([80, 40, 160]); }
     var pitch = a.prevLvl > lvl ? Math.round(Math.max(0, 1 - Math.abs(fd - .4) * 3) * (a.prevLvl - lvl)) : 0;            // the bow dips a little as she slows
-    var shipIm = DZI.sv_ship; if (shipIm && shipIm.complete && !storm) { dzc.save(); dzc.globalAlpha = calm ? .3 : .16; dzc.translate(Math.round(Math.sin(t / 400)), 2 * (72 + bob)); dzc.scale(1, -1); dzc.drawImage(shipIm, 0, 0, 140, 30, SX, SYY, 140, 30); dzc.restore(); }   // her reflection
+    var shipIm = DZI.sv_ship; if (dzOk(shipIm, "sv_ship") && !storm) { dzc.save(); dzc.globalAlpha = calm ? .3 : .16; dzc.translate(Math.round(Math.sin(t / 400)), 2 * (72 + bob)); dzc.scale(1, -1); dzc.drawImage(shipIm, 0, 0, 140, 30, SX, SYY, 140, 30); dzc.restore(); }   // her reflection
     var mainC = null;
     if (storm) {                                                                                 // roll and heave on the ship's own layer, turned by CSS so it stays crisp
       var roll = Math.sin(t / 620) * 2.9 + Math.sin(t / 1300) * 1.1; mainC = dzc; dz.layered = true;
@@ -15491,7 +15504,8 @@ window.__EXTRAS = true;
     dz.res[dz.leg] = r.ok; dz.lastLvl = r.lvl; dz.sootBlow = false; if (r.lvl === 2) { dz.soot++; if (dz.soot === 3) setTimeout(function () { if (dz && !dz.done) { dzShake(.3); beep([[180, .1], [140, .14]]); } }, 300); } dz.leg++; dz.anim = null; dz.coalN = 0; dz.pumpN = 0; dz.lever = false; dz.whistle = false;
     dz.dispP = dz.P / 10; dz.dispW = dz.W / 10; dz.dispG = dz.G; dz.prog = dz.leg / dz.route.length; dzGo.disabled = false;
     dzPlanDraw(); var tl = dzPlanEl.querySelector(".dz-t.cur"); if (tl && tl.previousElementSibling) tl.previousElementSibling.classList.add("just");
-    if (dz.leg >= dz.route.length) { dzArrive(); return; }
+    if (dz.leg >= dz.route.length) { dzDrop(); dzArrive(); return; }
+    dzSave();
     dz.ringT = 1.2; dzBell(DZ_ORD[dzOrder()].l + 1);
     var li = dz.leg - 1, pe = dz.evs[li];
     dzLegIntro(r.ok ? (pe ? pe.d : dz.route[li].d) : "✘ " + DZ_WHY[r.why] + ".");
@@ -15517,6 +15531,21 @@ window.__EXTRAS = true;
       gift + '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Noch eine Fahrt</button></div></div>';
     dzCard.hidden = false;
   }
+  // a voyage that was interrupted (app closed, game left) waits in the save: carry on or start a new one
+  var DZ_KEEP = ["route", "leg", "res", "P", "G", "W", "shovels", "blows", "budget", "evs", "lastEv", "lastLvl", "arrNight", "soot", "flood", "floodB", "nightSaid"];
+  function dzSave() {
+    if (!dz || dz.done || dz.intro) return; var o = {}; DZ_KEEP.forEach(function (k) { if (dz[k] !== undefined) o[k] = dz[k]; });
+    dzL().cur = JSON.parse(JSON.stringify(o)); if (window.SudokuSave) window.SudokuSave();
+  }
+  function dzDrop() { var M = dzL(); if (M.cur) { delete M.cur; if (window.SudokuSave) window.SudokuSave(); } }
+  function dzResumeCard() {
+    dz.intro = true; dzGo.disabled = true; dzBanner("");
+    dzCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Die Pausbacke ist noch unterwegs</p>' +
+      '<p class="dz-route">Abschnitt ' + (dz.leg + 1) + ' von ' + dz.route.length + '</p>' +
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="new">Neue Fahrt</button><button type="button" class="fi-b" data-a="resume">Weiterfahren</button></div></div>';
+    dzCard.hidden = false;
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden" && dzOpen) dzSave(); });
   function dzIntro() {
     dz.intro = true; dzGo.disabled = true; dzBanner("");
     dzCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Jungfernfahrt der Pausbacke</p>' +
@@ -15579,21 +15608,26 @@ window.__EXTRAS = true;
   dzCv.addEventListener("pointercancel", function () { if (dz) { dz.drag = null; dz.ham = { m: "front", f: 0, t: 0 }; } });
   dzGo.addEventListener("click", function (e) { e.stopPropagation(); if (dz && dz.mini) dzMiniClose(); else dzRun(); });
   dzCard.addEventListener("click", function (e) {
-    e.stopPropagation(); var b = e.target.closest("button"); if (!b) return;
+    e.stopPropagation(); var b = e.target.closest("button"); if (!b) return; var dzResolveKeep = dz && dz.resolve;
     if (b.dataset.a === "pc") { if (dz && dz.pcNew) pcBig(dz.pcNew); return; }
+    if (b.dataset.a === "resume") { dz.intro = false; dzCard.hidden = true; dzGo.disabled = false; dz.ringT = 1.2; beep([[880, .06], [660, .08]]); dzLegIntro(); return; }
+    if (b.dataset.a === "new") { dzDrop(); dz = dzNew(); dz.resolve = dzResolveKeep; dzPlanDraw(); dzIntro(); return; }
     if (b.dataset.a === "go") { dz.intro = false; dzCard.hidden = true; dzGo.disabled = false; dz.ringT = 1.2; beep([[880, .06], [880, .06], [660, .08]]); dzLegIntro(); }
-    else if (b.dataset.a === "again") { dz = dzNew(); dz.ending = null; dzPlanDraw(); dzIntro(); }
+    else if (b.dataset.a === "again") { var rs = dz.resolve; dzDrop(); dz = dzNew(); dz.resolve = rs; dz.ending = null; dzPlanDraw(); dzIntro(); }
     else steamEnd();
   });
   function steamGame() {
     return new Promise(function (resolve) {
-      dz = dzNew(); dzEl.hidden = false; dzOpen = true; document.body.classList.add("dz-on"); dzPanel.style.display = "block";   // set directly: the app scopes CSS under its root, so a body.dz-on rule would not reach dz.resolve = resolve;
-      dzPlanDraw(); dzIntro(); dzRaf = requestAnimationFrame(dzDraw);
+      dz = dzNew(); dzEl.hidden = false; dzOpen = true; document.body.classList.add("dz-on"); dzPanel.style.display = "block"; dz.resolve = resolve;   // panel set directly: the app scopes CSS under its root, so a body.dz-on rule would not reach
+      var sv = dzL().cur;
+      if (sv && sv.route && sv.leg < sv.route.length) { Object.keys(sv).forEach(function (k) { dz[k] = sv[k]; }); dzPlanDraw(); dzResumeCard(); }
+      else { dzPlanDraw(); dzIntro(); }
+      dzRaf = requestAnimationFrame(dzDraw);
     });
   }
   function steamEnd() { if (!dzOpen) return; dzOpen = false; document.body.classList.remove("dz-on"); dzPanel.style.display = "none"; dzMsg.textContent = ""; cancelAnimationFrame(dzRaf); dzEl.hidden = true; dzCard.hidden = true; var r = dz && dz.resolve; dz = null; if (r) r(); }
-  dzEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); steamEnd(); });
-  var _dz_interrupt = interrupt; interrupt = function () { if (dzOpen) steamEnd(); return _dz_interrupt.apply(this, arguments); };
+  dzEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); dzSave(); steamEnd(); });
+  var _dz_interrupt = interrupt; interrupt = function () { if (dzOpen && !window.__resume) { dzSave(); steamEnd(); } return _dz_interrupt.apply(this, arguments); };
   var dzPic = xEl("button", "dz-pic", document.getElementById("room")); dzPic.type = "button"; dzPic.setAttribute("aria-label", "Bild mit Dampfer");
   dzPic.innerHTML = '<img src="' + DZ.pic + '" alt="">'; place(dzPic, 90, 14, 24);
   async function steamSeq() {
@@ -15833,7 +15867,7 @@ window.__EXTRAS = true;
   pcM.querySelector(".pc-flip").addEventListener("click", function () { if (!pcV) return; pcV.flip = !pcV.flip; pcApply(true); beep([[520, .04], [392, .05]]); });
   pcM.querySelector(".pc-close").addEventListener("click", pcBigEnd);
   pcM.addEventListener("click", function (e) { if (e.target === pcM) pcBigEnd(); });
-  var _pc_interrupt = interrupt; interrupt = function () { if (!pcEl.hidden) pcClose(); return _pc_interrupt.apply(this, arguments); };
+  var _pc_interrupt = interrupt; interrupt = function () { if (!pcEl.hidden && !window.__resume) pcClose(); return _pc_interrupt.apply(this, arguments); };
   window.__pc = { award: function (d) { return pcAward(d); }, open: pcOpen, big: pcBig, room: pcRoom, st: pcSt,
     give: function (k, g) { var M = pcSt(); M.pc[k] = { t: Date.now(), p: 100, g: g ? 1 : 0 }; pcRoom(); }, model: function () { pcSt().model = Date.now(); pcRoom(); },
     reset: function () { var M = pcSt(); M.pc = {}; M.model = 0; pcSig = ""; pcRoom(); },
@@ -15991,7 +16025,7 @@ window.__EXTRAS = true;
   }, 30000);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState !== "visible") return;
-    var was = s.asleep; interrupt(); catchUpQuiet();
+    var was = s.asleep; window.__resume = true; try { interrupt(); } finally { window.__resume = false; } catchUpQuiet();
     if (s.asleep) placeAsleep(); else if (was) placeAwake(); else settle();
     renderNeeds(); renderCosy(); renderStart();
   });
