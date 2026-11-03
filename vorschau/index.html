@@ -1646,6 +1646,8 @@ body.dz-on .dz-panel { display: block; }
 .dz-msg .dz-d { font-style: italic; font-weight: 600; color: #6a4a2a; }
 .dz-msg .dz-ev { color: #a8322a; }
 .dz-t.ev { box-shadow: inset 0 0 0 2px #3a2414, 0 0 0 2px #e8554a; }
+.dz-pov .dz-layer { pointer-events: none; }
+.dz-pov .fi-cv { will-change: transform; }
 
 /* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
 #scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
@@ -14275,6 +14277,9 @@ window.__EXTRAS = true;
   dzEl.innerHTML = '<canvas width="180" height="135" class="fi-cv"></canvas><div class="fi-card" hidden></div><button type="button" class="bp-x" aria-label="Maschinenraum verlassen">×</button>';
   var dzCv = dzEl.querySelector(".fi-cv"), dzc = dzCv.getContext("2d"); dzc.imageSmoothingEnabled = false;
   var dzCard = dzEl.querySelector(".fi-card");
+  // two transparent layers over the scene for the storm: the ship on its own canvas, rolled by CSS at screen resolution, and what lies in front of it
+  function dzLayer() { var c = document.createElement("canvas"); c.width = 180; c.height = 135; c.className = "fi-cv dz-layer"; dzCv.parentNode.insertBefore(c, dzCv.nextSibling); var x = c.getContext("2d"); x.imageSmoothingEnabled = false; return x; }
+  var dzFrontC = dzLayer(), dzShipC = dzLayer(), dzShipCv = dzShipC.canvas, dzFrontCv = dzFrontC.canvas;
   var dzPanel = document.createElement("div"); dzPanel.className = "dz-panel";
   dzPanel.innerHTML = '<div class="dz-plan"></div><div class="dz-row"><p class="dz-msg"></p><button type="button" class="dz-go">Los!</button></div>';
   scene.parentNode.insertBefore(dzPanel, scene.nextSibling);
@@ -14415,7 +14420,10 @@ window.__EXTRAS = true;
     dz.cam.x += -dz.cam.x * Math.min(1, dt * 14); dz.cam.y += -dz.cam.y * Math.min(1, dt * 14);
     dzc.save(); dzc.translate(Math.round(dz.cam.x + (sk ? (Math.random() - .5) * 2 * Math.min(3, sk) : 0)), Math.round(dz.cam.y + (sk ? (Math.random() - .5) * 2 * Math.min(2, sk) : 0)));
     var stormy = !dz.done && !dz.intro && dz.evs[dz.leg] && dz.evs[dz.leg].k === "sturm";
-    if (stormy && !(dz.anim && dz.anim.out)) { dzc.translate(90, 70); dzc.rotate(Math.sin(t / 700) * .025); dzc.translate(-90, -70 + Math.round(Math.sin(t / 520) * 1.5)); if (Math.random() < dt * .4) beep([[70 + Math.random() * 20, .25]]); }
+    var rock = stormy && !(dz.anim && dz.anim.out);                                            // the engine room rocks: a CSS turn of the whole canvas, smooth at screen resolution
+    dzCv.style.transform = rock ? "rotate(" + (Math.sin(t / 700) * 1.4).toFixed(3) + "deg) translateY(" + (Math.sin(t / 520) * 1.1).toFixed(2) + "%) scale(1.05)" : "";
+    if (rock && Math.random() < dt * .4) beep([[70 + Math.random() * 20, .25]]);
+    if (dz.layered) { dzShipC.clearRect(0, 0, 180, 135); dzFrontC.clearRect(0, 0, 180, 135); dzShipCv.style.transform = ""; dz.layered = false; }
     if (dz.anim && dz.anim.out) { dzSea(t, dt); dzSparkDraw(dt); dzc.restore(); dzRaf = requestAnimationFrame(dzDraw); return; }
     var sim = dz.anim || dz.done || dz.intro ? null : dzSim(dz);
     dzImg("bg", 0, 0);
@@ -14599,7 +14607,14 @@ window.__EXTRAS = true;
     if (vent && !S.roared && a.t > DZ_OUT + .4) { S.roared = 1; beep([[150, .5], [140, .5]]); dzShake(.4); dzBuzz([80, 40, 160]); }
     var pitch = a.prevLvl > lvl ? Math.round(Math.max(0, 1 - Math.abs(fd - .4) * 3) * (a.prevLvl - lvl)) : 0;            // the bow dips a little as she slows
     var shipIm = DZI.sv_ship; if (shipIm && shipIm.complete && !storm) { dzc.save(); dzc.globalAlpha = calm ? .3 : .16; dzc.translate(Math.round(Math.sin(t / 400)), 2 * (72 + bob)); dzc.scale(1, -1); dzc.drawImage(shipIm, 0, 0, 140, 30, SX, SYY, 140, 30); dzc.restore(); }   // her reflection
-    if (storm && shipIm && shipIm.complete) { var roll = Math.sin(t / 620) * .05 + Math.sin(t / 1300) * .02; dzc.save(); dzc.translate(SX + 70, SYY + 28 + pitch + Math.round(Math.sin(t / 480) * 2)); dzc.rotate(roll); dzc.drawImage(shipIm, -70, -28); dzc.restore(); }
+    var mainC = null;
+    if (storm) {                                                                                 // roll and heave on the ship's own layer, turned by CSS so it stays crisp
+      var roll = Math.sin(t / 620) * 2.9 + Math.sin(t / 1300) * 1.1; mainC = dzc; dz.layered = true;
+      dzc = dzShipC; dzImg("sv_ship", SX, SYY + pitch);
+      dzShipCv.style.transformOrigin = ((SX + 70) / 1.8).toFixed(1) + "% " + ((SYY + 28) / 1.35).toFixed(1) + "%";
+      dzShipCv.style.transform = "translateY(" + (Math.sin(t / 480) * 1.4).toFixed(2) + "%) rotate(" + roll.toFixed(2) + "deg)";
+      dzc = dzFrontC;                                                                            // everything after the ship lies in front of it
+    }
     else dzImg("sv_ship", SX, SYY + pitch);
     S.vent = S.vent.filter(function (p) { p.life -= dt; p.y += p.vy * dt; p.x += (sp * .5 + 6) * dt; dzc.globalAlpha = Math.min(1, p.life * 1.5); dzImg("steam", p.x - 8, p.y - 6); dzc.globalAlpha = 1; return p.life > 0; });
     if (sky === "night") { for (var pw = 0; pw < 28; pw++) DR(SX + 8 + pw * 4.3, SYY + 25 + (pw % 2) * 2, 1, 1, "#ffe8a0"); }   // lit portholes at night
@@ -14625,6 +14640,7 @@ window.__EXTRAS = true;
       if (ok) { DR(cx - 6, cy, 2, 2, "#fff8ec"); DR(cx - 4, cy + 2, 2, 2, "#fff8ec"); DR(cx - 2, cy + 3, 2, 2, "#fff8ec"); for (var q2 = 0; q2 < 5; q2++) DR(cx + q2 * 1.5, cy + 2 - q2 * 1.7, 2, 2, "#fff8ec"); }
       else for (var q3 = -3; q3 <= 3; q3++) { DR(cx + q3 * 1.4 - 1, cy + q3 * 1.4 - 1, 2, 2, "#ff7a6a"); DR(cx + q3 * 1.4 - 1, cy - q3 * 1.4 - 1, 2, 2, "#ff7a6a"); }
       dzc.globalAlpha = 1; }
+    if (mainC) dzc = mainC;
   }
   // the historic engine telegraph: black pointer with brass tip = the bridge's order for this leg, red pointer = what the engine is set to
   var DZ_TG = { x: DZ_TGX, y: DZ_TGY, r: 18 };
