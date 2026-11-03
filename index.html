@@ -2020,6 +2020,10 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .dz-gift { background: #fff3d0; box-shadow: inset 0 0 0 2px #e8b84a; padding: 4px 6px; }
 #ham-root .dz-gift .dz-pcb { margin-left: 6px; padding: 2px 8px; font-size: .8rem; }
 #ham-root .pc-board { z-index: 2; }
+#ham-root .md-finds { display: flex; justify-content: center; gap: 10px; margin: 2px 0 10px; }
+#ham-root .md-finds img { width: 34px; image-rendering: pixelated; }
+#ham-root .md-finds img.no { opacity: .25; filter: grayscale(1); }
+#ham-root .mw-n { align-self: center; font-weight: 800; color: #3a2414; }
 #ham-root #scene.wide-room.cam-on #room { left: calc(var(--camp, 0%) * -1); right: var(--camp, 0%); }
 #ham-root #scene.wide-room.cam-on > .hamster, #ham-root #scene.wide-room.cam-on > .thought, #ham-root #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #ham-root #scene.wide-room #room > .wallpaper, #ham-root #scene.wide-room #room > .floor, #ham-root #scene.wide-room #room > .baseboard { right: -100%; }
@@ -2729,7 +2733,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 94 · 02.11.2026</p>
+    <p class="opt-version">Version 95 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -9981,18 +9985,26 @@ window.__EXTRAS = true;
         // ships: back to front; the fox's only once sunk (and then only while sinking)
         fleet.forEach(function (s_) { if (s_.gone) drawWreck(s_, t); });       // sunk ships lie on the bottom and shimmer through the water
         if (fleet.some(function (s_) { return s_.gone; })) bx.drawImage(bsImg.grid, 0, 0);
-        var list = fleet.filter(function (s_) { return (view === "mine" || s_.reveal) && !s_.gone && !(sink && sink.ship === s_); });
-        list.sort(function (a, b) { return (a.r + (a.h ? 0 : a.L)) - (b.r + (b.h ? 0 : b.L)); });
-        list.forEach(function (s_) { var sp = spriteOf(s_), lift = drag && drag.ship === s_ ? -3 : 0; bx.drawImage(sp.img, sp.x, sp.y + lift); if (lift) twinkle(bx, sp.x - 2, sp.y + 2, t, 0); });
-        if (sink) drawSink(t);
-        drawFlots(t);
-        // marks
+        // what lies on the water comes first: misses, the debris of sunk ships, the flotsam
         Object.keys(shots).forEach(function (k) {
           var q = k.split(","), c = +q[0], r = +q[1], s_ = shipAt(fleet, c, r), p = cellCenter(c, r, .55);
           if (shots[k] === "miss") splashMark(bx, p[0], p[1]);
           else if (s_ && s_.gone) { if ((c + r) % 2 === 0) debris(bx, p[0], p[1] - 2); }
-          else if (!(sink && sink.ship === s_)) flame(bx, p[0], p[1] - (view === "mine" ? 4 : 0), t + c * 37 + r * 91);
         });
+        drawFlots(t);
+        // then everything that stands up, strictly from back to front: ships (the sinking one at its own place), and fires
+        // (with their ship, or on their own where a hidden ship of the fox burns); the ship being dragged comes last
+        var items = [], depth = function (s_) { return (s_.h ? s_.r : s_.r + s_.L - 1) * 4 + (s_.h ? 1 : 0); };
+        fleet.forEach(function (s_) {
+          if (s_.gone) return;
+          if (sink && sink.ship === s_) { items.push({ d: depth(s_), f: function () { drawSink(t); } }); return; }
+          var seen = view === "mine" || s_.reveal, dragged = drag && drag.ship === s_;
+          items.push({ d: dragged ? 1e6 : depth(s_), f: function () {
+            if (seen) { var sp = spriteOf(s_), lift = dragged ? -3 : 0; bx.drawImage(sp.img, sp.x, sp.y + lift); if (lift) twinkle(bx, sp.x - 2, sp.y + 2, t, 0); }
+            cellsOf(s_).forEach(function (q) { var k = key(q[0], q[1]); if (shots[k] === "hit") { var p = cellCenter(q[0], q[1], .55); flame(bx, p[0], p[1] - (view === "mine" ? 4 : 0), t + q[0] * 37 + q[1] * 91); } });
+          } });
+        });
+        items.sort(function (a2, b2) { return a2.d - b2.d; }).forEach(function (it) { it.f(); });
         splashes = splashes.filter(function (s_) { return t - s_.t0 < 600; });
         splashes.forEach(function (s_) { var k = (t - s_.t0) / 600, rr = 2 + k * 7; for (var a = 0; a < 16; a++) { var an = a / 16 * Math.PI * 2; bx.globalAlpha = 1 - k; rect(bx, s_.x + Math.cos(an) * rr, s_.y + Math.sin(an) * rr * .4, 1, 1, "#ffffff"); } bx.globalAlpha = 1; if (k < .4) { rect(bx, s_.x, s_.y - 3 - k * 10, 1, 2, "#e6f4fc"); rect(bx, s_.x - 2, s_.y - 2 - k * 6, 1, 1, "#e6f4fc"); rect(bx, s_.x + 2, s_.y - 2 - k * 6, 1, 1, "#e6f4fc"); } });
         if (aim && view === "theirs") quad(bx, aim[0], aim[1], "#f6c84a");
@@ -10046,7 +10058,9 @@ window.__EXTRAS = true;
         }
         var hull = document.createElement("canvas"); hull.width = sp.w; hull.height = sp.h; var hc = hull.getContext("2d"); hc.drawImage(sp.img, 0, 0);
         fun.forEach(function (f) { hc.clearRect(f.x0, 0, f.x1 - f.x0 + 1, f.base + 1); });
-        return { holes: holes, fun: fun, hull: hull };
+        var rows = [];                                                   // each row's left and right edge, for the hull flank of a ship heeling over
+        for (var ry = 0; ry < sp.h; ry++) { var mn = -1, mx = -1; for (var rx = 0; rx < sp.w; rx++) if (A(rx, ry)) { if (mn < 0) mn = rx; mx = rx; } rows.push([mn, mx]); }
+        return { holes: holes, fun: fun, hull: hull, rows: rows };
       }
       function pick2(list) { var tot = 0; list.forEach(function (o) { tot += o[1]; }); var r = Math.random() * tot; for (var i = 0; i < list.length; i++) { r -= list[i][1]; if (r <= 0) return list[i][0]; } return list[0][0]; }
       function ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
@@ -10089,18 +10103,20 @@ window.__EXTRAS = true;
           };
           var prop = function (x0) { return function (pivX) { var f = Math.floor(t / 90) % 2; rect(ox_, x0 - pivX, -2 - f, 1, 3, "#c89a3a"); rect(ox_, x0 - pivX - 1, -1, 3, 1, f ? "#c89a3a" : "#8a6a20"); }; };
           if (K === "titanic") {
-            // she goes down by the bow first, in one piece; then she breaks in the middle, the stern falls back, rears up almost upright,
-            // stands a moment and slides down with a lot of bubbles
-            var m = Math.round(sp.w * sink.f), deg = Math.PI / 180;
-            if (p < .32) { var e1 = ease(p / .32); piece(0, sp.w, m, 12 * e1 * deg, 0, 3 * e1); }
+            // in one piece she settles by the bow; slowly the hull cracks in the middle and opens, the bow slips away,
+            // the stern sinks back a little, then rises almost upright, stands, and slides slowly under with lots of bubbles
+            var m = Math.round(sp.w * sink.f), deg = Math.PI / 180, sm = function (a0, a1) { return ease((p - a0) / (a1 - a0)); };
+            var a0 = 10 * sm(0, .35);
+            if (p < .35) piece(0, sp.w, m, a0 * deg, 0, 4 * sm(0, .35));
             else {
-              var gap = Math.round(2 * ease((p - .32) / .08));
-              var aBow = (12 + 38 * ease((p - .32) / .3)) * deg, dBow = 3 + 34 * ease((p - .36) / .35);
-              var aSt = (p < .42 ? 12 * (1 - ease((p - .32) / .1)) : 70 * ease((p - .42) / .24)) * deg, dSt = 3 + 4 * ease((p - .42) / .24) + 42 * ease((p - .78) / .22);
-              piece(m, sp.w - m, m, aBow, gap, dBow);
-              piece(0, m, m, aSt, -gap, dSt, prop(3));
-              if (p < .5) for (var dr = 0; dr < 3; dr++) rect(ox_, sp.x + m - 2 + Math.random() * 4, WL - 2 - Math.random() * 6, 1, 1, "#2e2a36");   // bits falling from the break
-              if (p > .74) for (var bb = 0; bb < 5; bb++) { var bxx = sp.x + m - 10 + Math.random() * 14, byy = WL - Math.random() * 4 * (p - .7) * 10; rect(bx, bxx, byy, 1 + (bb % 2), 1 + (bb % 2), Math.random() < .5 ? "#ffffff" : "#d8eef8"); }   // and the bubbles
+              var gap = 2 * sm(.35, .55);
+              var aBow = (10 + 38 * sm(.38, .72)) * deg, dBow = 4 + 38 * Math.pow(Math.max(0, Math.min(1, (p - .42) / .4)), 1.5);
+              var aSt = (10 - 6 * sm(.35, .5) + 61 * sm(.47, .74)) * deg, slide = Math.pow(Math.max(0, Math.min(1, (p - .78) / .22)), 1.6);
+              var dSt = 4 + 3 * sm(.47, .74) + 42 * slide;
+              piece(m, sp.w - m, m, aBow, Math.round(gap), dBow);
+              piece(0, m, m, aSt, -Math.round(gap), dSt, prop(3));
+              if (p > .38 && p < .58) for (var dr = 0; dr < 2; dr++) rect(ox_, sp.x + m - 2 + Math.random() * 4, WL - 1 - Math.random() * 5, 1, 1, "#2e2a36");   // bits falling from the crack
+              if (p > .76) for (var bb = 0; bb < 4 + Math.floor(slide * 8); bb++) { var bxx = sp.x + m - 10 + Math.random() * 14, byy = WL - Math.random() * 3 - slide * 3; rect(bx, bxx, byy, 1 + (bb % 2), 1 + (bb % 2), Math.random() < .5 ? "#ffffff" : "#d8eef8"); }   // and the bubbles
             }
           } else if (K === "bow" || K === "stern") {
             var dir = K === "bow" ? 1 : -1, ang = (26 * ease(p / .65)) * Math.PI / 180, sd = 3 + 9 * ease(p / .65) + 26 * ease((p - .62) / .38);
@@ -10111,10 +10127,10 @@ window.__EXTRAS = true;
             var pr = sp.h - 7; ox_.save(); ox_.translate(Math.round(sp.x), Math.round(sp.y + pr + sd2)); ox_.scale(1, Math.abs(cy) < .05 ? (cy < 0 ? -.05 : .05) : cy); ox_.drawImage(img, 0, -pr); ox_.restore();   // rolls about the middle of the hull: upside down the black hull and red keel stick out
           } else if (K === "funnels") {
             // a slow list and settling, the funnels toppling one after another towards the stern
-            var la = 7 * ease(p / .3) * Math.PI / 180, sd3 = 4 * ease(p / .4) + 30 * ease((p - .62) / .38), pv = sp.w * .5;
+            var la = 7 * ease(p / .3) * Math.PI / 180, sd3 = 3 * ease(p / .3) + 32 * Math.pow(Math.max(0, Math.min(1, (p - .35) / .65)), 1.4), pv = sp.w * .5;
             piece(0, sp.w, pv, la, 0, sd3, function (pivX) {
               I.fun.forEach(function (f, i) {
-                var st = .12 + i * .13, fa = ease((p - st) / .16), fw = f.x1 - f.x0 + 1, fh = f.base + 1, left = (sink.fdir[i] || 1) < 0, byp = fh - pivY;
+                var st = .42 + i * .09, fa = ease((p - st) / .13), fw = f.x1 - f.x0 + 1, fh = f.base + 1, left = (sink.fdir[i] || 1) < 0, byp = fh - pivY;
                 ox_.save(); ox_.translate((left ? f.x0 : f.x1 + 1) - pivX, byp); ox_.rotate((left ? -1 : 1) * fa * Math.PI / 2); ox_.drawImage(sp.img, f.x0, 0, fw, fh, left ? 0 : -fw, -fh, fw, fh); ox_.restore();
                 if (fa >= 1 && !f.hiss) { f.hiss = 1; beep([[90, .08]]); }
               });
@@ -10128,11 +10144,23 @@ window.__EXTRAS = true;
           }
         } else {
           WL = sp.y + sp.h;
-          if (K === "capsize") {
-            var rq2 = ease(p / .5), cx2 = Math.cos(rq2 * Math.PI), sd5 = 10 * ease((p - .5) / .5);
-            ox_.save(); ox_.translate(Math.round(sp.x + sp.w / 2), Math.round(sp.y + sd5)); ox_.scale(cx2 === 0 ? .02 : cx2, 1); ox_.drawImage(img, -sp.w / 2, 0); ox_.restore();
-            if (p > .5) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192," + Math.min(.85, (p - .5) * 2) + ")"; ox_.fillRect(sp.x - 2, sp.y, sp.w + 4, sp.h + 12); ox_.globalCompositeOperation = "source-over"; }
-            if (p > .92) ox_.clearRect(sp.x - 4, sp.y - 2, sp.w + 8, sp.h + 16);
+          if (K === "list") {
+            // seen from the bow or the stern: she heels over to one side, the hull shows on the high side, then she settles and fades under
+            var roll = 62 * ease(p / .55) * Math.PI / 180, side = sink.side, sx = Math.cos(roll), shift = Math.sin(roll) * 3 * side, sink2 = 6 * Math.pow(Math.max(0, (p - .5) / .5), 1.3);
+            for (var y = 0; y < sp.h; y++) {
+              var rw = Math.max(2, Math.round(sp.w * sx)), x0 = Math.round(sp.x + (sp.w - rw) / 2 + shift + side * (1 - sx) * sp.w * .25);
+              ox_.drawImage(img, 0, y, sp.w, 1, x0, Math.round(sp.y + y + sink2), rw, 1);
+              var R = I.rows[y]; if (R[0] < 0) continue;
+              var rl = x0 + Math.round(R[0] * rw / sp.w), rr = x0 + Math.round((R[1] + 1) * rw / sp.w), hw = Math.round((R[1] - R[0] + 1) * Math.sin(roll) * .5), yy = Math.round(sp.y + y + sink2);
+              if (hw > 0) {                                                  // the hull's flank on the high side: black, a porthole now and then, the red keel at its edge, an outline
+                var fx = side > 0 ? rl - hw : rr;
+                rect(ox_, fx, yy, hw, 1, "#2e2a36"); if (y % 4 === 1 && lit && hw > 3) rect(ox_, fx + (hw >> 1), yy, 1, 1, "#ffe9a0");
+                rect(ox_, side > 0 ? fx : fx + hw - 1, yy, 1, 1, hw > 2 ? "#a8362a" : "#2e2a36"); rect(ox_, side > 0 ? fx - 1 : fx + hw, yy, 1, 1, "#24160c");
+              }
+            }
+            var wet = Math.max(0, (p - .45) / .55);
+            if (wet > 0) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192," + Math.min(.9, wet * 1.2) + ")"; ox_.fillRect(sp.x - sp.w, sp.y - 2, sp.w * 3, sp.h + 14); ox_.globalCompositeOperation = "source-over"; }
+            if (p > .94) ox_.clearRect(sp.x - sp.w, sp.y - 4, sp.w * 3, sp.h + 20);
           } else {
             var vk = K === "boom" ? "mid" : K, lift = 6 * e, lev = 1.2 * e;
             for (var y = 0; y < sp.h; y++) {
@@ -10172,11 +10200,11 @@ window.__EXTRAS = true;
         if (ship.h) {
           var sp = spriteOf(ship), info = sinkInfo(sp);
           kind = pick2([["titanic", ship.L >= 3 ? (end === "mid" ? 5 : 3) : 0], ["bow", end === "bow" ? 3 : 2], ["stern", end === "stern" ? 3 : 2], ["capsize", 2], ["funnels", info.fun.length ? 2 : 0], ["boom", info.fun.length ? 1 : 0]]);
-        } else kind = pick2([[end, 4], ["capsize", 2], ["boom", 1]]);
+        } else kind = pick2([[end, 4], ["list", 3], ["boom", 1]]);
         if (window.__bsKind) kind = window.__bsKind;
         ship.reveal = true; beep([[180, .12], [140, .14], [110, .2]]);
         var f = kind === "titanic" && end !== "mid" ? (Math.floor(ship.L / 2) + .5) / ship.L : (idx + .5) / ship.L;
-        sink = { ship: ship, kind: kind, f: f, last: last, t0: performance.now(), done: done, dur: { titanic: 5400, funnels: 4000, boom: 3600, capsize: 3400 }[kind] || 3200 };
+        sink = { ship: ship, kind: kind, f: f, last: last, t0: performance.now(), done: done, dur: { titanic: 7000, funnels: 4600, boom: 3600, capsize: 3400, list: 3600 }[kind] || 3200, side: Math.random() < .5 ? -1 : 1 };
         sink.fdir = [0, 1, 2, 3, 4].map(function (i) { return Math.random() < .5 ? -1 : 1; }); if (sink.fdir[0] === sink.fdir[1]) sink.fdir[1] = -sink.fdir[0];
         if (kind === "boom") { var inf = ship.h ? sinkInfo(spriteOf(ship)) : { fun: [] }; sink.flyer = inf.fun.length ? Math.floor(Math.random() * inf.fun.length) : -1; }
       }
@@ -15055,56 +15083,91 @@ window.__EXTRAS = true;
     if (m.k === "pump") dzPumpDraw(t, dt, m); else dzSootDraw(t, dt, m);
   }
   // ---- the bilge pump scene ----
+  // Hull ribs and a wooden grating; the cast-iron pump sucks the bilge water up through a pipe and pours it from its spout
+  // straight into the pail standing under it; the full pail is dragged to the scupper on the right and tipped out.
+  var DZP = { bx: 58, by: 92, mx: 72, my: 76 };                                                    // the pail's home under the spout, the spout's mouth
+  function dzShadeCol(u, pal) { var i = Math.max(0, Math.min(pal.length - 1, Math.floor(u * pal.length))); return pal[i]; }
   function dzPumpDraw(t, dt, m) {
     m.wl += (m.left - m.wl) * Math.min(1, dt * 3);                                              // the water level sinks smoothly after each bucket
-    var wy = 135 - 8 - m.wl * 7;
-    // the leaking seam on the left: a riveted plate and a jet of sea water arcing into the pool
-    DR(4, 30, 10, 60, "#3a2414"); DR(5, 31, 8, 58, "#5a6670"); for (var rv = 34; rv < 88; rv += 6) DR(8, rv, 2, 2, "#9aa6b0");
-    if (m.left > 0) for (var j = 0; j < 14; j++) { var u = ((t / 400) + j / 14) % 1; DR(13 + u * 20, 52 + u * u * (wy - 52), 2, 2, j % 3 ? "#a8d0e8" : "#e8f4fc"); }
-    // the scupper: a brass-rimmed porthole in the hull with the sea outside
+    var wy = 135 - 10 - m.wl * 4;
+    // hull ribs: deep brown frames with a lit edge, darker towards the bilge
+    [[2, 14], [96, 12], [170, 10]].forEach(function (r) { DR(r[0] - 1, 14, r[1] + 2, 121, "#24160c"); DR(r[0], 14, r[1], 121, "#4a3424"); DR(r[0], 14, 2, 121, "#6a4c34"); DR(r[0] + r[1] - 2, 14, 2, 121, "#36261a"); for (var ry = 22; ry < 135; ry += 12) DR(r[0] + Math.floor(r[1] / 2) - 1, ry, 2, 2, "#8a6a4a"); });
+    dzc.globalAlpha = .35; for (var gy2 = 0; gy2 < 40; gy2++) DR(0, 95 + gy2, 180, 1, "#0e1a22"); dzc.globalAlpha = 1;   // shadow down in the bilge
+    // the leaking seam: a sprung plate on the rib, sea water spurting through the gap
+    DR(4, 40, 12, 44, "#24160c"); DR(5, 41, 10, 42, "#5a6670"); DR(5, 41, 2, 42, "#7a8690"); DR(13, 41, 2, 42, "#3e4850"); for (var rv = 44; rv < 82; rv += 7) { DR(9, rv, 2, 2, "#3a2414"); DR(9, rv, 1, 1, "#b8c4cc"); }
+    DR(14, 56, 2, 8, "#0e1a22");
+    if (m.left > 0) { for (var j = 0; j < 18; j++) { var u = ((t / 380) + j / 18) % 1, jx = 16 + u * 18 + (j % 3 - 1) * u * 3, jy = 58 + (j % 4 - 1.5) * .8 + u * u * (wy - 58); DR(jx, jy, j % 4 ? 2 : 1, 2, j % 3 ? "#a8d0e8" : "#e8f4fc"); }
+      if (Math.floor(t / 90) % 2) { DR(32 + Math.sin(t / 70) * 3, wy - 2, 1, 1, "#e8f4fc"); DR(36 + Math.cos(t / 80) * 3, wy - 3, 1, 1, "#e8f4fc"); } }
+    // the scupper: a brass porthole in the hull with the sea outside
     var sx = 152, sy = 66;
-    for (var yy = -16; yy <= 16; yy++) for (var xx = -16; xx <= 16; xx++) { var d = Math.hypot(xx, yy); if (d > 16) continue;
-      DR(sx + xx, sy + yy, 1, 1, d > 15 ? "#3a2414" : d > 12 ? (xx + yy < -6 ? "#ffe08a" : xx + yy > 6 ? "#b88a2a" : "#e8b84a") : d > 11 ? "#3a2414" : (yy < -2 + Math.sin(xx * .5 + t / 300) * 1.5 ? "#8ec8ec" : ((xx + yy + Math.floor(t / 200)) % 5 ? "#3e7ab8" : "#8cc0e6"))); }
-    for (var bo = 0; bo < 8; bo++) { var ba = bo / 8 * Math.PI * 2; DR(sx + Math.cos(ba) * 13.5 - 1, sy + Math.sin(ba) * 13.5 - 1, 2, 2, "#7a5a1a"); }
-    // the pump: a red cast-iron barrel with brass bands, a spout, a long handle with a wooden grip
-    var px0 = 34;
-    DR(px0, 44, 24, 78, "#3a2414"); DR(px0 + 1, 45, 22, 76, "#a8322a"); DR(px0 + 2, 45, 5, 76, "#d8564a"); DR(px0 + 17, 45, 5, 76, "#8a2820");
-    for (var bd = 0; bd < 3; bd++) { DR(px0 - 2, 52 + bd * 24, 28, 5, "#3a2414"); DR(px0 - 1, 53 + bd * 24, 26, 3, "#e8b84a"); DR(px0 - 1, 53 + bd * 24, 26, 1, "#ffe08a"); }
-    DR(px0 - 4, 118, 32, 6, "#3a2414"); DR(px0 - 3, 119, 30, 4, "#5a6068");
-    DR(px0 + 22, 66, 16, 7, "#3a2414"); DR(px0 + 23, 67, 14, 5, "#7a7f86"); DR(px0 + 34, 72, 4, 4, "#3a2414");                // spout
-    var ha = (-30 + m.hy * 55) * Math.PI / 180, pvx = px0 + 12, pvy = 42, kx = pvx + Math.cos(ha) * 58, ky = pvy + Math.sin(ha) * 58;
-    for (var w = -2; w <= 2; w++) dzLine(pvx, pvy + w, kx, ky + w, Math.abs(w) === 2 ? "#3a2414" : w < 0 ? "#8a8e96" : "#5a6068");
-    var gx = pvx + Math.cos(ha) * 46, gy = pvy + Math.sin(ha) * 46;
-    for (var w2 = -4; w2 <= 4; w2++) dzLine(gx, gy + w2, kx + 2, ky + w2, Math.abs(w2) === 4 ? "#3a2414" : w2 < -1 ? "#c8884a" : "#a86a2c");   // the wooden grip
-    DR(pvx - 4, pvy - 4, 9, 9, "#3a2414"); DR(pvx - 3, pvy - 3, 7, 7, "#e8b84a"); DR(pvx - 2, pvy - 2, 2, 2, "#ffe08a");
-    if (m.pour > 0) { m.pour -= dt; for (var k = 0; k < 7; k++) DR(px0 + 35 + (k % 2), 76 + k * 3 + (Math.floor(t / 50) % 3), 3, 3, k % 2 ? "#a8d0e8" : "#e8f4fc"); }
-    // the water on the floor: waves, glints, bits of coal bobbing
-    for (var x2 = 0; x2 < 180; x2++) { var top = Math.round(wy + Math.sin(x2 * .09 + t / 380) * 2 + Math.sin(x2 * .23 - t / 260)); DR(x2, top, 1, 135 - top, (x2 + top) % 4 ? "#3e6a8a" : "#4a7a9a"); DR(x2, top, 1, 1, "#a8d0e8"); if ((x2 + Math.floor(t / 120)) % 9 === 0) DR(x2, top + 3, 2, 1, "#8cc0e6"); }
-    for (var cb = 0; cb < 4; cb++) dzImg("coal", 20 + cb * 41 + Math.sin(t / 700 + cb) * 3, wy - 2 + Math.sin(t / 380 + cb) * 1.5);
-    // the bucket: a wooden pail with iron hoops; under the spout, carried by the finger, tipping at the scupper, or sliding back
-    var bx = 70, by = 86;
-    if (m.carry) { bx = m.carry[0] - 14; by = m.carry[1] - 16; } else if (m.tip > 0) { bx = sx - 30; by = sy - 10; } else if (m.back > 0) { m.back -= dt; var bu = m.back / .4; bx = 70 + (m.bx0 - 70) * bu; by = 86 + (m.by0 - 86) * bu; }
+    for (var yy = -17; yy <= 17; yy++) for (var xx = -17; xx <= 17; xx++) { var d = Math.hypot(xx, yy); if (d > 17) continue;
+      var c;
+      if (d > 16) c = "#3a2414";
+      else if (d > 12) { var lt = (-xx - yy) / 17; c = lt > .55 ? "#fff1b0" : lt > .2 ? "#ffd86a" : lt > -.2 ? "#e8b84a" : lt > -.55 ? "#c8962e" : "#9a6e1e"; }
+      else if (d > 11) c = "#3a2414";
+      else { var sea = yy < -2 + Math.sin(xx * .5 + t / 300) * 1.5; c = sea ? (yy < -7 ? "#b8e0f4" : "#8ec8ec") : ((xx + yy + Math.floor(t / 200)) % 5 ? (yy > 6 ? "#2e5e98" : "#3e7ab8") : "#8cc0e6"); if (xx + yy < -10 && xx + yy > -13) c = "#e8f8ff"; }
+      DR(sx + xx, sy + yy, 1, 1, c); }
+    for (var bo = 0; bo < 8; bo++) { var ba = bo / 8 * Math.PI * 2 + .39, rx2 = sx + Math.cos(ba) * 14.5, ry2 = sy + Math.sin(ba) * 14.5; DR(rx2 - 1, ry2 - 1, 2, 2, "#6a4a14"); DR(rx2 - 1, ry2 - 1, 1, 1, "#fff1b0"); }
+    // the wooden grating the pump and the pail stand on
+    var gtY = 122; DR(18, gtY, 82, 4, "#24160c"); for (var gx3 = 19; gx3 < 99; gx3 += 6) { DR(gx3, gtY + 1, 5, 2, "#a87448"); DR(gx3, gtY + 1, 5, 1, "#c8945a"); } DR(22, gtY + 4, 3, 10, "#3a2414"); DR(94, gtY + 4, 3, 10, "#3a2414");
+    // the suction pipe from the pump's foot down into the bilge water
+    DR(24, 112, 6, 23, "#24160c"); DR(25, 112, 4, 23, "#6a7078"); DR(25, 112, 1, 23, "#9aa0a8"); DR(23, 116, 8, 3, "#24160c"); DR(24, 117, 6, 1, "#b8743a");
+    // the pump: a cast-iron barrel, round-shaded, with brass bands, a foot and a curved spout
+    var px0 = 30, pw = 22, RED = ["#5a1a14", "#7a2420", "#9a2e26", "#b83a2e", "#d4503f", "#e8705c", "#f49480", "#d4503f", "#b83a2e", "#9a2e26", "#7a2420", "#5a1a14"];
+    DR(px0 - 1, 47, pw + 2, 70, "#24160c");
+    for (var cx2 = 0; cx2 < pw; cx2++) { var uu = cx2 / (pw - 1), sh = Math.round((1 - Math.cos(uu * Math.PI)) / 2 * (RED.length - 1)); DR(px0 + cx2, 48, 1, 68, RED[Math.min(RED.length - 1, Math.max(0, uu < .35 ? Math.round(uu / .35 * 6) : Math.round(6 + (uu - .35) / .65 * 5)))]); }
+    DR(px0 + 5, 52, 1, 60, "#ffc0a8");                                                                       // a glint on the iron
+    for (var bd = 0; bd < 3; bd++) { var byy = 54 + bd * 22; DR(px0 - 3, byy, pw + 6, 6, "#24160c"); for (var bx3 = 0; bx3 < pw + 4; bx3++) { var u3 = bx3 / (pw + 3); DR(px0 - 2 + bx3, byy + 1, 1, 4, u3 < .2 ? "#ffe08a" : u3 < .45 ? "#f2c860" : u3 < .75 ? "#d8a23e" : "#a8781e"); } DR(px0 - 2, byy + 1, pw + 4, 1, "#fff1b0"); DR(px0 + 2, byy + 2, 1, 2, "#7a5a1a"); DR(px0 + pw - 3, byy + 2, 1, 2, "#7a5a1a"); }
+    DR(px0 - 5, 114, pw + 10, 8, "#24160c"); DR(px0 - 4, 115, pw + 8, 6, "#5a6068"); DR(px0 - 4, 115, pw + 8, 1, "#8a9098"); DR(px0 - 4, 120, pw + 8, 1, "#3a4048"); DR(px0 - 2, 117, 2, 2, "#b8c0c8"); DR(px0 + pw, 117, 2, 2, "#b8c0c8");
+    DR(px0 + 3, 42, pw - 6, 6, "#24160c"); DR(px0 + 4, 43, pw - 8, 4, "#e8b84a"); DR(px0 + 4, 43, pw - 8, 1, "#ffe08a");   // the cap
+    // the spout: out of the barrel, then bending down over the pail
+    DR(px0 + pw - 1, 64, 18, 8, "#24160c"); DR(px0 + pw, 65, 16, 6, "#6a7078"); DR(px0 + pw, 65, 16, 2, "#9aa0a8"); DR(px0 + pw, 70, 16, 1, "#4a5058");
+    DR(DZP.mx - 4, 64, 8, 13, "#24160c"); DR(DZP.mx - 3, 65, 6, 11, "#6a7078"); DR(DZP.mx - 3, 65, 2, 11, "#9aa0a8"); DR(DZP.mx + 2, 65, 1, 11, "#4a5058"); DR(DZP.mx - 4, 75, 8, 2, "#24160c"); DR(DZP.mx - 2, 76, 4, 1, "#0e1a22");
+    // the handle: an iron bar on a brass pivot with a turned wooden grip
+    var ha = (-30 + m.hy * 55) * Math.PI / 180, pvx = px0 + 11, pvy = 40, kx = pvx + Math.cos(ha) * 58, ky = pvy + Math.sin(ha) * 58;
+    for (var w = -2; w <= 2; w++) dzLine(pvx, pvy + w, kx, ky + w, Math.abs(w) === 2 ? "#24160c" : w < 0 ? "#a8aeb6" : w === 0 ? "#7a8088" : "#4a5058");
+    var gx = pvx + Math.cos(ha) * 44, gy = pvy + Math.sin(ha) * 44;
+    for (var w2 = -4; w2 <= 4; w2++) dzLine(gx, gy + w2, kx + 2, ky + w2, Math.abs(w2) === 4 ? "#24160c" : w2 === -3 ? "#e8a868" : w2 < 0 ? "#c8884a" : w2 < 3 ? "#a86a2c" : "#7a4a1c");
+    DR(pvx - 5, pvy - 5, 11, 11, "#24160c"); DR(pvx - 4, pvy - 4, 9, 9, "#c8962e"); DR(pvx - 4, pvy - 4, 8, 8, "#e8b84a"); DR(pvx - 3, pvy - 3, 3, 3, "#fff1b0"); DR(pvx, pvy, 2, 2, "#7a5a1a");
+    // the bilge water: deeper is darker, glints, bits of coal and a plank bobbing
+    var WB = ["#5a8aaa", "#4a7a9a", "#3e6a8a", "#335c7a", "#2a4e6a"];
+    for (var x2 = 0; x2 < 180; x2++) { var top = Math.round(wy + Math.sin(x2 * .09 + t / 380) * 2 + Math.sin(x2 * .23 - t / 260)); for (var yb = top; yb < 135; yb += 4) DR(x2, yb, 1, 4, WB[Math.min(4, Math.floor((yb - top) / 4))]); DR(x2, top, 1, 1, "#b8e0f4"); if ((x2 + Math.floor(t / 120)) % 9 === 0) DR(x2, top + 3, 2, 1, "#8cc0e6"); if ((x2 * 7 + Math.floor(t / 160)) % 23 === 0) DR(x2, top + 8, 3, 1, "#6a9aba"); }
+    for (var cb = 0; cb < 3; cb++) dzImg("coal", 108 + cb * 22 + Math.sin(t / 700 + cb) * 3, wy - 2 + Math.sin(t / 380 + cb) * 1.5);
+    var plx = 120 + Math.sin(t / 900) * 6, ply = wy - 1 + Math.sin(t / 420) * 1.2; DR(plx - 1, ply - 1, 18, 4, "#3a2414"); DR(plx, ply, 16, 2, "#a87448"); DR(plx, ply, 16, 1, "#c8945a"); DR(plx + 3, ply, 1, 2, "#7a5030");
+    // the pail: staves shaded round, iron hoops, a wire bail; at home under the spout, carried, tipping or sliding back
+    var bx = DZP.bx, by = DZP.by;
+    if (m.carry) { bx = m.carry[0] - 14; by = m.carry[1] - 16; } else if (m.tip > 0) { bx = sx - 30; by = sy - 10; } else if (m.back > 0) { m.back -= dt; var bu = m.back / .4; bx = DZP.bx + (m.bx0 - DZP.bx) * bu; by = DZP.by + (m.by0 - DZP.by) * bu; }
+    var home = !m.carry && m.tip <= 0 && m.back <= 0;
+    if (home) { dzc.globalAlpha = .35; DR(bx - 1, by + 30, 30, 2, "#0e1a22"); dzc.globalAlpha = 1; }
     var tilt = m.tip > 0 ? Math.min(1, (1 - m.tip) * 3) * 1.7 : (m.carry ? Math.sin(t / 120) * .06 : 0);
     dzc.save(); dzc.translate(bx + 14, by + 16); dzc.rotate(tilt); dzc.translate(-(bx + 14), -(by + 16));
-    dzLine(bx + 2, by + 2, bx + 14, by - 10, "#3a2414"); dzLine(bx + 14, by - 10, bx + 26, by + 2, "#3a2414"); dzLine(bx + 3, by + 2, bx + 14, by - 9, "#8a8e96"); dzLine(bx + 14, by - 9, bx + 25, by + 2, "#8a8e96");
-    DR(bx, by, 28, 30, "#3a2414"); DR(bx + 1, by + 1, 26, 28, "#a87448"); for (var st = 3; st < 27; st += 5) DR(bx + st, by + 1, 1, 28, "#7a5030"); DR(bx + 2, by + 1, 3, 28, "#c8884a");
-    var fh = Math.round(24 * m.fill); if (fh) { DR(bx + 2, by + 27 - fh, 24, fh, "#3e7ab8"); DR(bx + 2, by + 27 - fh, 24, 2, "#8cc0e6"); DR(bx + 4 + Math.round(Math.sin(t / 150) * 2), by + 27 - fh, 6, 1, "#e8f4fc"); }
-    for (var hp = 0; hp < 2; hp++) { DR(bx, by + 6 + hp * 15, 28, 3, "#3a2414"); DR(bx + 1, by + 7 + hp * 15, 26, 1, "#8a929a"); }
+    var bail = m.fill >= 1 || m.carry ? -10 : -5;
+    dzLine(bx + 1, by + 3, bx + 14, by + bail, "#24160c"); dzLine(bx + 14, by + bail, bx + 27, by + 3, "#24160c"); dzLine(bx + 2, by + 3, bx + 14, by + bail + 1, "#a8aeb6"); dzLine(bx + 14, by + bail + 1, bx + 26, by + 3, "#a8aeb6");
+    var WOOD = ["#7a4a24", "#9a6034", "#b87a44", "#d0965a", "#e0aa6a", "#d0965a", "#b87a44", "#9a6034", "#7a4a24", "#5e3818"];
+    DR(bx - 1, by, 30, 30, "#24160c");
+    for (var cx3 = 0; cx3 < 28; cx3++) { var u4 = cx3 / 27, si = u4 < .3 ? Math.round(u4 / .3 * 4) : Math.round(4 + (u4 - .3) / .7 * 5); DR(bx + cx3, by + 1, 1, 28, WOOD[si]); if (cx3 % 5 === 4) DR(bx + cx3, by + 1, 1, 28, "#5e3818"); }
+    DR(bx, by + 1, 28, 2, "#3a2414"); DR(bx + 1, by + 1, 26, 1, "#5e3818");                                      // the rim's inside
+    var fh = Math.round(24 * m.fill); if (fh) { var wt2 = by + 27 - fh; DR(bx + 1, wt2, 26, Math.min(fh, 3), "#3e7ab8"); DR(bx + 1, wt2, 26, 1, "#8cc0e6"); DR(bx + 4 + Math.round(Math.sin(t / 150) * 2), wt2, 6, 1, "#e8f4fc"); }
+    for (var hp = 0; hp < 2; hp++) { var hy2 = by + 6 + hp * 16; DR(bx - 1, hy2, 30, 3, "#24160c"); for (var cx4 = 0; cx4 < 28; cx4++) DR(bx + cx4, hy2 + 1, 1, 1, cx4 < 8 ? "#c8d0d8" : cx4 < 18 ? "#8a929a" : "#5a6068"); DR(bx + 3, hy2 + 1, 1, 1, "#ffffff"); }
     dzc.restore();
+    // the stream: from the spout's mouth right into the pail, splashing where it lands
+    if (m.pour > 0) { m.pour -= dt; var land = home ? by + 27 - Math.round(24 * m.fill) : wy;
+      for (var k = 0; DZP.my + k * 2 < land; k++) { var wob = (Math.floor(t / 40) + k) % 3 === 0 ? 1 : 0; DR(DZP.mx - 1 + wob, DZP.my + k * 2, 3, 2, k % 2 ? "#a8d0e8" : "#e8f4fc"); DR(DZP.mx - 1 + wob, DZP.my + k * 2, 1, 2, "#ffffff"); }
+      for (var sp = 0; sp < 5; sp++) { var sa = (t / 60 + sp * 1.3) % 1; DR(DZP.mx + (sp - 2) * (2 + sa * 4), land - 1 - Math.sin(sa * Math.PI) * 4, 1, 1, "#e8f4fc"); } }
+    else if (home && m.fill > 0 && Math.floor(t / 700) % 3 === 0) DR(DZP.mx, DZP.my + 1 + (t / 30) % 12, 1, 2, "#a8d0e8");   // a last drip
     if (m.tip > 0) { m.tip -= dt; for (var k2 = 0; k2 < 18; k2++) { var u2 = (1 - m.tip) * 2.2 - k2 * .05; if (u2 > 0 && u2 < 1) DR(sx - 8 + u2 * 22, sy - 6 + u2 * u2 * 16 + (k2 % 3), 3, 2, k2 % 2 ? "#a8d0e8" : "#e8f4fc"); }
       if (m.tip <= 0) { m.left--; dz.floodB = (dz.floodB || 0) + 1; m.fill = 0; dzNudge(-2, 0); beep([[523, .05], [659, .08]]); dzBuzz(30);
         if (m.left <= 0) { dz.flood = 0; dz.floodB = 0; m.done = 1.6; beep([[523, .06], [659, .06], [784, .06], [1047, .12]]); dzBuzz([20, 40, 20, 40, 60]); for (var s2 = 0; s2 < 24; s2++) dz.sparks.push({ x: 90, y: 60, vx: (Math.random() - .5) * 80, vy: -30 - Math.random() * 40, life: .9, c: ["#ffd34a", "#ffffff", "#8ad86a"][s2 % 3] }); } } }
-    // spilled water when the bucket is dropped in the wrong place
     m.spill = m.spill.filter(function (s) { s.life -= dt; s.vy += 160 * dt; s.x += s.vx * dt; s.y += s.vy * dt; DR(s.x, s.y, 2, 2, "#a8d0e8"); return s.life > 0 && s.y < wy + 4; });
-    // what to do next: arrows along the handle while pumping, a dotted path to the scupper when the bucket is full
+    // what to do next: an arrow at the grip while pumping, a dotted path to the scupper when the pail is full
     if (m.done <= 0 && m.tip <= 0) {
       if (m.fill < 1 && !m.carry) dzArrow(kx + 12, ky + (m.stroke ? -16 : 14), m.stroke ? "u" : "d", t);
-      else if (m.fill >= 1 && !m.carry) { for (var dp = 0; dp < 12; dp++) { var v = dp / 12; if ((dp + Math.floor(t / 120)) % 3) DR(bx + 28 + (sx - 20 - bx - 28) * v, by + 4 - Math.sin(v * Math.PI) * 20, 2, 2, "#ffd34a"); } dzArrow(sx - 22, sy - 2, "r", t); var ph = (t / 600) % 1; if (ph < .5) dzSpark(bx + 22, by - 8, ph < .12 || ph > .38 ? 1 : 2); }
-      else if (m.carry) { var near = Math.hypot(m.carry[0] - sx, m.carry[1] - sy) < 30; for (var gr = 0; gr < 32; gr++) { var ga = gr / 32 * Math.PI * 2; if ((gr + Math.floor(t / 80)) % 2) DR(sx + Math.cos(ga) * 19, sy + Math.sin(ga) * 19, 2, 2, near ? "#6fd04a" : "#ffd34a"); } }
+      else if (m.fill >= 1 && !m.carry) { for (var dp = 0; dp < 12; dp++) { var v = dp / 12; if ((dp + Math.floor(t / 120)) % 3) DR(bx + 30 + (sx - 22 - bx - 30) * v, by + 4 - Math.sin(v * Math.PI) * 22, 2, 2, "#ffd34a"); } dzArrow(sx - 24, sy - 2, "r", t); var ph = (t / 600) % 1; if (ph < .5) dzSpark(bx + 22, by - 8, ph < .12 || ph > .38 ? 1 : 2); }
+      else if (m.carry) { var near = Math.hypot(m.carry[0] - sx, m.carry[1] - sy) < 30; for (var gr = 0; gr < 32; gr++) { var ga = gr / 32 * Math.PI * 2; if ((gr + Math.floor(t / 80)) % 2) DR(sx + Math.cos(ga) * 20, sy + Math.sin(ga) * 20, 2, 2, near ? "#6fd04a" : "#ffd34a"); } }
     }
-    // how many buckets: big pail icons, ticked off one by one
-    for (var b2 = 0; b2 < m.need; b2++) { var ix = 30 + b2 * 18, done = b2 < m.need - m.left; DR(ix, 20, 14, 14, "#3a2414"); DR(ix + 1, 21, 12, 12, done ? "#6fd04a" : "#a87448"); DR(ix + 1, 24, 12, 1, "#3a2414"); DR(ix + 1, 29, 12, 1, "#3a2414");
-      if (done) { DR(ix + 3, 27, 2, 2, "#fff8ec"); DR(ix + 5, 29, 2, 2, "#fff8ec"); for (var q = 0; q < 4; q++) DR(ix + 7 + q, 27 - q, 2, 2, "#fff8ec"); } }
+    // how many pails: little pail icons, ticked off one by one
+    for (var b2 = 0; b2 < m.need; b2++) { var ix = 178 - (m.need - b2) * 11, done = b2 < m.need - m.left; DR(ix, 19, 10, 10, "#24160c"); DR(ix + 1, 20, 8, 8, done ? "#6fd04a" : "#b87a44"); DR(ix + 1, 20, 2, 8, done ? "#9ae87a" : "#d0965a"); DR(ix + 1, 22, 8, 1, "#24160c"); DR(ix + 1, 26, 8, 1, "#24160c");
+      if (done) { DR(ix + 2, 24, 2, 1, "#fff8ec"); DR(ix + 3, 25, 2, 1, "#fff8ec"); for (var q = 0; q < 3; q++) DR(ix + 5 + q, 24 - q, 1, 1, "#fff8ec"); } }
     if (m.done > 0) { dzMedal(90, 64, true, (1.6 - m.done) * 4); m.done -= dt; if (m.done <= 0) dzMiniClose(); }
   }
   // ---- the soot scene ----
@@ -15145,7 +15208,7 @@ window.__EXTRAS = true;
   function dzMiniDown(p) {
     var m = dz.mini;
     if (m.k === "pump") {
-      if (m.fill >= 1 && m.tip <= 0 && p[0] > 60 && p[0] < 104 && p[1] > 70 && p[1] < 122) { m.carry = p; beep([[200, .04], [260, .04]]); dzBuzz(15); return; }
+      if (m.fill >= 1 && m.tip <= 0 && p[0] > DZP.bx - 6 && p[0] < DZP.bx + 34 && p[1] > DZP.by - 14 && p[1] < DZP.by + 32) { m.carry = p; beep([[200, .04], [260, .04]]); dzBuzz(15); return; }
       if (m.fill >= 1) { dzNo(); dzBanner("Der Eimer ist voll! Zieh ihn zum Speigatt rechts."); return; }
       m.down = true; dzMiniMove(p);
     } else { m.rub = p; m.touched = true; dzMiniMove(p); }
@@ -15283,12 +15346,6 @@ window.__EXTRAS = true;
     if (!an) for (var cn = 0; cn < dz.coalN; cn++) dzImg("coal", 84 + (cn % 5) * 8, 114 - Math.floor(cn / 5) * 6 + (cn % 2));
     dz.pending.forEach(function (c) { c.fly = Math.min(1, c.fly + dt * 3.2); var x0 = c.x0 || 20, y0 = c.y0 || 118; if (c.fly < 1) dzImg("coal", x0 + (c.tx - x0) * c.fly - 4, y0 - Math.sin(c.fly * Math.PI) * 18 + (c.ty - y0) * c.fly - 4); });
     dz.pending = dz.pending.filter(function (c) { return c.fly < 1; });
-    // the voyage along the left edge
-    var SY = 20;
-    for (var yy = SY; yy < 135; yy++) DR(0, yy, 15, 1, (yy + Math.floor(dz.flow * 6 * (an ? 1 + sr * 3 : .3))) % 7 === 0 ? "#6aaee0" : "#3a6ea4");
-    DR(0, SY - 1, 16, 1, "#3a2414"); DR(0, SY, 15, 9, "#7cb860"); DR(0, SY + 8, 15, 2, "#e8d8a0"); DR(6, SY + 9, 3, 3, "#a87448"); DR(15, SY, 1, 135 - SY, "#3a2414");
-    DR(3, SY + 2, 3, 5, "#ffffff"); DR(3, SY + 4, 3, 1, "#d8342a"); DR(3, SY + 1, 3, 1, "#ffd34a"); DR(9, SY + 3, 4, 3, "#c8463c"); DR(9, SY + 6, 4, 2, "#f4f0e6");
-    dzImg("ship_up", 1, Math.round(98 - dz.prog * (98 - SY - 11)));
     dzSparkDraw(dt); dzc.restore();
     dzRaf = requestAnimationFrame(dzDraw);
   }
@@ -15761,7 +15818,7 @@ window.__EXTRAS = true;
     await steamGame(); front({ eyes: "happy", mouth: "smile" }); say(N() + " wischt sich den Ruß von der Nase.");
   }
   dzPic.addEventListener("click", function (e) { e.stopPropagation(); if (decor || s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt(); act("steam", steamSeq); });
-  window.__steam = { open: function () { steamGame(); }, st: function () { return dz && { P: dz.P, W: dz.W, G: dz.G, leg: dz.leg, res: dz.res, red: dz.red, coalN: dz.coalN, pumpN: dz.pumpN, lever: dz.lever, whistle: dz.whistle, turb: dz.turb, dmp: dz.dmp, evs: dz.evs, shovels: dz.shovels, blows: dz.blows, budget: dz.budget, done: dz.done, intro: dz.intro, n: dz.route.length, o: dz.leg < dz.route.length ? dzOrder() : 'stopp', wh: !!(dz.route[dz.leg] && dz.route[dz.leg].wh), kind: dz.route[dz.leg] && dz.route[dz.leg].s, ending: dz.ending && dz.ending.g, flood: dz.flood, soot: dz.soot, mini: dz.mini && dz.mini.k, sim: dzSim(dz) }; }, end: steamEnd, run: dzRun,
+  window.__steam = { open: function () { steamGame(); }, st: function () { return dz && { P: dz.P, W: dz.W, G: dz.G, leg: dz.leg, res: dz.res, red: dz.red, coalN: dz.coalN, pumpN: dz.pumpN, lever: dz.lever, whistle: dz.whistle, turb: dz.turb, dmp: dz.dmp, evs: dz.evs, shovels: dz.shovels, blows: dz.blows, budget: dz.budget, done: dz.done, intro: dz.intro, n: dz.route.length, o: dz.leg < dz.route.length ? dzOrder() : 'stopp', wh: !!(dz.route[dz.leg] && dz.route[dz.leg].wh), kind: dz.route[dz.leg] && dz.route[dz.leg].s, ending: dz.ending && dz.ending.g, flood: dz.flood, soot: dz.soot, mini: dz.mini && dz.mini.k, sim: dzSim(dz) }; }, end: steamEnd, run: dzRun, mini: function (k) { dzMiniOpen(k); }, mm: function () { return dz && dz.mini; },
     set: function (o) { if (dz) Object.keys(o).forEach(function (k) { dz[k] = o[k]; }); } };
   // ===================== souvenirs of the voyages: the ship model over the door, postcards on the pinboard =====================
   // At most one postcard per voyage. 70 % and more: one of the common cards. 90 % and more: any card whose condition the voyage met.
