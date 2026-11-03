@@ -15259,7 +15259,7 @@ window.__EXTRAS = true;
   }
   // ---- in the room: the model centred over the door, the pinboard over the bookshelf ----
   var pcRoomEl = document.getElementById("room");
-  place(dzPic, 86, 13, 24);                                         // the steamer picture moves up a little to make room for the model's masts
+  place(dzPic, 92, 12, 24);                                         // the steamer picture moves up a little to make room for the model's masts
   var pcModel = xEl("button", "pc-model", pcRoomEl); pcModel.type = "button"; pcModel.setAttribute("aria-label", "Schiffsmodell der Pausbacke"); pcModel.hidden = true;
   pcModel.innerHTML = '<img src="' + PCA.pc_model + '" alt="">'; place(pcModel, 107, 31, 42);
   var pcBoard = xEl("button", "pc-board", pcRoomEl); pcBoard.type = "button"; pcBoard.setAttribute("aria-label", "Pinnwand mit Postkarten"); pcBoard.hidden = true;
@@ -15271,7 +15271,7 @@ window.__EXTRAS = true;
   var pcBoardAt = "";
   function pcPlaceBoard() {
     var it = home.placed && home.placed.shelf ? item("shelf", home.placed.shelf) : null, top = it && it.h ? 106 - it.h : 54, y = top - 29;
-    var at = y >= 2 ? "3," + Math.min(22, y) : "118,8";
+    var at = y >= 2 ? "3," + Math.min(22, y) : "128,8";
     if (at === pcBoardAt) return; pcBoardAt = at; var xy = at.split(","); place(pcBoard, +xy[0], +xy[1], 36);
   }
   function pcRoom() {
