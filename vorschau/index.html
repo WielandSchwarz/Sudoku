@@ -14631,6 +14631,35 @@ window.__EXTRAS = true;
       else if (g === 1) { dzWhistle(1.4); setTimeout(function () { dzNoise(1.4, 900, .4, .06, .3, .8); }, 800); } else { dzTone(392, .5, .08, "triangle", .2); dzTone(370, .5, .08, "triangle", .7); dzTone(349, .5, .08, "triangle", 1.2); dzTone(330, 1.2, .08, "triangle", 1.7); } }
     if (E.t > 6.5 && !E.carded) { E.carded = 1; dzArriveCard(); }
   }
+  // ---- the water the ship moves: a bow wave climbing the stem, a hump along the forefoot, churned water astern,
+  //      and the Kelvin wake, crests running out from bow and stern towards the viewer. Everything scales with the speed. ----
+  function dzWake(t, dt, S, SX, WL, sp, sky) {
+    var k = Math.min(1, sp / 52); if (k < .03) return;
+    var night = sky === "night", F = night ? "#8a9ac8" : "#ffffff", F2 = night ? "#5a6a98" : "#d8ecf8", fl = Math.floor(t / 90);
+    dzc.globalAlpha = Math.min(1, .35 + k);
+    // Kelvin wake: the bow wave's arm spreading out towards the viewer as a dashed foam line with a trough,
+    // transverse crests inside it, and the same smaller from the stern
+    var TR = night ? "#0a1224" : sky === "storm" ? "#1a2e40" : "#2a5488";
+    [[SX + 4, 1], [SX + 125, .7]].forEach(function (o) {
+      var n = Math.round(46 * o[1]);
+      for (var i2 = 0; i2 < n; i2++) { var s2 = i2 / n, ax = o[0] + s2 * (70 + 40 * k) * o[1], ay = Math.round(WL + 2 + s2 * (26 + 16 * k) * o[1]); if (ay > 133) break;
+        var on = ((i2 + Math.floor(t / 70)) % 4) < 3, al = (1 - s2) * (.35 + .65 * k);
+        dzc.globalAlpha = al; if (on) DR(ax, ay, 2, 1, s2 < .4 ? F : F2); dzc.globalAlpha = al * .6; DR(ax + 1, ay + 1, 2, 1, TR); }
+      for (var c = 0; c < 4; c++) { var u = ((t / (1400 - 600 * k)) + c / 4) % 1, cx = o[0] + 10 + u * 60 * o[1], cy = Math.round(WL + 3 + u * 6), ln = Math.round((3 + u * 7) * o[1]);
+        dzc.globalAlpha = (1 - u) * (.3 + .6 * k); DR(cx, cy, ln, 1, F2); DR(cx, cy + 1, ln, 1, TR); } });
+    dzc.globalAlpha = Math.min(1, .35 + k);
+    // the bow wave climbing the stem, with spray ahead
+    var bh = Math.round(1 + k * 5); for (var i = 0; i < bh; i++) { var w = Math.max(1, Math.round((bh - i) * .8 + ((fl + i) % 2))); DR(SX + 4 - w + i * .3, WL - i, w + 1, 1, i === bh - 1 ? F2 : F); }
+    for (var s = 0; s < Math.round(k * 5); s++) { var ph = ((t / 300) + s * .37) % 1; DR(SX - 2 - ph * 6 - s, WL - 2 - Math.sin(ph * Math.PI) * (2 + k * 3), 1, 1, F); }
+    // the hump of water along the forefoot, curling back along the hull
+    for (var x = 0; x < 18 + 14 * k; x++) { var hh = Math.round(Math.max(0, (k * 2.5) * Math.sin(x / (18 + 14 * k) * Math.PI) + Math.sin(x * .7 + t / 120) * .5)); DR(SX + 5 + x, WL - hh, 1, 1, (x + fl) % 3 ? F : F2); }
+    // churned water astern: the propellers' wash, a foamy trail that widens towards the viewer and thins out
+    var wl2 = 40 + 60 * k;
+    for (var q = 0; q < wl2; q++) { var den = 1 - q / wl2, wid = 2 + Math.round(q * (.12 + .1 * k));
+      for (var r = 0; r < wid; r++) { var jit = (q * 7 + r * 13 + fl * 5) % 11; if (jit / 11 > den * (r < 2 ? 1.2 : .8)) continue;
+        dzc.globalAlpha = Math.min(1, (.4 + .6 * k) * (den + .2)); DR(SX + 127 + q, WL - 1 + r, 1, 1, r === 0 || jit % 3 === 0 ? F : (night ? "#3a4a70" : "#a8d8f0")); } }
+    dzc.globalAlpha = 1;
+  }
   // ---- outside: the Pausbacke sails through the leg ----
   var DZ_SKY = { day: ["#8ec8ec", "#a8d6f2", "#c6e6f8"], eve: ["#6a7ab8", "#e89a6a", "#f6c88a"], night: ["#0e1430", "#18204a", "#243060"], dawn: ["#8a9ac8", "#e8b8c0", "#f6dcc0"], fog: ["#b8c4cc", "#c8d2d8", "#d4dce0"], storm: ["#22282f", "#2e353e", "#3c444e"] };
   function dzSea(t, dt) {
@@ -14699,7 +14728,6 @@ window.__EXTRAS = true;
     var bob = Math.round(Math.sin(t / (storm ? 180 : 300)) * (storm ? 2 : .6)), SYY = 72 - 30 + bob;
     if (lvl && Math.random() < dt * (5 + lvl * 9)) { var fi = Math.floor(Math.random() * 3); S.puffs.push({ x: SX + 49 + fi * 15, y: SYY + 2, life: 1.8 }); }
     S.puffs = S.puffs.filter(function (p) { p.life -= dt; p.x += (10 + sp * .7) * dt; p.y -= 8 * dt; dzc.globalAlpha = Math.min(1, p.life) * (sky === "night" ? .6 : 1); dzImg("puff", p.x - 4, p.y - 4); dzc.globalAlpha = 1; return p.life > 0; });
-    if (sp > 1) { var wn = Math.round(2 + sp / 8); for (var k2 = 0; k2 < wn; k2++) { var wk = (S.x * 2 + k2 * 9) % (10 + sp * .6); DR(SX + 134 + wk, SYY + 30 + (k2 % 2), 3, 1, "#ffffff"); } for (var bw2 = 0; bw2 < Math.round(sp / 10); bw2++) DR(SX + 1 - bw2, SYY + 29 - bw2, 2, 1, "#ffffff"); }
     var vent = (dz.lever || a.r.blow) && a.t < DZ_STAMP + .2;
     if (vent && Math.random() < dt * 40) { var fv = Math.floor(Math.random() * 3); S.vent.push({ x: SX + 46 + fv * 15 + Math.random() * 2, y: SYY - 1, vy: -30 - Math.random() * 20, life: .9 }); }
     if (vent && !S.roared && a.t > DZ_OUT + .4) { S.roared = 1; beep([[150, .5], [140, .5]]); dzShake(.4); dzBuzz([80, 40, 160]); }
@@ -14714,6 +14742,7 @@ window.__EXTRAS = true;
       dzc = dzFrontC;                                                                            // everything after the ship lies in front of it
     }
     else dzImg("sv_ship", SX, SYY + pitch);
+    dzWake(t, dt, S, SX, SYY + 33 + pitch, sp, sky);                                         // 33: the row where the hull meets the water in the sprite
     S.vent = S.vent.filter(function (p) { p.life -= dt; p.y += p.vy * dt; p.x += (sp * .5 + 6) * dt; dzc.globalAlpha = Math.min(1, p.life * 1.5); dzImg("steam", p.x - 8, p.y - 6); dzc.globalAlpha = 1; return p.life > 0; });
     if (sky === "night") { for (var pw = 0; pw < 28; pw++) DR(SX + 8 + pw * 4.3, SYY + 25 + (pw % 2) * 2, 1, 1, "#ffe8a0"); }   // lit portholes at night
     S.hits = [];
