@@ -2729,7 +2729,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 93 · 02.11.2026</p>
+    <p class="opt-version">Version 94 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -9985,6 +9985,7 @@ window.__EXTRAS = true;
         list.sort(function (a, b) { return (a.r + (a.h ? 0 : a.L)) - (b.r + (b.h ? 0 : b.L)); });
         list.forEach(function (s_) { var sp = spriteOf(s_), lift = drag && drag.ship === s_ ? -3 : 0; bx.drawImage(sp.img, sp.x, sp.y + lift); if (lift) twinkle(bx, sp.x - 2, sp.y + 2, t, 0); });
         if (sink) drawSink(t);
+        drawFlots(t);
         // marks
         Object.keys(shots).forEach(function (k) {
           var q = k.split(","), c = +q[0], r = +q[1], s_ = shipAt(fleet, c, r), p = cellCenter(c, r, .55);
@@ -10023,41 +10024,161 @@ window.__EXTRAS = true;
           bx.globalAlpha = .35; rect(bx, gx_, gy_, 2, 1, "#c8e6f4"); bx.globalAlpha = 1;
         }
       }
-      // sinking: the side view tilts and goes down, the bow-on view dips row by row
+      // ---- sinking: six ways to go down, portholes that flicker out, and a little flotsam afterwards ----
+      // side view (horizontal ships, bow to the right): titanic break, bow first steep, stern first steep, capsizing, toppling funnels, boiler explosion.
+      // bow-on view (vertical ships): dipping by bow, stern or middle, capsizing, boiler explosion.
+      function sinkInfo(sp) {                                            // looks at the sprite once: where the portholes are, where the funnels stand
+        var cv = document.createElement("canvas"); cv.width = sp.w; cv.height = sp.h; var c = cv.getContext("2d"); c.drawImage(sp.img, 0, 0);
+        var d = c.getImageData(0, 0, sp.w, sp.h).data, A = function (x, y) { return d[(y * sp.w + x) * 4 + 3]; }, C = function (x, y) { var i = (y * sp.w + x) * 4; return [d[i], d[i + 1], d[i + 2]]; };
+        var holes = [], fun = [];
+        for (var y = 0; y < sp.h; y++) for (var x = 0; x < sp.w; x++) { if (!A(x, y)) continue; var q = C(x, y); if (q[0] > 240 && q[1] > 215 && q[1] < 245 && q[2] > 130 && q[2] < 185) holes.push(x, y); }
+        if (sp.w > sp.h) {
+          var run = [];
+          for (var x2 = 0; x2 <= sp.w; x2++) {
+            var on = x2 < sp.w && A(x2, 3) && A(x2, 2);
+            if (on) run.push(x2); else { if (run.length >= 3) fun.push([run[0] - 1, run[run.length - 1] + 1]); run = []; }
+          }
+          fun = fun.map(function (f) {                                   // a funnel reaches down to where the white deckhouse begins
+            var cx = Math.round((f[0] + f[1]) / 2), base = 8;
+            for (var y2 = 4; y2 < sp.h - 4; y2++) { var q2 = C(cx, y2); if (A(cx, y2) && q2[0] > 238 && q2[1] > 236 && q2[2] > 226) { base = y2 - 1; break; } }
+            return { x0: Math.max(0, f[0]), x1: Math.min(sp.w - 1, f[1]), base: base };
+          });
+        }
+        var hull = document.createElement("canvas"); hull.width = sp.w; hull.height = sp.h; var hc = hull.getContext("2d"); hc.drawImage(sp.img, 0, 0);
+        fun.forEach(function (f) { hc.clearRect(f.x0, 0, f.x1 - f.x0 + 1, f.base + 1); });
+        return { holes: holes, fun: fun, hull: hull };
+      }
+      function pick2(list) { var tot = 0; list.forEach(function (o) { tot += o[1]; }); var r = Math.random() * tot; for (var i = 0; i < list.length; i++) { r -= list[i][1]; if (r <= 0) return list[i][0]; } return list[0][0]; }
+      function ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
+      var flots = [];
+      function flotsam(ship) {                                           // crates, a deck chair, a suitcase, a lifebuoy, a barrel bob where she went down
+        var cs = cellsOf(ship), n = 3 + Math.floor(Math.random() * 3), kinds = ["crate", "chair", "case", "buoy", "barrel"];
+        for (var i = 0; i < n; i++) { var q = cs[Math.floor(Math.random() * cs.length)], p = cellCenter(q[0], q[1], .55); flots.push({ x: p[0] + (Math.random() - .5) * 8, y: p[1] + (Math.random() - .5) * 3, k: kinds[(i + Math.floor(Math.random() * 5)) % 5], t0: performance.now() + i * 180, vx: (Math.random() - .3) * 1.6, view: view }); }
+      }
+      function drawFlots(t) {
+        flots = flots.filter(function (f) { return t - f.t0 < 6500; });
+        flots.forEach(function (f) {
+          if (f.view !== view || t < f.t0) return; var age = (t - f.t0) / 1000, x = Math.round(f.x + f.vx * age), y = Math.round(f.y + Math.sin(age * 2.4 + f.x) * .8);
+          bx.globalAlpha = Math.min(1, age * 3, (6.5 - age) / 1.2);
+          if (f.k === "crate") { rect(bx, x - 3, y - 2, 6, 4, "#3a2414"); rect(bx, x - 2, y - 1, 4, 2, "#c08a50"); rect(bx, x - 2, y - 1, 4, 1, "#d8a868"); }
+          else if (f.k === "chair") { rect(bx, x - 3, y - 1, 7, 3, "#3a2414"); rect(bx, x - 2, y, 5, 1, "#e8554a"); rect(bx, x - 1, y, 1, 1, "#fff6e4"); rect(bx, x + 1, y, 1, 1, "#fff6e4"); }
+          else if (f.k === "case") { rect(bx, x - 2, y - 2, 5, 4, "#3a2414"); rect(bx, x - 1, y - 1, 3, 2, "#a87444"); rect(bx, x, y - 3, 1, 1, "#3a2414"); }
+          else if (f.k === "buoy") { rect(bx, x - 2, y - 2, 5, 4, "#3a2414"); rect(bx, x - 1, y - 1, 3, 2, "#fff6e4"); rect(bx, x - 1, y - 1, 1, 1, "#e8402a"); rect(bx, x + 1, y, 1, 1, "#e8402a"); rect(bx, x, y - 1, 1, 1, "#5a9ac0"); }
+          else { rect(bx, x - 2, y - 2, 4, 4, "#3a2414"); rect(bx, x - 1, y - 1, 2, 2, "#8a5a30"); }
+          if (Math.floor(t / 400 + f.x) % 3 === 0) rect(bx, x - 4, y + 2, 2, 1, "#e6f4fc");
+          bx.globalAlpha = 1;
+        });
+      }
       function drawSink(t) {
-        var s_ = sink.ship, sp = spriteOf(s_), p = Math.min(1, (t - sink.t0) / 2600), e = p * p * (3 - 2 * p);
+        var s_ = sink.ship, sp = spriteOf(s_), K = sink.kind, p = Math.min(1, (t - sink.t0) / sink.dur), e = ease(p);
+        if (!sink.info) sink.info = sinkInfo(sp);
+        var I = sink.info;
         ox_.clearRect(0, 0, 180, 135);
-        var WL;
+        var WL, img = sp.img;
+        // the portholes: lit, then flickering, then dark
+        var lit = p < .25 ? 1 : p < .6 ? ((Math.floor(t / 70) * 7919) % 5 > 1 ? 1 : 0) : 0;
+        var src = sink.lc || (sink.lc = (function () { var cv = document.createElement("canvas"); cv.width = sp.w; cv.height = sp.h; return cv; })()), sc = src.getContext("2d");
+        sc.clearRect(0, 0, sp.w, sp.h); sc.drawImage(K === "funnels" || K === "boom" ? I.hull : img, 0, 0);
+        if (!lit) { sc.fillStyle = "#2e2a36"; for (var hi = 0; hi < I.holes.length; hi += 2) sc.fillRect(I.holes[hi], I.holes[hi + 1], 1, 1); }
+        img = src;
         if (s_.h) {
-          WL = sp.y + sp.h - 2; var ang = 18 * Math.min(1, e / .8) * Math.PI / 180, sd = 16 * e + (p > .75 ? (p - .75) * 50 : 0), pivY = sp.h - 2;
-          var piece = function (sx, sw, pivX, dir, a) { ox_.save(); ox_.translate(Math.round(sp.x + pivX), Math.round(sp.y + pivY + sd)); ox_.rotate(dir * a); ox_.drawImage(sp.img, sx, 0, sw, sp.h, -(pivX - sx), -pivY, sw, sp.h); ox_.restore(); };
-          if (sink.kind === "bow") piece(0, sp.w, sp.w * .74, 1, ang);
-          else if (sink.kind === "stern") piece(0, sp.w, sp.w * .26, -1, ang);
-          else { var m = Math.round(sp.w * sink.f), gap = Math.round(3 * e); ox_.save(); ox_.translate(-gap, 0); piece(0, m, m, 1, ang * 1.2); ox_.restore(); ox_.save(); ox_.translate(gap, 0); piece(m, sp.w - m, m, -1, ang * 1.2); ox_.restore(); }
+          WL = sp.y + sp.h - 2; var pivY = sp.h - 2;
+          var piece = function (sx, sw, pivX, a, dx, dy, extra) {
+            ox_.save(); ox_.translate(Math.round(sp.x + pivX + (dx || 0)), Math.round(sp.y + pivY + (dy || 0))); ox_.rotate(a);
+            ox_.drawImage(img, sx, 0, sw, sp.h, -(pivX - sx), -pivY, sw, sp.h); if (extra) extra(pivX); ox_.restore();
+          };
+          var prop = function (x0) { return function (pivX) { var f = Math.floor(t / 90) % 2; rect(ox_, x0 - pivX, -2 - f, 1, 3, "#c89a3a"); rect(ox_, x0 - pivX - 1, -1, 3, 1, f ? "#c89a3a" : "#8a6a20"); }; };
+          if (K === "titanic") {
+            // she goes down by the bow first, in one piece; then she breaks in the middle, the stern falls back, rears up almost upright,
+            // stands a moment and slides down with a lot of bubbles
+            var m = Math.round(sp.w * sink.f), deg = Math.PI / 180;
+            if (p < .32) { var e1 = ease(p / .32); piece(0, sp.w, m, 12 * e1 * deg, 0, 3 * e1); }
+            else {
+              var gap = Math.round(2 * ease((p - .32) / .08));
+              var aBow = (12 + 38 * ease((p - .32) / .3)) * deg, dBow = 3 + 34 * ease((p - .36) / .35);
+              var aSt = (p < .42 ? 12 * (1 - ease((p - .32) / .1)) : 70 * ease((p - .42) / .24)) * deg, dSt = 3 + 4 * ease((p - .42) / .24) + 42 * ease((p - .78) / .22);
+              piece(m, sp.w - m, m, aBow, gap, dBow);
+              piece(0, m, m, aSt, -gap, dSt, prop(3));
+              if (p < .5) for (var dr = 0; dr < 3; dr++) rect(ox_, sp.x + m - 2 + Math.random() * 4, WL - 2 - Math.random() * 6, 1, 1, "#2e2a36");   // bits falling from the break
+              if (p > .74) for (var bb = 0; bb < 5; bb++) { var bxx = sp.x + m - 10 + Math.random() * 14, byy = WL - Math.random() * 4 * (p - .7) * 10; rect(bx, bxx, byy, 1 + (bb % 2), 1 + (bb % 2), Math.random() < .5 ? "#ffffff" : "#d8eef8"); }   // and the bubbles
+            }
+          } else if (K === "bow" || K === "stern") {
+            var dir = K === "bow" ? 1 : -1, ang = (26 * ease(p / .65)) * Math.PI / 180, sd = 3 + 9 * ease(p / .65) + 26 * ease((p - .62) / .38);
+            piece(0, sp.w, sp.w * (K === "bow" ? .62 : .38), dir * ang, 0, sd, K === "bow" ? prop(3) : null);
+          } else if (K === "capsize") {
+            // she rolls over onto her back: the hull flattens, flips, shows the red keel, then the upturned hull sinks
+            var rq = ease(p / .5), cy = Math.cos(rq * Math.PI), sd2 = 4 * rq + 24 * ease((p - .55) / .45);
+            var pr = sp.h - 7; ox_.save(); ox_.translate(Math.round(sp.x), Math.round(sp.y + pr + sd2)); ox_.scale(1, Math.abs(cy) < .05 ? (cy < 0 ? -.05 : .05) : cy); ox_.drawImage(img, 0, -pr); ox_.restore();   // rolls about the middle of the hull: upside down the black hull and red keel stick out
+          } else if (K === "funnels") {
+            // a slow list and settling, the funnels toppling one after another towards the stern
+            var la = 7 * ease(p / .3) * Math.PI / 180, sd3 = 4 * ease(p / .4) + 30 * ease((p - .62) / .38), pv = sp.w * .5;
+            piece(0, sp.w, pv, la, 0, sd3, function (pivX) {
+              I.fun.forEach(function (f, i) {
+                var st = .12 + i * .13, fa = ease((p - st) / .16), fw = f.x1 - f.x0 + 1, fh = f.base + 1, left = (sink.fdir[i] || 1) < 0, byp = fh - pivY;
+                ox_.save(); ox_.translate((left ? f.x0 : f.x1 + 1) - pivX, byp); ox_.rotate((left ? -1 : 1) * fa * Math.PI / 2); ox_.drawImage(sp.img, f.x0, 0, fw, fh, left ? 0 : -fw, -fh, fw, fh); ox_.restore();
+                if (fa >= 1 && !f.hiss) { f.hiss = 1; beep([[90, .08]]); }
+              });
+            });
+          } else {
+            // the boiler blows: a flash, a steam cloud, a funnel sails off, then she goes down fast
+            var sd4 = 2 * ease(p / .3) + 34 * ease((p - .5) / .5), aa = 10 * ease((p - .2) / .5) * Math.PI / 180;
+            piece(0, sp.w, sp.w * .5, aa, 0, sd4, function (pivX) {
+              I.fun.forEach(function (f, i) { if (i === sink.flyer) return; ox_.drawImage(sp.img, f.x0, 0, f.x1 - f.x0 + 1, f.base + 1, f.x0 - pivX, -pivY, f.x1 - f.x0 + 1, f.base + 1); });
+            });
+          }
         } else {
-          WL = sp.y + sp.h; var lift = 6 * e, lev = 1.2 * e;
-          for (var y = 0; y < sp.h; y++) {
-            var tt = y / sp.h, ny = y, under = false, deep = false;
-            if (sink.kind === "bow") { ny = y - lift * (1 - tt) + lift * .4 * tt; under = tt > 1 - lev; deep = tt > 1 - lev + .12; }
-            else if (sink.kind === "stern") { ny = y + lift * .4 * (1 - tt) - lift * tt; under = tt < lev; deep = tt < lev - .12; }
-            else { var d = Math.abs(tt - sink.f) * 2; ny = y - lift * d + (tt > sink.f ? lift * .5 : -lift * .2); under = d < lev; deep = d < lev - .15; }
-            if (deep || p >= 1) continue;
-            ox_.drawImage(sp.img, 0, y, sp.w, 1, sp.x, Math.round(sp.y + ny), sp.w, 1);
-            if (under) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192,.7)"; ox_.fillRect(sp.x, Math.round(sp.y + ny), sp.w, 1); ox_.globalCompositeOperation = "source-over"; }
+          WL = sp.y + sp.h;
+          if (K === "capsize") {
+            var rq2 = ease(p / .5), cx2 = Math.cos(rq2 * Math.PI), sd5 = 10 * ease((p - .5) / .5);
+            ox_.save(); ox_.translate(Math.round(sp.x + sp.w / 2), Math.round(sp.y + sd5)); ox_.scale(cx2 === 0 ? .02 : cx2, 1); ox_.drawImage(img, -sp.w / 2, 0); ox_.restore();
+            if (p > .5) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192," + Math.min(.85, (p - .5) * 2) + ")"; ox_.fillRect(sp.x - 2, sp.y, sp.w + 4, sp.h + 12); ox_.globalCompositeOperation = "source-over"; }
+            if (p > .92) ox_.clearRect(sp.x - 4, sp.y - 2, sp.w + 8, sp.h + 16);
+          } else {
+            var vk = K === "boom" ? "mid" : K, lift = 6 * e, lev = 1.2 * e;
+            for (var y = 0; y < sp.h; y++) {
+              var tt = y / sp.h, ny = y, under = false, deep = false;
+              if (vk === "bow") { ny = y - lift * (1 - tt) + lift * .4 * tt; under = tt > 1 - lev; deep = tt > 1 - lev + .12; }
+              else if (vk === "stern") { ny = y + lift * .4 * (1 - tt) - lift * tt; under = tt < lev; deep = tt < lev - .12; }
+              else { var d = Math.abs(tt - sink.f) * 2; ny = y - lift * d + (tt > sink.f ? lift * .5 : -lift * .2); under = d < lev; deep = d < lev - .15; }
+              if (deep || p >= 1) continue;
+              ox_.drawImage(img, 0, y, sp.w, 1, sp.x, Math.round(sp.y + ny), sp.w, 1);
+              if (under) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192,.7)"; ox_.fillRect(sp.x, Math.round(sp.y + ny), sp.w, 1); ox_.globalCompositeOperation = "source-over"; }
+            }
           }
         }
         if (s_.h) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192,.7)"; ox_.fillRect(0, WL + 1, 180, 135); ox_.globalCompositeOperation = "source-over"; ox_.clearRect(0, WL + 3, 180, 135); }
         bx.drawImage(bsOff, 0, 0);
-        if (p < .55) { var fc = cellCenter(sink.last[0], sink.last[1], .55); flame(bx, fc[0], fc[1] - (s_.h ? 6 : 2) + e * 8, t); }
-        for (var i = 0; i < 4 + Math.floor(p * 10); i++) { var bxp = sp.x + Math.random() * sp.w, byp = (s_.h ? WL : sp.y + sp.h * (sink.kind === "stern" ? .2 : sink.kind === "bow" ? .8 : sink.f)) + Math.random() * 3; rect(bx, bxp, byp, 1, 1, Math.random() < .4 ? "#ffffff" : "#e6f4fc"); }
-        if (p >= 1) { s_.gone = true; var done = sink.done; sink = null; done(); }
+        if (K === "boom") {                                              // flash, steam cloud and the flying funnel
+          var cx3 = sp.x + sp.w / 2, cy3 = s_.h ? sp.y + 6 : sp.y + sp.h / 2;
+          if (p < .12) { bx.globalAlpha = (1 - p / .12) * .8; rect(bx, 0, 0, 180, 135, "#fff8e0"); bx.globalAlpha = 1; }
+          if (!sink.boomed) { sink.boomed = 1; beep([[70, .3], [55, .4]]); }
+          var cr = 4 + 18 * ease(p / .4);
+          for (var k = 0; k < 9; k++) { var an = k / 9 * Math.PI * 2 + p, rr = cr * (.6 + (k % 3) * .2); bx.globalAlpha = Math.max(0, .6 - p * .9); rect(bx, cx3 + Math.cos(an) * rr * .9 - 3, cy3 - 4 + Math.sin(an) * rr * .5 - 3 * ease(p / .5) * 4, 7, 5, k % 2 ? "#f4f2ee" : "#c8ccd4"); }
+          bx.globalAlpha = 1;
+          var fl = I.fun[sink.flyer];
+          if (s_.h && fl && p < .7) {
+            var fw = fl.x1 - fl.x0 + 1, fh = fl.base + 1, fx_ = sp.x + fl.x0 + p * 40, fy_ = sp.y - 60 * p + 95 * p * p;
+            bx.save(); bx.translate(Math.round(fx_ + fw / 2), Math.round(fy_ + fh / 2)); bx.rotate(p * 9); bx.drawImage(sp.img, fl.x0, 0, fw, fh, -fw / 2, -fh / 2, fw, fh); bx.restore();
+          }
+        }
+        if (p < (K === "boom" ? .6 : .55)) { var fc = cellCenter(sink.last[0], sink.last[1], .55); flame(bx, fc[0], fc[1] - (s_.h ? 6 : 2) + e * 8, t); }
+        for (var i = 0; i < 4 + Math.floor(p * 10); i++) { var bxp = sp.x + Math.random() * sp.w, byp = (s_.h ? WL : sp.y + sp.h * (K === "stern" ? .2 : K === "bow" ? .8 : sink.f)) + Math.random() * 3; rect(bx, bxp, byp, 1, 1, Math.random() < .4 ? "#ffffff" : "#e6f4fc"); }
+        if (p >= 1) { s_.gone = true; flotsam(s_); var done = sink.done; sink = null; done(); }
       }
       (function lp(t) { if (!bsOpen) return; draw(t); raf = requestAnimationFrame(lp); })(performance.now());
       function startSink(ship, last, done) {
         var cs = cellsOf(ship), idx = cs.findIndex(function (q) { return q[0] === last[0] && q[1] === last[1]; });
-        var kind = idx === cs.length - 1 ? "bow" : idx === 0 ? "stern" : "mid";
+        var end = idx === cs.length - 1 ? "bow" : idx === 0 ? "stern" : "mid", kind;
+        if (ship.h) {
+          var sp = spriteOf(ship), info = sinkInfo(sp);
+          kind = pick2([["titanic", ship.L >= 3 ? (end === "mid" ? 5 : 3) : 0], ["bow", end === "bow" ? 3 : 2], ["stern", end === "stern" ? 3 : 2], ["capsize", 2], ["funnels", info.fun.length ? 2 : 0], ["boom", info.fun.length ? 1 : 0]]);
+        } else kind = pick2([[end, 4], ["capsize", 2], ["boom", 1]]);
+        if (window.__bsKind) kind = window.__bsKind;
         ship.reveal = true; beep([[180, .12], [140, .14], [110, .2]]);
-        sink = { ship: ship, kind: kind, f: (idx + .5) / ship.L, last: last, t0: performance.now(), done: done };
+        var f = kind === "titanic" && end !== "mid" ? (Math.floor(ship.L / 2) + .5) / ship.L : (idx + .5) / ship.L;
+        sink = { ship: ship, kind: kind, f: f, last: last, t0: performance.now(), done: done, dur: { titanic: 5400, funnels: 4000, boom: 3600, capsize: 3400 }[kind] || 3200 };
+        sink.fdir = [0, 1, 2, 3, 4].map(function (i) { return Math.random() < .5 ? -1 : 1; }); if (sink.fdir[0] === sink.fdir[1]) sink.fdir[1] = -sink.fdir[0];
+        if (kind === "boom") { var inf = ship.h ? sinkInfo(spriteOf(ship)) : { fun: [] }; sink.flyer = inf.fun.length ? Math.floor(Math.random() * inf.fun.length) : -1; }
       }
       function allSunk(fl) { return fl.every(function (s_) { return s_.sunk; }); }
       function shoot(fleet, shots, c, r, done) {
@@ -10127,6 +10248,11 @@ window.__EXTRAS = true;
       bsEl.querySelector(".bs-x").onclick = function () { end(false); };
       bsAbort = function () { end(false); };
       window.__bs.state = function () { return { phase: phase, view: view, me: me, fox: fox, shotsMe: shotsMe, shotsFox: shotsFox }; };
+      window.__bs.sinkTest = function (h, kind) {                      // test helper: sink one of my ships with a chosen animation
+        var s_ = me.filter(function (q) { return !q.sunk && !!q.h === !!h; }).sort(function (a2, b2) { return b2.L - a2.L; })[0]; if (!s_) return null;
+        var cs = cellsOf(s_); cs.forEach(function (q) { var k = key(q[0], q[1]); shotsFox[k] = "hit"; s_.hits[k] = true; }); s_.sunk = true; phase = "fox"; view = "mine";
+        window.__bsKind = kind; startSink(s_, cs[Math.floor(cs.length / 2)], function () { window.__bsKind = null; }); var sp = spriteOf(s_); return { L: s_.L, h: s_.h, x: sp.x, y: sp.y, w: sp.w, hh: sp.h };
+      };
       window.__bs.lose = function () { me.forEach(function (s_) { s_.sunk = true; }); finish(false); };
     });
   }
