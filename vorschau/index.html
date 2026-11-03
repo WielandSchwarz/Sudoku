@@ -9668,7 +9668,9 @@ window.__EXTRAS = true;
         }
         var hull = document.createElement("canvas"); hull.width = sp.w; hull.height = sp.h; var hc = hull.getContext("2d"); hc.drawImage(sp.img, 0, 0);
         fun.forEach(function (f) { hc.clearRect(f.x0, 0, f.x1 - f.x0 + 1, f.base + 1); });
-        return { holes: holes, fun: fun, hull: hull };
+        var rows = [];                                                   // each row's left and right edge, for the hull flank of a ship heeling over
+        for (var ry = 0; ry < sp.h; ry++) { var mn = -1, mx = -1; for (var rx = 0; rx < sp.w; rx++) if (A(rx, ry)) { if (mn < 0) mn = rx; mx = rx; } rows.push([mn, mx]); }
+        return { holes: holes, fun: fun, hull: hull, rows: rows };
       }
       function pick2(list) { var tot = 0; list.forEach(function (o) { tot += o[1]; }); var r = Math.random() * tot; for (var i = 0; i < list.length; i++) { r -= list[i][1]; if (r <= 0) return list[i][0]; } return list[0][0]; }
       function ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
@@ -9711,18 +9713,20 @@ window.__EXTRAS = true;
           };
           var prop = function (x0) { return function (pivX) { var f = Math.floor(t / 90) % 2; rect(ox_, x0 - pivX, -2 - f, 1, 3, "#c89a3a"); rect(ox_, x0 - pivX - 1, -1, 3, 1, f ? "#c89a3a" : "#8a6a20"); }; };
           if (K === "titanic") {
-            // she goes down by the bow first, in one piece; then she breaks in the middle, the stern falls back, rears up almost upright,
-            // stands a moment and slides down with a lot of bubbles
-            var m = Math.round(sp.w * sink.f), deg = Math.PI / 180;
-            if (p < .32) { var e1 = ease(p / .32); piece(0, sp.w, m, 12 * e1 * deg, 0, 3 * e1); }
+            // in one piece she settles by the bow; slowly the hull cracks in the middle and opens, the bow slips away,
+            // the stern sinks back a little, then rises almost upright, stands, and slides slowly under with lots of bubbles
+            var m = Math.round(sp.w * sink.f), deg = Math.PI / 180, sm = function (a0, a1) { return ease((p - a0) / (a1 - a0)); };
+            var a0 = 10 * sm(0, .35);
+            if (p < .35) piece(0, sp.w, m, a0 * deg, 0, 4 * sm(0, .35));
             else {
-              var gap = Math.round(2 * ease((p - .32) / .08));
-              var aBow = (12 + 38 * ease((p - .32) / .3)) * deg, dBow = 3 + 34 * ease((p - .36) / .35);
-              var aSt = (p < .42 ? 12 * (1 - ease((p - .32) / .1)) : 70 * ease((p - .42) / .24)) * deg, dSt = 3 + 4 * ease((p - .42) / .24) + 42 * ease((p - .78) / .22);
-              piece(m, sp.w - m, m, aBow, gap, dBow);
-              piece(0, m, m, aSt, -gap, dSt, prop(3));
-              if (p < .5) for (var dr = 0; dr < 3; dr++) rect(ox_, sp.x + m - 2 + Math.random() * 4, WL - 2 - Math.random() * 6, 1, 1, "#2e2a36");   // bits falling from the break
-              if (p > .74) for (var bb = 0; bb < 5; bb++) { var bxx = sp.x + m - 10 + Math.random() * 14, byy = WL - Math.random() * 4 * (p - .7) * 10; rect(bx, bxx, byy, 1 + (bb % 2), 1 + (bb % 2), Math.random() < .5 ? "#ffffff" : "#d8eef8"); }   // and the bubbles
+              var gap = 2 * sm(.35, .55);
+              var aBow = (10 + 38 * sm(.38, .72)) * deg, dBow = 4 + 38 * Math.pow(Math.max(0, Math.min(1, (p - .42) / .4)), 1.5);
+              var aSt = (10 - 6 * sm(.35, .5) + 61 * sm(.47, .74)) * deg, slide = Math.pow(Math.max(0, Math.min(1, (p - .78) / .22)), 1.6);
+              var dSt = 4 + 3 * sm(.47, .74) + 42 * slide;
+              piece(m, sp.w - m, m, aBow, Math.round(gap), dBow);
+              piece(0, m, m, aSt, -Math.round(gap), dSt, prop(3));
+              if (p > .38 && p < .58) for (var dr = 0; dr < 2; dr++) rect(ox_, sp.x + m - 2 + Math.random() * 4, WL - 1 - Math.random() * 5, 1, 1, "#2e2a36");   // bits falling from the crack
+              if (p > .76) for (var bb = 0; bb < 4 + Math.floor(slide * 8); bb++) { var bxx = sp.x + m - 10 + Math.random() * 14, byy = WL - Math.random() * 3 - slide * 3; rect(bx, bxx, byy, 1 + (bb % 2), 1 + (bb % 2), Math.random() < .5 ? "#ffffff" : "#d8eef8"); }   // and the bubbles
             }
           } else if (K === "bow" || K === "stern") {
             var dir = K === "bow" ? 1 : -1, ang = (26 * ease(p / .65)) * Math.PI / 180, sd = 3 + 9 * ease(p / .65) + 26 * ease((p - .62) / .38);
@@ -9733,10 +9737,10 @@ window.__EXTRAS = true;
             var pr = sp.h - 7; ox_.save(); ox_.translate(Math.round(sp.x), Math.round(sp.y + pr + sd2)); ox_.scale(1, Math.abs(cy) < .05 ? (cy < 0 ? -.05 : .05) : cy); ox_.drawImage(img, 0, -pr); ox_.restore();   // rolls about the middle of the hull: upside down the black hull and red keel stick out
           } else if (K === "funnels") {
             // a slow list and settling, the funnels toppling one after another towards the stern
-            var la = 7 * ease(p / .3) * Math.PI / 180, sd3 = 4 * ease(p / .4) + 30 * ease((p - .62) / .38), pv = sp.w * .5;
+            var la = 7 * ease(p / .3) * Math.PI / 180, sd3 = 3 * ease(p / .3) + 32 * Math.pow(Math.max(0, Math.min(1, (p - .35) / .65)), 1.4), pv = sp.w * .5;
             piece(0, sp.w, pv, la, 0, sd3, function (pivX) {
               I.fun.forEach(function (f, i) {
-                var st = .12 + i * .13, fa = ease((p - st) / .16), fw = f.x1 - f.x0 + 1, fh = f.base + 1, left = (sink.fdir[i] || 1) < 0, byp = fh - pivY;
+                var st = .42 + i * .09, fa = ease((p - st) / .13), fw = f.x1 - f.x0 + 1, fh = f.base + 1, left = (sink.fdir[i] || 1) < 0, byp = fh - pivY;
                 ox_.save(); ox_.translate((left ? f.x0 : f.x1 + 1) - pivX, byp); ox_.rotate((left ? -1 : 1) * fa * Math.PI / 2); ox_.drawImage(sp.img, f.x0, 0, fw, fh, left ? 0 : -fw, -fh, fw, fh); ox_.restore();
                 if (fa >= 1 && !f.hiss) { f.hiss = 1; beep([[90, .08]]); }
               });
@@ -9750,11 +9754,23 @@ window.__EXTRAS = true;
           }
         } else {
           WL = sp.y + sp.h;
-          if (K === "capsize") {
-            var rq2 = ease(p / .5), cx2 = Math.cos(rq2 * Math.PI), sd5 = 10 * ease((p - .5) / .5);
-            ox_.save(); ox_.translate(Math.round(sp.x + sp.w / 2), Math.round(sp.y + sd5)); ox_.scale(cx2 === 0 ? .02 : cx2, 1); ox_.drawImage(img, -sp.w / 2, 0); ox_.restore();
-            if (p > .5) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192," + Math.min(.85, (p - .5) * 2) + ")"; ox_.fillRect(sp.x - 2, sp.y, sp.w + 4, sp.h + 12); ox_.globalCompositeOperation = "source-over"; }
-            if (p > .92) ox_.clearRect(sp.x - 4, sp.y - 2, sp.w + 8, sp.h + 16);
+          if (K === "list") {
+            // seen from the bow or the stern: she heels over to one side, the hull shows on the high side, then she settles and fades under
+            var roll = 62 * ease(p / .55) * Math.PI / 180, side = sink.side, sx = Math.cos(roll), shift = Math.sin(roll) * 3 * side, sink2 = 6 * Math.pow(Math.max(0, (p - .5) / .5), 1.3);
+            for (var y = 0; y < sp.h; y++) {
+              var rw = Math.max(2, Math.round(sp.w * sx)), x0 = Math.round(sp.x + (sp.w - rw) / 2 + shift + side * (1 - sx) * sp.w * .25);
+              ox_.drawImage(img, 0, y, sp.w, 1, x0, Math.round(sp.y + y + sink2), rw, 1);
+              var R = I.rows[y]; if (R[0] < 0) continue;
+              var rl = x0 + Math.round(R[0] * rw / sp.w), rr = x0 + Math.round((R[1] + 1) * rw / sp.w), hw = Math.round((R[1] - R[0] + 1) * Math.sin(roll) * .5), yy = Math.round(sp.y + y + sink2);
+              if (hw > 0) {                                                  // the hull's flank on the high side: black, a porthole now and then, the red keel at its edge, an outline
+                var fx = side > 0 ? rl - hw : rr;
+                rect(ox_, fx, yy, hw, 1, "#2e2a36"); if (y % 4 === 1 && lit && hw > 3) rect(ox_, fx + (hw >> 1), yy, 1, 1, "#ffe9a0");
+                rect(ox_, side > 0 ? fx : fx + hw - 1, yy, 1, 1, hw > 2 ? "#a8362a" : "#2e2a36"); rect(ox_, side > 0 ? fx - 1 : fx + hw, yy, 1, 1, "#24160c");
+              }
+            }
+            var wet = Math.max(0, (p - .45) / .55);
+            if (wet > 0) { ox_.globalCompositeOperation = "source-atop"; ox_.fillStyle = "rgba(90,154,192," + Math.min(.9, wet * 1.2) + ")"; ox_.fillRect(sp.x - sp.w, sp.y - 2, sp.w * 3, sp.h + 14); ox_.globalCompositeOperation = "source-over"; }
+            if (p > .94) ox_.clearRect(sp.x - sp.w, sp.y - 4, sp.w * 3, sp.h + 20);
           } else {
             var vk = K === "boom" ? "mid" : K, lift = 6 * e, lev = 1.2 * e;
             for (var y = 0; y < sp.h; y++) {
@@ -9794,11 +9810,11 @@ window.__EXTRAS = true;
         if (ship.h) {
           var sp = spriteOf(ship), info = sinkInfo(sp);
           kind = pick2([["titanic", ship.L >= 3 ? (end === "mid" ? 5 : 3) : 0], ["bow", end === "bow" ? 3 : 2], ["stern", end === "stern" ? 3 : 2], ["capsize", 2], ["funnels", info.fun.length ? 2 : 0], ["boom", info.fun.length ? 1 : 0]]);
-        } else kind = pick2([[end, 4], ["capsize", 2], ["boom", 1]]);
+        } else kind = pick2([[end, 4], ["list", 3], ["boom", 1]]);
         if (window.__bsKind) kind = window.__bsKind;
         ship.reveal = true; beep([[180, .12], [140, .14], [110, .2]]);
         var f = kind === "titanic" && end !== "mid" ? (Math.floor(ship.L / 2) + .5) / ship.L : (idx + .5) / ship.L;
-        sink = { ship: ship, kind: kind, f: f, last: last, t0: performance.now(), done: done, dur: { titanic: 5400, funnels: 4000, boom: 3600, capsize: 3400 }[kind] || 3200 };
+        sink = { ship: ship, kind: kind, f: f, last: last, t0: performance.now(), done: done, dur: { titanic: 7000, funnels: 4600, boom: 3600, capsize: 3400, list: 3600 }[kind] || 3200, side: Math.random() < .5 ? -1 : 1 };
         sink.fdir = [0, 1, 2, 3, 4].map(function (i) { return Math.random() < .5 ? -1 : 1; }); if (sink.fdir[0] === sink.fdir[1]) sink.fdir[1] = -sink.fdir[0];
         if (kind === "boom") { var inf = ship.h ? sinkInfo(spriteOf(ship)) : { fun: [] }; sink.flyer = inf.fun.length ? Math.floor(Math.random() * inf.fun.length) : -1; }
       }
