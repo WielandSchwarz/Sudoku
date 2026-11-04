@@ -1486,6 +1486,14 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .p2-seedl, .p2-trel, .p2-dome, .p2-stake, .p2-bag, .p2-clock, .p2-pot, .p2-potsoil, .p2-mound { pointer-events: none; }
 @keyframes p2-blink { 50% { opacity: .35; } }
 .p2-potsoil { background: #5a3820; box-shadow: inset 0 1px 0 #8a5e3a; }
+.p2-star { animation: p2-star .65s steps(6) forwards; pointer-events: none; } @keyframes p2-star { 50% { transform: translate(var(--dx), var(--dy)) scale(1.5); } 100% { transform: translate(var(--dx), calc(var(--dy) + 6px)) scale(.5); opacity: 0; } }
+.p2-fur, .p2-soil, .p2-seed, .p2-onion, .p2-trel, .p2-dome, .p2-stake, .p2-clock, .p2-pot, .p2-bag, .p2-mound, .p2-shears { animation: p2-popin .3s steps(4); }
+@keyframes p2-popin { 0% { transform: scale(.2); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.p2-seedl { transform-origin: 50% 100%; animation: p2-popin .3s steps(4), p2-sway 1.4s steps(4) .3s infinite alternate; }
+@keyframes p2-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+.p2-onion { transform-origin: 50% 100%; }
+.p2-peatfill { background: #4a2a3a; box-shadow: inset 0 1px 0 #6a4a5a; }
+.p2-tip { animation: p2-fall .7s steps(6) forwards; --dy: 30px; }
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -16351,12 +16359,13 @@ window.__EXTRAS = true;
   }
   function dwStart() {
     var pool = ["plate", "cup", "fork", "plate2", "pot"];
-    dwS = { stack: pool.slice().sort(function () { return Math.random() - .5; }), cur: null, step: "take", rack: DW_RACK.map(function () { return null; }), wrong: 0, fx: [], drag: null, rub: null, rinse: 0, squirt: 0, done: 0, over: false, raf: 0, shake: 0 };
+    dwS = { stack: pool.slice().sort(function () { return Math.random() - .5; }), cur: null, step: "take", rack: DW_RACK.map(function () { return null; }), wrong: 0, fx: [], drag: null, rub: null, rinse: 0, squirt: 0, done: 0, over: false, raf: 0, shake: 0, bub: [], popped: 0, foam: 0, duck: Math.random() < .6 ? { a: 0, sq: 0 } : null };
     dwV.card.hidden = true; dwStep("take");
   }
   function dwStep(st) {
     dwS.step = st;
-    mBan(dwV, { take: "Ins Becken", soap: "Spüli", scrub: "Schrubben", rinse: "Abspülen", put: "Einräumen" }[st]);
+    mBan(dwV, { take: "Ins Becken", splash: "Planschen", soap: "Spüli", scrub: "Schrubben", rinse: "Abspülen", put: "Einräumen" }[st]);
+    if (st !== "take") { dwS.face = "happy"; dwS.faceT = performance.now() + 700; }
   }
   function dwLeft(it) { var n = 0; for (var i = 0; i < it.dirt.length; i++) if (it.dirt[i] > 0) n++; return n; }
   // tiny side views for the tray and the rack
@@ -16443,15 +16452,24 @@ window.__EXTRAS = true;
     }
     // the clean piece in the hand on its way to the rack
     if (it && S.step === "put") {
-      var hp = S.drag ? S.drag : [DW.cx, DW.cy - 4 + Math.sin(t / 300) * 2];
+      var hp = S.drag ? S.drag : S.slipPos ? [S.slipPos[0], S.slipPos[1] + Math.sin(t / 200) * 1] : [DW.cx, DW.cy - 4 + Math.sin(t / 300) * 2];
       if (S.back > 0) { S.back = Math.max(0, S.back - .05); hp = [S.bx + (DW.cx - S.bx) * (1 - S.back), S.by + (DW.cy - 4 - S.by) * (1 - S.back)]; }
       var rk = dwRack(it.k);
       if (rk === "plate") dwMini(c, it.k, hp[0] - 3, hp[1] - 12, true); else if (rk === "cup") dwMini(c, it.k, hp[0] - 5, hp[1] - 4, true); else if (rk === "fork") dwMini(c, it.k, hp[0] - 2, hp[1] - 7, false); else dwMini(c, it.k, hp[0] - 7, hp[1] - 6, false);
       if (!S.drag && !S.back) { var ph = (t / 600) % 1; if (ph < .5) { mR(c, hp[0] + 8, hp[1] - 10, 1, 3, "#ffffff"); mR(c, hp[0] + 7, hp[1] - 9, 3, 1, "#ffffff"); } dwArrow(c, 132, 66, t, "r"); }
     }
     S.fx = S.fx.filter(function (f) { f.life -= .016; f.x += f.vx * .016; f.y += f.vy * .016; f.vy += 30 * .016; c.globalAlpha = Math.min(1, f.life * 2); mR(c, f.x, f.y, f.b ? 2 : 1, f.b ? 2 : 1, f.c); c.globalAlpha = 1; return f.life > 0; });
+    // the rubber duck bobbing in the suds, soap bubbles drifting up, foam rising while you splash
+    if (it && (S.step === "splash" || S.step === "scrub" || S.step === "soap") && S.duck) { var dk = S.duck; dk.a += .01; dk.x = DW.cx + Math.cos(dk.a) * 26; dk.y = DW.cy + Math.sin(dk.a) * 26; var sq = dk.sq > 0 ? 1 : 0; if (dk.sq > 0) dk.sq -= .04;
+      mR(c, dk.x - 5, dk.y - 2 + sq, 10, 5 - sq, "#3a2414"); mR(c, dk.x - 4, dk.y - 1 + sq, 8, 3 - sq, "#ffd34a"); mR(c, dk.x + 1, dk.y - 6 + sq, 5, 5, "#3a2414"); mR(c, dk.x + 2, dk.y - 5 + sq, 3, 3, "#ffd34a"); mR(c, dk.x + 5, dk.y - 4 + sq, 2, 1, "#e8650c"); mR(c, dk.x + 3, dk.y - 5 + sq, 1, 1, "#3a2414"); }
+    if (it && S.step !== "put" && S.step !== "take" && Math.random() < (S.step === "splash" ? .02 + S.foam / 2500 : .03)) S.bub.push({ x: DW.cx + rnd(-28, 28), y: DW.cy + rnd(0, 20), r: 2 + Math.floor(Math.random() * 3), vy: -.25 - Math.random() * .3, ph: Math.random() * 6 });
+    S.bub = S.bub.filter(function (b) { b.y += b.vy; b.x += Math.sin(t / 400 + b.ph) * .2; var r = b.r; c.globalAlpha = .9; for (var a2 = 0; a2 < 16; a2++) { var an = a2 / 16 * Math.PI * 2; mR(c, b.x + Math.cos(an) * r, b.y + Math.sin(an) * r, 1, 1, a2 % 4 === 1 ? "#ffffff" : "#9ad8f4"); } mR(c, b.x - r / 2, b.y - r / 2, 1, 1, "#ffffff"); c.globalAlpha = 1; return b.y > -6; });
+    if (S.step === "splash") { var fl = Math.round(S.foam / 100 * 30); for (var fb = 0; fb < fl; fb++) { var fa = fb * 2.4, fr = 8 + (fb * 7) % 26; mR(c, DW.cx + Math.cos(fa) * fr - 2, DW.cy + Math.sin(fa) * fr - 1, 4, 3, "#ffffff"); mR(c, DW.cx + Math.cos(fa) * fr - 1, DW.cy + Math.sin(fa) * fr - 2, 2, 1, "#ffffff"); }
+      for (var fm = 0; fm < 40; fm++) { if (fm / 40 > S.foam / 100) break; var am = -Math.PI / 2 + fm / 40 * Math.PI * 2; mR(c, DW.cx + Math.cos(am) * (DW.R + 3) - 1, DW.cy + Math.sin(am) * (DW.R + 3) - 1, 2, 2, "#bfe8ff"); }
+      if (!S.splashing) { var bw = Math.sin(t / 150) * 6; mR(c, DW.cx - 10 + bw, DW.cy + 30, 6, 2, "#ffd34a"); mR(c, DW.cx + 4 + bw, DW.cy + 30, 6, 2, "#ffd34a"); } }
     // how many are left: little dish icons, top left
     var all = 5, clean = S.rack.filter(Boolean).length; for (var n = 0; n < all; n++) { var ix = 4 + n * 9; mR(c, ix, 6, 8, 8, "#3a2414"); mR(c, ix + 1, 7, 6, 6, n < clean ? "#6fd04a" : "#f8f4ec"); if (n < clean) { mR(c, ix + 2, 9, 1, 1, "#fff8ec"); mR(c, ix + 3, 10, 1, 1, "#fff8ec"); mR(c, ix + 4, 9, 1, 1, "#fff8ec"); mR(c, ix + 5, 8, 1, 1, "#fff8ec"); } }
+    if (typeof hvHam === "function") { hvCtx = c; hvHam(t, { face: S.face, faceT: S.faceT || 0, drag: S.paw && (S.step === "splash" || S.step === "scrub" || S.drag) ? S.paw : null }); hvCtx = null; }
     dwS.raf = requestAnimationFrame(dwDraw);
   }
   function dwHit(p, r) { return p[0] >= r.x - 3 && p[0] <= r.x + r.w + 3 && p[1] >= r.y - 3 && p[1] <= r.y + r.h + 3; }
@@ -16459,27 +16477,41 @@ window.__EXTRAS = true;
     if (!dwS || dwS.over) return; var S = dwS, p = mPt(dwV, e); try { dwV.cv.setPointerCapture(e.pointerId); } catch (x) {}
     if (S.step === "take") { if (p[0] < 40 && p[1] > 50 && p[1] < 96 && S.stack.length) { S.drag = p; S.dragK = S.stack[S.stack.length - 1]; beep([[300, .04]]); } return; }
     if (S.step === "soap") { if (p[0] > 34 && p[0] < 52 && p[1] > 60 && p[1] < 94 && !S.squirt) { S.squirt = .9; beep([[500, .05], [300, .08]]); } return; }
+    S.paw = p;
+    for (var bI = 0; bI < S.bub.length; bI++) { var bb = S.bub[bI]; if (Math.hypot(bb.x - p[0], bb.y - p[1]) < bb.r + 3) { S.bub.splice(bI, 1); S.popped++; beep([[1400 + rnd(0, 400), .03]]); for (var q = 0; q < 6; q++) S.fx.push({ x: bb.x, y: bb.y, vx: (Math.random() - .5) * 40, vy: (Math.random() - .5) * 40, life: .4, c: q % 2 ? "#ffffff" : "#bfe8ff" }); return; } }
+    if (S.duck && Math.hypot(S.duck.x - p[0], S.duck.y - p[1]) < 7 && (S.step === "splash" || S.step === "scrub")) { S.duck.sq = 1; beep([[1200, .05], [900, .08]]); mBan(dwV, "Quietsch!"); S.face = "happy"; S.faceT = performance.now() + 700; return; }
+    if (S.step === "splash") { if (Math.hypot(p[0] - DW.cx, p[1] - DW.cy) < DW.R) S.splashing = p; return; }
     if (S.step === "scrub") { S.rub = p; S.rubbed = true; dwRub(p, p); return; }
     if (S.step === "rinse") { if (p[0] > 115 && p[0] < 140 && p[1] > 34 && p[1] < 56 && !S.rinse) { S.rinse = 1.2; beep([[200, .05], [260, .05]]); } return; }
-    if (S.step === "put") { if (Math.hypot(p[0] - DW.cx, p[1] - DW.cy) < 30) S.drag = p; return; }
+    if (S.step === "put") { var hp0 = S.slipPos || [DW.cx, DW.cy]; if (Math.hypot(p[0] - hp0[0], p[1] - hp0[1]) < 26) { S.drag = p; S.dragD = 0; } return; }
   });
   dwV.cv.addEventListener("pointermove", function (e) {
     if (!dwS) return; var S = dwS, p = mPt(dwV, e);
-    if (S.drag) { S.drag = p; return; }
+    if (S.rub || S.drag || S.splashing) S.paw = p;
+    if (S.drag) {
+      if (S.step === "put" && S.cur && !S.cur.slipped) { S.dragD += Math.hypot(p[0] - S.drag[0], p[1] - S.drag[1]); if (S.dragD > 22) {        // soapy: it shoots out of the paws once
+        S.cur.slipped = true; S.drag = null; S.paw = null; var a = Math.random() * Math.PI * 2; S.slipPos = [Math.max(60, Math.min(118, p[0] + Math.cos(a) * 22)), Math.max(40, Math.min(90, p[1] + Math.sin(a) * 16))];
+        beep([[700, .04], [400, .06], [900, .05]]); mBan(dwV, "Hupps, rutschig!"); S.face = "oops"; S.faceT = performance.now() + 900; for (var q = 0; q < 8; q++) S.fx.push({ x: p[0], y: p[1], vx: (Math.random() - .5) * 50, vy: -20 - Math.random() * 20, life: .6, c: "#ffffff" }); return; } }
+      S.drag = p; return; }
+    if (S.splashing) { var dx = Math.abs(p[0] - S.splashing[0]) + Math.abs(p[1] - S.splashing[1]); S.splashing = p;
+      if (Math.hypot(p[0] - DW.cx, p[1] - DW.cy) < DW.R) { S.foam = Math.min(100, S.foam + dx * .45); if (Math.random() < .5) { S.fx.push({ x: p[0], y: p[1], vx: (Math.random() - .5) * 60, vy: -40 - Math.random() * 40, life: .7, c: Math.random() < .5 ? "#bfe8ff" : "#ffffff", b: 1 }); } if (Math.random() < .3) beep([[200 + rnd(0, 200), .03]]);
+        if (Math.random() < .25 && S.cur.foam.length < 60) S.cur.foam.push([p[0] + rnd(-6, 6), p[1] + rnd(-6, 6)]);
+        if (S.foam >= 100) { S.splashing = null; S.paw = null; dwStep(S.cur.greasy ? "soap" : "scrub"); } } return; }
     if (S.rub) { var last = S.rub; S.rub = p; dwRub(last, p); }
   });
   function dwUp(e) {
-    if (!dwS) return; var S = dwS, p = e ? mPt(dwV, e) : S.drag;
+    if (!dwS) return; var S = dwS, p = e ? mPt(dwV, e) : S.drag; S.splashing = null; if (S.step !== "put" || !S.drag) S.paw = null;
     if (S.step === "take" && S.drag) { var inSink = Math.hypot(p[0] - DW.cx, p[1] - DW.cy) < DW.R + 6; S.drag = null;
-      if (inSink) { S.stack.pop(); S.cur = dwMake(S.dragK); beep([[260, .05], [180, .1]]); for (var k = 0; k < 10; k++) S.fx.push({ x: DW.cx + Math.random() * 40 - 20, y: DW.cy + 20, vx: (Math.random() - .5) * 40, vy: -30 - Math.random() * 20, life: .7, c: "#cfe6f2", b: 1 }); dwStep(S.cur.greasy ? "soap" : "scrub"); S.rubbed = false; } }
+      if (inSink) { S.stack.pop(); S.cur = dwMake(S.dragK); beep([[260, .05], [180, .1]]); for (var k = 0; k < 10; k++) S.fx.push({ x: DW.cx + Math.random() * 40 - 20, y: DW.cy + 20, vx: (Math.random() - .5) * 40, vy: -30 - Math.random() * 20, life: .7, c: "#cfe6f2", b: 1 }); S.foam = 0; dwStep("splash"); S.rubbed = false; } }
     else if (S.step === "scrub") S.rub = null;
     else if (S.step === "put" && S.drag) {
       var rk = dwRack(S.cur.k), idx = -1; DW_RACK.forEach(function (r, i) { if (idx < 0 && dwHit(p, r)) idx = i; }); S.drag = null;
+      S.paw = null;
       if (idx >= 0 && DW_RACK[idx].t === rk && !S.rack[idx]) {
-        S.rack[idx] = S.cur.k; S.cur = null; beep([[1047, .04], [1319, .04], [1568, .08]]); var r = DW_RACK[idx];
+        S.rack[idx] = S.cur.k; S.cur = null; S.slipPos = null; S.face = "happy"; S.faceT = performance.now() + 900; beep([[1047, .04], [1319, .04], [1568, .08]]); var r = DW_RACK[idx];
         for (var s2 = 0; s2 < 10; s2++) S.fx.push({ x: r.x + r.w / 2, y: r.y + r.h / 2, vx: (Math.random() - .5) * 40, vy: -20 - Math.random() * 20, life: .7, c: "#ffd34a" });
         if (S.stack.length) dwStep("take"); else dwEnd();
-      } else if (idx >= 0 || p[0] > 132) { S.wrong++; S.back = 1; S.bx = p[0]; S.by = p[1]; beep([[160, .08], [130, .1]]); mBan(dwV, rk === "plate" ? "Teller gehören in die Schlitze" : rk === "cup" ? "Tassen kommen auf die Haken" : rk === "fork" ? "Besteck kommt in den Becher" : "Die Kanne gehört aufs Brett"); }
+      } else if (idx >= 0 || p[0] > 132) { S.face = "oops"; S.faceT = performance.now() + 900; S.wrong++; S.back = 1; S.bx = p[0]; S.by = p[1]; beep([[160, .08], [130, .1]]); mBan(dwV, rk === "plate" ? "Teller gehören in die Schlitze" : rk === "cup" ? "Tassen kommen auf die Haken" : rk === "fork" ? "Besteck kommt in den Becher" : "Die Kanne gehört aufs Brett"); }
     }
   }
   dwV.cv.addEventListener("pointerup", dwUp); dwV.cv.addEventListener("pointercancel", function () { if (dwS) { dwS.rub = null; dwS.drag = null; } });
@@ -16495,14 +16527,15 @@ window.__EXTRAS = true;
     var S = dwS; S.over = true; var st = S.wrong === 0 ? 3 : S.wrong <= 2 ? 2 : 1, M = mL("dishes"); M.best = Math.max(M.best || 0, st);
     for (var k = 0; k < 30; k++) S.fx.push({ x: 157, y: 64, vx: (Math.random() - .5) * 90, vy: -30 - Math.random() * 40, life: 1.1, c: ["#ffd34a", "#ffffff", "#8ad86a"][k % 3] });
     setTimeout(function () { if (!dwS) return;
-      dwV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Alles blitzblank!</p>' + mStars(st) + '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Noch ein Tablett</button></div></div>';
+      dwV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Alles blitzblank!</p>' + mStars(st) + (S.popped ? '<p class="fi-s">' + S.popped + ' Seifenblasen zerplatzt</p>' : "") + '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Noch ein Tablett</button></div></div>';
       dwV.card.hidden = false; }, 1100);
   }
   dwV.card.addEventListener("click", function (e) { e.stopPropagation(); var b = e.target.closest("button"); if (!b) return; if (b.dataset.a === "again") { dwStart(); } else dwClose(); });
   function dwOpen() { dwV.el.hidden = false; dwStart(); cancelAnimationFrame(dwS.raf); dwS.raf = requestAnimationFrame(dwDraw); }
   function dwClose() { if (dwS) cancelAnimationFrame(dwS.raf); dwS = null; dwV.el.hidden = true; }
   dwV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); dwClose(); });
-  window.__dish = { open: dwOpen, rub: function (a, b) { dwRub(a, b); }, map: function () { var it = dwS.cur, N = DW.R * 2, o = []; for (var j = 0; j < it.dirt.length; j++) if (it.dirt[j] > 0) o.push([j % N - DW.R, Math.floor(j / N) - DW.R, it.dirt[j]]); return o; }, st: function () { return dwS && { rubS: !!dwS.rub, drag: !!dwS.drag, step: dwS.step, stack: dwS.stack.slice(), cur: dwS.cur && dwS.cur.k, rack: dwS.rack.slice(), wrong: dwS.wrong, left: dwS.cur ? dwLeft(dwS.cur) : 0, over: dwS.over }; } };
+  window.__dishSlip = function () { return dwS && (dwS.slipPos || [DW.cx, DW.cy]); };
+  window.__dish = { open: dwOpen, foam: function () { return dwS && dwS.foam; }, rub: function (a, b) { dwRub(a, b); }, map: function () { var it = dwS.cur, N = DW.R * 2, o = []; for (var j = 0; j < it.dirt.length; j++) if (it.dirt[j] > 0) o.push([j % N - DW.R, Math.floor(j / N) - DW.R, it.dirt[j]]); return o; }, st: function () { return dwS && { rubS: !!dwS.rub, drag: !!dwS.drag, step: dwS.step, stack: dwS.stack.slice(), cur: dwS.cur && dwS.cur.k, rack: dwS.rack.slice(), wrong: dwS.wrong, left: dwS.cur ? dwLeft(dwS.cur) : 0, over: dwS.over }; } };
   var _mi_interrupt = interrupt; interrupt = function () { if (!window.__resume) { if (hbS) hClose(); if (dvS) dClose(); if (wkS) wkClose(); if (dwS) dwClose(); } return _mi_interrupt.apply(this, arguments); };
   window.__harbor = { open: hOpen, st: function () { return hbS && { lv: hbS.lv, moves: hbS.moves, won: hbS.won, p: hbS.p.map(function (p) { return [p.o, p.L, p.c, p.r]; }) }; }, move: function (i, n) { var p = hbS.p[i], rg = hRange(i); n = Math.max(rg[0], Math.min(rg[1], n)); if (n) { if (p.o === "h") p.c += n; else p.r += n; hbS.moves++; } if (i === 0 && p.c === 3) hbS.won = true; return n; } };
   window.__dive = { open: dOpen, st: function () { return dvS && { air: dvS.air, tr: dvS.tr, tiles: dvS.tiles, busy: dvS.busy, over: dvS.over }; }, dig: function (c, r) { return dDig(c, r); } };
@@ -16528,9 +16561,17 @@ window.__EXTRAS = true;
     cucumber: ["weed", "trellis", "dig", "sow", "cover", "water"],
     tomato: ["weed", "dig", "seedling", "cover", "stake", "tie", "water"],
     herbs: ["weed", "scatter", "press", "spray"],
-    chili: ["potfill", "potseed", "dome", "spray"]
+    chili: ["potfill", "potseed", "dome", "spray"],
+    raspberry: ["weed", "dig", "seedling", "cover", "straw", "water"],
+    blackberry: ["weed", "trellis", "dig", "seedling", "cover", "water"],
+    blueberry: ["weed", "dig", "peat", "seedling", "cover", "water"],
+    currant: ["weed", "dig", "seedling", "cover", "prune", "water"],
+    gooseberry: ["weed", "dig", "seedling", "cover", "prune", "straw", "water"],
+    rhubarb: ["weed", "dig", "seedling", "cover", "compost", "water"],
+    onion: ["weed", "poke", "setonion", "rake", "water"]
   };
-  var P2_HARV = { gcarrot: ["pull", "knock"], strawberry: ["leaves", "pick"], sunflower: ["cut", "rub"], cucumber: ["leaves", "cut"], pumpkin: ["cut", "roll"], tomato: ["twist", "basket"], dandelion: ["cutl", "bundle"], herbs: ["snip", "tie"], chili: ["pull2", "basket"] };
+  var P2_HARV = { gcarrot: ["pull", "knock"], strawberry: ["leaves", "pick"], sunflower: ["cut", "rub"], cucumber: ["leaves", "cut"], pumpkin: ["cut", "roll"], tomato: ["twist", "basket"], dandelion: ["cutl", "bundle"], herbs: ["snip", "tie"], chili: ["pull2", "basket"], raspberry: ["pull2", "basket"], blackberry: ["pickt", "basket"], blueberry: ["shake", "basket"], currant: ["strip", "basket"], gooseberry: ["leaves", "pickt"], rhubarb: ["twist", "cutm"], onion: ["pull", "knock"] };
+  var P2_TREE = ["shake", "collect"];
   // ---- small pixel helpers: sprites from character grids, positions from pointer events ----
   function p2Pix(rows, pal) {
     var o = "", w = 0;
@@ -16538,20 +16579,31 @@ window.__EXTRAS = true;
     return '<svg viewBox="0 0 ' + w + ' ' + rows.length + '" aria-hidden="true" shape-rendering="crispEdges">' + o + '</svg>';
   }
   function p2XY(e) { var r = scene.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 180, (e.clientY - r.top) / r.height * 135]; }
-  function p2Hit(x, y, w, h, z) { var el = lEl("div", "p2-hit", pzLay); pzPos(el, x, y, w, h); el.style.zIndex = z || 140; el.style.touchAction = "none"; return el; }
+  function p2Hit(x, y, w, h, z) { var el = lEl("div", "p2-hit", pzLay); pzPos(el, x, y, w, h); el.style.zIndex = z || 140; el.style.touchAction = "none"; el.addEventListener("click", function (e) { e.stopPropagation(); }); return el; }
+  var p2BusyT = 0, p2BusyF = 0;
+  function p2Busy(on) {                                               // while the finger works, the hamster works along: paws up and down, a little squat
+    clearInterval(p2BusyT); p2BusyT = 0;
+    if (!on) { front({ paws: "down", eyes: "open", mouth: "smile" }); body(""); return; }
+    p2BusyT = setInterval(function () { p2BusyF ^= 1; front({ paws: p2BusyF ? "hold" : "up", eyes: p2BusyF ? "down" : "happy", mouth: p2BusyF ? "teeth" : "grin" }); body(p2BusyF ? "squat" : ""); }, 180);
+  }
   function p2Drag(el, on) {                                          // pointer down / move / up on one hit area, with capture
     var down = false;
-    el.addEventListener("pointerdown", function (e) { e.preventDefault(); e.stopPropagation(); down = true; try { el.setPointerCapture(e.pointerId); } catch (x) {} if (on.down) on.down(p2XY(e)); });
+    el.addEventListener("pointerdown", function (e) { e.preventDefault(); e.stopPropagation(); down = true; try { el.setPointerCapture(e.pointerId); } catch (x) {} p2Busy(true); if (on.down) on.down(p2XY(e)); });
     el.addEventListener("pointermove", function (e) { if (down && on.move) on.move(p2XY(e)); });
-    ["pointerup", "pointercancel"].forEach(function (t) { el.addEventListener(t, function (e) { if (!down) return; down = false; if (on.up) on.up(p2XY(e)); }); });
+    ["pointerup", "pointercancel"].forEach(function (t) { el.addEventListener(t, function (e) { if (!down) return; down = false; p2Busy(false); if (on.up) on.up(p2XY(e)); }); });
   }
-  var K = "#3a2414";
+  function p2Burst(x, y, n, cols) {                                   // a little burst of stars and sparkles where something worked
+    for (var k = 0; k < (n || 8); k++) { var c = lEl("i", "p2-star", pzLay); pzPos(c, x - 1, y - 1, 2, 2); c.style.zIndex = 160;
+      var a = k / (n || 8) * Math.PI * 2; c.style.setProperty("--dx", Math.cos(a) * rnd(10, 22) + "px"); c.style.setProperty("--dy", Math.sin(a) * rnd(10, 22) - 8 + "px"); c.style.background = (cols || ["#ffd34a", "#ffffff", "#ff9ab0"])[k % 3];
+      setTimeout(function (el) { el.remove(); }.bind(null, c), 700); } }
+  function p2Pop(el) { el.classList.remove("p2-popin"); void el.offsetWidth; el.classList.add("p2-popin"); }
+  var P2K = "#3a2414";
   var P2A = {
-    seedc: p2Pix(["KK", "Kb"], { K: K, b: "#c8a060" }),
+    seedc: p2Pix(["KK", "Kb"], { K: P2K, b: "#c8a060" }),
     furrow: p2Pix(["DDDDDDDD", "dDdddDdd", "LLLLLLLL"], { D: "#3e2414", d: "#5a3a22", L: "#a8784a" }),
     soilc: p2Pix([".mm.", "mMMm", "MMMM"], { m: "#a8784a", M: "#8a5e3a" }),
-    bag: p2Pix(["..KKKK..", ".KwwwwK.", "KwwwwwwK", "KwwOOwwK", "KwOwwOwK", "KwwOOwwK", "KwwwwwwK", ".KKKKKK."], { K: K, w: "#f4e8cc", O: "#e8862a" }),
-    stake: p2Pix(["KK", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", ".K"].map(function (r, i) { return i % 6 === 3 ? r.replace("w", "d") : r; }), { K: K, w: "#c8945a", d: "#a87448" }),
+    bag: p2Pix(["..KKKK..", ".KwwwwK.", "KwwwwwwK", "KwwOOwwK", "KwOwwOwK", "KwwOOwwK", "KwwwwwwK", ".KKKKKK."], { K: P2K, w: "#f4e8cc", O: "#e8862a" }),
+    stake: p2Pix(["KK", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", ".K"].map(function (r, i) { return i % 6 === 3 ? r.replace("w", "d") : r; }), { K: P2K, w: "#c8945a", d: "#a87448" }),
     fluff: p2Pix([".W.", "WwW", ".s.", ".s."], { W: "#ffffff", w: "#e8eef4", s: "#c8b890" }),
     pawp: p2Pix([".p.p.", "p.p.p", ".PPP.", ".PPP."], { p: "#6a4428", P: "#6a4428" }),
     carrotTop: p2Pix(["..g...g..", ".gGg.gGg.", "..gGgGg..", "...gGg...", "....G...."], { g: "#6fc05a", G: "#3e8a3a" }),
@@ -16559,7 +16611,7 @@ window.__EXTRAS = true;
     leaf: p2Pix(["....KKKK....", "..KKgggGKK..", ".KgggggGGgK.", "KggggGgGgggK", "KgggGggGgggK", ".KgggGgGggK.", "..KKgggGKK..", "....KKKK...."], { K: "#24402a", g: "#5ab04a", G: "#3e8a3a" }),
     berryR: p2Pix([".gGg.", "KRRRK", "KRrRK", "KRRRK", ".KRK."], { K: "#5a1a14", R: "#e8402a", r: "#ffd34a", g: "#6fc05a", G: "#3e8a3a" }),
     berryG: p2Pix([".gGg.", "KgggK", "KgwgK", "KgggK", ".KgK."], { K: "#24402a", g: "#a8d878", w: "#e8f4c0", G: "#3e8a3a" }),
-    scissors: p2Pix(["K....K", "KwK.Kw", ".KwKw.", "..KK..", ".KrrK.", "KrKKrK", "KrK.Kr", ".K..K."], { K: K, w: "#d8e0e8", r: "#e8402a" })
+    scissors: p2Pix(["K....K", "KwK.Kw", ".KwKw.", "..KK..", ".KrrK.", "KrKKrK", "KrK.Kr", ".K..K."], { K: P2K, w: "#d8e0e8", r: "#e8402a" })
   };
   function p2Carrot(len) { var rows = []; for (var y = 0; y < len; y++) { var w = Math.max(1, Math.round(6 - y * 5 / len)), pad = Math.floor((7 - w) / 2), r = ""; for (var x = 0; x < 7; x++) r += x < pad || x >= pad + w ? "." : (x === pad || x === pad + w - 1) ? "K" : (y % 4 === 2 && x === pad + 1 ? "d" : "O"); rows.push(y === len - 1 ? r.replace(/O|d/g, "K") : r); } return p2Pix(rows, { K: "#7a3a10", O: "#f08a2a", d: "#c8661a" }); }
   function p2Clock(n) {                                               // the dandelion clock: a white ball of seeds on a stem, thinner as seeds fly off
@@ -16578,7 +16630,7 @@ window.__EXTRAS = true;
       else if (d <= R - 5) c = "K";
       else if (d <= R + 3) { var a = Math.atan2(y, x), pet = (Math.cos(a * 14) + 1) / 2; c = d <= R - 1 + pet * 4 ? (pet > .6 ? "Y" : "y") : "."; }
       r += c; } rows.push(r); }
-    return p2Pix(rows, { K: K, S: "#5a3a1a", s: "#3a2410", b: "#c8a060", Y: "#ffd34a", y: "#f0b020" });
+    return p2Pix(rows, { K: P2K, S: "#5a3a1a", s: "#3a2410", b: "#c8a060", Y: "#ffd34a", y: "#f0b020" });
   }
   // ---------- new planting steps ----------
   var FUR = { x0: 34, x1: 106, y: 98, n: 9 };
@@ -16683,16 +16735,17 @@ window.__EXTRAS = true;
   P2A.ring = p2Pix([".KKK.", "K...K", "K...K", "K...K", ".KKK."], { K: "#ffd34a" });
   P2A.trellis = p2Pix(["W.......W.......W", "WW.....WWW.....WW", "W.W...W.W.W...W.W", "W..W.W..W..W.W..W", "W...W...W...W...W", "W..W.W..W..W.W..W", "W.W...W.W.W...W.W", "WW.....WWW.....WW", "W.......W.......W", "WW.....WWW.....WW", "W.W...W.W.W...W.W", "W..W.W..W..W.W..W", "W...W...W...W...W", "W..W.W..W..W.W..W", "W.W...W.W.W...W.W", "WW.....WWW.....WW", "W.......W.......W", "W.......W.......W", "W...............W"], { W: "#b88a5a" });
   P2A.knot = p2Pix([".kk.", "kKKk", ".kk.", "k..k"], { k: "#e8d8b0", K: "#c8a870" });
-  P2A.pot = p2Pix(["KKKKKKKKKKKKKKKK", "KoOOOOOOOOOOOOoK", "KKKKKKKKKKKKKKKK", ".KoOOOOOOOOOOoK.", ".KoOOOOOOOOOOoK.", ".KoOOOOOOOOOOdK.", "..KoOOOOOOOOdK..", "..KoOOOOOOOOdK..", "..KoOOOOOOOOdK..", "...KoOOOOOOdK...", "...KKKKKKKKKK..."], { K: K, o: "#f0a070", O: "#d8784a", d: "#a85a34" });
+  P2A.pot = p2Pix(["KKKKKKKKKKKKKKKK", "KoOOOOOOOOOOOOoK", "KKKKKKKKKKKKKKKK", ".KoOOOOOOOOOOoK.", ".KoOOOOOOOOOOoK.", ".KoOOOOOOOOOOdK.", "..KoOOOOOOOOdK..", "..KoOOOOOOOOdK..", "..KoOOOOOOOOdK..", "...KoOOOOOOdK...", "...KKKKKKKKKK..."], { K: P2K, o: "#f0a070", O: "#d8784a", d: "#a85a34" });
   P2A.dome = p2Pix(["......KKKK......", "....KKwwwwKK....", "...KwwW..wwwK...", "..Kww.W....wwK..", "..Kw..W.....wK..", ".Kw...W......wK.", ".Kw..........wK.", ".Kw..........wK.", ".Kw..........wK.", "KKKKKKKKKKKKKKKK"], { K: "#7a9aa8", w: "#d8eef6", W: "#ffffff" });
   function p2Seedling(G) {                                            // set the young plant into the hole at the right height
-    var deep = G.c === "tomato", el = lEl("div", "p2-seedl", pzLay, deep ? P2A.tomseedl : P2A.seedl); pzPos(el, 118, 52, 18, 27); el.style.zIndex = 146; G.plantEl = el;
+    var deep = G.c === "tomato", spr = deep ? P2A.tomseedl : G.c === "rhubarb" ? P2A.rhuseedl : /berry|currant/.test(G.c) ? P2A.bushseedl : P2A.seedl, el = lEl("div", "p2-seedl", pzLay, spr); pzPos(el, 118, 52, 18, 27); el.style.zIndex = 146; G.plantEl = el;
     var line = null, inHole = false, drag = false, hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; G.setDone = false;
-    var want = deep ? [100, 106] : [94, 98];                          // where the crown (the dark band) should sit: at the soil line, or deep for tomatoes
-    pzTip(deep ? "Die Tomate tief ins Loch setzen, bis über die Wurzel." : "Die Pflanze ins Loch setzen. Das Herz bleibt genau auf Erdhöhe.");
+    var want = deep ? [100, 106] : G.c === "rhubarb" ? [97, 101] : [94, 98];                          // where the crown (the dark band) should sit: at the soil line, or deep for tomatoes
+    pzTip(deep ? "Die Tomate tief ins Loch setzen, bis über die Wurzel." : G.c === "rhubarb" ? "Den Wurzelstock setzen, die roten Knospen knapp unter die Erde." : "Die Pflanze ins Loch setzen. Das Herz bleibt genau auf Erdhöhe.");
+    if (G.c === "rhubarb") want = [97, 101];
     p2Drag(hit, { down: function (p) { var r = el.getBoundingClientRect(), q = p2XY({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }); if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 16) drag = true; },
       move: function (p) { if (!drag) return; var x = inHole ? 70 : p[0]; pzPos(el, x - 9, p[1] - 15, 18, 27);
-        if (!inHole && Math.abs(p[0] - 70) < 12 && p[1] > 80) { inHole = true; line = lEl("div", "p2-gline", pzLay); pzPos(line, 50, deep ? 103 : 96, 40, .6); line.style.zIndex = 145; } },
+        if (!inHole && Math.abs(p[0] - 70) < 12 && p[1] > 80) { inHole = true; line = lEl("div", "p2-gline", pzLay); pzPos(line, 50, deep ? 103 : G.c === "rhubarb" ? 99 : 96, 40, .6); line.style.zIndex = 145; } },
       up: function (p) { if (!drag) return; drag = false; if (!inHole) { pzPos(el, 118, 52, 18, 27); return; }
         var crown = p[1] - 15 + 27 * 9.5 / 18; G.crown = crown;
         if (crown >= want[0] && crown <= want[1]) { G.setDone = true; el.style.zIndex = 100; if (line) line.remove(); beep([[523, .05], [659, .08]]); }
@@ -16770,8 +16823,53 @@ window.__EXTRAS = true;
       up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 12 && Math.abs(p[1] - (POT.y - 6)) < 12) { G.domed = true; pzPos(d, 57, POT.y - 14, 26, 16); d.style.zIndex = 106; beep([[880, .05], [1175, .08]]); } else pzPos(d, 118, 52, 26, 16); } });
     return function () { return G.domed; };
   }
+  P2A.bushseedl = p2Pix(["..g...g..g..", ".gGg.gGggGg.", "gGgg.gGg.gGg", ".g.G..G.Gg..", "...G..G.G...", "....G.GG....", ".....GG.....", ".....HH.....", ".....HH.....", "....CCCC....", "...BBBBBB...", "..BBbBBbBB..", "..BbBBBBbB..", "..BBBbBBBB..", "...BBBBbB...", "....BbBB....", ".....rr.....", "....r..r...."], { g: "#6fc05a", G: "#3e8a3a", H: "#8a5a3a", C: "#8a6a2a", B: "#6a4428", b: "#8a5e3a", r: "#a8784a" });
+  P2A.rhuseedl = p2Pix(["............", "............", "............", "....g..g....", "...gGg.gGg..", "....R..R....", "....R..R....", "...RrRRrR...", "...RRRRRR...", "...cCCCCc...", "..BBBBBBBB..", ".BBbBBbBBbB.", ".BbBBBBBbBB.", "..BBBbBBBB..", "...BBBBbB...", "...rB..Br...", "..r......r..", "............"], { g: "#8ad06a", G: "#4a9a3a", R: "#d84a5a", r: "#a8784a", c: "#c8a080", C: "#e8b8a0", B: "#8a5a34", b: "#a8784a" });
+  P2A.onion = p2Pix(["...g...", "...g...", "..gGg..", "..KwK..", ".KwwWK.", "KwwwwWK", "KwwwwWK", ".KwwWK.", "..KKK..", "..r.r.."], { K: "#8a5a2a", w: "#e8c890", W: "#c8a060", g: "#6fc05a", G: "#3e8a3a", r: "#d8c8a0" });
+  P2A.ohole = p2Pix([".DDD.", "DdddD", ".DDD."], { D: "#3e2414", d: "#2a1a0c" });
+  P2A.peat = p2Pix([".KKKKKK.", "KwwwwwwK", "KwBBBBwK", "KwBwwBwK", "KwBBBBwK", "KwwwwwwK", ".KKKKKK."], { K: P2K, w: "#c8b8e0", B: "#6a4a8a" });
+  P2A.compost = p2Pix(["..mMm..", ".mMMMm.", "mMMdMMm", "MMdMMdM"], { m: "#5a3820", M: "#3e2414", d: "#7a5a2a" });
+  P2A.shears = p2Pix(["K......K", "KwK..KwK", ".KwKKwK.", "..KwwK..", "...KK...", "..KrrK..", ".KrKKrK.", "KrK..KrK", ".K....K."], { K: P2K, w: "#d8e0e8", r: "#e8402a" });
+  function p2Peat(G) {                                                // blueberries want sour peat in the hole
+    G.pt = 0; var bag = lEl("div", "p2-bag", pzLay, P2A.peat); pzPos(bag, 118, 64, 16, 14); bag.style.zIndex = 145; G.bagEl = bag;
+    var fill = lEl("div", "p2-peatfill", pzLay); fill.style.zIndex = 100; pzPos(fill, 57, 96, 26, 0.1);
+    var hit = p2Hit(20, 50, 120, 70); G.hitEl = hit; var last = null; pzTip("Moorerde ins Loch rieseln lassen.");
+    p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { pzPos(bag, p[0] - 8, p[1] - 20, 16, 14); var d = Math.hypot(p[0] - last[0], p[1] - last[1]); last = p;
+      if (Math.abs(p[0] - 70) > 16) return; G.pt = Math.min(100, G.pt + d * .7); pzPos(fill, 57, 104 - G.pt * .08, 26, G.pt * .08); if (Math.random() < .5) { var c = lEl("i", "pz-crumb", pzLay); pzPos(c, p[0] + rnd(-2, 2), p[1] - 8, 1, 1); c.style.background = "#4a2a3a"; c.style.setProperty("--dx", rnd(-3, 3) + "px"); c.style.setProperty("--dy", "16px"); setTimeout(function (el) { el.remove(); }.bind(null, c), 650); } },
+      up: function () { pzPos(bag, 118, 64, 16, 14); } });
+    return function () { if (G.pt >= 100) { bag.remove(); return true; } return false; };
+  }
+  function p2Prune(G) {                                               // cut the canes back by a third: one snip across each of three marks
+    G.marks = [[64, 58], [70, 54], [77, 58]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 3, q[1] - 3, 6, 6); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
+    var sh = lEl("div", "p2-shears", pzLay, P2A.shears); pzPos(sh, 120, 56, 10, 11); sh.style.zIndex = 150;
+    var hit = p2Hit(0, 30, 180, 90, 149); G.hitEl = hit; var last = null; pzTip("Die Triebspitzen an den Markierungen abschneiden.");
+    p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { pzPos(sh, p[0] - 5, p[1] - 5, 10, 11);
+      G.marks.forEach(function (o) { if (o.done) return; var sx = p[0] - last[0], sy = p[1] - last[1], L2 = sx * sx + sy * sy || 1, u = Math.max(0, Math.min(1, ((o.x - last[0]) * sx + (o.y - last[1]) * sy) / L2));
+        if (Math.hypot(last[0] + sx * u - o.x, last[1] + sy * u - o.y) < 3 && Math.hypot(sx, sy) > 1.5) { o.done = true; o.el.remove(); beep([[1300, .03], [700, .04]]); p2Burst(o.x, o.y, 6, ["#6fc05a", "#3e8a3a", "#ffffff"]);
+          var tip = lEl("div", "p2-tip", pzLay, p2Pix([".g.", "gGg", ".G."], { g: "#6fc05a", G: "#3e8a3a" })); pzPos(tip, o.x - 2, o.y - 4, 4, 4); tip.style.zIndex = 151; setTimeout(function () { tip.remove(); }, 800); } });
+      last = p; }, up: function () { pzPos(sh, 120, 56, 10, 11); } });
+    return function () { if (G.marks.every(function (o) { return o.done; })) { sh.remove(); return true; } return false; };
+  }
+  function p2Compost(G) {                                             // three shovels of compost around the rhubarb
+    G.spots = [[58, 98], [70, 95], [82, 98]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 4, q[1] - 4, 8, 8); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
+    var hit = p2Hit(20, 60, 110, 60); G.hitEl = hit; pzTip("Kompost rund um die Pflanze verteilen.");
+    p2Drag(hit, { down: function (p) { G.spots.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 8) return; o.done = true; o.el.innerHTML = P2A.compost; pzPos(o.el, o.x - 7, o.y - 3, 14, 8); o.el.style.zIndex = 103; beep([[180, .05], [140, .06]]); pzCrumbs(o.x, o.y, 4); }); } });
+    return function () { return G.spots.every(function (o) { return o.done; }); };
+  }
+  function p2Poke(G) {                                                // onions: poke five little holes in a row
+    G.holes = [0, 2, 4, 6, 8].map(function (i) { var x = p2SegX(i) + 4, r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, x - 3, FUR.y - 3, 6, 6); r.style.zIndex = 148; return { x: x, y: FUR.y, el: r, done: false, set: false }; });
+    var hit = p2Hit(20, 70, 110, 45); G.hitEl = hit; pzTip("Mit dem Finger fünf Löcher stechen.");
+    p2Drag(hit, { down: function (p) { G.holes.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 6) return; o.done = true; o.el.innerHTML = P2A.ohole; pzPos(o.el, o.x - 3, o.y - 1, 6, 3); o.el.style.zIndex = 99; beep([[300, .04]]); pzCrumbs(o.x, o.y, 3); }); } });
+    return function () { return G.holes.every(function (o) { return o.done; }); };
+  }
+  function p2SetOnion(G) {                                            // a little onion into every hole, tip up
+    var hit = p2Hit(20, 70, 110, 45); G.hitEl = hit; pzTip("In jedes Loch eine Steckzwiebel, Spitze nach oben.");
+    G.holes.forEach(function (o) { o.ring = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(o.ring, o.x - 3, o.y - 6, 6, 6); o.ring.style.zIndex = 148; });
+    p2Drag(hit, { down: function (p) { G.holes.forEach(function (o) { if (o.set || Math.hypot(o.x - p[0], o.y - p[1] + 2) > 7) return; o.set = true; o.ring.remove(); var on = lEl("div", "p2-onion", pzLay, P2A.onion); pzPos(on, o.x - 3.5, o.y - 9, 7, 10); on.style.zIndex = 100; beep([[600 + rnd(0, 150), .05]]); }); } });
+    return function () { if (G.holes.every(function (o) { return o.set; })) { G.fur = [1, 1, 1, 1, 1, 1, 1, 1, 1]; return true; } return false; };
+  }
   // ---------- the planting game: the crop's steps one after the other ----------
-  var P2_TITLE = { weed: "Unkraut jäten", dig: "Loch buddeln", sow: "Samen einpflanzen", cover: "Zuschütten", tamp: "Festklopfen", water: "Gießen", furrow: "Rille ziehen", sprinkle: "Samen streuen", rake: "Zudecken", stake: "Stützstab", blow: "Pusteblume pusten", press: "Andrücken", seedling: "Einsetzen", straw: "Stroh unterlegen", mound: "Hügel häufeln", seeds3: "Kerne stecken", trellis: "Rankgitter", tie: "Festbinden", scatter: "Samen verteilen", spray: "Einsprühen", potfill: "Topf füllen", potseed: "Samen hinein", dome: "Haube drüber" };
+  var P2_TITLE = { weed: "Unkraut jäten", dig: "Loch buddeln", sow: "Samen einpflanzen", cover: "Zuschütten", tamp: "Festklopfen", water: "Gießen", furrow: "Rille ziehen", sprinkle: "Samen streuen", rake: "Zudecken", stake: "Stützstab", blow: "Pusteblume pusten", press: "Andrücken", seedling: "Einsetzen", straw: "Stroh unterlegen", mound: "Hügel häufeln", seeds3: "Kerne stecken", trellis: "Rankgitter", tie: "Festbinden", scatter: "Samen verteilen", spray: "Einsprühen", potfill: "Topf füllen", potseed: "Samen hinein", dome: "Haube drüber", peat: "Moorerde", prune: "Zurückschneiden", compost: "Kompost", poke: "Löcher stechen", setonion: "Zwiebeln stecken" };
   var _p2_plantGame = plantGame;
   plantGame = async function (i, c, where) {
     if ((where || "garden") !== "garden" || !P2_STEPS[c]) return _p2_plantGame(i, c, where);
@@ -16838,7 +16936,7 @@ window.__EXTRAS = true;
             if (G.wet > 100) { G.pen++; G.notes.push("Zu viel Wasser"); } else if (G.wet < 55) { G.pen++; G.notes.push("Zu wenig Wasser"); } else G.notes.push("Gut gegossen"); }
         } else {
           G.step = 10 + n;
-          var done = { furrow: p2Furrow, sprinkle: p2Sprinkle, rake: p2Rake, stake: p2Stake, blow: p2Blow, press: p2Press, seedling: p2Seedling, straw: p2Straw, mound: p2Mound, seeds3: p2Seeds3, trellis: p2Trellis, tie: p2Tie, scatter: p2Scatter, potfill: p2PotFill, potseed: p2PotSeed, dome: p2Dome }[k](G);
+          var done = { furrow: p2Furrow, sprinkle: p2Sprinkle, rake: p2Rake, stake: p2Stake, blow: p2Blow, press: p2Press, seedling: p2Seedling, straw: p2Straw, mound: p2Mound, seeds3: p2Seeds3, trellis: p2Trellis, tie: p2Tie, scatter: p2Scatter, potfill: p2PotFill, potseed: p2PotSeed, dome: p2Dome, peat: p2Peat, prune: p2Prune, compost: p2Compost, poke: p2Poke, setonion: p2SetOnion }[k](G);
           await pzUntil(function () { return G.cancel || done(); }); chk(); await wait(500);
           if (k === "sprinkle") { var thick = G.cnt.filter(function (v) { return v > 3; }).length; if (G.bagEl) G.bagEl.remove(); if (thick >= 3) { G.pen++; G.notes.push("Stellenweise zu dicht gesät"); } else G.notes.push("Schön gleichmäßig gesät"); }
           if (k === "furrow") G.notes.push("Gerade Rille gezogen");
@@ -16855,8 +16953,13 @@ window.__EXTRAS = true;
           if (k === "potfill") G.notes.push("Topf mit Erde gefüllt");
           if (k === "potseed") G.notes.push("Zwei Samen im Topf");
           if (k === "dome") G.notes.push("Unter der Haube bleibt es warm");
+          if (k === "peat") G.notes.push("Saure Moorerde für die Heidelbeere");
+          if (k === "prune") G.notes.push("Sauber zurückgeschnitten");
+          if (k === "compost") G.notes.push("Kompost macht den Rhabarber stark");
+          if (k === "poke") G.notes.push("Fünf Pflanzlöcher");
+          if (k === "setonion") G.notes.push("Alle Zwiebeln Spitze nach oben");
         }
-        hide(); front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 380); await wait(500); front({ paws: "down" });
+        hide(); p2Busy(false); p2Burst(70, 90, 12); front({ eyes: "happy", mouth: "grin", paws: "up", blush: true }); pulse("hop", 380); beep([[784, .05], [1047, .08]]); await wait(550); front({ paws: "down" });
       }
       var stars = Math.max(1, Math.min(3, 3 - (G.pen >= 3 ? 2 : G.pen >= 1 ? 1 : 0) + (G.wormOk && G.pen < 3 ? 1 : 0)));
       G.step = 6; var res = pzUi.querySelector(".pz-res");
@@ -16949,8 +17052,9 @@ window.__EXTRAS = true;
   }
   // ---------- harvesting in a close-up: the plant fills the picture, two steps, then the usual harvest ----------
   var hvV = mPov("p2h-pov", "Ernte abbrechen"), HV = null;
-  var P2_HTITLE = { pull: "Herausziehen", knock: "Erde abklopfen", leaves: "Blätter beiseite", pick: "Rote pflücken", cut: "Abschneiden", rub: "Kerne rubbeln", roll: "In den Korb rollen", twist: "Reife abdrehen", basket: "In den Korb", pull2: "Rote abzupfen", cutl: "Blätter schneiden", bundle: "Zum Bündel legen", snip: "Obere Stiele schneiden", tie: "Bund binden" };
-  function hR(x, y, w, h, col) { mR(hvV.c, x, y, w, h, col); }
+  var P2_HTITLE = { pull: "Herausziehen", knock: "Erde abklopfen", leaves: "Blätter beiseite", pick: "Rote pflücken", cut: "Abschneiden", rub: "Kerne rubbeln", roll: "In den Korb rollen", twist: "Reife abdrehen", basket: "In den Korb", pull2: "Reife abzupfen", cutl: "Blätter schneiden", bundle: "Zum Bündel legen", snip: "Obere Stiele schneiden", tie: "Bund binden", pickt: "Reife pflücken", shake: "Schütteln", strip: "Abstreifen", cutm: "Blätter abschneiden", collect: "Aufsammeln" };
+  var hvCtx = null;
+  function hR(x, y, w, h, col) { mR(hvCtx || hvV.c, x, y, w, h, col); }
   function hDisc(cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = (x * x) / (rx * rx) + (y * y) / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) hR(cx + x, cy + y, 1, 1, c); } } }
   function hvBg(t, groundY) {                                         // a soft garden behind, a cut through the bed in front
     for (var y = 0; y < groundY; y++) hR(0, y, 180, 1, y < groundY * .45 ? (y % 2 ? "#a8d8f0" : "#b4dff4") : y < groundY * .7 ? "#8cc46a" : "#78b058");
@@ -16990,29 +17094,29 @@ window.__EXTRAS = true;
     seeds.forEach(function (sd) { if (!sd.on) return; mR(c, sd.x - 1, sd.y - 1, 3, 2, "#2a1a0c"); mR(c, sd.x - 1, sd.y - 1, 2, 1, "#5a3a1a"); });
     c.restore();
   }
-  function hvStart(c, steps) {
-    HV = { c: c, steps: steps, n: 0, fx: [], t0: performance.now(), done: false };
-    if (c === "gcarrot") { HV.lift = 0; HV.loose = 0; HV.tilt = 0; HV.clumps = []; }
+  function hvStart(c, steps, tree) {
+    HV = { c: c, steps: steps, n: 0, fx: [], t0: performance.now(), done: false, tree: tree || null };
+    if (c === "gcarrot" || c === "onion") { HV.lift = 0; HV.loose = 0; HV.tilt = 0; HV.clumps = []; }
     if (c === "strawberry") { HV.berries = [[60, 88, 1], [78, 102, 1], [96, 86, 0], [112, 100, 1], [130, 90, 1], [70, 112, 0], [118, 114, 1]].map(function (b) { return { x: b[0], y: b[1], red: !!b[2], picked: false, wob: 0 }; });
       HV.leaves = [[62, 84, -.3], [92, 82, .1], [124, 86, .4], [86, 106, -.2], [116, 108, .3]].map(function (l) { return { x: l[0], y: l[1], r: l[2], ox: l[0], oy: l[1], away: false, a: 1 }; }); HV.green = 0; HV.basket = 0; }
-    hxStart(c);
+    hxStart(c); hx3Start(c);
     if (c === "sunflower") { HV.cut = false; HV.fall = 0; HV.seeds = []; for (var i = 0; i < 260; i++) { var r = Math.sqrt(i / 260) * 30, a = i * 2.39996; HV.seeds.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, on: true }); } HV.bowl = 0; }
     hvStep();
   }
   function hvStep() { var k = HV.steps[HV.n]; HV.k = k; mBan(hvV, (HV.n + 1) + " · " + P2_HTITLE[k]); HV.stepDone = false;
     if (k === "knock") { HV.clumps = []; for (var q = 0; q < 6; q++) HV.clumps.push({ x: 50 + q * 15 + rnd(-2, 2), y: 74 + (q % 2 ? -11 : 9) + rnd(-2, 2), off: false }); }
   }
-  function hvNext() { HV.stepDone = true; beep([[660, .06], [880, .1]]); setTimeout(function () { if (!HV) return; HV.n++; if (HV.n < HV.steps.length) hvStep(); else HV.done = true; }, 700); }
+  function hvNext() { HV.stepDone = true; hvFace("happy", 1400); for (var hk = 0; hk < 6; hk++) HV.fx.push({ x: 40, y: 104, vx: 10 + Math.random() * 30, vy: -30 - Math.random() * 20, life: 1, c: "#ff6a8a", s: 2 }); beep([[660, .06], [880, .1]]); setTimeout(function () { if (!HV) return; HV.n++; if (HV.n < HV.steps.length) hvStep(); else HV.done = true; }, 700); }
   function hvSpark(x, y, n, col) { for (var i = 0; i < n; i++) HV.fx.push({ x: x, y: y, vx: (Math.random() - .5) * 60, vy: -20 - Math.random() * 40, life: .8, c: col || (i % 2 ? "#ffd34a" : "#ffffff") }); }
   function hvDraw(t) {
     if (!HV) return; var c = hvV.c, k = HV.k; c.clearRect(0, 0, 180, 135);
-    if (HV.c === "gcarrot") {
+    if (HV.c === "gcarrot" || HV.c === "onion") {
       if (k === "pull") { hvBg(t, 62);
         var top = 62 - HV.lift; for (var cr = 0; cr < Math.round(HV.loose / 6); cr++) { var ca = cr * 1.3; hR(90 + Math.cos(ca) * (16 + cr), 64 + Math.abs(Math.sin(ca)) * 8, 3, 1, "#3a2414"); }   // cracks as it loosens
-        hvCarrot(90, top, 64, false); hvFronds(90, top, HV.tilt, t);
+        if (HV.c === "onion") { hvOnion(90, top + 22, 1); hvOnionLeaves(90, top + 4, HV.tilt, t); } else { hvCarrot(90, top, 64, false); hvFronds(90, top, HV.tilt, t); }
         c.globalAlpha = .55; hR(70, 62, 40, 3, "#3a2414"); c.globalAlpha = 1;
         if (!HV.drag && !HV.stepDone) { var b = Math.sin(t / 150) * 3; hR(118 + b, 30, 8, 2, "#ffd34a"); hR(54 - b, 30, 8, 2, "#ffd34a"); }
-      } else { hvBg(t, 100); hvCarrot(30, 74, 120, true); hvFronds(26, 74, -18, t);
+      } else { hvBg(t, 100); if (HV.c === "onion") { hvOnion(80, 74, 1.4); for (var ol = 0; ol < 5; ol++) hR(20 + ol, 72 + ol % 2, 44, 2, ol % 2 ? "#6fc05a" : "#3e8a3a"); } else { hvCarrot(30, 74, 120, true); hvFronds(26, 74, -18, t); }
         HV.clumps.forEach(function (o) { if (o.off) return; hDisc(o.x, o.y, 6, 5, function (dx, dy, d) { return d > .8 ? "#3a2414" : dx + dy < -3 ? "#9a6a44" : "#6a4428"; }); hR(o.x - 2, o.y - 2, 2, 1, "#b88a5a"); }); }
     }
     if (HV.c === "strawberry") { hvBg(t, 70);
@@ -17035,8 +17139,9 @@ window.__EXTRAS = true;
       } else { hvBg(t, 40); hvSunHead(80, 80, 42, HV.seeds.map(function (sd) { return { x: sd.x * 1.35, y: sd.y * 1.35, on: sd.on }; }), 0);
         hR(140, 104, 34, 18, "#3a2414"); hR(141, 105, 32, 14, "#e8d8b8"); hR(141, 105, 32, 2, "#fff8ec"); for (var bs = 0; bs < Math.min(HV.bowl, 60); bs++) hR(143 + (bs * 7) % 28, 116 - Math.floor(bs / 4) * .6, 2, 1, "#2a1a0c"); }
     }
-    hxDraw(t, HV.c, k);
+    hxDraw(t, HV.c, k); hx3Draw(t, HV.c, k); hvButterfly(t); hvFlyDraw();
     HV.fx = HV.fx.filter(function (f) { f.life -= .016; f.x += f.vx * .016; f.y += f.vy * .016; f.vy += 80 * .016; c.globalAlpha = Math.min(1, f.life * 2); hR(f.x, f.y, f.s || 1, f.s || 1, f.c); c.globalAlpha = 1; return f.life > 0; });
+    hvHam(t);
     HV.raf = requestAnimationFrame(hvDraw);
   }
   // ---- the other crops in the close-up ----
@@ -17077,7 +17182,7 @@ window.__EXTRAS = true;
     if (c === "herbs") { HV.stems = [64, 72, 80, 88, 96, 104, 112]; HV.cutAt = 0; HV.knots = [0, 0, 0]; }
   }
   function hxBowl() { var x = HV.bowlX, y = HV.bowlY; hR(x - 16, y - 6, 32, 10, "#3a2414"); hR(x - 15, y - 5, 30, 8, "#e8d8b8"); hR(x - 15, y - 5, 30, 1, "#fff8ec");
-    HV.items.forEach(function (it, i) { if (it.off) { if (HV.c === "tomato") hvTomato(x - 10 + (i % 4) * 7, y - 7, true); else hvChili(x - 10 + (i % 4) * 6, y - 14, true); } }); }
+    var nIn = 0; HV.items.forEach(function (it, i) { if (it.off && !it.worm && it.inBowl !== false) { var j = nIn++; if (HV.c === "chili") hvChili(x - 10 + (j % 4) * 6, y - 14, true); else hvFruit(HV.tc || HV.c, x - 11 + (j % 5) * 5.5, y - 6 - Math.floor(j / 5) * 4, true); } }); }
   function hxDraw(t, c, k) {
     if (c === "cucumber") { hvBg(t, 96);
       for (var vx = 20; vx < 170; vx++) hR(vx, 52 + Math.sin(vx / 14) * 4, 1, 2, "#3e8a3a");
@@ -17111,10 +17216,10 @@ window.__EXTRAS = true;
   }
   function hxDown(k, p) {
     var c = HV.c;
-    if (k === "twist" || k === "pull2") HV.items.forEach(function (it) { if (it.off || Math.hypot(it.x - p[0], it.y - p[1] + (c === "chili" ? 8 : 0)) > 11) return;
-      if (!it.red) { it.wob = 1; HV.green++; beep([[200, .06]]); mBan(hvV, c === "chili" ? "Die ist noch grün" : "Die ist noch nicht reif"); HV.hold = null; return; }
+    if ((k === "twist" && c === "tomato") || k === "pull2") HV.items.forEach(function (it) { if (it.off || Math.hypot(it.x - p[0], it.y - p[1] + (c === "chili" ? 8 : 0)) > 11) return;
+      if (!it.red) { it.wob = 1; HV.green++; hvFace("oops"); beep([[200, .06]]); mBan(hvV, c === "chili" ? "Die ist noch grün" : "Die ist noch nicht reif"); HV.hold = null; return; }
       HV.hold = it; HV.ang0 = Math.atan2(p[1] - it.y, p[0] - it.x); HV.py0 = p[1]; });
-    if (k === "basket") HV.bowlGrab = Math.hypot(p[0] - HV.bowlX, p[1] - HV.bowlY) < 18;
+    if (k === "basket") { HV.bowlGrab = Math.hypot(p[0] - HV.bowlX, p[1] - HV.bowlY) < 18; if (HV.bowlGrab) hvFace("work", 300); }
     if (k === "roll") HV.rollGrab = Math.abs(p[0] - HV.px) < 28 && Math.abs(p[1] - 96) < 22;
     if (k === "bundle") HV.items.forEach(function (it) { if (!it.cut || it.off) return; var ex = it.x + Math.cos(it.ang) * 16, ey = it.y + Math.sin(it.ang) * 9; if (Math.hypot(ex - p[0], ey - p[1]) > 14) return; it.off = true; beep([[600 + rnd(0, 200), .05]]); hvSpark(ex, ey, 6, "#8ad86a"); if (HV.items.every(function (q) { return q.off; })) hvNext(); });
     if (k === "tie") HV.knots.forEach(function (kn, i) { var x = 84 + i * 6, y = 92 + i * 2; if (kn || Math.hypot(x - p[0], y - p[1]) > 7) return; HV.knots[i] = 1; beep([[600, .04], [800, .05]]); if (HV.knots.every(Boolean)) { hvSpark(90, 90, 14); hvNext(); } });
@@ -17122,7 +17227,7 @@ window.__EXTRAS = true;
   function hxMove(k, p, a, dx, dy) {
     var c = HV.c;
     if (k === "cut" && HV.cut && c === "pumpkin" && !HV.pumpCut) HV.pumpCut = true;
-    if (k === "twist" && HV.hold) { var it = HV.hold, an = Math.atan2(p[1] - it.y, p[0] - it.x), d = an - HV.ang0; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; HV.ang0 = an; it.turn += d;
+    if (k === "twist" && c === "tomato" && HV.hold) { var it = HV.hold, an = Math.atan2(p[1] - it.y, p[0] - it.x), d = an - HV.ang0; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; HV.ang0 = an; it.turn += d;
       if (Math.abs(it.turn) >= Math.PI * 2) { it.off = true; HV.hold = null; hvSpark(it.x, it.y, 10); beep([[700 + HV.items.filter(function (q) { return q.off; }).length * 80, .06]]); if (HV.items.every(function (q) { return !q.red || q.off; })) hvNext(); } }
     if (k === "pull2" && HV.hold) { var it2 = HV.hold; it2.dy = Math.max(0, Math.min(12, p[1] - HV.py0)); if (it2.dy >= 12) { it2.off = true; HV.hold = null; hvSpark(it2.x, it2.y + 10, 8); beep([[600 + rnd(0, 200), .05], [900, .04]]); if (HV.items.every(function (q) { return !q.red || q.off; })) hvNext(); } }
     if (k === "basket" && HV.bowlGrab) { HV.bowlX = p[0]; HV.bowlY = p[1]; }
@@ -17135,16 +17240,149 @@ window.__EXTRAS = true;
       if (HV.cutAt) return; if (HV.snipStart == null && p[0] < 64) HV.snipStart = p[1]; if (HV.snipStart != null && p[0] > 114) { var y = (HV.snipStart + p[1]) / 2; HV.snipStart = null;
         if (y > 92) { mBan(hvV, "Zu tief, nur die obere Hälfte"); beep([[200, .06]]); return; } HV.cutAt = Math.max(46, y); beep([[1200, .03], [700, .05], [1200, .03]]); hvSpark(90, y, 14, "#8ad86a"); hvNext(); } }
   }
+  // ---- the hamster joins in: his face peeks in at the corner, his paws do the work under your finger ----
+  function hvFace(k, ms) { if (!HV) return; HV.face = k; HV.faceT = performance.now() + (ms || 900); }
+  function hvHam(t, st) {
+    st = st || HV; var f = st.face && performance.now() < st.faceT ? st.face : (st.drag ? "work" : "idle"), bob = Math.round(Math.sin(t / 400) * 1) + (f === "happy" ? -Math.abs(Math.round(Math.sin(t / 90) * 2)) : 0);
+    var cx = 20, cy = 127 + bob;
+    hDisc(cx - 11, cy - 14, 4, 4, function (dx, dy, d) { return d > .7 ? "#3a2414" : d < .4 ? "#f4a3b4" : "#e8964a"; }); hDisc(cx + 11, cy - 14, 4, 4, function (dx, dy, d) { return d > .7 ? "#3a2414" : d < .4 ? "#f4a3b4" : "#e8964a"; });
+    hDisc(cx, cy, 17, 15, function (dx, dy, d) { if (d > .9) return "#3a2414"; var white = dy > 1 && Math.abs(dx) < 10 - dy * .2 || (dy > -4 && Math.abs(dx) < 4); return white ? "#fff8ec" : (dx + dy < -10 ? "#f4b060" : "#e8964a"); });
+    var blink = f === "idle" && (t % 3200) < 140;
+    [[-6, -2], [6, -2]].forEach(function (e, i) {
+      if (f === "happy") { hR(cx + e[0] - 2, cy + e[1], 1, 1, "#3a2414"); hR(cx + e[0] - 1, cy + e[1] - 1, 2, 1, "#3a2414"); hR(cx + e[0] + 1, cy + e[1], 1, 1, "#3a2414"); }
+      else if (f === "work" || f === "ouch") { hR(cx + e[0] - 1, cy + e[1] - 1, 1, 1, "#3a2414"); hR(cx + e[0], cy + e[1], 1, 1, "#3a2414"); hR(cx + e[0] - 1, cy + e[1] + 1, 1, 1, "#3a2414"); if (i) { hR(cx + e[0] + 1, cy + e[1] - 1, 1, 1, "#3a2414"); } }
+      else if (blink) hR(cx + e[0] - 1, cy + e[1], 3, 1, "#3a2414");
+      else { hR(cx + e[0] - 1, cy + e[1] - 1, 3, 3, "#3a2414"); hR(cx + e[0] - 1, cy + e[1] - 1, 1, 1, "#ffffff"); if (f === "oops") hR(cx + e[0] - 2, cy + e[1] - 2, 5, 1, "#3a2414"); } });
+    hR(cx - 10, cy + 2, 3, 2, "#f4a3b4"); hR(cx + 8, cy + 2, 3, 2, "#f4a3b4"); hR(cx - 1, cy + 1, 2, 1, "#e07f95");
+    if (f === "happy") { hR(cx - 2, cy + 3, 4, 2, "#3a2414"); hR(cx - 1, cy + 4, 2, 1, "#e07f95"); }
+    else if (f === "oops" || f === "ouch") { hR(cx - 1, cy + 3, 3, 3, "#3a2414"); } else if (f === "work") { hR(cx - 2, cy + 3, 4, 1, "#3a2414"); hR(cx - 1, cy + 4, 1, 1, "#ffffff"); hR(cx + 1, cy + 4, 1, 1, "#ffffff"); }
+    else { hR(cx - 2, cy + 3, 1, 1, "#3a2414"); hR(cx + 1, cy + 3, 1, 1, "#3a2414"); hR(cx - 1, cy + 4, 2, 1, "#3a2414"); }
+    if (f === "ouch") { hR(cx + 14, cy - 10, 2, 3, "#8ac8f0"); hR(cx + 14, cy - 11, 1, 1, "#ffffff"); }
+    if (f === "happy" && (t % 600) < 300) { hR(cx + 18, cy - 20, 2, 2, "#ff6a8a"); hR(cx + 21, cy - 20, 2, 2, "#ff6a8a"); hR(cx + 18, cy - 18, 5, 2, "#ff6a8a"); hR(cx + 19, cy - 16, 3, 1, "#ff6a8a"); }
+    if (st.drag) { var px = st.drag[0], py = st.drag[1] + 7, w = Math.floor(t / 120) % 2;                  // two little paws right under the finger
+      [[-6, w], [4, 1 - w]].forEach(function (q) { hDisc(px + q[0], py + q[1], 4, 3, function (dx, dy, d) { return d > .75 ? "#3a2414" : dy < 0 ? "#f4b060" : "#e8964a"; }); hR(px + q[0] - 2, py + q[1] - 3, 1, 1, "#f4a3b4"); hR(px + q[0], py + q[1] - 3, 1, 1, "#f4a3b4"); hR(px + q[0] + 2, py + q[1] - 3, 1, 1, "#f4a3b4"); }); }
+  }
+  function hvFly(x, y, draw, tx, ty, onLand) { HV.fly = HV.fly || []; HV.fly.push({ x: x, y: y, tx: tx || 158, ty: ty || 100, u: 0, draw: draw, land: onLand }); }
+  function hvFlyDraw() { if (!HV.fly) return; HV.fly = HV.fly.filter(function (f) { f.u = Math.min(1, f.u + .045); var e = f.u, x = f.x + (f.tx - f.x) * e, y = f.y + (f.ty - f.y) * e - Math.sin(e * Math.PI) * 26; f.draw(x, y);
+    if (f.u >= 1) { HV.bump = 1; beep([[900 + rnd(0, 300), .03]]); if (f.land) f.land(); return false; } return true; }); }
+  function hvButterfly(t) { var u = (t / 9000) % 1, x = -10 + u * 200, y = 26 + Math.sin(u * 20) * 8, w = Math.floor(t / 110) % 2;
+    hR(x, y, 1, 3, "#3a2414"); hR(x - 3, y - (w ? 2 : 0), 3, 2 + w, "#ff9ab0"); hR(x + 1, y - (w ? 2 : 0), 3, 2 + w, "#ff9ab0"); hR(x - 2, y + 2, 2, 1, "#ffd34a"); hR(x + 1, y + 2, 2, 1, "#ffd34a"); }
+  // ---- fruit of every kind, drawn big ----
+  function hvFruit(c, x, y, ripe, wob) {
+    if (wob) x += Math.round(Math.sin(performance.now() / 40) * 1.5);
+    var ball = function (rx, ry, a, b, cc, hl) { hDisc(x, y, rx, ry, function (dx, dy, d) { if (d > .82) return a; var l = (-dx - dy) / (rx + ry); return l > .35 ? hl : l > -.15 ? b : cc; }); };
+    if (c === "strawberry") return hvBerry(x, y, ripe, false);
+    if (c === "tomato") return hvTomato(x, y, ripe, false);
+    if (c === "chili") return hvChili(x, y, ripe);
+    if (c === "raspberry") { ball(6, 6, ripe ? "#7a1a2a" : "#a88a6a", ripe ? "#e83a5a" : "#f0d8b8", ripe ? "#b82a44" : "#d8c0a0", ripe ? "#ff8aa0" : "#fff0d8"); for (var q = -4; q <= 4; q += 2) for (var r = -4; r <= 4; r += 2) if (q * q + r * r < 20 && (q + r) % 4 === 0) hR(x + q, y + r, 1, 1, ripe ? "#ffc0cc" : "#ffffff"); hR(x - 1, y - 8, 3, 2, "#3e8a3a"); return; }
+    if (c === "blackberry") { ball(6, 7, "#1a0a1a", ripe ? "#3a1a4a" : "#c83a3a", ripe ? "#24102e" : "#9a2a2a", ripe ? "#8a6aaa" : "#ff7a6a"); for (var q2 = -4; q2 <= 4; q2 += 3) for (var r2 = -5; r2 <= 5; r2 += 3) if (q2 * q2 + r2 * r2 < 26) hR(x + q2, y + r2, 1, 1, ripe ? "#b8a0d8" : "#ffb0a0"); hR(x - 1, y - 9, 3, 2, "#3e8a3a"); return; }
+    if (c === "blueberry") { ball(4, 4, "#1a2050", ripe ? "#4a6ad8" : "#b8d890", ripe ? "#2a4aa8" : "#8ab868", ripe ? "#a8b8f0" : "#e0f0c0"); hR(x - 1, y - 4, 3, 1, ripe ? "#1a2050" : "#5a7a3a"); return; }
+    if (c === "currant") { ball(3, 3, "#7a1010", ripe ? "#e8303a" : "#a8c878", ripe ? "#b81a24" : "#88a858", "#ffc0c0"); return; }
+    if (c === "gooseberry") { ball(6, 7, "#4a5a1a", ripe ? "#c8d860" : "#8ab848", ripe ? "#a8b840" : "#6a9a38", ripe ? "#f0f8b0" : "#c8e890"); for (var v = -4; v <= 4; v += 3) hR(x + v, y - 5, 1, 10, ripe ? "#e8f0a0" : "#a8d070"); hR(x - 1, y - 9, 2, 2, "#5a4a2a"); return; }
+    if (c === "gapple" || c === "apple") { ball(7, 7, "#6a1a10", ripe ? "#e8402a" : "#8ac860", ripe ? "#b82a1e" : "#6aa848", ripe ? "#ffa080" : "#c8f0a0"); hR(x, y - 9, 1, 3, "#5a3a1a"); hR(x + 1, y - 9, 3, 2, "#4a9a3a"); return; }
+    if (c === "pear") { hDisc(x, y + 2, 6, 6, function (dx, dy, d) { return d > .82 ? "#5a6a1a" : dx + dy < -3 ? "#f0f080" : "#c8d050"; }); hDisc(x, y - 4, 4, 4, function (dx, dy, d) { return d > .8 ? "#5a6a1a" : dx + dy < -2 ? "#f0f080" : "#c8d050"; }); hR(x, y - 10, 1, 3, "#5a3a1a"); return; }
+    if (c === "cherry") { hR(x - 3, y - 10, 1, 6, "#3e8a3a"); hR(x + 3, y - 10, 1, 6, "#3e8a3a"); hR(x - 2, y - 11, 5, 1, "#3e8a3a"); [[-3, 0], [3, 1]].forEach(function (o) { hDisc(x + o[0], y + o[1], 3, 3, function (dx, dy, d) { return d > .75 ? "#4a0a10" : dx + dy < -2 ? "#ff6a6a" : "#c81a2a"; }); }); return; }
+    if (c === "plum") { ball(5, 7, "#2a1040", "#6a3a9a", "#4a2a7a", "#b8a0e8"); hR(x, y - 9, 1, 3, "#5a3a1a"); return; }
+  }
+  function hvOnion(cx, cy, sc) {                                       // a fat golden onion bulb with its little roots
+    var rx = Math.round(13 * sc), ry = Math.round(12 * sc);
+    hDisc(cx, cy, rx, ry, function (dx, dy, d) { if (d > .88) return "#7a4a1a"; var l = (-dx - dy) / (rx + ry); if (Math.abs(dx) % 5 === 0 && d < .8) return "#c8902a"; return l > .3 ? "#f8d890" : l > -.15 ? "#e8b860" : "#c8903a"; });
+    for (var r = -4; r <= 4; r += 2) hR(cx + r * sc, cy + ry, 1, 4 + Math.abs(r) % 3, "#e8d8b0");
+    hR(cx - 2, cy - ry - 4, 4, 5, "#c8a060"); }
+  function hvOnionLeaves(cx, baseY, tilt, t) { for (var f = -2; f <= 2; f++) { var ang = f * .18 + tilt * .05 + Math.sin(t / 600 + f) * .03, L = 40 - Math.abs(f) * 5;
+      for (var q = 0; q < L; q++) hR(cx + Math.sin(ang) * q - 1, baseY - Math.cos(ang) * q, 3, 1, q % 9 === 0 ? "#8ad86a" : f % 2 ? "#4a9a3a" : "#6fc05a"); } }
+  function hvBushBg(t, kind) {                                         // a berry bush: woody canes and leaves
+    hvBg(t, 108);
+    var cane = kind === "blackberry" || kind === "gooseberry" ? "#7a4a3a" : "#8a6a4a";
+    [[90, 112, 60, 30], [90, 112, 120, 34], [90, 112, 76, 20], [90, 112, 106, 22], [90, 112, 92, 26]].forEach(function (cn) { for (var q = 0; q < 40; q++) { var u = q / 40, x = cn[0] + (cn[2] - cn[0]) * u, y = cn[1] - (cn[1] - cn[3]) * u + Math.sin(u * 3) * 4; hR(x, y, 2, 2, cane); if ((kind === "blackberry" || kind === "gooseberry") && q % 5 === 2) hR(x + 2, y - 1, 1, 1, "#e8d8c0"); } });
+    [[66, 44], [110, 48], [80, 64], [104, 70], [92, 36], [72, 84], [112, 88]].forEach(function (l, i) { hDisc(l[0], l[1], 9, 6, function (dx, dy, d) { return d > .8 ? "#24502a" : (dx + dy < -4 ? (kind === "blueberry" ? "#6aa860" : "#6ab04a") : (kind === "blueberry" ? "#4a8a50" : "#4a9a3a")); }); });
+  }
+  function hvTree(t, sway) {                                           // a fruit tree on the meadow
+    hvBg(t, 112);
+    for (var y = 66; y < 118; y++) { var w = 6 + (y > 108 ? (y - 108) : 0); hR(90 - w / 2 + sway * (118 - y) / 60, y, w, 1, y % 5 === 0 ? "#6a4428" : "#8a5e3a"); }
+    var blobs = [[0, 18, 46, 18], [-34, 4, 24, 20], [34, 4, 24, 20], [-18, -14, 24, 18], [18, -14, 24, 18], [0, -24, 22, 14], [-44, 26, 16, 12], [44, 26, 16, 12]];
+    blobs.forEach(function (b) { hDisc(90 + sway + b[0], 44 + b[1], b[2] + 1, b[3] + 1, function () { return "#24502a"; }); });
+    blobs.forEach(function (b) { hDisc(90 + sway + b[0], 44 + b[1], b[2], b[3], function (dx, dy, d) { var n = ((dx * 7 + dy * 13 + b[0]) & 15); return dy < -b[3] * .4 && n < 7 ? "#8ad86a" : dy > b[3] * .4 && n < 8 ? "#3e8a3a" : n < 2 ? "#3e8a3a" : "#5aa848"; }); });
+  }
+  // ---- berry bushes, rhubarb, the trees ----
+  function hx3Start(c) {
+    var B = function (list) { return list.map(function (q) { return { x: q[0], y: q[1], red: !!q[2], off: false, wob: 0, dy: 0, vy: 0 }; }); };
+    if (c === "raspberry") { HV.items = B([[66, 46, 1], [80, 60, 1], [104, 44, 0], [112, 66, 1], [90, 38, 1], [74, 80, 0], [106, 84, 1]]); HV.bowlX = 90; HV.bowlY = 120; }
+    if (c === "blackberry") { HV.items = B([[64, 50, 1], [82, 58, 0], [100, 42, 1], [116, 62, 1], [76, 76, 1], [104, 80, 0], [90, 34, 1]]); HV.bowlX = 90; HV.bowlY = 120; HV.ouch = 0; }
+    if (c === "gooseberry") { HV.items = B([[64, 52, 1], [84, 62, 0], [104, 46, 1], [116, 70, 1], [76, 82, 1], [98, 84, 0]]); HV.berries = HV.items; HV.leaves = [[66, 52, -.3], [100, 48, .1], [118, 72, .4], [80, 84, -.2], [96, 64, .3]].map(function (l) { return { x: l[0], y: l[1], r: l[2], ox: l[0], oy: l[1], away: false, a: 1 }; }); HV.ouch = 0; HV.bowlX = 90; HV.bowlY = 120; }
+    if (c === "blueberry") { HV.items = B([[66, 44, 1], [74, 48, 1], [104, 46, 0], [110, 50, 1], [80, 66, 1], [86, 70, 0], [100, 72, 1], [94, 38, 1], [116, 84, 1], [70, 84, 0]]); HV.shake = 0; HV.sway = 0; HV.bowlX = 90; HV.bowlY = 122; }
+    if (c === "currant") { HV.strigs = [[68, 40], [92, 34], [114, 44]].map(function (q) { var bs = []; for (var i = 0; i < 7; i++) bs.push({ x: q[0] + Math.sin(i) * 2, y: q[1] + 6 + i * 4, off: false }); return { x: q[0], y: q[1], b: bs }; }); HV.items = []; HV.strigs.forEach(function (sg) { sg.b.forEach(function (b) { HV.items.push(b); b.red = true; }); }); HV.bowlX = 90; HV.bowlY = 122; HV.tc = "currant"; }
+    if (c === "rhubarb") { HV.items = [[70, -.5], [90, 0], [110, .5]].map(function (q) { return { x: q[0], ang: q[1], turn: 0, off: false, cut: false, red: true }; }); }
+    if (HV.tree) { var fx = HV.tree.k; HV.tc = fx; HV.items = []; var pos = [[60, 40], [78, 26], [100, 30], [118, 44], [70, 58], [94, 54], [112, 62]]; var n = HV.tree.t === "cherry" ? 7 : 6;
+      for (var i2 = 0; i2 < n; i2++) HV.items.push({ x: pos[i2][0], y: pos[i2][1], hx: pos[i2][0], hy: pos[i2][1], fallen: false, off: false, vy: 0, gy: 112 + rnd(0, 8), worm: i2 === 3 }); HV.shake = 0; HV.sway = 0; }
+  }
+  function hx3Draw(t, c, k) {
+    var bush = { raspberry: 1, blackberry: 1, gooseberry: 1, blueberry: 1, currant: 1 }[c];
+    if (bush) {
+      if (c === "blueberry") { HV.sway *= .9; } var sw = c === "blueberry" ? Math.round(HV.sway) : 0;
+      hvBushBg(t, c);
+      if (c === "currant") HV.strigs.forEach(function (sg) { hR(sg.x, sg.y, 1, 32, "#5a7a3a"); sg.b.forEach(function (b) { if (!b.off) hvFruit("currant", b.x, b.y, true); }); });
+      else HV.items.forEach(function (it) { if (it.off && !it.falling) return;
+        if (it.falling) { it.vy += .35; it.y += it.vy; if (it.y >= HV.bowlY - 8) { it.falling = false; it.off = true; it.y = HV.bowlY - 8; beep([[1000 + rnd(0, 300), .02]]); } }
+        hvFruit(c, it.x + (it.falling ? 0 : sw), it.y + (it.dy || 0), it.red, it.wob > 0); if (it.wob > 0) it.wob -= .02; });
+      if (c === "gooseberry" && HV.leaves) HV.leaves.forEach(function (l) { if (l.a <= 0) return; c2l(l); });
+      if (k !== "basket" || !HV.stepDone) hxBowl(); hvBasket(146, 104, k === "basket" && HV.stepDone ? HV.items.filter(function (i) { return i.off; }).length : 0, function (x, y) { hvFruit(HV.tc || c, x, y - 2, true); });
+    }
+    if (c === "rhubarb") { hvBg(t, 108);
+      if (k === "twist") { HV.items.forEach(function (it) { if (it.off) return; var bx = it.x, len = 58;
+          for (var q = 0; q < len; q++) { var x = 90 + (bx - 90) * q / len + Math.sin(it.ang) * q * .4, y = 112 - q; hR(x - 2, y, 4, 1, q % 6 === 0 ? "#f07a8a" : "#d8384a"); hR(x - 2, y, 1, 1, "#ff9aa8"); }
+          hvBigLeaf(90 + (bx - 90) + Math.sin(it.ang) * 24, 50, it.ang * .5, 1);
+          if (it.turn) for (var q2 = 0; q2 < Math.abs(it.turn) / (Math.PI * 2) * 12; q2++) { var an = q2 / 12 * Math.PI * 2; hR(90 + (bx - 90) * .15 + Math.cos(an) * 10, 104 + Math.sin(an) * 8, 2, 2, "#ffd34a"); } });
+        hDisc(90, 112, 14, 4, function (dx, dy, d) { return d > .7 ? "#3a2414" : "#8a5a3a"; }); }
+      else { HV.items.forEach(function (it, i) { var y = 70 + i * 14; for (var x = 30; x < 120; x++) hR(x, y, 1, 4, x % 7 === 0 ? "#f07a8a" : "#d8384a"); hR(30, y, 90, 1, "#ff9aa8");
+          if (!it.cut) { hvBigLeaf(130, y + 1, .3, 1); for (var mk = 0; mk < 8; mk += 2) hR(120, y - 3 + mk, 1, 1, Math.floor(t / 300) % 2 ? "#ffd34a" : "#fff8ec"); } });
+        hvScissors(HV.sc || [150, 50]); hvBasket(146, 108, HV.items.filter(function (i) { return i.cut; }).length, function (x, y) { hR(x - 4, y - 6, 2, 10, "#d8384a"); }); }
+    }
+    if (HV.tree) { HV.sway *= .88; var swt = Math.round(HV.sway); hvTree(t, swt);
+      HV.items.forEach(function (it) { if (it.off) return; if (!it.fallen) { if (it.falling) { it.vy += .4; it.y += it.vy; if (it.y >= it.gy) { it.y = it.gy; it.falling = false; it.fallen = true; HV.fx.push({ x: it.x, y: it.y + 4, vx: 0, vy: -10, life: .3, c: "#a8784a" }); beep([[300 + rnd(0, 100), .04]]); } hvFruit(HV.tc, it.x, it.y, true); } else hvFruit(HV.tc, it.x + swt, it.y, true); }
+        else { hvFruit(HV.tc, it.x, it.y, true); if (it.worm && it.wormOut) { var w = Math.floor(t / 200) % 2; hR(it.x + 2, it.y - 8 - w, 2, 6, "#f4a3b4"); hR(it.x + 2, it.y - 9 - w, 2, 1, "#3a2414"); hR(it.x + 4, it.y - 7 - w, 1, 1, "#3a2414"); } else if (it.worm) hR(it.x + 3, it.y - 2, 2, 2, "#3a2414"); } });
+      hvBasket(146, 108, HV.items.filter(function (i) { return i.off && !i.worm; }).length, function (x, y) { hvFruit(HV.tc, x, y - 2, true); });
+      if (k === "shake" && !HV.drag && !HV.stepDone) { var b2 = Math.sin(t / 150) * 3; hR(72 + b2, 96, 8, 2, "#ffd34a"); hR(100 - b2, 96, 8, 2, "#ffd34a"); } }
+  }
+  function c2l(l) { hvLeaf(l.x, l.y, l.r); if (l.away) { l.a -= .05; l.y -= .5; } }
+  function hx3Down(k, p) {
+    var c = HV.c;
+    if (k === "pickt") { var hit = false; HV.items.forEach(function (it) { if (hit || it.off || Math.hypot(it.x - p[0], it.y - p[1]) > 8) return; hit = true;
+        if (!it.red) { it.wob = 1; HV.green++; hvFace("oops"); beep([[200, .06]]); mBan(hvV, "Die ist noch nicht reif"); return; }
+        it.off = true; hvFace("happy", 500); hvSpark(it.x, it.y, 6); beep([[800 + rnd(0, 200), .05]]);
+        if (HV.items.every(function (q) { return !q.red || q.off; })) hvNext(); });
+      if (!hit && p[1] < 104 && Math.abs(p[0] - 90) < 40) { HV.ouch++; hvFace("ouch", 900); beep([[180, .05], [140, .06]]); mBan(hvV, "Autsch, Dornen!"); } }
+    if (k === "strip") HV.strigs.forEach(function (sg) { if (Math.hypot(sg.x - p[0], sg.y - p[1]) < 10) HV.strip = sg; });
+    if (k === "shake") HV.shaking = c === "blueberry" ? Math.abs(p[0] - 90) < 40 && p[1] < 100 : Math.abs(p[0] - 90) < 14 && p[1] > 64;
+    if (k === "collect") HV.items.forEach(function (it) { if (!it.fallen || it.off || Math.hypot(it.x - p[0], it.y - p[1]) > 9) return;
+      if (it.worm) { it.wormOut = true; hvFace("oops", 900); mBan(hvV, "Den behält der Wurm"); beep([[600, .04], [400, .05]]); it.off = true; return; }
+      it.off = true; it.inBowl = false; hvFace("happy", 500); var fx = HV.tc; hvFly(it.x, it.y, function (x, y) { hvFruit(fx, x, y, true); }, 160, 104);
+      if (HV.items.every(function (q) { return q.off; })) setTimeout(hvNext, 500); });
+    if (k === "twist" && c === "rhubarb") HV.items.forEach(function (it) { if (it.off) return; var bx = 90 + (it.x - 90) * .15; if (Math.hypot(bx - p[0], 104 - p[1]) < 14) { HV.hold = it; HV.ang0 = Math.atan2(p[1] - 104, p[0] - bx); } });
+  }
+  function hx3Move(k, p, a, dx, dy) {
+    var c = HV.c;
+    if (k === "twist" && c === "rhubarb" && HV.hold) { var it = HV.hold, bx = 90 + (it.x - 90) * .15, an = Math.atan2(p[1] - 104, p[0] - bx), d = an - HV.ang0; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; HV.ang0 = an; it.turn += d;
+      if (Math.abs(it.turn) >= Math.PI * 2) { it.off = true; HV.hold = null; hvSpark(bx, 100, 10); beep([[500, .05], [700, .08]]); hvFace("happy", 600); if (HV.items.every(function (q) { return q.off; })) hvNext(); } }
+    if (k === "cutm") { HV.sc = p; HV.items.forEach(function (it, i) { if (it.cut) return; var y = 72 + i * 14; if ((a[1] - y) * (p[1] - y) <= 0 && Math.abs(p[0] - 120) < 8) { it.cut = true; beep([[1200, .03], [700, .05]]); hvSpark(120, y, 8, "#7ac860"); hvFace("happy", 500); if (HV.items.every(function (q) { return q.cut; })) hvNext(); } }); }
+    if (k === "strip" && HV.strip) { HV.strip.b.forEach(function (b) { if (b.off || Math.abs(b.x - p[0]) > 7 || p[1] < b.y) return; b.off = true; b.inBowl = true; beep([[1100 + rnd(0, 300), .02]]); }); if (HV.items.every(function (q) { return q.off; })) { HV.strip = null; hvNext(); } }
+    if (k === "shake" && HV.shaking) { HV.shake += Math.abs(dx); HV.sway = Math.max(-6, Math.min(6, HV.sway + dx * .4));
+      if (HV.shake > 26) { HV.shake = 0; var cand = HV.items.filter(function (it) { return !it.off && !it.falling && !it.fallen && (HV.tree || it.red); });
+        if (cand.length) { var f = cand[Math.floor(Math.random() * cand.length)]; f.falling = true; f.vy = 0; hvFace("work", 300); }
+        if (!HV.items.some(function (it) { return !it.off && !it.falling && !it.fallen && (HV.tree || it.red); })) setTimeout(function () { if (HV && HV.k === "shake" && !HV.stepDone) hvNext(); }, 900); } }
+  }
   hvV.cv.style.touchAction = "none";
+  hvV.el.addEventListener("click", function (e) { if (!e.target.closest(".bp-x")) e.stopPropagation(); });
+  hvV.el.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
   hvV.cv.addEventListener("pointerdown", function (e) {
     if (!HV || HV.stepDone) return; var p = mPt(hvV, e); try { hvV.cv.setPointerCapture(e.pointerId); } catch (x) {} HV.drag = p; HV.last = p; var k = HV.k;
     if (k === "knock") HV.clumps.forEach(function (o) { if (o.off || Math.hypot(o.x - p[0], o.y - p[1]) > 9) return; o.off = true; hvSpark(o.x, o.y, 10, "#6a4428"); beep([[220 + rnd(0, 80), .05]]); if (HV.clumps.every(function (q) { return q.off; })) { hvSpark(90, 74, 16); hvNext(); } });
     if (k === "leaves") { HV.grab = null; HV.leaves.forEach(function (l) { if (!l.away && Math.hypot(l.x - p[0], l.y - p[1]) < 16) HV.grab = l; }); }
     if (k === "pick") HV.berries.forEach(function (bb) { if (bb.picked || Math.hypot(bb.x - p[0], bb.y - p[1]) > 9) return;
-      if (!bb.red) { bb.wob = 1; HV.green++; beep([[200, .06]]); mBan(hvV, "Die ist noch grün"); return; }
-      bb.picked = true; HV.basket++; hvSpark(bb.x, bb.y, 8); beep([[800 + HV.basket * 90, .05]]);
+      if (!bb.red) { bb.wob = 1; HV.green++; hvFace("oops"); beep([[200, .06]]); mBan(hvV, "Die ist noch grün"); return; }
+      bb.picked = true; hvFace("happy", 500); hvFly(bb.x, bb.y, function (x, y) { hvBerry(x, y, true, false); }, 160, 104, function () { HV.basket++; }); hvSpark(bb.x, bb.y, 8); beep([[800 + HV.basket * 90, .05]]);
       if (HV.berries.every(function (q) { return !q.red || q.picked; })) hvNext(); });
-    hxDown(k, p);
+    hxDown(k, p); hx3Down(k, p);
   });
   hvV.cv.addEventListener("pointermove", function (e) {
     if (!HV || !HV.drag || HV.stepDone) return; var p = mPt(hvV, e), a = HV.last; HV.last = p; var dx = p[0] - a[0], dy = p[1] - a[1], k = HV.k;
@@ -17153,7 +17391,7 @@ window.__EXTRAS = true;
       if (HV.lift >= 60) { HV.lift = 60; hvSpark(90, 40, 20); beep([[523, .06], [784, .1]]); hvNext(); } }
     if (k === "leaves" && HV.grab) { var l = HV.grab; l.x = p[0]; l.y = p[1]; if (Math.hypot(l.x - l.ox, l.y - l.oy) > 30) { l.away = true; HV.grab = null; beep([[500, .03]]); if (HV.leaves.every(function (q) { return q.away; })) hvNext(); } }
     if (k === "cut") { HV.sc = p; var cX = HV.cutX || 90, cY = HV.cutY || 70; if (!HV.cut && (a[0] - cX) * (p[0] - cX) <= 0 && Math.abs(p[1] - cY) < 9) { HV.cut = true; beep([[1200, .03], [600, .06]]); hvSpark(cX, cY, 12, "#7ac860"); setTimeout(hvNext, 900); } }
-    hxMove(k, p, a, dx, dy);
+    hxMove(k, p, a, dx, dy); hx3Move(k, p, a, dx, dy);
     if (k === "rub") { var n = Math.max(1, Math.round(Math.hypot(dx, dy))), got = 0;
       for (var s2 = 0; s2 <= n; s2++) { var qx = (a[0] + dx * s2 / n - 80) / 1.35, qy = (a[1] + dy * s2 / n - 80) / 1.35;
         HV.seeds.forEach(function (sd) { if (sd.on && Math.hypot(sd.x - qx, sd.y - qy) < 4) { sd.on = false; got++; } }); }
@@ -17161,8 +17399,8 @@ window.__EXTRAS = true;
       if (HV.seeds.filter(function (sd) { return sd.on; }).length < 260 * .12) { HV.seeds.forEach(function (sd) { sd.on = false; }); hvSpark(80, 80, 20); hvNext(); } }
   });
   ["pointerup", "pointercancel"].forEach(function (ty) { hvV.cv.addEventListener(ty, function () { if (!HV) return; HV.drag = null; if (HV.hold && HV.k === "pull2") HV.hold.dy = 0; HV.hold = null; HV.snipStart = null; HV.bowlGrab = false; HV.rollGrab = false; if (HV.grab) { HV.grab.x = HV.grab.ox; HV.grab.y = HV.grab.oy; HV.grab = null; } }); });
-  async function hvRun(c) {                                            // the zoomed harvest; true when both steps were done
-    hvV.el.hidden = false; hvV.card.hidden = true; hvStart(c, P2_HARV[c]); HV.raf = requestAnimationFrame(hvDraw);
+  async function hvRun(c, tree) {                                      // the zoomed harvest; true when both steps were done
+    hvV.el.hidden = false; hvV.card.hidden = true; hvStart(c, tree ? P2_TREE : P2_HARV[c], tree); HV.raf = requestAnimationFrame(hvDraw);
     var cancel = false, onX = function (e) { e.stopPropagation(); cancel = true; }; hvV.el.querySelector(".bp-x").addEventListener("click", onX);
     var me = HV; while (!cancel && HV === me && !me.done) await wait(100);
     cancelAnimationFrame(me.raf); if (HV === me) HV = null; hvV.el.hidden = true; hvV.el.querySelector(".bp-x").removeEventListener("click", onX);
@@ -17192,9 +17430,23 @@ window.__EXTRAS = true;
       if (typeof ibFor === "function" && ibFor(c)) itemPop({ k: ibFor(c), title: "Du hast 2 × " + CROPS[c].name + " geerntet!", sub: "Frisch aus dem Gewächshaus." });
     });
   }, true);
+  // the fruit trees on the meadow: shake the trunk, then gather up what fell
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest && e.target.closest('[id^="slot-meadow"]'); if (!el || decor || place2 !== "garden" || typeof treeOf !== "function") return;
+    var i = +el.id.replace("slot-meadow", ""), t = treeOf(i); if (!t || !treeRipe(t) || (garden.snowLv && (garden.snowLv["meadow" + i] || 0) > 0)) return;
+    e.stopImmediatePropagation(); e.stopPropagation(); if (s.asleep) { say(N() + " schläft gerade."); return; }
+    if (busy && !interruptible()) return; if (busy) interrupt();
+    var T_ = FTREES[t];
+    act("harvest", async function () {
+      if (!(await hvRun(T_.k, { t: t, k: T_.k }))) return;
+      var n = t === "cherry" ? 4 : 3; garden.harvest[T_.k] = (garden.harvest[T_.k] || 0) + n; treeL()[t] = Date.now();
+      renderGardenDecor(); renderFoods(); front({ eyes: "happy", mouth: "grin", paws: "down", blush: true }); pulse("bighop", 600);
+      say(N() + " sammelt " + n + " " + T_.pl + " auf."); if (window.SudokuSave) window.SudokuSave(); await wait(700);
+    });
+  }, true);
   var _p2_interrupt = interrupt; interrupt = function () { if (!window.__resume && HV) { cancelAnimationFrame(HV.raf); HV = null; hvV.el.hidden = true; } return _p2_interrupt.apply(this, arguments); };
   window.__hv = function () { return HV; };
-  window.__p2 = { G: function () { return PZG; }, gh: function (i, c) { life().gh[i] = { crop: c, prog: 1, wetUntil: 0 }; renderGH(); }, goGH: function () { if (busy) interrupt(); act("gh", goGHSeq); }, steps: P2_STEPS, harv: P2_HARV, plant: function (i, c) { garden.seeds[c] = Math.max(1, garden.seeds[c] || 0); garden.plots[i] = null; if (busy) interrupt(); act("plant", function () { return plantSeq(i, c); }); }, harvest: function (i, c) { garden.plots[i] = { crop: c, prog: 1, wetUntil: 0 }; renderBed(); if (busy) interrupt(); act("harvest", function () { return harvestSeq(i); }); } };
+  window.__p2 = { G: function () { return PZG; }, placeTree: function (i, t) { home.placed["meadow" + i] = "tree_" + t; treeL()[t] = 0; renderGardenDecor(); return { season: season(), ripe: treeRipe(t) }; }, tree: function (t) { if (busy) interrupt(); act("harvest", function () { return hvRun(FTREES[t].k, { t: t, k: FTREES[t].k }); }); }, gh: function (i, c) { life().gh[i] = { crop: c, prog: 1, wetUntil: 0 }; renderGH(); }, goGH: function () { if (busy) interrupt(); act("gh", goGHSeq); }, steps: P2_STEPS, harv: P2_HARV, plant: function (i, c) { garden.seeds[c] = Math.max(1, garden.seeds[c] || 0); garden.plots[i] = null; if (busy) interrupt(); act("plant", function () { return plantSeq(i, c); }); }, harvest: function (i, c) { garden.plots[i] = { crop: c, prog: 1, wetUntil: 0 }; renderBed(); if (busy) interrupt(); act("harvest", function () { return harvestSeq(i); }); } };
 
 
   /*TESTHOOK*/
