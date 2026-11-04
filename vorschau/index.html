@@ -2137,20 +2137,20 @@ body.dz-on .dz-panel { display: block; }
 .cq-bell .cq-n:empty { display: none; }
 .cq-pov { position: absolute; inset: 0; z-index: 60; overflow: hidden; background: #f4e8cc; animation: cq-in .3s steps(4); }
 .cq-pov.out { animation: cq-out .26s steps(3) forwards; } @keyframes cq-in { from { opacity: 0; transform: translateY(6%); } } @keyframes cq-out { to { opacity: 0; } }
-.cq-wall { position: absolute; inset: 0 0 30% 0; background: repeating-linear-gradient(90deg, #f4e8cc 0 12%, #ecdcb8 12% 12.6%); }
-.cq-win { position: absolute; left: 62%; top: 8%; width: 26%; height: 28%; background: linear-gradient(#bfe6fa, #d8f0fc); box-shadow: 0 0 0 3px #8a5a30, 0 0 0 5px #3a2414; }
-.cq-ani { position: absolute; left: 32%; bottom: 33%; width: 36%; transform-origin: 50% 100%; animation: cq-bob 1.6s steps(2) infinite; }
+
+.cq-bg, .cq-front { position: absolute; inset: 0; pointer-events: none; } .cq-bg svg, .cq-front svg { width: 100%; height: 100%; display: block; }
+.cq-ani { position: absolute; left: 31%; bottom: 25%; width: 38%; transform-origin: 50% 100%; animation: cq-bob 1.6s steps(2) infinite; }
 .cq-ani svg { width: 100%; height: auto; display: block; }
 .cq-ani.talk { transform: scaleY(1.03) translateY(-1%); }
 @keyframes cq-bob { 50% { transform: translateY(-1.5%); } }
-.cq-counter { position: absolute; left: 0; right: 0; bottom: 0; height: 44%; background: linear-gradient(#c8945a 0 10%, #3a2414 10% 12%, #9a6638 12% 100%); box-shadow: inset 0 3px 0 #e0b07a; }
-.cq-box { position: absolute; left: 4%; right: 4%; bottom: 4%; background: #fff8ec; color: #3a2414; padding: 6px 10px 8px; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; }
-.cq-name { margin: 0 0 2px; font-weight: 800; font-size: .8rem; color: #e8650c; }
-.cq-text { margin: 0; min-height: 2.6em; font-size: .82rem; line-height: 1.3; }
-.cq-wish { position: absolute; right: 8px; top: -34px; background: #fff8ec; padding: 3px 4px; box-shadow: 0 0 0 2px #3a2414; animation: cq-in .25s steps(3); }
+
+.cq-box { position: absolute; left: 3%; right: 3%; bottom: 2.5%; background: #fff8ec; color: #3a2414; padding: 4px 8px 5px; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: end; }
+.cq-name { grid-column: 1 / -1; margin: 0; font-weight: 800; font-size: .7rem; color: #e8650c; line-height: 1.1; }
+.cq-text { margin: 0; min-height: 2.3em; font-size: .74rem; line-height: 1.2; }
+.cq-wish { position: absolute; right: 6px; top: -30px; background: #fff8ec; padding: 2px 3px; box-shadow: 0 0 0 2px #3a2414; animation: cq-in .25s steps(3); }
 .cq-wish svg { display: block; }
-.cq-row { display: flex; justify-content: flex-end; margin-top: 4px; }
-.cq-row .pbtn { font-size: .78rem; padding: 4px 12px; }
+.cq-row { display: flex; justify-content: flex-end; margin: 0; }
+.cq-row .pbtn { font-size: .7rem; padding: 3px 9px; white-space: nowrap; }
 .cq-talk { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 .cq-say { position: absolute; transform: translate(-50%, -100%); background: #fff8ec; color: #3a2414; font-size: .58rem; font-weight: 700; line-height: 1.15; padding: 2px 4px; white-space: nowrap; box-shadow: 0 0 0 1.5px #3a2414; display: flex; align-items: center; gap: 3px; animation: cq-pop .25s steps(3); }
 .cq-say::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 4px; height: 4px; background: #fff8ec; box-shadow: 1.5px 1.5px 0 0 #3a2414; transform: translateX(-50%) rotate(45deg); }
@@ -13521,7 +13521,7 @@ window.__EXTRAS = true;
     gRaf = requestAnimationFrame(gLoop);
   }
   function guestsStart() { guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; gNext = 6 + Math.random() * 6; gLast = 0; if (!gRaf) gRaf = requestAnimationFrame(gLoop); }
-  var _gq_open = openCafe; openCafe = function () { _gq_open.apply(this, arguments); var svg = cfTrack.querySelector(".cf-svg"); if (svg && !svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st); svg.insertBefore(gf, st.nextSibling); } guestsStart(); gSign(); };
+  var _gq_open = openCafe; openCafe = function () { _gq_open.apply(this, arguments); var svg = cfTrack.querySelector(".cf-svg"); if (svg && !svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st.nextSibling); svg.insertBefore(gf, gg.nextSibling); } guestsStart(); gSign(); };
   var _gq_close = closeCafe; closeCafe = function () { if (cafeOn && guests.length) say("Die Gäste verabschieden sich."); guests.forEach(function (g) { if (g.el) g.el.remove(); }); guests = []; return _gq_close.apply(this, arguments); };
   // everyone out in the room is drawn by depth: whoever stands lower in the picture is in front
   function gDepth() {
@@ -13535,7 +13535,7 @@ window.__EXTRAS = true;
   }
   function gReattach() {
     var svg = cfTrack.querySelector(".cf-svg"); if (!svg) return;
-    if (!svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st); svg.insertBefore(gf, st.nextSibling); }
+    if (!svg.querySelector("#cf-guests")) { var st = svg.querySelector("#cf-stock"); var gg = document.createElementNS("http://www.w3.org/2000/svg", "g"); gg.id = "cf-guests"; var gf = document.createElementNS("http://www.w3.org/2000/svg", "g"); gf.id = "cf-gfly"; svg.insertBefore(gg, st.nextSibling); svg.insertBefore(gf, gg.nextSibling); }
     var L = gLayerEl(); guests.forEach(function (g) { if (g.el) L.appendChild(g.el); });
     gSign();
   }
@@ -17677,6 +17677,44 @@ window.__EXTRAS = true;
     else { o = gOrderNew(id); var room = gRoom(); for (var k = 0; k < 6 && room.length && room.indexOf(o.kind) < 0; k++) o = gOrderNew(id); }
     cqJoin(id, o, fromCounter);
   }
+  // ---- the view over the counter, drawn in the room's pixel style: back wall with shelf, window, lamp and menu board; the counter in front ----
+  function cqR(o, x, y, w, h, c) { o.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'); }
+  function cqSvg(o) { return '<svg viewBox="0 0 180 135" preserveAspectRatio="none" shape-rendering="crispEdges" aria-hidden="true">' + o.join("") + '</svg>'; }
+  function cqBack() {
+    var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
+    R(0, 0, 180, 135, "#f4e8cc"); for (var x = 0; x < 180; x += 12) { R(x, 0, 1, 70, "#ecdcb8"); R(x + 6, 0, 1, 70, "#f8eed8"); }
+    for (var x2 = 3; x2 < 180; x2 += 9) for (var y2 = 6; y2 < 64; y2 += 10) R(x2 + ((y2 / 10) % 2) * 4, y2, 1, 1, "#e8d4b0");          // a little dotted wallpaper
+    R(0, 66, 180, 2, K); R(0, 68, 180, 2, "#c8945a"); R(0, 70, 180, 30, "#8a5a30"); for (var px = 2; px < 180; px += 22) { R(px, 74, 18, 22, "#7a4c26"); R(px, 74, 18, 1, "#a8743e"); R(px + 17, 74, 1, 22, "#5e3a1c"); }
+    // round window with the garden outside
+    var cx = 146, cy = 30; for (var yy = -17; yy <= 17; yy++) for (var xx = -17; xx <= 17; xx++) { var d = Math.hypot(xx, yy); if (d > 17) continue; R(cx + xx, cy + yy, 1, 1, d > 16 ? K : d > 13 ? (xx + yy < -4 ? "#c8945a" : "#8a5a30") : d > 12.2 ? K : yy > 4 ? (xx % 5 === 0 ? "#4a9a3a" : "#6ab04a") : yy > 0 ? "#8ac860" : (yy < -8 ? "#a8dcf6" : "#c8ecfa")); }
+    R(cx - 13, cy - 1, 26, 2, "#8a5a30"); R(cx - 1, cy - 13, 2, 26, "#8a5a30"); R(cx - 6, cy - 9, 3, 2, "#ffffff");
+    R(128, 48, 36, 3, K); R(129, 48, 34, 2, "#c8945a"); R(134, 42, 6, 6, K); R(135, 43, 4, 5, "#e8554a"); R(150, 40, 8, 8, K); R(151, 41, 6, 7, "#86c060"); R(152, 38, 4, 3, "#5a9a48");
+    // the shelf on the left with jars and cups
+    R(6, 34, 52, 3, K); R(7, 34, 50, 2, "#c8945a"); R(10, 37, 2, 4, "#5e3a1c"); R(52, 37, 2, 4, "#5e3a1c");
+    [[9, "#e8554a"], [19, "#f6c84a"], [29, "#86c060"]].forEach(function (j) { R(j[0], 22, 8, 12, K); R(j[0] + 1, 25, 6, 9, j[1]); R(j[0] + 1, 23, 6, 2, "#d8d0c4"); R(j[0] + 2, 26, 1, 6, "#ffffff"); });
+    [[40, "#f4f1ea"], [48, "#86b2e2"]].forEach(function (c) { R(c[0], 27, 7, 7, K); R(c[0] + 1, 28, 5, 5, c[1]); R(c[0] + 7, 29, 2, 3, K); });
+    R(6, 12, 52, 3, K); R(7, 12, 50, 2, "#c8945a"); for (var b = 0; b < 6; b++) { R(10 + b * 4, 2, 3, 10, ["#e8554a", "#3e7ab8", "#f6c84a", "#5a9a48", "#c8586a", "#8a5a9a"][b]); R(10 + b * 4, 2, 3, 1, K); }
+    R(38, 4, 14, 8, K); R(39, 5, 12, 6, "#5a9a48"); R(41, 2, 4, 3, "#86c060");
+    // the menu board
+    R(8, 44, 40, 20, K); R(9, 45, 38, 18, "#3a4a42"); R(9, 45, 38, 1, "#4a5a52");
+    [[12, 49, 18], [12, 53, 26], [12, 57, 14], [34, 57, 9]].forEach(function (l) { for (var q = 0; q < l[2]; q += 2) R(l[0] + q, l[1], 1, 1, "#e8eee8"); }); R(40, 49, 3, 3, "#f6c84a");
+    // a hanging lamp, warm light
+    R(90, 0, 1, 10, K); R(84, 10, 13, 6, K); R(85, 11, 11, 4, "#e8b830"); R(86, 11, 6, 1, "#f6dc78"); R(87, 16, 7, 2, "#fff1a8");
+    o.push('<path d="M87 18 L60 70 L120 70 L94 18Z" fill="#fff1a8" opacity=".14"/>');
+    return cqSvg(o);
+  }
+  function cqFront() {
+    var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
+    R(0, 96, 180, 3, K); R(0, 97, 180, 3, "#d8a468"); R(0, 97, 180, 1, "#f0c890"); R(0, 100, 180, 2, K);
+    R(0, 102, 180, 33, "#9a6638"); for (var x = 0; x < 180; x += 30) { R(x + 3, 106, 24, 26, "#8a5a30"); R(x + 3, 106, 24, 1, "#b8844e"); R(x + 26, 106, 1, 26, "#6a4424"); }
+    // on the counter: a cup with steam, a cake under a glass dome, a little vase
+    R(20, 88, 10, 9, K); R(21, 89, 8, 7, "#f4f1ea"); R(21, 89, 8, 1, "#ffffff"); R(29, 90, 3, 4, K); R(23, 84, 1, 2, "#ffffff"); R(26, 82, 1, 3, "#ffffff");
+    R(17, 96, 16, 1, K);
+    for (var yy = -16; yy <= 0; yy++) for (var xx = -15; xx <= 15; xx++) { var d = Math.hypot(xx, yy * 15 / 16); if (d > 15 || d < 13.6) continue; R(152 + xx, 96 + yy, 1, 1, xx + yy < -12 ? "#ffffff" : "#bfe0f0"); }
+    R(141, 89, 22, 7, K); R(142, 90, 20, 2, "#fff6e4"); R(142, 92, 20, 3, "#c89a60"); R(145, 88, 3, 2, "#e8463c"); R(152, 88, 3, 2, "#e8463c"); R(138, 95, 28, 2, "#d8d0c4");
+    R(112, 86, 6, 11, K); R(113, 87, 4, 9, "#86b2e2"); R(114, 80, 1, 7, "#3e8a3a"); R(112, 77, 5, 4, K); R(113, 78, 3, 2, "#f29aa8");
+    return cqSvg(o);
+  }
   // ---- over the counter: the guest tells you what they would like ----
   var CQ_HI = ["Hallo {h}!", "Guten Tag, {h}!", "Huhu, {h}!", "Hallöchen!", "Ach, ist das gemütlich hier!", "Hmm, wie es hier duftet!"];
   var CQ_ASK = ["Ich hätte gern {o}, bitte.", "Für mich bitte {o}.", "Heute nehme ich {o}.", "Kann ich {o} haben?", "Ich hätte so richtig Lust auf {o}."];
@@ -17693,8 +17731,8 @@ window.__EXTRAS = true;
     var old = cafeEl.querySelector(".cq-pov"); if (old) old.remove();
     var el = document.createElement("div"); el.className = "cq-pov pixtext";
     var pic = gWishPic(o);
-    el.innerHTML = '<div class="cq-wall"></div><div class="cq-win"></div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
-      '<div class="cq-counter"></div><div class="cq-cups"></div>' +
+    el.innerHTML = '<div class="cq-bg">' + cqBack() + '</div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
+      '<div class="cq-front">' + cqFront() + '</div>' +
       '<div class="cq-box"><p class="cq-name">' + an.name + '</p><p class="cq-text"></p><div class="cq-wish" hidden>' + gSvg(pic, 3) + '</div>' +
       '<div class="cq-row" hidden><button type="button" class="pbtn cq-ok">' + cqPick(CQ_OK) + '</button></div></div>';
     cafeEl.appendChild(el);
