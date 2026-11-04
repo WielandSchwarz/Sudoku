@@ -2219,6 +2219,8 @@ body.dz-on .dz-panel { display: block; }
 .cq-row .pbtn { font-size: .9rem; padding: 8px 12px; }
 .cq-wish { top: -44px; }
 .cq-bell { z-index: 59; }
+.cq-bg .cq-room { position: absolute; max-width: none; display: block; image-rendering: pixelated; filter: saturate(.85) brightness(.9); }
+.cq-bg .cq-haze { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(255, 220, 160, .18), rgba(255, 220, 160, 0) 70%), linear-gradient(rgba(60, 36, 20, .12), rgba(60, 36, 20, 0) 40%); pointer-events: none; }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -13468,7 +13470,8 @@ window.__EXTRAS = true;
         air = Math.min(mv === "buzz" ? 10 : 15, dRem * .45, dGo * .45 + 2);
       }
       g.air = air;
-      var flap = air > .5 ? Math.sin(t / (mv === "buzz" ? 28 : 55) * Math.PI) : 0, a = flap * (mv === "buzz" ? 20 : 32), pv = -bh * .58;
+      // the wings only flap a little and calmly, in four pixel-art steps (up, middle, down, middle)
+      var flap = air > .5 ? [0, 1, 0, -1][Math.floor((t + (g.ph || 0)) / (mv === "buzz" ? 120 : 190)) % 4] : 0, a = flap * (mv === "buzz" ? 8 : 10), pv = -bh * .58;
       P[0].setAttribute("transform", "translate(0 " + Math.round(-air - (g.sip ? 1 : 0)) + ")");
       P[1].setAttribute("transform", a ? "rotate(" + a.toFixed(1) + " " + (-g.wx) + " " + pv.toFixed(1) + ")" : "");
       P[2].setAttribute("transform", a ? "rotate(" + (-a).toFixed(1) + " " + g.wx + " " + pv.toFixed(1) + ")" : "");
@@ -18225,7 +18228,7 @@ window.__EXTRAS = true;
   // ---- the view over the counter, drawn in the room's pixel style: back wall with shelf, window, lamp and menu board; the counter in front ----
   function cqR(o, x, y, w, h, c) { o.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'); }
   function cqSvg(o) { return '<svg viewBox="0 0 180 135" preserveAspectRatio="none" shape-rendering="crispEdges" aria-hidden="true">' + o.join("") + '</svg>'; }
-  var CQ_BG = 1;   // which backdrop the order view uses (drafts 1 to 4)
+  var CQ_BG = 5;   // which backdrop the order view uses (drafts 1 to 4)
   function cqBack() { if (CQ_BG === 2) return cqBack2(); if (CQ_BG === 3) return cqBack3(); if (CQ_BG === 4) return cqBack4(); return cqBack1(); }
   function cqBack1() {
     var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
@@ -18250,6 +18253,16 @@ window.__EXTRAS = true;
     o.push('<path d="M87 18 L60 70 L120 70 L94 18Z" fill="#fff1a8" opacity=".14"/>');
     return cqSvg(o);
   }
+  // the real café room behind the guest, as the hamster sees it from behind the counter: the guest room of the current café
+  // (fireplace, tables, rug, lamps, in its own style) at the same pixel size, a little darker and warmer far back, with soft light
+  function cqRoomBg() {
+    var src = cafeEl.querySelector(".cf-svg"); if (!src) return cqBack1();
+    var vb = (src.getAttribute("viewBox") || "0 0 470 135").split(/\s+/).map(Number), W = vb[2], H = vb[3];
+    var cl = src.cloneNode(true); cl.removeAttribute("class"); cl.setAttribute("class", "cq-room"); cl.setAttribute("preserveAspectRatio", "xMinYMin slice");
+    cl.style.width = (W / 180 * 100) + "%"; cl.style.height = (H / 135 * 100) + "%"; cl.style.left = (-CQ_ROOMX / 180 * 100) + "%"; cl.style.top = (-CQ_ROOMY / 135 * 100) + "%";
+    return cl.outerHTML + '<div class="cq-haze"></div>';
+  }
+  var CQ_ROOMX = 40, CQ_ROOMY = -12;
   function cqDisc(R, cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = x * x / (rx * rx) + y * y / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) R(cx + x, cy + y, 1, 1, c); } } }
   // draft 2: the café counter seen from the guest: an espresso machine, a glass case with cakes, a menu board on the wall, two lamps
   function cqBack2() {
@@ -18339,7 +18352,7 @@ window.__EXTRAS = true;
     var old = cafeEl.querySelector(".cq-pov"); if (old) old.remove();
     var el = document.createElement("div"); el.className = "cq-pov pixtext";
     var pic = gWishPic(o);
-    el.innerHTML = '<div class="cq-bg">' + cqBack() + '</div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
+    el.innerHTML = '<div class="cq-bg">' + (CQ_BG === 5 ? cqRoomBg() : cqBack()) + '</div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
       '<div class="cq-front">' + cqFront() + '</div>' +
       '<div class="cq-box"><p class="cq-name">' + an.name + '</p><p class="cq-text"></p><div class="cq-wish" hidden>' + gSvg(pic, 3) + '</div>' +
       '<div class="cq-row" hidden><button type="button" class="pbtn cq-ok">' + cqPick(CQ_OK) + '</button></div></div>';
@@ -18507,7 +18520,7 @@ window.__EXTRAS = true;
   var _cq_leave = closeCafe; closeCafe = function () { guests.forEach(function (g) { if (g.say) { g.say.remove(); g.say = null; } }); cqConv = {}; return _cq_leave.apply(this, arguments); };
   window.__cq = { ring: cqRing, list: function () { return cqList().map(function (g) { return { id: g.id, state: g.state, x: g.x, order: g.order }; }); }, all: function () { return guests.map(function (g) { return { id: g.id, state: g.state, table: g.table, seat: g.seat, x: g.x, y: g.y }; }); },
     serveFront: function () { var g = cqList()[0]; if (!g) return false; var its = gItems(); if (!its.length) return "empty"; gServeItem(g, its[0]); return true; }, conv: function () { return cqConv; } };
-  window.__cq.bg = function (n) { CQ_BG = n; };
+  window.__cq.bg = function (n, x, y) { CQ_BG = n; if (x != null) CQ_ROOMX = x; if (y != null) CQ_ROOMY = y; };
   window.__cq.ringAs = function (id) { var orig = gKnown; gKnown = function () { return [id]; }; try { cqRing(); } finally { gKnown = orig; } };   // preview test: call a given guest
 
 
