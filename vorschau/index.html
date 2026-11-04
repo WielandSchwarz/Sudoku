@@ -8386,7 +8386,7 @@ window.__EXTRAS = true;
   var PZCAM = null;
   function pzOnHam(e) { var r = ham.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
   function pzLogic(e) { var r = scene.getBoundingClientRect(), sx = (e.clientX - r.left) / r.width * 180, sy = (e.clientY - r.top) / r.height * 135; return PZCAM ? [PZCAM.x + sx / PZCAM.z, PZCAM.y + sy / PZCAM.z] : [sx, sy]; }
-  function pzPxU() { return scene.getBoundingClientRect().width / 180 * (PZCAM ? PZCAM.z : 1); }
+  function pzPxU() { return scene.getBoundingClientRect().width / 180; }   /* css px per logic unit inside the layer (the camera's scale applies on top) */
   function pzSvg(k, vb) {
     var a = PZ[k];
     if (PZCAM && a.svg2 && !vb) return '<svg viewBox="0 0 ' + a.w * 2 + ' ' + a.h * 2 + '" aria-hidden="true" shape-rendering="crispEdges">' + a.svg2 + '</svg>';
@@ -17092,10 +17092,13 @@ window.__EXTRAS = true;
     for (var i = 0; i < FUR.n; i++) { G.fur.push(0); var m = lEl("i", "p2-dot", pzLay); pzPos(m, p2SegX(i) + sw / 2 - .5, FUR.y, 1, 1); m.style.zIndex = 98; }
     var hit = p2Hit(20, 70, 110, 45); G.hitEl = hit;
     pzTip("Mit dem Finger die Rille entlang ziehen.");
-    p2Drag(hit, { down: function () { front({ paws: "hold", eyes: "down", mouth: "teeth" }); }, move: function (p) {
-      if (Math.abs(p[1] - FUR.y) > 9) return; var i = p2Seg(p[0]); if (i < 0 || i >= FUR.n || G.fur[i]) return;
-      G.fur[i] = 1; var el = lEl("div", "p2-fur", pzLay, P2A.furrow); pzPos(el, p2SegX(i), FUR.y - 2, sw + .5, 5); el.style.zIndex = 99; G.furEls.push(el);
-      pzCrumbs(p2SegX(i) + 4, FUR.y, 3); beep([[260 + i * 25, .03]]);
+    var lastX = null;
+    p2Drag(hit, { down: function (p) { lastX = p[0]; front({ paws: "hold", eyes: "down", mouth: "teeth" }); }, move: function (p) {
+      if (Math.abs(p[1] - FUR.y) > 9) { lastX = null; return; }
+      var a = p2Seg(lastX == null ? p[0] : lastX), b = p2Seg(p[0]); lastX = p[0];   /* a fast swipe fills every piece it passes */
+      for (var i = Math.min(a, b); i <= Math.max(a, b); i++) { if (i < 0 || i >= FUR.n || G.fur[i]) continue;
+        G.fur[i] = 1; var el = lEl("div", "p2-fur", pzLay, P2A.furrow); pzPos(el, p2SegX(i), FUR.y - 2, sw + .5, 5); el.style.zIndex = 99; G.furEls.push(el);
+        pzCrumbs(p2SegX(i) + 4, FUR.y, 3); beep([[260 + i * 25, .03]]); }
     }, up: function () { front({ paws: "down", eyes: "open", mouth: "smile" }); } });
     return function () { return G.fur.every(Boolean); };
   }
@@ -17394,7 +17397,7 @@ window.__EXTRAS = true;
     return function () { if (G.holes.every(function (o) { return o.set; })) { G.fur = [1, 1, 1, 1, 1, 1, 1, 1, 1]; return true; } return false; };
   }
   // ---------- the first job varies: weeds, stones, hard clods, a snail, autumn leaves; in the greenhouse aphids, yellow leaves, a cobweb, a ladybug ----------
-  var P2_OPEN_G = ["weed", "stones", "loosen", "snail", "sweep", "none"], P2_OPEN_H = ["aphids", "yellow", "web", "ladybug"];
+  var P2_OPEN_G = ["weed", "stones", "loosen", "snail", "sweep", "none"], P2_OPEN_H = ["web", "loosen", "stones", "sweep"];   // greenhouse: jobs that fit an empty box before planting
   function p2Opener(where) {
     if (P2_OPEN_G.forceK) { var fk = P2_OPEN_G.forceK; P2_OPEN_G.forceK = null; return fk; }
     if (where === "gh") return P2_OPEN_H[Math.floor(Math.random() * P2_OPEN_H.length)];
