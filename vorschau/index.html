@@ -2182,7 +2182,7 @@ body.dz-on .dz-panel { display: block; }
 /* the bell and the view over the counter (preview) */
 .cq-bell { position: absolute; left: 3%; bottom: 4%; z-index: 40; width: 12%; border: 0; padding: 1.6% 1.8% 1.2%; background: #fff8ec; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; cursor: pointer; }
 .cq-bell svg { width: 100%; height: auto; display: block; }
-.cq-bell.ring svg { animation: cq-ring .5s steps(5); transform-origin: 50% 10%; } @keyframes cq-ring { 20% { transform: rotate(-18deg); } 40% { transform: rotate(14deg); } 60% { transform: rotate(-9deg); } 80% { transform: rotate(5deg); } }
+.cq-bell.cq-ringing svg { animation: cq-ring .5s steps(5); transform-origin: 50% 10%; } @keyframes cq-ring { 20% { transform: rotate(-18deg); } 40% { transform: rotate(14deg); } 60% { transform: rotate(-9deg); } 80% { transform: rotate(5deg); } }
 .cq-bell.full { opacity: .55; }
 .cq-bell .cq-n { position: absolute; right: -8%; top: -10%; min-width: 1.1em; font-size: .62rem; color: #fff8ec; background: #e8650c; box-shadow: 0 0 0 2px #3a2414; text-align: center; font-weight: 800; }
 .cq-bell .cq-n:empty { display: none; }
@@ -18212,7 +18212,7 @@ window.__EXTRAS = true;
   cqBell.addEventListener("click", function (e) { e.stopPropagation(); cqRing(); });
   function cqRing() {
     if (!cafeOn || (typeof cfGameOn !== "undefined" && cfGameOn)) return;
-    cqBell.classList.remove("ring"); void cqBell.offsetWidth; cqBell.classList.add("ring");
+    cqBell.classList.remove("cq-ringing"); void cqBell.offsetWidth; cqBell.classList.add("cq-ringing");
     beep([[1568, .08], [1319, .12]]);
     if (gClosing()) { say("Das Café schließt bald, heute kommt niemand mehr."); return; }
     if (cqList().length >= CQ_MAX) { say("Die Schlange ist schon lang genug. Erst einmal die Wartenden bedienen."); return; }
