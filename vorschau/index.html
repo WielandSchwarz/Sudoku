@@ -1501,6 +1501,15 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .p2-climb { animation: p2-climb 1s steps(6) forwards; } @keyframes p2-climb { to { transform: translateY(-140%); opacity: 0; } }
 .p2-fly { animation: p2-flya .9s steps(6) forwards; } @keyframes p2-flya { to { transform: translate(40px, -60px); opacity: 0; } }
 .p2-stone, .p2-clod, .p2-aleaf, .p2-leafy, .p2-web, .p2-spider, .p2-lady, .p2-aph, .p2-snail, .p2-bigleaf { pointer-events: none; }
+/* gardening result: stars pop in over the scene, no card */
+.pz-res.pz-win { background: none; box-shadow: none; top: 40%; width: auto; padding: 0; animation: none; }
+.pz-win .pz-stars { gap: 4px; margin: 0 0 14px; }
+.pz-win .pz-stars span { display: block; width: calc(100cqw * 15 / 180); min-width: 30px; max-width: 46px; transform: scale(0); animation: pz-starpop .5s steps(5) forwards; }
+.pz-win .pz-stars span:nth-child(2) { margin-top: -10px; }
+.pz-win .pz-stars svg { width: 100%; display: block; filter: drop-shadow(0 2px 0 rgba(58, 36, 20, .35)); }
+@keyframes pz-starpop { 0% { transform: scale(0) rotate(-30deg); } 60% { transform: scale(1.35) rotate(8deg); } 80% { transform: scale(.92) rotate(-3deg); } 100% { transform: scale(1) rotate(0); } }
+.pz-win .pz-ok { opacity: 0; animation: pz-okin .3s steps(3) 1.2s forwards; min-width: 140px; }
+@keyframes pz-okin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -16873,6 +16882,13 @@ window.__EXTRAS = true;
     for (var k = 0; k < (n || 8); k++) { var c = lEl("i", "p2-star", pzLay); pzPos(c, x - 1, y - 1, 2, 2); c.style.zIndex = 160;
       var a = k / (n || 8) * Math.PI * 2; c.style.setProperty("--dx", Math.cos(a) * rnd(10, 22) + "px"); c.style.setProperty("--dy", Math.sin(a) * rnd(10, 22) - 8 + "px"); c.style.background = (cols || ["#ffd34a", "#ffffff", "#ff9ab0"])[k % 3];
       setTimeout(function (el) { el.remove(); }.bind(null, c), 700); } }
+  // a finer star, in the scene's own pixel size (15x15): 1px outline, light top left, shade bottom right
+  var P2STAR = ["       K       ", "      KWK      ", "      KWK      ", "     KWYYK     ", "KKKKKKWYYKKKKKK", "KWWWWYYYYYYYYOK", " KWYYYYYYYYYOK ", "  KYYYYYYYYOK  ", "   KYYYYYYOK   ", "   KYYYYYYOK   ", "  KYYYYKYYYOK  ", "  KYYOK KYYOK  ", " KYYOK   KYOOK ", " KYOK     KOOK ", " KKK       KKK "];
+  function p2StarSvg(on) {
+    var C = on ? { K: "#3a2414", W: "#fff6b8", Y: "#ffd34a", O: "#e89a1a" } : { K: "#8a7058", W: "#efe2cc", Y: "#e6d4ba", O: "#d2bc9c" }, o = "";
+    P2STAR.forEach(function (r, y) { for (var x = 0; x < 15; x++) { var c = C[r[x]]; if (c) o += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + c + '"/>'; } });
+    return '<svg viewBox="0 0 15 15" aria-hidden="true" shape-rendering="crispEdges">' + o + '</svg>';
+  }
   function p2Pop(el) { el.classList.remove("p2-popin"); void el.offsetWidth; el.classList.add("p2-popin"); }
   var P2K = "#3a2414";
   var P2A = {
@@ -17330,9 +17346,12 @@ window.__EXTRAS = true;
       }
       var stars = Math.max(1, Math.min(3, 3 - (G.pen >= 3 ? 2 : G.pen >= 1 ? 1 : 0) + (G.wormOk && G.pen < 3 ? 1 : 0)));
       G.step = 6; var res = pzUi.querySelector(".pz-res");
-      res.innerHTML = '<p class="pz-stars">' + [0, 1, 2].map(function (q) { return q < stars ? PZSTAR : PZSTAR0; }).join("") + '</p><ul>' + G.notes.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ul>' +
+      // the result: no card over the bed any more. Three stars pop in one after another over the scene, each with a little burst, then the button
+      res.classList.add("pz-win"); if (G.toolEl) { G.toolEl.remove(); G.toolEl = null; }
+      res.innerHTML = '<p class="pz-stars">' + [0, 1, 2].map(function (q) { return '<span style="animation-delay:' + (0.15 + q * 0.32) + 's">' + p2StarSvg(q < stars) + '</span>'; }).join("") + '</p>' +
         '<button type="button" class="pbtn pz-ok">' + (stars === 3 ? "Super!" : "Weiter") + '</button>';
-      res.hidden = false; pzBanner(stars === 3 ? "Perfekt gepflanzt!" : "Gepflanzt!"); front({ eyes: "happy", mouth: "grin", paws: "up", blush: stars === 3 }); beep([[523, .08], [659, .08], [784, .12]]);
+      res.hidden = false;
+      [0, 1, 2].forEach(function (q) { setTimeout(function () { if (q < stars) { p2Burst(72 + q * 18, 50, 10); beep([[659 + q * 130, .06]]); } }, 330 + q * 320); }); pzBanner(stars === 3 ? "Perfekt gepflanzt!" : "Gepflanzt!"); front({ eyes: "happy", mouth: "grin", paws: "up", blush: stars === 3 }); beep([[523, .08], [659, .08], [784, .12]]);
       await pzUntil(function () { return G.ok || G.cancel; });
       var plot = { crop: c, prog: (stars - 1) * 0.06, wetUntil: (G.wet || 0) >= 40 ? Date.now() + 2 * 3600000 : 0, stars: stars }; garden.seeds[c]--;
       if (gh) life().gh[i] = plot; else garden.plots[i] = plot;
