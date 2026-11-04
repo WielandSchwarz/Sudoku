@@ -10923,7 +10923,7 @@ window.__EXTRAS = true;
     cfTrack.innerHTML = '<svg class="cf-svg" viewBox="0 0 ' + CF.w + ' ' + CF.h + '" preserveAspectRatio="none" shape-rendering="crispEdges" aria-hidden="true">' +
       '<defs><clipPath id="cf-win">' + clip + '</clipPath></defs>' + CF.bg +
       '<g clip-path="url(#cf-win)"><rect id="cf-sky" x="0" y="0" width="' + CF.w + '" height="70" fill="#a8dcf6"/><g id="cf-stars"></g><g id="cf-view"></g><g id="cf-wx"></g></g>' +
-      CF.ob + cfPlantsSvg() + '<g class="cf-fire cf-f0">' + CF.fire0 + '</g><g class="cf-fire cf-f1">' + CF.fire1 + '</g>' +
+      '<g class="cf-ob">' + CF.ob + '</g>' + cfPlantsSvg() + '<g class="cf-fire cf-f0">' + CF.fire0 + '</g><g class="cf-fire cf-f1">' + CF.fire1 + '</g>' +
       '<g id="cf-hamw"><g id="cf-ham" class="cf-ham" transform="translate(' + hx.toFixed(2) + ' ' + hy.toFixed(2) + ') scale(' + s + ')"></g><g id="cf-hold"></g></g><g id="cf-front">' + CF.cf + '</g>' + '<g id="cf-fest"></g><g id="cf-stock"></g>' +
       '<g id="cf-hamfx"></g><rect id="cf-dim" x="0" y="0" width="' + CF.w + '" height="' + CF.h + '" fill="#1e2a54" opacity="0"/>' +
       '<g class="cf-light cf-hearth">' + cfGlow(CF.hearth[0], CF.hearth[1], 46, "#ffb24a", .06, 6) + '</g><g class="cf-light cf-lamps">' + lamps + '</g></svg>';
@@ -18261,7 +18261,9 @@ window.__EXTRAS = true;
     var cl = src.cloneNode(true); cl.removeAttribute("class"); cl.setAttribute("class", "cq-room");
     // only the back wall: no counter, no hamster, no goods, no guests, no fire glow
     ["#cf-hamw", "#cf-front", "#cf-stock", "#cf-guests", "#cf-gfly", "#cf-hamfx", "#cf-fest", "#cf-dim", ".cf-fire", ".cf-hearth", ".cq-talk"].forEach(function (q) { [].forEach.call(cl.querySelectorAll(q), function (e) { e.remove(); }); });
-    [].forEach.call(cl.querySelectorAll("[id]"), function (e) { e.id = "cqr-" + e.id; });   /* no clashing ids with the real café */
+    // the oven at the left edge goes: the room's objects are cut off left of it, the wall stays
+    var ob = cl.querySelector(".cf-ob"); if (ob) { ob.insertAdjacentHTML("beforebegin", '<clipPath id="cq-noven"><rect x="0" y="0" width="470" height="22"/><rect x="' + CQ_OVENX + '" y="0" width="470" height="135"/></clipPath>'); ob.setAttribute("clip-path", "url(#cq-noven)"); }
+    [].forEach.call(cl.querySelectorAll("[id]"), function (e) { if (e.id !== "cq-noven") e.id = "cqr-" + e.id; });   /* no clashing ids with the real café */
     var cp = cl.querySelector("clipPath"); if (cp) { cl.querySelector("[clip-path]") && cl.querySelector("[clip-path]").setAttribute("clip-path", "url(#cqr-" + cp.id.replace(/^cqr-/, "") + ")"); }
     // two round windows of this style, drawn for this view: one over the window above the counter, one more on the left
     var w = CF.wins[CF.wins.length - 1], wy = w[1], g = "";
@@ -18285,7 +18287,7 @@ window.__EXTRAS = true;
     if (!night) { R(cx - Ri + 3, cy - Ri + 4, 2, 1, "#ffffff"); R(cx - Ri + 2, cy - Ri + 5, 1, 2, "#ffffff"); }
     return o.join("");
   }
-  var CQ_ROOMX = 200, CQ_ROOMY = -12, CQ_WIN2 = -110;
+  var CQ_ROOMX = 200, CQ_ROOMY = -12, CQ_WIN2 = -110, CQ_OVENX = 226;
   function cqDisc(R, cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = x * x / (rx * rx) + y * y / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) R(cx + x, cy + y, 1, 1, c); } } }
   // draft 2: the café counter seen from the guest: an espresso machine, a glass case with cakes, a menu board on the wall, two lamps
   function cqBack2() {
