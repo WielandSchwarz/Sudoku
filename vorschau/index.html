@@ -18263,13 +18263,27 @@ window.__EXTRAS = true;
     ["#cf-hamw", "#cf-front", "#cf-stock", "#cf-guests", "#cf-gfly", "#cf-hamfx", "#cf-fest", "#cf-dim", ".cf-fire", ".cf-hearth", ".cq-talk"].forEach(function (q) { [].forEach.call(cl.querySelectorAll(q), function (e) { e.remove(); }); });
     [].forEach.call(cl.querySelectorAll("[id]"), function (e) { e.id = "cqr-" + e.id; });   /* no clashing ids with the real café */
     var cp = cl.querySelector("clipPath"); if (cp) { cl.querySelector("[clip-path]") && cl.querySelector("[clip-path]").setAttribute("clip-path", "url(#cqr-" + cp.id.replace(/^cqr-/, "") + ")"); }
-    // a second round window of this style next to the one above the counter: the same window, cut round and set in again
-    var w = CF.wins[CF.wins.length - 1], R = Math.round(w[2] + (CF_THEME_NOW === "firstclass" ? 7 : 5)), dx = CQ_WIN2;
-    var inner = cl.innerHTML;
-    var copy = '<defs><clipPath id="cqr-w2"><circle cx="' + w[0] + '" cy="' + w[1] + '" r="' + R + '"/></clipPath></defs><g transform="translate(' + dx + ' 0)"><g clip-path="url(#cqr-w2)">' + inner.replace(/<defs>[\s\S]*?<\/defs>/, "") + '</g></g>';
-    cl.insertAdjacentHTML("beforeend", copy);
+    // two round windows of this style, drawn for this view: one over the window above the counter, one more on the left
+    var w = CF.wins[CF.wins.length - 1], wy = w[1], g = "";
+    [w[0] + CQ_WIN2, w[0]].forEach(function (x) { g += cqWindow(x, wy, CF_THEME_NOW === "firstclass"); });
+    cl.insertAdjacentHTML("beforeend", '<g shape-rendering="crispEdges">' + g + '</g>');
     cl.style.width = (W / 180 * 100) + "%"; cl.style.height = (H / 135 * 100) + "%"; cl.style.left = (-CQ_ROOMX / 180 * 100) + "%"; cl.style.top = (-CQ_ROOMY / 135 * 100) + "%";
     return cl.outerHTML + '<div class="cq-haze"></div>';
+  }
+  function cqWindow(cx, cy, brass) {   // a round window with a little garden view: wood frame and sill, or a brass porthole with rivets
+    var o = [], R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); }, night = typeof daylight === "function" && daylight() !== "day";
+    var Ro = brass ? 15 : 17, Ri = brass ? 9 : 12;
+    if (!brass) { R(cx - 19, cy + Ro - 1, 38, 4, "#3a2414"); R(cx - 18, cy + Ro - 1, 36, 2, "#c8945a"); R(cx - 18, cy + Ro - 1, 36, 1, "#e0b07a"); }
+    for (var y = -Ro; y <= Ro; y++) for (var x = -Ro; x <= Ro; x++) { var d = Math.hypot(x, y); if (d > Ro + .3) continue; var c;
+      if (d > Ro - .7) c = "#3a2414";
+      else if (d > Ri + 1) c = brass ? (x + y < -Ro * .5 ? "#f6d878" : x + y > Ro * .5 ? "#a8782a" : "#d8a83a") : (x + y < -Ro * .4 ? "#c8945a" : x + y > Ro * .4 ? "#6a4424" : "#8a5a30");
+      else if (d > Ri) c = "#3a2414";
+      else { var u = (y + Ri) / (2 * Ri); c = night ? (u < .62 ? ((x * 7 + y * 13) % 23 === 0 ? "#fff8d0" : "#1e2a54") : u < .78 ? "#24461a" : "#2e5a22") : (u < .55 ? (u < .3 ? "#a8d8f0" : "#c4e6f6") : u < .72 ? ((x + y) % 3 ? "#4e8a32" : "#6fae4a") : "#7ac860"); }
+      R(cx + x, cy + y, 1, 1, c); }
+    if (brass) { for (var k = 0; k < 8; k++) { var an = k / 8 * Math.PI * 2; R(Math.round(cx + Math.cos(an) * (Ro - 2.5)), Math.round(cy + Math.sin(an) * (Ro - 2.5)), 1, 1, "#7a5418"); } }
+    else { R(cx - Ri, cy - 1, 2 * Ri + 1, 2, "#8a5a30"); R(cx - 1, cy - Ri, 2, 2 * Ri + 1, "#8a5a30"); R(cx - Ri, cy - 1, 2 * Ri + 1, 1, "#c8945a"); }
+    if (!night) { R(cx - Ri + 3, cy - Ri + 4, 2, 1, "#ffffff"); R(cx - Ri + 2, cy - Ri + 5, 1, 2, "#ffffff"); }
+    return o.join("");
   }
   var CQ_ROOMX = 200, CQ_ROOMY = -12, CQ_WIN2 = -110;
   function cqDisc(R, cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = x * x / (rx * rx) + y * y / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) R(cx + x, cy + y, 1, 1, c); } } }
