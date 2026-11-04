@@ -18266,9 +18266,9 @@ window.__EXTRAS = true;
     [].forEach.call(cl.querySelectorAll("[id]"), function (e) { if (e.id !== "cq-noven") e.id = "cqr-" + e.id; });   /* no clashing ids with the real café */
     var cp = cl.querySelector("clipPath"); if (cp) { cl.querySelector("[clip-path]") && cl.querySelector("[clip-path]").setAttribute("clip-path", "url(#cqr-" + cp.id.replace(/^cqr-/, "") + ")"); }
     // two round windows of this style, drawn for this view: one over the window above the counter, one more on the left
-    var w = CF.wins[CF.wins.length - 1], wy = w[1], g = "";
-    [w[0] + CQ_WIN2, w[0]].forEach(function (x) { g += cqWindow(x, wy, CF_THEME_NOW === "firstclass"); });
-    cl.insertAdjacentHTML("beforeend", '<g shape-rendering="crispEdges">' + g + '</g>');
+    var w = CF.wins[CF.wins.length - 1], wy = w[1], fc = CF_THEME_NOW === "firstclass";
+    // the room's own window above the counter, drawn new, and half of a second one cut off by the left edge of the picture
+    cl.insertAdjacentHTML("beforeend", '<g shape-rendering="crispEdges">' + cqWindow(CQ_ROOMX, wy, fc) + cqWindow(w[0], wy, fc) + '</g>');
     cl.style.width = (W / 180 * 100) + "%"; cl.style.height = (H / 135 * 100) + "%"; cl.style.left = (-CQ_ROOMX / 180 * 100) + "%"; cl.style.top = (-CQ_ROOMY / 135 * 100) + "%";
     return cl.outerHTML + '<div class="cq-haze"></div>';
   }
@@ -18287,7 +18287,7 @@ window.__EXTRAS = true;
     if (!night) { R(cx - Ri + 3, cy - Ri + 4, 2, 1, "#ffffff"); R(cx - Ri + 2, cy - Ri + 5, 1, 2, "#ffffff"); }
     return o.join("");
   }
-  var CQ_ROOMX = 200, CQ_ROOMY = -12, CQ_WIN2 = -110, CQ_OVENX = 226;
+  var CQ_ROOMX = 200, CQ_ROOMY = -12, CQ_WIN2 = -126, CQ_OVENX = 226;
   function cqDisc(R, cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = x * x / (rx * rx) + y * y / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) R(cx + x, cy + y, 1, 1, c); } } }
   // draft 2: the café counter seen from the guest: an espresso machine, a glass case with cakes, a menu board on the wall, two lamps
   function cqBack2() {
