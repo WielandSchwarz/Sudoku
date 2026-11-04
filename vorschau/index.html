@@ -17747,27 +17747,64 @@ window.__EXTRAS = true;
   // the backdrop of the harvest close-ups: sky, a hedge with leaf texture, light and shadow, a grass edge and crumbly soil with pebbles.
   // Drawn once per ground height into a little canvas and then just copied each frame.
   var HVBG = {};
+  /* the backdrop of the close-ups: newly drawn, but in the garden's style and colours of the season. We are small down here,
+     so there are no whole trees: the garden sky, far bushes in haze, a hedge seen up close in big speckled leaf clumps,
+     tall meadow grass with flowers at the ground line, and the bed's soil. Same pixel size as the garden. */
+  var HV_SEASONPAL = {
+    summer: { h: ["#2e5e28", "#3e7a32", "#5e9a42", "#7cb84e", "#a8d468"], z: ["#6a9a7a", "#7fae8a", "#94c09c"], m: ["#4e8a32", "#6aa83e", "#8cc458", "#b4dc78"], f: ["#ffffff", "#ffd34e", "#f4a3b4", "#e8554a", "#8ab4f0"] },
+    spring: { h: ["#3a6e2e", "#4e8a3a", "#6aa84a", "#9ad86a", "#c4ec8a"], z: ["#78ad86", "#8cbf96", "#a4d0aa"], m: ["#5a9a3a", "#78b848", "#9ad060", "#c4ec8a"], f: ["#ffffff", "#ffc0d0", "#ffd34e", "#f4a3b4"] },
+    autumn: { h: ["#4e5a26", "#6a7a32", "#8a8a36", "#a89a3a", "#c8b45a"], a: ["#d8862c", "#f0b448", "#a83a28"], z: ["#8e7e56", "#a89a6a", "#c0b284"], m: ["#7a8436", "#9aa64a", "#bcbe62", "#d8c878"], f: ["#ffffff", "#f0b448", "#a83a28", "#d8862c"] },
+    winter: { h: ["#5e7458", "#6a8064", "#7a9070", "#c4ccd6", "#ffffff"], snow: 1, z: ["#b0bac6", "#c4ccd6", "#d8dee8"], m: ["#c4ccd8", "#dce4ee", "#eef3f8", "#ffffff"], f: [] }
+  };
   function hvBg(t, groundY) {
-    var main = hvCtx || hvV.c, key = groundY + (document.getElementById("sky").className.indexOf("sky-night") >= 0 ? "n" : "");
+    var main = hvCtx || hvV.c, ph = typeof daylight === "function" ? daylight() : "day", se = typeof season === "function" ? season() : "summer", key = groundY + se + ph;
     if (!HVBG[key]) {
-      var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var c = cv.getContext("2d"), seed = 7;
+      var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var c = cv.getContext("2d"), seed = 7 + groundY;
       var R = function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }, P = function (x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
-      var hedgeTop = Math.round(groundY * .5), hedgeBot = groundY;
-      for (var y = 0; y < hedgeTop + 6; y++) for (var x = 0; x < 180; x++) P(x, y, 1, 1, y < hedgeTop * .5 ? ((x + y) % 4 === 0 && y > hedgeTop * .4 ? "#c4e6f6" : "#b4dff4") : ((x + y) % 2 && y < hedgeTop * .7 ? "#b4dff4" : "#c4e6f6"));
-      // two fluffy clouds
-      [[34, hedgeTop * .35], [128, hedgeTop * .2]].forEach(function (q) { for (var k = 0; k < 4; k++) { var cx = q[0] + k * 6 - 9, cy = q[1] + (k % 2 ? -2 : 0), r = k % 3 ? 5 : 4;
-        for (var yy = -r; yy <= r; yy++) for (var xx = -r - 2; xx <= r + 2; xx++) if (xx * xx / ((r + 2) * (r + 2)) + yy * yy / (r * r) <= 1) P(cx + xx, cy + yy, 1, 1, yy > 1 ? "#e4f2fa" : "#ffffff"); } });
-      // hedge: bumpy top, three greens, leaf clusters, a darker bottom where it meets the ground
-      var tops = []; for (var x2 = 0; x2 < 180; x2++) tops.push(Math.round(hedgeTop + Math.sin(x2 / 7) * 2.5 + Math.sin(x2 / 3.1) * 1.2));
-      for (var x3 = 0; x3 < 180; x3++) { for (var y3 = tops[x3]; y3 < hedgeBot; y3++) P(x3, y3, 1, 1, y3 > hedgeBot - 5 ? "#2e5a22" : "#4e8a32"); P(x3, tops[x3], 1, 1, "#24461a"); P(x3, tops[x3] + 1, 1, 1, "#6fae4a"); }
-      for (var k2 = 0; k2 < 420; k2++) { var lx = Math.floor(R() * 180), ly = tops[lx] + 2 + Math.floor(R() * (hedgeBot - tops[lx] - 6)), up = ly < tops[lx] + (hedgeBot - tops[lx]) * .45;
-        var col = up ? (R() < .5 ? "#6fae4a" : "#9ad070") : (R() < .6 ? "#3e7428" : "#2e5a22"); P(lx, ly, 2, 1, col); if (R() < .5) P(lx + 1, ly - 1, 1, 1, up ? "#9ad070" : "#3e7428"); }
-      // ground: grass edge with tufts, soil in tones, crumbs, pebbles with outline and light
-      for (var x4 = 0; x4 < 180; x4++) { P(x4, groundY, 1, 135 - groundY, "#6a4428"); P(x4, groundY, 1, 2, "#8a5e3a"); P(x4, groundY + 2, 1, 1, "#4e301c");
-        if ((x4 * 7) % 5 === 0) { var th = 2 + (x4 % 3); P(x4, groundY - th, 1, th + 1, "#4e8a32"); P(x4, groundY - th, 1, 1, "#9ad070"); } }
+      var pal = HV_SEASONPAL[se] || HV_SEASONPAL.summer, H = pal.h, Z = pal.z, M = pal.m;
+      var sk = (typeof SEASON === "object" && SEASON[se] && SEASON[se].sky) || ["#8fd0f4", "#d8f0fc"];
+      if (ph === "night") sk = ["#1e2a52", "#34407a"]; else if (ph === "twilight") sk = ["#f4a878", "#f8d8a8"];
+      var hx = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }, s0 = hx(sk[0]), s1 = hx(sk[1]);
+      var hedgeTop = Math.max(8, Math.round(groundY * .42)), hazeTop = Math.max(4, hedgeTop - 14);
+      // sky: the garden's gradient, garden clouds (blocky, white, a pale belly)
+      for (var y = 0; y < 135; y++) { var u = Math.min(1, y / Math.max(20, groundY)); P(0, y, 180, 1, "rgb(" + [0, 1, 2].map(function (i) { return Math.round(s0[i] + (s1[i] - s0[i]) * u); }).join(",") + ")"); }
+      if (ph !== "night") [[28, hazeTop * .35], [128, hazeTop * .15]].forEach(function (q) { var cx = q[0], cy = Math.round(q[1]);
+        [[0, 2, 10, 3], [3, 0, 6, 2], [6, -1, 4, 1], [-3, 3, 4, 2], [9, 3, 4, 2]].forEach(function (r) { P(cx + r[0], cy + r[1], r[2], r[3], "#ffffff"); }); P(cx - 3, cy + 5, 16, 1, "#e4eef6"); });
+      else for (var k0 = 0; k0 < 30; k0++) P(Math.floor(R() * 180), Math.floor(R() * Math.max(8, hedgeTop)), 1, 1, R() < .3 ? "#fff8d0" : "#c8d4f0");
+      // far bushes in haze: soft round tops, speckled in the garden's hill tones
+      for (var x1 = 0; x1 < 180; x1++) { var top1 = Math.round(hazeTop + 4 - Math.abs(Math.sin(x1 / 17)) * 6 - Math.sin(x1 / 7) * 1.5);
+        for (var y1 = top1; y1 < hedgeTop + 8; y1++) { var r1 = R(); P(x1, y1, 1, 1, y1 === top1 ? Z[2] : r1 < .25 ? Z[2] : r1 < .7 ? Z[1] : Z[0]); } }
+      // the hedge up close: big leaf clumps in rows, each lit from the upper left and speckled like the garden's hedge
+      var tops = []; for (var x2 = 0; x2 < 180; x2++) tops.push(Math.round(hedgeTop + Math.sin(x2 / 11) * 3 + Math.sin(x2 / 4.3) * 1.2));
+      for (var x3 = 0; x3 < 180; x3++) for (var y3 = tops[x3] + 3; y3 < groundY; y3++) P(x3, y3, 1, 1, R() < .5 ? H[0] : H[1]);
+      [0, 1, 2].forEach(function (row) {
+        var n = [9, 8, 7][row];
+        for (var k = 0; k < n + 1; k++) { var cx = Math.round((k - .3 + R() * .6) * 180 / n), y0 = tops[Math.max(0, Math.min(179, cx))];
+          var cy = Math.round(y0 + 6 + row * (groundY - y0) * .28 + R() * 4), rx = 11 + Math.floor(R() * 6), ry = 8 + Math.floor(R() * 4);
+          for (var yy = -ry; yy <= ry; yy++) for (var xx = -rx; xx <= rx; xx++) { var d = xx * xx / (rx * rx) + yy * yy / (ry * ry); if (d > 1 || cy + yy >= groundY) continue;
+            var edge = d + Math.sin(xx * 1.7 + yy * 2.3 + k) * .12; if (edge > .95) continue;      /* ragged leafy outline, no smooth blob */
+            var lit = (-xx * .5 - yy) / (rx + ry) + (R() - .5) * .7 + (row - 1) * .06, i = lit > .42 ? 4 : lit > .16 ? 3 : lit > -.1 ? 2 : lit > -.34 ? 1 : 0;
+            if (pal.snow) { var cap = -ry * .35 + Math.sin(xx * .9 + k) * 1.5; i = yy < cap ? (yy < cap - 2 || R() < .8 ? 4 : 3) : yy < cap + 1 ? 3 : Math.min(i, 2); }
+            if (edge > .8 && yy > 0) i = 0; P(cx + xx, cy + yy, 1, 1, pal.a && i >= 3 && R() < .12 ? pal.a[Math.floor(R() * pal.a.length)] : H[Math.min(4, i)]); }
+          // a few single leaf shapes catching the light on top of the clump
+          for (var lf = 0; lf < (pal.snow ? 0 : 4); lf++) { var lx = cx - Math.round(rx * .6) + Math.floor(R() * rx), ly = cy - Math.round(ry * .7) + Math.floor(R() * ry * .5); if (ly >= groundY) continue;
+            P(lx, ly, 3, 1, H[4]); P(lx + 1, ly - 1, 1, 1, H[4]); P(lx, ly + 1, 3, 1, H[2]); } } });
+      if (pal.f.length) for (var k2 = 0; k2 < 12; k2++) { var fx = 4 + Math.floor(R() * 172), fy = tops[fx] + 6 + Math.floor(R() * Math.max(1, (groundY - tops[fx]) * .6)); if (fy >= groundY - 4) continue; var fc = pal.f[Math.floor(R() * pal.f.length)];
+        P(fx + 1, fy, 1, 1, fc); P(fx, fy + 1, 3, 1, fc); P(fx + 1, fy + 2, 1, 1, fc); P(fx + 1, fy + 1, 1, 1, "#f0a030"); }
+      for (var x4 = 0; x4 < 180; x4++) for (var y4 = groundY - 4; y4 < groundY; y4++) if (R() < (y4 - groundY + 5) / 5) P(x4, y4, 1, 1, H[0]);
+      // soil below the ground line, in the garden bed's tones
+      for (var x5 = 0; x5 < 180; x5++) { P(x5, groundY, 1, 135 - groundY, "#6a4428"); P(x5, groundY + 1, 1, 2, "#8a5e3a"); }
       for (var k3 = 0; k3 < 700; k3++) { var sx = Math.floor(R() * 180), sy = groundY + 3 + Math.floor(R() * (132 - groundY)); P(sx, sy, R() < .4 ? 2 : 1, 1, ["#4e301c", "#8a5e3a", "#3a2214", "#5a3820"][Math.floor(R() * 4)]); }
-      for (var k4 = 0; k4 < Math.round((135 - groundY) / 6); k4++) { var px = 4 + Math.floor(R() * 170), py = groundY + 6 + Math.floor(R() * Math.max(1, 124 - groundY)), w = 2 + Math.floor(R() * 3);
+      for (var k4 = 0; k4 < Math.round((135 - groundY) / 7); k4++) { var px = 4 + Math.floor(R() * 170), py = groundY + 7 + Math.floor(R() * Math.max(1, 124 - groundY)), w = 2 + Math.floor(R() * 3);
         P(px, py - 1, w, 1, "#3a2214"); P(px, py + 2, w, 1, "#3a2214"); P(px - 1, py, 1, 2, "#3a2214"); P(px + w, py, 1, 2, "#3a2214"); P(px, py, w, 1, "#c4c4cc"); P(px, py + 1, w, 1, "#9a9aa2"); P(px, py, 1, 1, "#e4e4ec"); }
+      // tall meadow grass along the ground line, seen from down low: blades of different heights, now and then a flower on its stem
+      for (var x6 = 0; x6 < 180; x6++) { P(x6, groundY, 1, 1, M[0]); if (R() < .7) { var bh = 3 + Math.floor(R() * (R() < .2 ? 11 : 6)), lean = R() < .5 ? -1 : 1;
+        for (var b2 = 0; b2 < bh; b2++) P(x6 + (b2 > bh * .55 ? lean : 0), groundY - b2, 1, 1, b2 < 2 ? M[0] : b2 < bh * .6 ? M[1] : b2 < bh - 1 ? M[2] : M[3]); } }
+      if (pal.f.length) for (var k5 = 0; k5 < 7; k5++) { var sx2 = 6 + Math.floor(R() * 168), sh = 8 + Math.floor(R() * 8), fc2 = pal.f[Math.floor(R() * pal.f.length)];
+        for (var q = 0; q < sh; q++) P(sx2, groundY - q, 1, 1, M[1]); P(sx2 + 1, groundY - 4, 1, 1, M[2]); var fy2 = groundY - sh - 1;
+        P(sx2, fy2 - 1, 1, 1, fc2); P(sx2 - 1, fy2, 1, 1, fc2); P(sx2 + 1, fy2, 1, 1, fc2); P(sx2, fy2 + 1, 1, 1, fc2); P(sx2, fy2, 1, 1, "#f0a030"); }
+      for (var x7 = 0; x7 < 180; x7++) { P(x7, groundY + 1, 1, 1, "#4e301c"); }
+      if (ph !== "day") { c.fillStyle = "rgba(24,26,64," + (ph === "night" ? .18 : .08) + ")"; c.fillRect(0, 0, 180, 135); }
       HVBG[key] = cv;
     }
     main.drawImage(HVBG[key], 0, 0);
@@ -17857,7 +17894,10 @@ window.__EXTRAS = true;
   // ---- the other crops in the close-up ----
   // where to cut: a blinking dashed line across the stalk, with arrows that show the swipe
   function hvVine(x0, x1, y0, per, amp) {   // a thick vine with an outline, light on top
-    for (var vx = x0; vx < x1; vx++) { var y = Math.round(y0 + Math.sin(vx / per) * amp); hR(vx, y - 1, 1, 5, "#1e4a1e"); hR(vx, y, 1, 3, "#3e8a3a"); hR(vx, y, 1, 1, "#7ac860"); }
+    for (var vx = x0; vx < x1; vx++) { var y = Math.round(y0 + Math.sin(vx / per) * amp); hR(vx, y - 1, 1, 5, "#1e4a1e"); hR(vx, y, 1, 3, "#3e8a3a"); hR(vx, y, 1, 1, "#7ac860"); hR(vx, y + 2, 1, 1, "#2e6a2a"); if (vx % 9 === 4) hR(vx, y + 1, 1, 1, "#5aa04a"); }
+    for (var lx = x0 + 10; lx < x1 - 6; lx += 26) { var ly = Math.round(y0 + Math.sin(lx / per) * amp), up = (lx / 26) % 2 < 1;
+      hDisc(lx + 3, up ? ly - 5 : ly + 7, 4, 3, function (dx, dy, d) { return d > .7 ? "#1e4a1e" : dx + dy < -1 ? "#7ac860" : (dx === 0 ? "#3e8a3a" : "#5aa04a"); }); hR(lx, up ? ly - 2 : ly + 3, 1, 2, "#1e4a1e");
+      var tx = lx + 13, ty = Math.round(y0 + Math.sin(tx / per) * amp) - 2; [[0, 0], [1, -1], [2, -2], [3, -2], [4, -1], [4, 0], [3, 1], [2, 0]].forEach(function (q) { hR(tx + q[0], ty + q[1] - 2, 1, 1, "#5aa04a"); }); }
   }
   function hvCutMark(x, y, t, hw) {
     var on = Math.floor(t / 300) % 2; hw = hw || 12;
@@ -17867,16 +17907,28 @@ window.__EXTRAS = true;
   }
   function hvScissors(p) { var x = p[0], y = p[1]; hR(x - 7, y - 2, 7, 2, "#3a2414"); hR(x - 7, y + 1, 7, 2, "#3a2414"); hR(x - 6, y - 2, 6, 1, "#d8e0e8"); hR(x - 6, y + 2, 6, 1, "#d8e0e8");
     hDisc(x + 4, y - 3, 3, 3, function (dx, dy, d) { return d > .55 ? "#3a2414" : "#e8402a"; }); hDisc(x + 4, y + 4, 3, 3, function (dx, dy, d) { return d > .55 ? "#3a2414" : "#e8402a"; }); }
-  function hvBasket(x, y, n, drawItem) { hR(x, y, 30, 22, "#3a2414"); hR(x + 1, y + 1, 28, 20, "#c8945a"); for (var bw = 0; bw < 28; bw += 4) hR(x + 1 + bw, y + 1, 1, 20, "#a87448"); hR(x + 1, y + 9, 28, 1, "#a87448"); hR(x + 4, y - 8, 22, 2, "#3a2414"); hR(x + 3, y - 8, 2, 9, "#3a2414"); hR(x + 25, y - 8, 2, 9, "#3a2414");
-    for (var q = 0; q < n; q++) drawItem(x + 7 + (q % 3) * 8, y - 1 - Math.floor(q / 3) * 4); }
+  function hvBasket(x, y, n, drawItem) {                              // a woven willow basket: rim, weave in light and shade, a dark foot, handle with a sheen
+    var K = "#3a2414";
+    hR(x + 3, y - 9, 24, 1, K); hR(x + 2, y - 8, 1, 9, K); hR(x + 27, y - 8, 1, 9, K); hR(x + 5, y - 7, 20, 1, K); hR(x + 4, y - 6, 1, 7, K); hR(x + 25, y - 6, 1, 7, K);
+    hR(x + 3, y - 8, 24, 1, "#d8a868"); hR(x + 3, y - 7, 1, 8, "#c8945a"); hR(x + 26, y - 7, 1, 8, "#8a5a34"); hR(x + 5, y - 8, 18, 1, "#f0c890");
+    for (var q = 0; q < n; q++) drawItem(x + 7 + (q % 3) * 8, y - 1 - Math.floor(q / 3) * 4);
+    hR(x, y, 30, 22, K); hR(x + 1, y + 1, 28, 20, "#b8844c");
+    for (var r = 0; r < 5; r++) for (var c2 = 0; c2 < 7; c2++) { var bx = x + 1 + c2 * 4, by = y + 4 + r * 4, odd = (r + c2) % 2;
+      var side = c2 === 0 ? -1 : c2 === 6 ? 1 : 0, lit = r < 2 ? 1 : r > 3 ? -1 : 0;
+      hR(bx, by, 4, 3, odd ? (lit > 0 ? "#d8a868" : "#c8945a") : (lit > 0 ? "#c8945a" : "#a87448")); hR(bx, by + 3, 4, 1, "#8a5a34");
+      if (odd) hR(bx + 1, by, 2, 1, "#f0c890"); if (side) hR(side < 0 ? bx : bx + 3, by, 1, 3, side < 0 ? "#d8a868" : "#8a5a34"); }
+    hR(x + 1, y + 1, 28, 3, "#c8945a"); hR(x + 1, y + 1, 28, 1, "#f0c890"); hR(x + 1, y + 3, 28, 1, "#8a5a34");
+    hR(x + 1, y + 19, 28, 2, "#6a4226"); hR(x, y + 22, 30, 1, K);
+  }
   function hvBigLeaf(x, y, r, a) {                                     // a big rough cucumber or pumpkin leaf
     var c = hvPB(x, y, r || 0, a);
     for (var yy = -15; yy <= 13; yy++) for (var xx = -17; xx <= 17; xx++) { var rr = Math.hypot(xx, yy * 1.1), ang = Math.atan2(yy, xx), lob = 14 + Math.cos(ang * 5) * 2.5; if (rr > lob) continue;
       mR(c, xx, yy, 1, 1, rr > lob - 1.2 ? "#24502a" : (Math.abs(Math.sin(ang * 5)) < .12 && rr > 3) ? "#3e8a3a" : (xx + yy < -6 ? "#7ac85a" : "#5ab04a")); }
     hvPE(); }
   function hvCucumber(x, y, len, ang) { var c = hvPB(x, y, ang || 0);
-    for (var i = 0; i < len; i++) { var w = i < 3 || i > len - 4 ? 3 : 5; for (var j = -w; j <= w; j++) { var u = (j + w) / (2 * w); mR(c, j, i, 1, 1, Math.abs(j) === w ? "#1e4a1e" : u < .3 ? "#7ac860" : u < .7 ? "#3e8a3a" : "#2e6a2a"); }
-      if (i % 5 === 2) { mR(c, -2, i, 1, 1, "#c8e8a0"); mR(c, 2, i + 2, 1, 1, "#c8e8a0"); } }
+    for (var i = 0; i < len; i++) { var w = i < 2 || i > len - 3 ? 3 : i < 4 || i > len - 5 ? 4 : 5; for (var j = -w; j <= w; j++) { var u = (j + w) / (2 * w); mR(c, j, i, 1, 1, Math.abs(j) === w ? "#1e3a1a" : u < .22 ? "#9ad070" : u < .45 ? "#5aa04a" : u < .78 ? "#3e8a3a" : "#2a5a24"); }
+      if (i % 4 === 1 && i > 2 && i < len - 3) { var wx = (i % 8 === 1) ? -2 : 2; mR(c, wx, i, 1, 1, "#d8f0b0"); mR(c, wx, i + 1, 1, 1, "#1e3a1a"); } }
+    mR(c, -1, len, 3, 1, "#1e3a1a"); mR(c, 0, len, 1, 1, "#f0d050");
     mR(c, -1, -6, 2, 7, "#5a8a3a"); hvPE(); }
   function hvPumpkin(x, y, rot) { var c = hvPB(x, y, rot || 0);
     for (var yy = -20; yy <= 20; yy++) for (var xx = -27; xx <= 27; xx++) { var d = (xx * xx) / 729 + (yy * yy) / 400; if (d > 1) continue; var rib = Math.abs(Math.sin(xx / 27 * 2.6)), l = (-xx - yy) / 40;
@@ -17907,7 +17959,9 @@ window.__EXTRAS = true;
     if (c === "dandelion") { HV.items = [0, 1, 2, 3, 4].map(function (i) { var ang = -Math.PI * .9 + i * Math.PI * .45; return { ang: ang, len: 34, cut: false, off: false, x: 90 + Math.cos(ang) * 8, y: 104 + Math.sin(ang) * 4 }; }); }
     if (c === "herbs") { HV.stems = [64, 72, 80, 88, 96, 104, 112]; HV.cutAt = 0; HV.knots = [0, 0, 0]; }
   }
-  function hxBowl() { var x = HV.bowlX, y = HV.bowlY; hR(x - 16, y - 6, 32, 10, "#3a2414"); hR(x - 15, y - 5, 30, 8, "#e8d8b8"); hR(x - 15, y - 5, 30, 1, "#fff8ec");
+  function hxBowl() { var x = HV.bowlX, y = HV.bowlY;
+    hDisc(x, y - 1, 17, 7, function (dx, dy, d) { if (dy < -2) return null; if (d > .82) return "#3a2414"; return dx < -8 ? "#fff8ec" : dx > 9 || dy > 3 ? "#c8b490" : "#e8d8b8"; });
+    hR(x - 16, y - 4, 32, 1, "#3a2414"); hR(x - 15, y - 3, 30, 1, "#fff8ec"); hR(x - 13, y - 2, 26, 1, "#a8946e"); hR(x - 6, y + 6, 12, 1, "#3a2414"); hR(x - 5, y + 5, 10, 1, "#a8946e");
     var nIn = 0; HV.items.forEach(function (it, i) { if (it.off && !it.worm && it.inBowl !== false) { var j = nIn++; if (HV.c === "chili") hvChili(x - 10 + (j % 4) * 6, y - 14, true); else hvFruit(HV.tc || HV.c, x - 11 + (j % 5) * 5.5, y - 6 - Math.floor(j / 5) * 4, true); } }); }
   function hxDraw(t, c, k) {
     if (c === "cucumber") { hvBg(t, 96);
@@ -17926,8 +17980,10 @@ window.__EXTRAS = true;
       if (k === "cut") hvScissors(HV.sc || [126, 66]);
       if (k === "roll" && !HV.stepDone && !HV.drag) { var b = Math.sin(t / 150) * 3; hR(112 + b, 92, 10, 2, "#ffd34a"); hR(120 + b, 90, 2, 6, "#ffd34a"); } }
     if (c === "tomato" || c === "chili") { hvBg(t, 104);
-      hR(89, 30, 3, 76, "#3e8a3a"); hR(89, 30, 1, 76, "#6fc05a"); if (c === "tomato") { hR(96, 24, 4, 84, "#3a2414"); hR(97, 25, 2, 82, "#c8945a"); }
-      [[70, 50], [108, 54], [78, 70], [104, 76], [86, 38]].forEach(function (l) { hDisc(l[0], l[1], 9, 5, function (dx, dy, d) { return d > .8 ? "#24502a" : dy < 0 ? "#6ab04a" : "#4a9a3a"; }); });
+      if (c === "tomato") { hR(96, 24, 4, 84, "#3a2414"); hR(97, 25, 2, 82, "#c8945a"); hR(97, 25, 1, 82, "#e0b07a"); for (var gy = 30; gy < 104; gy += 11) hR(98, gy, 1, 4, "#8a5a34"); hR(95, 58, 6, 2, "#e8d8b0"); hR(95, 59, 6, 1, "#c8b48a"); }
+      hR(88, 30, 5, 76, "#1e4a1e"); hR(89, 30, 3, 76, "#3e8a3a"); hR(89, 30, 1, 76, "#7ac860"); hR(91, 30, 1, 76, "#2e6a2a");
+      [[70, 50, -1], [108, 54, 1], [78, 70, -1], [104, 76, 1], [86, 38, -1]].forEach(function (l) { var sx = l[2] < 0 ? 88 : 92; for (var q = 0; q < 6; q++) hR(sx + l[2] * q * (Math.abs(l[0] - sx) / 6), l[1] - 1 + (q > 3 ? 1 : 0), 2, 1, "#2e6a2a");
+        [-6, 0, 6].forEach(function (o, n) { hDisc(l[0] + o, l[1] + (n === 1 ? -1 : 1), n === 1 ? 5 : 4, n === 1 ? 4 : 3, function (dx, dy, d) { if (d > .78) return (dx * 3 + dy * 5) % 4 === 0 ? null : "#1e4a1e"; if (dy === 0 && Math.abs(dx) < 4) return "#3e8a3a"; return dx + dy < -2 ? "#8ad06a" : dy < 0 ? "#5aa04a" : "#3e8a3a"; }); }); });
       HV.items.forEach(function (it) { if (it.off) return; if (c === "tomato") hvTomato(it.x, it.y, it.red, it.wob > 0); else hvChili(it.x + (it.wob > 0 ? Math.round(Math.sin(t / 40) * 1.5) : 0), it.y, it.red, it.dy); if (it.wob > 0) it.wob -= .02;
         if (c === "tomato" && it.turn && !it.off) { for (var q = 0; q < Math.abs(it.turn) / (Math.PI * 2) * 12; q++) { var an = q / 12 * Math.PI * 2; hR(it.x + Math.cos(an) * 12, it.y + Math.sin(an) * 11, 2, 2, "#ffd34a"); } } });
       if (k === "basket" && !HV.stepDone) { if (HV.drag && HV.bowlGrab) { HV.bowlX = HV.drag[0]; HV.bowlY = HV.drag[1]; } }
@@ -17981,8 +18037,6 @@ window.__EXTRAS = true;
   function hvHamDom(t) {
     var st = HV, f = st.face && performance.now() < st.faceT ? st.face : (st.drag ? "work" : "idle");
     if (f !== st.lastFace) { st.lastFace = f; front(HV_FACES[f] || HV_FACES.idle); if (f === "happy") pulse("bighop", 620); else if (f === "oops" || f === "ouch") pulse("hop", 380); body(f === "work" ? "" : "breathe"); }
-    if (st.drag) { var px = st.drag[0], py = st.drag[1] + 7, w = Math.floor(t / 120) % 2;
-      [[-6, w], [4, 1 - w]].forEach(function (q) { hDisc(px + q[0], py + q[1], 4, 3, function (dx, dy, d) { return d > .75 ? "#3a2414" : dy < 0 ? "#f4b060" : "#e8964a"; }); hR(px + q[0] - 2, py + q[1] - 3, 1, 1, "#f4a3b4"); }); }
   }
   function hvHam(t, st) {
     st = st || HV; var f = st.face && performance.now() < st.faceT ? st.face : (st.drag ? "work" : "idle"), bob = Math.round(Math.sin(t / 400) * 1) + (f === "happy" ? -Math.abs(Math.round(Math.sin(t / 90) * 2)) : 0);
@@ -18001,8 +18055,6 @@ window.__EXTRAS = true;
     else { hR(cx - 2, cy + 3, 1, 1, "#3a2414"); hR(cx + 1, cy + 3, 1, 1, "#3a2414"); hR(cx - 1, cy + 4, 2, 1, "#3a2414"); }
     if (f === "ouch") { hR(cx + 14, cy - 10, 2, 3, "#8ac8f0"); hR(cx + 14, cy - 11, 1, 1, "#ffffff"); }
     if (f === "happy" && (t % 600) < 300) { hR(cx + 18, cy - 20, 2, 2, "#ff6a8a"); hR(cx + 21, cy - 20, 2, 2, "#ff6a8a"); hR(cx + 18, cy - 18, 5, 2, "#ff6a8a"); hR(cx + 19, cy - 16, 3, 1, "#ff6a8a"); }
-    if (st.drag) { var px = st.drag[0], py = st.drag[1] + 7, w = Math.floor(t / 120) % 2;                  // two little paws right under the finger
-      [[-6, w], [4, 1 - w]].forEach(function (q) { hDisc(px + q[0], py + q[1], 4, 3, function (dx, dy, d) { return d > .75 ? "#3a2414" : dy < 0 ? "#f4b060" : "#e8964a"; }); hR(px + q[0] - 2, py + q[1] - 3, 1, 1, "#f4a3b4"); hR(px + q[0], py + q[1] - 3, 1, 1, "#f4a3b4"); hR(px + q[0] + 2, py + q[1] - 3, 1, 1, "#f4a3b4"); }); }
   }
   function hvFly(x, y, draw, tx, ty, onLand) { HV.fly = HV.fly || []; HV.fly.push({ x: x, y: y, tx: tx || 158, ty: ty || 100, u: 0, draw: draw, land: onLand }); }
   function hvFlyDraw() { if (!HV.fly) return; HV.fly = HV.fly.filter(function (f) { f.u = Math.min(1, f.u + .045); var e = f.u, x = f.x + (f.tx - f.x) * e, y = f.y + (f.ty - f.y) * e - Math.sin(e * Math.PI) * 26; f.draw(x, y);
