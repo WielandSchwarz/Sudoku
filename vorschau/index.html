@@ -8535,7 +8535,7 @@ window.__EXTRAS = true;
     G.gz = { a: t[0], b: t[1], c: "#8a5e3a" }; pzGauge(G, 0);
     G.pawEls = ["l", "r"].map(function (sd) { var e = lEl("div", "pz-pawmark", pzLay, pawPrintSvg()); if (PZCAM) pzPos(e, sd === "l" ? 45 : 86, 94, 9, 8); else pzPos(e, sd === "l" ? 38 : 88, 92, 14, 13); e.dataset.p = sd; e.style.zIndex = 110; return e; });
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true;
-    pzTip("Abwechselnd links und rechts tippen. Im goldenen Bereich aufhören: " + CROPS[G.c].name + (t[0] >= 7 ? " mag es tief." : t[0] <= 3 ? " mag es flach." : " mag es mitteltief."));
+    pzTip("Abwechselnd links und rechts tippen, bis das Loch tief genug ist.");
   }
   function pzDigTap(G, side) {
     if (G.step !== 2 || G.dug) return;
@@ -8549,9 +8549,8 @@ window.__EXTRAS = true;
     pzCrumbs(70 + (side === "l" ? -8 : 8), 96, 4); beep([[300 + G.depth * 30, .04]]);
     G.holeEl.innerHTML = pzSvg("hole" + Math.min(6, Math.ceil(G.depth / 2)));
     pzGauge(G, G.depth);
-    pzUi.querySelector(".pz-done").disabled = false;
-    var inZone = G.depth >= G.target[0] && G.depth <= G.target[1];
-    pzTip(inZone ? "Genau richtig! Jetzt auf <b>Fertig</b> tippen." : G.depth > G.target[1] ? "Ups, das wird zu tief." : "");
+    /* deep enough: the step finishes by itself, no tap on the hamster */
+    if (G.depth >= G.target[0]) { pzTip("Genau richtig!"); setTimeout(function () { if (G.step === 2 && !G.dug) G.dug = true; }, 380); }
     if (false) {
       G.found = pick(["stone", "shell", "stick", "feather"]); addMat(G.found, 1);
       var f = lEl("div", "pz-find", pzLay, matIcon(G.found)); pzPos(f, 66, 88, 8, 8); setTimeout(function () { f.remove(); }, 1500);
@@ -8655,7 +8654,7 @@ window.__EXTRAS = true;
     });
     ["pointerup", "pointercancel"].forEach(function (t) { hit.addEventListener(t, function () { last = null; front({ paws: "down", eyes: "open", mouth: "smile" }); }); });
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true; pzUi.querySelector(".pz-done").textContent = "Festklopfen";
-    pzTip("Mit dem Finger hin und her über das Loch wischen, bis es zu ist. Ein kleiner Hügel ist gut, ein großer zu viel.");
+    pzTip("Mit dem Finger hin und her über das Loch wischen, bis es zu ist.");
   }
   function pzCoverDraw(G) {
     var f = G.fill;
@@ -8665,8 +8664,7 @@ window.__EXTRAS = true;
     var m = pzLay.querySelector(".pz-mound");
     if (f >= 85) { if (!m) { m = lEl("div", "pz-mound", pzLay); pzPos(m, 55, 93, 30, 9); m.style.zIndex = 101; } m.innerHTML = pzSvg("mound" + (f < 110 ? 0 : f < 125 ? 1 : f < 140 ? 2 : 3)); }
     pzGauge(G, Math.max(0, Math.min(12, Math.floor((f + 6) / 12.5))));
-    pzUi.querySelector(".pz-done").disabled = f < 70;
-    pzTip(f >= 100 && f <= 125 ? "Genug Erde! Jetzt <b>Festklopfen</b>." : f > 125 ? "Oha, das wird ein Maulwurfshügel." : "");
+    if (f >= 100 && !G.covered && G.step === 4) { pzTip("Genug Erde!"); G.covered = true; pzUi.querySelector(".pz-done").hidden = true; }   /* finishes by itself */
   }
   async function pzPat(G) {
     G.covered = true; pzUi.querySelector(".pz-done").hidden = true;
@@ -8715,7 +8713,7 @@ window.__EXTRAS = true;
     tool.style.zIndex = 130; G.toolEl = tool;
     pzUi.querySelector(".pz-act").hidden = true; tool.classList.add("pz-hint");
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true; pzUi.querySelector(".pz-done").textContent = "Fertig";
-    pzTip(gh ? "Im Takt auf <b>Sprühen</b> tippen, bis der Wasserstand im goldenen Bereich ist." : "Den Knopf gedrückt halten, dann gießt " + N() + ". Im goldenen Bereich loslassen.");
+    pzTip(gh ? "Auf <b>Sprühen</b> tippen, bis die Erde feucht ist." : "Gedrückt halten, dann gießt " + N() + ".");
     if (!gh) {
       var lastT = 0;
       G.pourT = setInterval(function () {
@@ -8736,10 +8734,10 @@ window.__EXTRAS = true;
   function pzWetDraw(G) {
     var w = G.wet;
     pzGauge(G, Math.max(0, Math.min(12, Math.floor((w + 4) * 12 / 100))));
-    pzUi.querySelector(".pz-done").disabled = w < 20;
+    if (w >= 72 && !G.watered && G.step === 5) { G.watered = true; G.pouring = false; }   /* moist enough: finishes by itself */
     var m = pzLay.querySelector(".pz-mound"); if (m) m.classList.toggle("wet", w > 40);
     if (w > 100 && !pzLay.querySelector(".pz-puddle")) { var p = lEl("div", "pz-puddle", pzLay, pzSvg("puddle")); pzPos(p, 52, 99, 36, 7); p.style.zIndex = 102; pzTip("Platsch, eine Pfütze. Das war zu viel Wasser."); front({ eyes: "wide", mouth: "open" }); }
-    else if (w >= 66 && w <= 84) pzTip("Genau richtig feucht! Jetzt " + (G.where === "gh" ? "aufhören" : "loslassen") + " und <b>Fertig</b>.");
+    else if (w >= 66 && w <= 84) pzTip("Genau richtig feucht!");
   }
 
   // ---------- the whole game ----------
@@ -8864,6 +8862,7 @@ window.__EXTRAS = true;
       res.hidden = false; pzBanner(stars === 3 ? "Perfekt gepflanzt!" : "Gepflanzt!");
       front({ eyes: "happy", mouth: "grin", paws: "up", blush: stars === 3 }); pulse("hop", 420);
       beep(stars === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]);
+      setTimeout(function () { G.ok = true; }, 2600);   /* closes by itself */
       await pzUntil(function () { return G.ok || G.cancel; });
       // plant it for real; good watering counts as watered
       var plot = { crop: c, prog: (stars - 1) * 0.06, wetUntil: G.wet >= 40 ? Date.now() + 2 * 3600000 : 0, stars: stars };
@@ -17638,6 +17637,7 @@ window.__EXTRAS = true;
         '<button type="button" class="pbtn pz-ok">' + (stars === 3 ? "Super!" : "Weiter") + '</button>';
       res.hidden = false;
       [0, 1, 2].forEach(function (q) { setTimeout(function () { if (q < stars) { p2Burst(72 + q * 18, 50, 10); beep([[659 + q * 130, .06]]); } }, 330 + q * 320); }); pzBanner(stars === 3 ? "Perfekt gepflanzt!" : "Gepflanzt!"); front({ eyes: "happy", mouth: "grin", paws: "up", blush: stars === 3 }); beep([[523, .08], [659, .08], [784, .12]]);
+      setTimeout(function () { G.ok = true; }, 2600);   /* the scene closes by itself once the stars are shown */
       await pzUntil(function () { return G.ok || G.cancel; });
       var plot = { crop: c, prog: (stars - 1) * 0.06, wetUntil: (G.wet || 0) >= 40 ? Date.now() + 2 * 3600000 : 0, stars: stars }; garden.seeds[c]--;
       if (gh) life().gh[i] = plot; else garden.plots[i] = plot;
