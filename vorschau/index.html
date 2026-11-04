@@ -2221,6 +2221,7 @@ body.dz-on .dz-panel { display: block; }
 .cq-bell { z-index: 59; }
 .cq-bg .cq-room { position: absolute; max-width: none; display: block; image-rendering: pixelated; filter: saturate(.85) brightness(.9); }
 .cq-bg .cq-haze { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(255, 220, 160, .18), rgba(255, 220, 160, 0) 70%), linear-gradient(rgba(60, 36, 20, .12), rgba(60, 36, 20, 0) 40%); pointer-events: none; }
+.cq-bg .cq-haze.cq-warm { background: radial-gradient(ellipse 45% 50% at 32% 60%, rgba(255, 170, 80, .16), rgba(255, 170, 80, 0) 70%), linear-gradient(rgba(60, 36, 20, .1), rgba(60, 36, 20, .18)); }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -18331,6 +18332,20 @@ window.__EXTRAS = true;
     cl.style.width = (W / 180 * 100) + "%"; cl.style.height = (H / 135 * 100) + "%"; cl.style.left = (-CQ_ROOMX / 180 * 100) + "%"; cl.style.top = (-CQ_ROOMY / 135 * 100) + "%";
     return cl.outerHTML + '<div class="cq-haze"></div>';
   }
+  /* the order view at a table: the café's fireplace corner behind the guest, with the fire burning and its warm glow.
+     It is the room's own picture, so every café style brings its own fireplace (First Class: the marble one) */
+  var CQ_FIREDX = 136, CQ_FIREX = 180, CQ_FIREY = -14;   /* the room sits a little higher so the flames show above the table */
+  function cqFireBg() {
+    var src = cafeEl.querySelector(".cf-svg"); if (!src) return cqRoomBg();
+    var vb = (src.getAttribute("viewBox") || "0 0 470 135").split(/\s+/).map(Number), W = vb[2], H = vb[3];
+    var cl = src.cloneNode(true); cl.removeAttribute("class"); cl.setAttribute("class", "cq-room");
+    ["#cf-hamw", "#cf-front", "#cf-stock", "#cf-guests", "#cf-gfly", "#cf-hamfx", "#cf-fest", "#cf-dim", ".cq-talk"].forEach(function (q) { [].forEach.call(cl.querySelectorAll(q), function (e) { e.remove(); }); });
+    [].forEach.call(cl.querySelectorAll("[id]"), function (e) { e.id = "cqf-" + e.id; });
+    [].forEach.call(cl.querySelectorAll("[clip-path]"), function (e) { e.setAttribute("clip-path", e.getAttribute("clip-path").replace("url(#", "url(#cqf-")); });
+    var rx = Math.max(0, Math.min(W - 180, CQ_FIREX - CQ_FIREDX));   /* the fireplace stands at x 180 in every café style */
+    cl.style.width = (W / 180 * 100) + "%"; cl.style.height = (H / 135 * 100) + "%"; cl.style.left = (-rx / 180 * 100) + "%"; cl.style.top = (CQ_FIREY / 135 * 100) + "%";
+    return cl.outerHTML + '<div class="cq-haze cq-warm"></div>';
+  }
   function cqWindow(cx, cy, brass) {   // a round window with a little garden view: wood frame and sill, or a brass porthole with rivets
     var o = [], R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); }, night = typeof daylight === "function" && daylight() !== "day";
     var Ro = brass ? 15 : 17, Ri = brass ? 9 : 12;
@@ -18420,12 +18435,22 @@ window.__EXTRAS = true;
     R(112, 86, 6, 11, K); R(113, 87, 4, 9, "#86b2e2"); R(114, 80, 1, 7, "#3e8a3a"); R(112, 77, 5, 4, K); R(113, 78, 3, 2, "#f29aa8");
     return cqSvg(o);
   }
-  function cqFrontTable() {
+  function cqFrontTable() {                                          // the guest's own café table up close: a round wooden top on one leg, the floor around it
     var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
-    R(0, 96, 180, 2, K); R(0, 98, 180, 4, "#d8a468"); R(0, 98, 180, 1, "#f0c890"); R(0, 101, 180, 1, "#b07a44"); R(0, 102, 180, 2, K); R(0, 104, 180, 31, "#5a3a22");
-    // on the table: the menu card standing up, a little vase
-    R(28, 80, 18, 17, K); R(29, 81, 16, 15, "#fff6e4"); R(29, 81, 16, 2, "#e8463c"); for (var l = 0; l < 4; l++) R(31, 85 + l * 3, l % 2 ? 9 : 12, 1, "#b8a080");
-    R(140, 86, 6, 11, K); R(141, 87, 4, 9, "#86b2e2"); R(142, 80, 1, 7, "#3e8a3a"); R(140, 77, 5, 4, K); R(141, 78, 3, 2, "#f29aa8");
+    var cx = 90, cy = 94, rx = 64, ry = 10;
+    R(cx - 5, cy + 8, 10, 40, K); R(cx - 4, cy + 8, 8, 40, "#7a4e2c"); R(cx - 4, cy + 8, 2, 40, "#9a6a3e"); R(cx + 2, cy + 8, 2, 40, "#5a3820");   // the leg
+    for (var y = -ry - 1; y <= ry + 5; y++) for (var x = -rx - 1; x <= rx + 1; x++) {
+      var top = x * x / ((rx + 1) * (rx + 1)) + y * y / ((ry + 1) * (ry + 1)), side = y > 0 && y <= ry + 4 && x * x / ((rx + 1) * (rx + 1)) + (y - 4) * (y - 4) / ((ry + 1) * (ry + 1)) <= 1;
+      if (top > 1 && !side) continue;
+      var inner = x * x / (rx * rx) + y * y / (ry * ry), c;
+      if (top <= 1 && inner <= 1) c = inner > .82 && y < 0 ? "#f0c890" : (x + y * 3) % 23 === 0 ? "#b07a44" : x < -rx * .3 && y < 2 ? "#d8a468" : "#c8945a";
+      else if (top <= 1) c = K;
+      else { var sd = x * x / (rx * rx) + (y - 4) * (y - 4) / (ry * ry); c = sd > 1 || y === ry + 4 ? K : y > ry + 1 ? "#6a4226" : "#8a5a34"; }
+      R(cx + x, cy + y, 1, 1, c);
+    }
+    // on the table: the menu card standing up, a little vase with a flower
+    R(52, 82, 18, 17, K); R(53, 83, 16, 15, "#fff6e4"); R(53, 83, 16, 2, "#e8463c"); for (var l = 0; l < 4; l++) R(55, 87 + l * 3, l % 2 ? 9 : 12, 1, "#b8a080"); R(52, 99, 18, 1, "#8a5a34");
+    R(120, 88, 6, 11, K); R(121, 89, 4, 9, "#86b2e2"); R(121, 89, 1, 9, "#c8e0f4"); R(122, 82, 1, 7, "#3e8a3a"); R(120, 79, 5, 4, K); R(121, 80, 3, 2, "#f29aa8"); R(119, 99, 8, 1, "#8a5a34");
     return cqSvg(o);
   }
   // ---- over the counter: the guest tells you what they would like ----
@@ -18444,7 +18469,7 @@ window.__EXTRAS = true;
     var old = cafeEl.querySelector(".cq-pov"); if (old) old.remove();
     var el = document.createElement("div"); el.className = "cq-pov pixtext";
     var pic = gWishPic(o);
-    el.innerHTML = '<div class="cq-bg">' + (CQ_BG === 5 ? cqRoomBg() : cqBack()) + '</div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
+    el.innerHTML = '<div class="cq-bg">' + (atTable ? cqFireBg() : CQ_BG === 5 ? cqRoomBg() : cqBack()) + '</div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
       '<div class="cq-front">' + (atTable ? cqFrontTable() : cqFront()) + '</div>' +
       '<div class="cq-box"><p class="cq-name">' + an.name + '</p><p class="cq-text"></p><div class="cq-wish" hidden>' + gSvg(pic, 3) + '</div>' +
       '<div class="cq-row" hidden><button type="button" class="pbtn cq-ok">' + cqPick(CQ_OK) + '</button></div></div>';
@@ -18657,6 +18682,8 @@ window.__EXTRAS = true;
     serveFront: function () { var g = cqList()[0]; if (!g) return false; var its = gItems(); if (!its.length) return "empty"; gServeItem(g, its[0]); return true; }, conv: function () { return cqConv; } };
   window.__cq.bg = function (n, x, y, w2) { CQ_BG = n; if (x != null) CQ_ROOMX = x; if (y != null) CQ_ROOMY = y; if (w2 != null) CQ_WIN2 = w2; };
   window.__cq.ringAs = function (id) { var orig = gKnown; gKnown = function () { return [id]; }; try { cqRing(); } finally { gKnown = orig; } };   // preview test: call a given guest
+  window.__cq.tableTalk = function (id) { cqTalkTo(id, gOrderNew(id), false, null, true); };   // preview test: the order view at a table
+  window.__cq.fireDx = function (d, y) { CQ_FIREDX = d; if (y != null) CQ_FIREY = y; };
   window.__cq.theme = function (t) { cfL().theme = t; cfRebuild(); };   // preview test: switch the café style
 
 
