@@ -2125,6 +2125,36 @@ body.dz-on .dz-panel { display: block; }
 .cf-cat .ga-card { width: auto; max-width: none; max-height: none; overflow: visible; }
 
 .cf-ban:empty { display: none; }
+
+/* the bell and the view over the counter (preview) */
+.cq-bell { position: absolute; left: 3%; bottom: 4%; z-index: 40; width: 12%; border: 0; padding: 1.6% 1.8% 1.2%; background: #fff8ec; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; cursor: pointer; }
+.cq-bell svg { width: 100%; height: auto; display: block; }
+.cq-bell.ring svg { animation: cq-ring .5s steps(5); transform-origin: 50% 10%; } @keyframes cq-ring { 20% { transform: rotate(-18deg); } 40% { transform: rotate(14deg); } 60% { transform: rotate(-9deg); } 80% { transform: rotate(5deg); } }
+.cq-bell.full { opacity: .55; }
+.cq-bell .cq-n { position: absolute; right: -8%; top: -10%; min-width: 1.1em; font-size: .62rem; color: #fff8ec; background: #e8650c; box-shadow: 0 0 0 2px #3a2414; text-align: center; font-weight: 800; }
+.cq-bell .cq-n:empty { display: none; }
+.cq-pov { position: absolute; inset: 0; z-index: 60; overflow: hidden; background: #f4e8cc; animation: cq-in .3s steps(4); }
+.cq-pov.out { animation: cq-out .26s steps(3) forwards; } @keyframes cq-in { from { opacity: 0; transform: translateY(6%); } } @keyframes cq-out { to { opacity: 0; } }
+.cq-wall { position: absolute; inset: 0 0 30% 0; background: repeating-linear-gradient(90deg, #f4e8cc 0 12%, #ecdcb8 12% 12.6%); }
+.cq-win { position: absolute; left: 62%; top: 8%; width: 26%; height: 28%; background: linear-gradient(#bfe6fa, #d8f0fc); box-shadow: 0 0 0 3px #8a5a30, 0 0 0 5px #3a2414; }
+.cq-ani { position: absolute; left: 30%; bottom: 16%; width: 40%; transform-origin: 50% 100%; animation: cq-bob 1.6s steps(2) infinite; }
+.cq-ani svg { width: 100%; height: auto; display: block; }
+.cq-ani.talk { transform: scaleY(1.03) translateY(-1%); }
+@keyframes cq-bob { 50% { transform: translateY(-1.5%); } }
+.cq-counter { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(#c8945a 0 10%, #3a2414 10% 12%, #9a6638 12% 100%); box-shadow: inset 0 3px 0 #e0b07a; }
+.cq-box { position: absolute; left: 4%; right: 4%; bottom: 4%; background: #fff8ec; color: #3a2414; padding: 6px 10px 8px; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; }
+.cq-name { margin: 0 0 2px; font-weight: 800; font-size: .8rem; color: #e8650c; }
+.cq-text { margin: 0; min-height: 2.6em; font-size: .82rem; line-height: 1.3; }
+.cq-wish { position: absolute; right: 8px; top: -34px; background: #fff8ec; padding: 3px 4px; box-shadow: 0 0 0 2px #3a2414; animation: cq-in .25s steps(3); }
+.cq-wish svg { display: block; }
+.cq-row { display: flex; justify-content: flex-end; margin-top: 4px; }
+.cq-row .pbtn { font-size: .78rem; padding: 4px 12px; }
+.cq-talk { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.cq-say { position: absolute; transform: translate(-50%, -100%); background: #fff8ec; color: #3a2414; font-size: .58rem; font-weight: 700; line-height: 1.15; padding: 2px 4px; white-space: nowrap; box-shadow: 0 0 0 1.5px #3a2414; display: flex; align-items: center; gap: 3px; animation: cq-pop .25s steps(3); }
+.cq-say::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 4px; height: 4px; background: #fff8ec; box-shadow: 1.5px 1.5px 0 0 #3a2414; transform: translateX(-50%) rotate(45deg); }
+.cq-say.ico { padding: 2px 3px; }
+.cq-say svg { display: block; width: auto; height: 1.3em; }
+@keyframes cq-pop { from { transform: translate(-50%, -80%) scale(.4); opacity: 0; } }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -17545,6 +17575,222 @@ window.__EXTRAS = true;
   var _p2_interrupt = interrupt; interrupt = function () { if (!window.__resume && HV) { cancelAnimationFrame(HV.raf); HV = null; hvV.el.hidden = true; } return _p2_interrupt.apply(this, arguments); };
   window.__hv = function () { return HV; };
   window.__p2 = { G: function () { return PZG; }, open: function (k) { life().lastOpen = null; P2_OPEN_G.forceK = k; }, plantGH: function (i, c) { garden.seeds[c] = Math.max(1, garden.seeds[c] || 0); life().gh[i] = null; if (busy) interrupt(); act("plant", function () { cur = "plantgame"; return plantGame(i, c, "gh"); }); }, placeTree: function (i, t) { home.placed["meadow" + i] = "tree_" + t; treeL()[t] = 0; renderGardenDecor(); return { season: season(), ripe: treeRipe(t) }; }, tree: function (t) { if (busy) interrupt(); act("harvest", function () { return hvRun(FTREES[t].k, { t: t, k: FTREES[t].k }); }); }, gh: function (i, c) { life().gh[i] = { crop: c, prog: 1, wetUntil: 0 }; renderGH(); }, goGH: function () { if (busy) interrupt(); act("gh", goGHSeq); }, steps: P2_STEPS, harv: P2_HARV, plant: function (i, c) { garden.seeds[c] = Math.max(1, garden.seeds[c] || 0); garden.plots[i] = null; if (busy) interrupt(); act("plant", function () { return plantSeq(i, c); }); }, harvest: function (i, c) { garden.plots[i] = { crop: c, prog: 1, wetUntil: 0 }; renderBed(); if (busy) interrupt(); act("harvest", function () { return harvestSeq(i); }); } };
+  // ===================== café, calmer and in order (preview): a bell at the counter calls the next guest =====================
+  // Nobody wanders in on their own any more. Ring the little bell: the next guest steps up, you look at them over the counter
+  // and they tell you what they would like. Then they queue in front of the counter (you see up to four), you make it,
+  // hand it over, and they carry it to a table. Animals share tables, and at the tables they chat: little bubbles with
+  // pictures and words float over whoever is talking.
+  var CQ_X = [294, 318, 342, 366], CQ_Y = 131, CQ_MAX = 4;
+  function cqList() { return guests.filter(function (g) { return g.q && (g.state === "qwalk" || g.state === "queue"); }).sort(function (a, b) { return a.qi - b.qi; }); }
+  // no more guests on their own: the old timer is pushed far away whenever it is set
+  var _cq_start = guestsStart; guestsStart = function () { _cq_start.apply(this, arguments); gNext = 1e12; cqTalkLayer(); cqBellShow(); };
+  var _cq_reopen = gReopen; gReopen = function () { _cq_reopen.apply(this, arguments); gNext = 1e12; };
+  setInterval(function () { if (gNext < 1e11) gNext = 1e12; }, 500);
+  var _cq_spawn = gSpawn; gSpawn = function (manual) { if (manual) { cqRing(); return true; } return false; };
+  // ---- the bell ----
+  var cqBell = document.createElement("button"); cqBell.type = "button"; cqBell.className = "cq-bell"; cqBell.setAttribute("aria-label", "Nächster Gast");
+  cqBell.innerHTML = '<svg viewBox="0 0 16 14" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M7 0h2v1h1v1h1v1h1v1h1v4h1v2h1v2H0v-2h1V8h1V4h1V3h1V2h1V1h1z"/><path fill="#f2c860" d="M7 1h2v1h1v1h1v1h1v4h1v2H2V8h1V4h1V3h1V2h2z"/><path fill="#fff1b0" d="M6 3h1v1H6zM5 4h1v3H5z"/><path fill="#b8862a" d="M11 4h1v4h1v2h-2zM1 11h14v1H1z"/><path fill="#3a2414" d="M7 12h2v2H7z"/></svg><b class="cq-n"></b>';
+  cafeEl.appendChild(cqBell);
+  function cqBellShow() { var n = cqList().length; cqBell.hidden = !cafeOn || gClosing(); cqBell.classList.toggle("full", n >= CQ_MAX); cqBell.querySelector(".cq-n").textContent = n ? n : ""; }
+  setInterval(cqBellShow, 600);
+  cqBell.addEventListener("click", function (e) { e.stopPropagation(); cqRing(); });
+  function cqRing() {
+    if (!cafeOn || (typeof cfGameOn !== "undefined" && cfGameOn)) return;
+    cqBell.classList.remove("ring"); void cqBell.offsetWidth; cqBell.classList.add("ring");
+    beep([[1568, .08], [1319, .12]]);
+    if (gClosing()) { say("Das Café schließt bald, heute kommt niemand mehr."); return; }
+    if (cqList().length >= CQ_MAX) { say("Die Schlange ist schon lang genug. Erst einmal die Wartenden bedienen."); return; }
+    var pool = gKnown(); if (!pool.length) pool = gAnyone(); pool = pool.filter(function (id) { return ALLANI[id] && !guests.some(function (g) { return g.id === id; }); });
+    if (!pool.length) { say("Gerade ist niemand in der Nähe."); return; }
+    var id = pool[Math.floor(Math.random() * pool.length)];
+    // half the time they want something that is already on the counter, half the time something new
+    var free = gFreeItems(), o, fromCounter = false;
+    if (free.length && Math.random() < .5) { o = gOrderFor(free[Math.floor(Math.random() * free.length)]); fromCounter = true; }
+    else { o = gOrderNew(id); var room = gRoom(); for (var k = 0; k < 6 && room.length && room.indexOf(o.kind) < 0; k++) o = gOrderNew(id); }
+    setTimeout(function () { cqTalkTo(id, o, fromCounter); }, 350);
+  }
+  // ---- over the counter: the guest tells you what they would like ----
+  var CQ_HI = ["Hallo {h}!", "Guten Tag, {h}!", "Huhu, {h}!", "Hallöchen!", "Ach, ist das gemütlich hier!", "Hmm, wie es hier duftet!"];
+  var CQ_ASK = ["Ich hätte gern {o}, bitte.", "Für mich bitte {o}.", "Heute nehme ich {o}.", "Kann ich {o} haben?", "Ich hätte so richtig Lust auf {o}."];
+  var CQ_READY = ["Oh, ist das da {o}? Genau das nehme ich!", "Ich sehe, da steht schon {o}. Das wäre perfekt!"];
+  var CQ_FRIEND = ["Schön, dich wiederzusehen, {h}!", "Wie immer bei dir, {h}: Ich freu mich schon!", "Ich hab dir aus meinem Garten etwas mitgebracht, als Bezahlung."];
+  var CQ_OK = ["Kommt sofort!", "Gern!", "Wird gemacht!"];
+  function cqPick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function cqFill(s, id, o) { var t = gOrderText(o); return s.replace("{h}", N()).replace("{o}", t).replace("{O}", t.charAt(0).toUpperCase() + t.slice(1)).replace("{n}", ALLANI[id].name); }
+  function cqTalkTo(id, o, fromCounter) {
+    var an = ALLANI[id], fr = (garden.friends || {})[id] || 0, lines = [cqPick(CQ_HI)];
+    if (fr >= 2 && Math.random() < .6) lines.push(cqPick(CQ_FRIEND));
+    lines.push(fromCounter ? cqPick(CQ_READY) : cqPick(CQ_ASK));
+    lines = lines.map(function (s) { return cqFill(s, id, o); });
+    var old = cafeEl.querySelector(".cq-pov"); if (old) old.remove();
+    var el = document.createElement("div"); el.className = "cq-pov pixtext";
+    var pic = gWishPic(o);
+    el.innerHTML = '<div class="cq-wall"></div><div class="cq-win"></div><div class="cq-ani"><svg viewBox="' + an.vb + '" aria-hidden="true" shape-rendering="crispEdges">' + an.svg + '</svg></div>' +
+      '<div class="cq-counter"></div><div class="cq-cups"></div>' +
+      '<div class="cq-box"><p class="cq-name">' + an.name + '</p><p class="cq-text"></p><div class="cq-wish" hidden>' + gSvg(pic, 3) + '</div>' +
+      '<div class="cq-row" hidden><button type="button" class="pbtn cq-ok">' + cqPick(CQ_OK) + '</button></div></div>';
+    cafeEl.appendChild(el);
+    var tx = el.querySelector(".cq-text"), li = 0, ci = 0, done = false, timer = 0;
+    beep([[880, .04], [1175, .06]]);
+    function type() {                                                 // the words appear letter by letter, a little blip per word
+      var s = lines[li]; ci++; tx.textContent = s.slice(0, ci);
+      if (s[ci - 1] === " " && Math.random() < .6) beep([[600 + Math.random() * 400, .02]]);
+      el.querySelector(".cq-ani").classList.toggle("talk", ci % 6 < 3);
+      if (ci < s.length) { timer = setTimeout(type, 26); return; }
+      el.querySelector(".cq-ani").classList.remove("talk");
+      if (li < lines.length - 1) { timer = setTimeout(function () { li++; ci = 0; type(); }, 650); return; }
+      done = true; el.querySelector(".cq-wish").hidden = false; el.querySelector(".cq-row").hidden = false;
+    }
+    type();
+    el.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (!done) { clearTimeout(timer); li = lines.length - 1; tx.textContent = lines[li]; done = true; el.querySelector(".cq-ani").classList.remove("talk"); el.querySelector(".cq-wish").hidden = false; el.querySelector(".cq-row").hidden = false; return; }
+      if (e.target.closest(".cq-ok")) { el.classList.add("out"); setTimeout(function () { el.remove(); }, 260); cqJoin(id, o); }
+    });
+  }
+  // ---- the queue in front of the counter ----
+  function cqJoin(id, o) {
+    var n = cqList().length, g = { id: id, q: true, qi: Date.now(), x: G_DOOR[0], y: G_DOOR[1], dir: 1, sp: (GSPEED[gMove(id)] || GSPEED[id] || 27) + Math.random() * 5, ph: Math.random() * 480, delay: 0, face: -1, state: "qwalk", order: o, t0: 0, wait: 0, table: -1, seat: -1 };
+    g.path = gFlies(g) ? [[CQ_X[n], CQ_Y]] : [[G_DOOR[0] + 12, G_LANE], [CQ_X[n], G_LANE + 2], [CQ_X[n], CQ_Y]];
+    guests.push(g); gMake(g); cqBubble(g);
+    var C2 = cfL(); C2.gseen = C2.gseen || {}; C2.gseen[id] = Date.now(); if (window.SudokuSave) window.SudokuSave();
+    say(ALLANI[id].name + " stellt sich an."); cqBellShow();
+  }
+  function cqBubble(g) { var s0 = g.state; g.state = "wait"; gBubble(g); g.state = s0; }
+  function cqShift() { cqList().forEach(function (g, i) { var tx = CQ_X[i]; if (Math.abs(g.x - tx) > .5 || g.state === "qwalk") { g.state = "qwalk"; g.path = [[tx, CQ_Y]]; } }); }
+  // ---- serving at the counter: hand it over, the guest carries it to a seat ----
+  function cqSeat() {
+    var free = [];
+    TABLES.forEach(function (tb, ti) { tb.seats.forEach(function (sx, si) { if (!guests.some(function (g) { return g.table === ti && g.seat === si && g.state !== "gone"; })) free.push({ t: ti, s: si, shared: guests.some(function (g) { return g.table === ti && g.state !== "gone"; }) }); }); });
+    if (!free.length) return null;
+    var sh = free.filter(function (f) { return f.shared; });
+    return sh.length && Math.random() < .6 ? sh[Math.floor(Math.random() * sh.length)] : free[Math.floor(Math.random() * free.length)];
+  }
+  var _cq_serveItem = gServeItem;
+  gServeItem = function (g, it) {
+    if (!g.q) return _cq_serveItem(g, it);
+    g.wished = gMatch(g.order, it); g.wrong = it.kind !== g.order.kind; g.srv = it.kind; if (it.kind === "cake") g.cakeK = it.k;
+    if (it.src === "kitchen") say(N() + " holt schnell einen Kuchen aus der Küche und schneidet ihn an.");
+    gRemove(it); g.q = false; var b = g.el.querySelector(".gq-bub"); if (b) b.innerHTML = "";
+    var sk = it.kind, carry = document.createElementNS("http://www.w3.org/2000/svg", "g"); carry.setAttribute("class", "gq-carry"); g.el.appendChild(carry);
+    carry.innerHTML = '<g transform="translate(' + (sk === "cake" ? -6 : -4) + ' -15)">' + gIcon(sk, gCk(g)) + '</g>'; g.carry = carry;
+    cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); setTimeout(function () { cfHamSet({}); }, 900);
+    say(gServeLine(g)); beep([[659, .05], [784, .05], [988, .06]]);
+    var seat = cqSeat();
+    if (!seat) { setTimeout(function () { gToGo(g); g.carry && g.carry.remove(); }, 600); cqShift(); return; }
+    g.table = seat.t; g.seat = seat.s; var tb = TABLES[seat.t], sx = tb.seats[seat.s]; g.face = sx < tb.top[0] ? 1 : -1;
+    g.state = "qgo"; g.delay = .5; g.hd = 0;
+    g.path = gFlies(g) ? [[sx, G_SEAT]] : [[g.x, G_LANE], [sx, G_LANE + (seat.s ? 2 : 0)], [sx, G_SEAT]];
+    cqShift(); cqBellShow(); if (window.SudokuSave) window.SudokuSave();
+  };
+  // tapping someone in the queue: the usual card with the wish and the counter
+  cfTrack.addEventListener("click", function (e) {
+    if (e.target.closest(".cf-hit") || (typeof cfGameOn !== "undefined" && cfGameOn)) return;
+    var r = cfTrack.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * CF.w, y = (e.clientY - r.top) / r.height * CF.h;
+    var g = cqList().filter(function (q) { return Math.abs(q.x - x) < 11 && y > 94 && y < 135; })[0]; if (!g) return;
+    e.stopPropagation();
+    if (g.state === "qwalk") { say(ALLANI[g.id].name + " stellt sich gerade an."); return; }
+    cqAsk(g);
+  }, true);
+  function cqAsk(g) {                                                 // like the old card at the table: the wish, and everything on the counter
+    var nm = ALLANI[g.id].name, its = gItems(), star = gPx(GIC.w.Stern, gPal());
+    var tiles = its.map(function (it, n) { var ok = gMatch(g.order, it); return '<button type="button" data-n="' + n + '" class="gq-tile' + (ok ? " gq-ok" : "") + '">' + gSvg(gItemPic(it), 2) + '<span>' + it.name + '</span>' + (ok ? '<i>' + gSvg({ svg: star, w: 8, h: 8 }, 2) + '</i>' : "") + '</button>'; }).join("");
+    var make = { tea: "Tee machen", coffee: "Kaffee machen", kakao: "Kakao machen", cake: "Kuchen backen" }[g.order.kind];
+    var html = '<div class="gq-head">' + gSvg(gWishPic(g.order), 2) + '<p class="ga-h">' + nm + ' möchte ' + gOrderText(g.order) + '</p></div>' +
+      (its.length ? '<div class="ga-grid gq-grid">' + tiles + '</div>' : '<p class="gq-none">Auf der Theke steht noch nichts.</p>') +
+      '<div class="ga-row"><button type="button" class="ga-no" data-k="later">Später</button><button type="button" class="ga-yes pbtn" data-k="make">' + make + '</button></div>';
+    gPopup(html, function (b, el) {
+      el.remove();
+      if (b.dataset.k === "make") { if (g.order.kind === "cake") cfStartBake(); else if (g.order.kind === "tea") teaGame(); else coffeeGame(); return; }
+      if (b.dataset.n != null && g.q && g.state === "queue") gServeItem(g, its[+b.dataset.n]);
+    });
+  }
+  // what is on the counter and not yet promised: queued guests count as promised too
+  gFreeItems = function () {
+    var its = gItems(), used = {};
+    guests.forEach(function (q) { if (!q.order || (q.state !== "walk" && q.state !== "wait" && q.state !== "qwalk" && q.state !== "queue")) return; for (var i = 0; i < its.length; i++) if (!used[i] && gMatch(q.order, its[i])) { used[i] = 1; break; } });
+    return its.filter(function (it, i) { return !used[i]; });
+  };
+  // ---- moving: the queue and the walk to the table ----
+  var cqLast = 0;
+  function cqTick(t) {
+    requestAnimationFrame(cqTick);
+    if (!cafeOn) { cqLast = 0; return; }
+    var dt = Math.min(.05, (t - (cqLast || t)) / 1000); cqLast = t;
+    guests.forEach(function (g) {
+      if (g.state === "qwalk") { if (gStep(g, dt)) { g.mov = false; g.state = "queue"; g.face = -1; } }
+      else if (g.state === "queue") { g.face = -1; }
+      else if (g.state === "qgo") { if (gStep(g, dt)) { g.mov = false; g.face = TABLES[g.table].seats[g.seat] < TABLES[g.table].top[0] ? 1 : -1; if (g.carry) { g.carry.remove(); g.carry = null; } g.state = "eat"; g.t0 = performance.now(); g.ts = 0; gItemOnTable(g, true); beep([[523, .04], [659, .05]]); } }
+    });
+    cqTalk(t);
+  }
+  requestAnimationFrame(cqTick);
+  // closing soon: whoever still queues is sent home kindly
+  var _cq_close = gCloseSoon; gCloseSoon = function () { cqList().forEach(function (g) { g.q = false; var b = g.el && g.el.querySelector(".gq-bub"); if (b) b.innerHTML = ""; gGo(g); }); _cq_close.apply(this, arguments); cqBellShow(); };
+
+  // ---- conversations at the tables: little scenes with pictures and words over whoever is talking ----
+  // lines: [speaker 0/1, text or "", icon]; icons: dish (what they got), crop names, Herz, Stern, Blatt, keks, note, dots, sun, rain
+  var CQ_TALKS = [
+    [[0, "Wie schmeckt's?", ""], [1, "", "dish"], [1, "Himmlisch!", ""], [0, "", "Herz"]],
+    [[0, "Meine Erdbeeren sind reif!", "strawberry"], [1, "Oh, toll!", ""], [1, "Bringst du mir welche?", ""], [0, "Na klar!", "Herz"]],
+    [[0, "Hast du den Regen gehört?", "rain"], [1, "Gut für den Garten!", "Blatt"], [0, "Stimmt!", ""]],
+    [[0, "", "note"], [1, "Summst du?", ""], [0, "Hihi, ertappt!", ""], [1, "", "note"]],
+    [[0, "Ich übe Kuchen backen.", "keks"], [1, "Und?", ""], [0, "Er ist ... flach.", ""], [1, "Hihi!", "Herz"]],
+    [[0, "Sonne morgen?", "sun"], [1, "Hoffentlich!", ""], [1, "Dann gehen wir zum See.", ""], [0, "Au ja!", "Stern"]],
+    [[0, "Kennst du den Hamster?", ""], [1, "{h}? Der ist super!", "Herz"], [0, "Finde ich auch.", ""]],
+    [[0, "Meine Sonnenblume ist riesig!", "sunflower"], [1, "Größer als du?", ""], [0, "Viel größer!", "Stern"]],
+    [[0, "", "dots"], [1, "Woran denkst du?", ""], [0, "An Kürbissuppe.", "pumpkin"], [1, "Mmmh!", ""]],
+    [[0, "Probier mal!", "dish"], [1, "Oh!", ""], [1, "Das will ich morgen wieder.", "Herz"]],
+    [[0, "Ich hab eine Feder gefunden.", ""], [1, "Zeig mal!", ""], [0, "Ganz weich!", "Stern"]],
+    [[0, "Gestern hab ich Sterne gezählt.", "Stern"], [1, "Wie viele?", ""], [0, "Bei zwölf eingeschlafen.", ""], [1, "Hihi!", ""]],
+    [[0, "Meine Möhren wollen nicht wachsen.", "gcarrot"], [1, "Mehr gießen!", ""], [0, "Gute Idee!", "Blatt"]],
+    [[0, "Wollen wir Freunde sein?", ""], [1, "Sind wir doch schon!", "Herz"], [0, "", "Herz"]],
+    [[0, "Das Café ist so gemütlich.", ""], [1, "Wie ein warmes Nest.", ""], [0, "", "Herz"]],
+    [[0, "Hast du Tomaten?", "tomato"], [1, "Ganz viele!", ""], [0, "Tauschen gegen Beeren?", "raspberry"], [1, "Abgemacht!", "Stern"]]
+  ];
+  var CQ_SOLO = [["", "dish"], ["Mmh!", ""], ["", "Herz"], ["Lecker.", ""], ["", "note"], ["Schön warm hier.", ""], ["", "dots"]];
+  var cqLayer = null, cqConv = {};
+  function cqTalkLayer() { if (!cqLayer || !cqLayer.isConnected) { cqLayer = document.createElement("div"); cqLayer.className = "cq-talk"; cfTrack.appendChild(cqLayer); } return cqLayer; }
+  function cqIcon(g, k) {
+    if (!k) return "";
+    var px = function (inner, w, h) { return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="' + w * 2 + '" height="' + h * 2 + '" shape-rendering="crispEdges" aria-hidden="true">' + inner + '</svg>'; };
+    if (k === "dish") { var sk = g.srv || (g.order && g.order.kind) || "tea", cake = sk === "cake"; return px(gIcon(sk, gCk(g)), cake ? 13 : 8, cake ? 11 : 8); }
+    if (GIC.w[k]) return px(gPx(GIC.w[k], gPal()), 8, 8);
+    if (k === "dots") return px('<path fill="#3a2414" d="M1 4h2v2h-2zM5 4h2v2h-2zM9 4h2v2h-2z"/>', 12, 8);
+    if (k === "note") return px('<path fill="#3a2414" d="M5 0h4v1h1v2h-1v-1h-3v5h-1v1h-3v-1h-1v-2h1v-1h3z"/><path fill="#6a9ad8" d="M2 6h3v1h-3z"/>', 10, 8);
+    if (k === "sun") return px('<path fill="#3a2414" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"/><path fill="#ffd34a" d="M3 2h4v1h1v4h-1v1h-4v-1h-1v-4h1z"/><path fill="#fff1a8" d="M3 3h2v1h-2z"/>', 10, 10);
+    if (k === "rain") return px('<path fill="#3a2414" d="M3 0h4v1h2v1h1v3h-10v-3h1v-1h2z"/><path fill="#d8e0e8" d="M3 1h4v1h2v2h-8v-2h2z"/><path fill="#6aaee0" d="M2 6h1v2h-1zM5 7h1v2h-1zM8 6h1v2h-1z"/>', 10, 10);
+    var f = FOOD[k] || ("f_" + k); if (A[f] && SZ[f]) return px(A[f], SZ[f][0], SZ[f][1]);
+    return "";
+  }
+  function cqSay(g, text, icon) {
+    var L = cqTalkLayer(); if (g.say) g.say.remove();
+    var el = document.createElement("div"); el.className = "cq-say" + (text ? "" : " ico");
+    el.innerHTML = (icon ? '<span class="cq-ic">' + cqIcon(g, icon) + '</span>' : "") + (text ? '<span>' + text.replace("{h}", N()) + '</span>' : "");
+    L.appendChild(el); g.say = el; g.sayUntil = performance.now() + 2600; cqPlace(g);
+    beep([[700 + Math.random() * 400, .025], [900 + Math.random() * 300, .025]]);
+  }
+  function cqPlace(g) { if (!g.say) return; g.say.style.left = (g.x / CF.w * 100).toFixed(2) + "%"; g.say.style.top = ((g.y - (g.bh || 30) - 8) / CF.h * 100).toFixed(2) + "%"; }
+  function cqTalk(t) {
+    var now = performance.now(), paused = (typeof cfGameOn !== "undefined" && cfGameOn) || uiBusy();
+    guests.forEach(function (g) { if (g.say && (now > g.sayUntil || !g.el)) { g.say.remove(); g.say = null; } else cqPlace(g); });
+    if (paused) return;
+    TABLES.forEach(function (tb, ti) {
+      var at = guests.filter(function (g) { return g.table === ti && (g.state === "eat" || g.state === "chat") && g.el; });
+      var cv = cqConv[ti];
+      if (at.length < 2) { if (cv) delete cqConv[ti]; if (at.length === 1 && (!at[0].soloAt || now > at[0].soloAt)) { if (at[0].soloAt) { var s1 = cqPick(CQ_SOLO); cqSay(at[0], s1[0], s1[1]); } at[0].soloAt = now + 7000 + Math.random() * 7000; } return; }
+      if (!cv || (cv.i >= cv.lines.length && now > cv.next)) { if (cv && now < cv.next) return; cqConv[ti] = cv = { lines: cqPick(CQ_TALKS), i: 0, next: now + (cv ? 6000 + Math.random() * 6000 : 1500), who: [at[0], at[1]] }; return; }
+      if (now < cv.next || cv.i >= cv.lines.length) return;
+      var ln = cv.lines[cv.i++], sp = cv.who[ln[0]]; if (!sp || !sp.el || guests.indexOf(sp) < 0) { delete cqConv[ti]; return; }
+      cqSay(sp, ln[1], ln[2]); cv.next = now + 2500 + Math.random() * 600;
+      if (cv.i >= cv.lines.length) cv.next = now + 9000 + Math.random() * 8000;
+    });
+  }
+  // the old random chat bubbles make way for the conversations
+  gTalk = function () {};
+  var _cq_leave = closeCafe; closeCafe = function () { guests.forEach(function (g) { if (g.say) { g.say.remove(); g.say = null; } }); cqConv = {}; return _cq_leave.apply(this, arguments); };
+  window.__cq = { ring: cqRing, list: function () { return cqList().map(function (g) { return { id: g.id, state: g.state, x: g.x, order: g.order }; }); }, all: function () { return guests.map(function (g) { return { id: g.id, state: g.state, table: g.table, seat: g.seat, x: g.x, y: g.y }; }); },
+    serveFront: function () { var g = cqList()[0]; if (!g) return false; var its = gItems(); if (!its.length) return "empty"; gServeItem(g, its[0]); return true; }, conv: function () { return cqConv; } };
 
 
   /*TESTHOOK*/
