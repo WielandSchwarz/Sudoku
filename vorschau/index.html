@@ -859,6 +859,7 @@ body { font-family: var(--f-ui); -webkit-tap-highlight-color: transparent; }
 .fc-btn.bye { background: var(--orange) !important; color: #fff !important; box-shadow: inset 0 -3px 0 0 #c8641a, 0 0 0 2px var(--ink); text-shadow: 0 1px 0 #b85a18; }
 .fc-h i { width: 7px !important; height: 6px !important; clip-path: polygon(0 16.7%, 14.3% 16.7%, 14.3% 0, 42.9% 0, 42.9% 16.7%, 57.1% 16.7%, 57.1% 0, 85.7% 0, 85.7% 16.7%, 100% 16.7%, 100% 50%, 85.7% 50%, 85.7% 66.7%, 71.4% 66.7%, 71.4% 83.3%, 57.1% 83.3%, 57.1% 100%, 42.9% 100%, 42.9% 83.3%, 28.6% 83.3%, 28.6% 66.7%, 14.3% 66.7%, 14.3% 50%, 0 50%) !important; }
 .fc-n { font-size: .75rem; line-height: 1; color: #a8463c; font-weight: 700; margin-left: 2px; align-self: center; }
+#pov-svg { shape-rendering: crispEdges; }
 
 /* needs */
 .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
@@ -8423,7 +8424,7 @@ window.__EXTRAS = true;
   // ---------- step 1: weeding ----------
   function pzWeeds(G) {
     var n = 2 + Math.floor(Math.random() * 3), xs = [], tries = 0;
-    while (xs.length < n && tries++ < 200) { var x = PZCAM ? rnd(40, 100) : rnd(40, 128); if (xs.every(function (o) { return Math.abs(o - x) > (PZCAM ? 18 : 22); })) xs.push(x); }
+    while (xs.length < n && tries++ < 200) { var x = PZCAM ? rnd(40, 90) : rnd(40, 128); if (xs.every(function (o) { return Math.abs(o - x) > (PZCAM ? 18 : 22); })) xs.push(x); }
     G.weeds = xs.map(function (x, k) {
       var y = rnd(84, 104), kind = k % 3, el = lEl("div", "pz-weed", pzLay);
       pzPos(el, x - 9, y - 15, 18, 15); el.style.zIndex = Math.round(y);
@@ -8490,7 +8491,7 @@ window.__EXTRAS = true;
 
   function pzWorm(G) {
     if (Math.random() < 0.4) return;
-    var x = 0, tries = 0; do { x = PZCAM ? rnd(38, 102) : rnd(30, 120); } while (tries++ < 40 && G.weeds.some(function (w) { return Math.abs(w.x - x) < 16; }));
+    var x = 0, tries = 0; do { x = PZCAM ? rnd(38, 90) : rnd(30, 120); } while (tries++ < 40 && G.weeds.some(function (w) { return Math.abs(w.x - x) < 16; }));
     var el = lBtn("pz-worm", pzLay, pzSvg("worm0"), "Regenwurm"); pzPos(el, x - 7, 104, 14, 10); el.hidden = true; el.style.zIndex = 104;
     G.worm = { el: el, f: 0, tapped: false, seen: false };
     G.wormT = setInterval(function () {
@@ -8516,7 +8517,7 @@ window.__EXTRAS = true;
     var mark = lEl("div", "pz-mark", pzLay); pzPos(mark, 70 - 1, 96, 2, 2);
     var gauge = pzUi.querySelector(".pz-gauge"); gauge.hidden = false;
     G.gz = { a: t[0], b: t[1], c: "#8a5e3a" }; pzGauge(G, 0);
-    G.pawEls = ["l", "r"].map(function (sd) { var e = lEl("div", "pz-pawmark", pzLay, pawPrintSvg()); pzPos(e, sd === "l" ? 38 : 88, 92, 14, 13); e.dataset.p = sd; e.style.zIndex = 110; return e; });
+    G.pawEls = ["l", "r"].map(function (sd) { var e = lEl("div", "pz-pawmark", pzLay, pawPrintSvg()); if (PZCAM) pzPos(e, sd === "l" ? 45 : 86, 94, 9, 8); else pzPos(e, sd === "l" ? 38 : 88, 92, 14, 13); e.dataset.p = sd; e.style.zIndex = 110; return e; });
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true;
     pzTip("Abwechselnd links und rechts tippen. Im goldenen Bereich aufhören: " + CROPS[G.c].name + (t[0] >= 7 ? " mag es tief." : t[0] <= 3 ? " mag es flach." : " mag es mitteltief."));
   }
@@ -8760,8 +8761,8 @@ window.__EXTRAS = true;
     function onHam(e) { var r = ham.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
     pzLay.onpointerdown = function (e) {
       if (PZG !== G || onHam(e)) return;
-      var wx = pzLogic(e)[0];
-      if (G.step === 2 && !G.dug) { e.preventDefault(); pzDigTap(G, wx < 70 ? "l" : "r"); }
+      var lp0 = pzLogic(e), wx = lp0[0];
+      if (G.step === 2 && !G.dug) { if (PZCAM && (Math.abs(wx - 70) > 30 || lp0[1] < 80 || lp0[1] > 112)) return; e.preventDefault(); pzDigTap(G, wx < 70 ? "l" : "r"); }
       else if (G.step === 5 && !G.watered) {
         e.preventDefault(); if (G.toolEl) G.toolEl.classList.remove("pz-hint");
         if (G.where === "gh") pzSprayTap(G); else { G.pouring = true; front({ paws: "hold", eyes: "happy", mouth: "smile" }); }
@@ -10465,7 +10466,12 @@ window.__EXTRAS = true;
     };
 
     // ---- shared bits for the 2.5D steps: crisp pixel shapes, the hamster watching from the corner
-    function E(cx, cy, rx, ry, f, extra) { return '<ellipse cx="' + (+cx).toFixed(1) + '" cy="' + (+cy).toFixed(1) + '" rx="' + (+rx).toFixed(1) + '" ry="' + (+ry).toFixed(1) + '" fill="' + f + '"' + (extra || "") + '/>'; }
+    // ellipses as rows of whole pixels (no smooth svg ellipses): the same pixel look as everything else
+    function E(cx, cy, rx, ry, f, extra) {
+      cx = Math.round(+cx * 2) / 2; cy = Math.round(+cy); rx = +rx; ry = +ry; if (rx <= 0 || ry <= 0) return ""; var o = "";
+      for (var y = -Math.ceil(ry); y <= Math.ceil(ry); y++) { var t = 1 - (y * y) / (ry * ry); if (t < 0) continue; var hw = Math.round(rx * Math.sqrt(t)); if (hw <= 0 && Math.abs(y) > 0) continue; o += '<rect x="' + Math.round(cx - hw) + '" y="' + (cy + y) + '" width="' + Math.max(1, 2 * hw) + '" height="1"/>'; }
+      return '<g fill="' + f + '"' + (extra || "") + ' shape-rendering="crispEdges">' + o + '</g>';
+    }
     function P(pts, f) { return '<polygon points="' + pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + '" fill="' + f + '"/>'; }
     function crisp(s) { return '<g shape-rendering="crispEdges">' + s + '</g>'; }
     function watcher(face, t, bob) { return '<g transform="translate(130 ' + (92 + (bob || 0)) + ')">' + hamFace(face) + '</g>'; }
@@ -10745,17 +10751,17 @@ window.__EXTRAS = true;
         window.__k2shake = function () { return n; };
         function jar(t, m) {
           // a glass jar seen a little from above: red lid, glass with light, two layers that become one
-          var x = 90, top = 30 + jy, bot = 88 + jy, rx = 17, ry = 4.4, oil = "#f0d060", vin = "#c8805a", emu = "#e8b868";
+          var x = 90, top = 30 + Math.round(jy), bot = 88 + Math.round(jy), rx = 17, ry = 4.4, oil = "#f0d060", vin = "#c8805a", emu = "#e8b868";
           var o = E(x + 1, 96, 19 * (1 - Math.abs(jy) / 60), 3.2, "rgba(58,36,20,.25)");
-          o += '<g transform="rotate(' + rot.toFixed(1) + ' ' + x + ' ' + ((top + bot) / 2).toFixed(1) + ')">';
+          o += '<g transform="translate(' + Math.round(rot / 6) + ' 0)">';   /* shaking sideways by whole pixels instead of a blurry turn */
           o += E(x, bot, rx + 1, ry + 1, "#3a2414") + '<rect x="' + (x - rx - 1) + '" y="' + (top + 6) + '" width="' + (2 * rx + 2) + '" height="' + (bot - top - 6) + '" fill="#3a2414"/>';
           o += E(x, bot, rx, ry, "#cfe4ec") + '<rect x="' + (x - rx) + '" y="' + (top + 6) + '" width="' + (2 * rx) + '" height="' + (bot - top - 6) + '" fill="#dceef4"/>';
           // the dressing: vinegar below, oil above, the line between them sloshing; it all turns creamy as you shake
-          var lt = top + 22, mid = top + 38 + slosh;
+          var lt = top + 22, mid = top + 38 + Math.round(slosh);
           o += E(x, bot - 1, rx - 1.5, ry - 1, mix(vin, emu, m)) + '<rect x="' + (x - rx + 1.5) + '" y="' + mid.toFixed(1) + '" width="' + (2 * rx - 3) + '" height="' + (bot - 1 - mid).toFixed(1) + '" fill="' + mix(vin, emu, m) + '"/>';
           o += '<rect x="' + (x - rx + 1.5) + '" y="' + lt + '" width="' + (2 * rx - 3) + '" height="' + (mid - lt).toFixed(1) + '" fill="' + mix(oil, emu, m) + '"/>' + E(x, mid, rx - 1.5, ry - 1.2, mix(mix(oil, vin, .5), emu, m));
           o += E(x, lt, rx - 1.5, ry - 1, mix(mix(oil, "#ffffff", .3), emu, m));
-          drops.forEach(function (d) { o += E(x + d.x, d.y + jy, d.r, d.r * .8, mix("#fff4c0", emu, m), ' opacity=".8"'); });
+          drops.forEach(function (d) { o += E(x + d.x, d.y + Math.round(jy), Math.max(1, Math.round(d.r)), Math.max(1, Math.round(d.r * .8)), mix("#fff4c0", emu, m), ' opacity=".8"'); });
           for (var k = 0; k < 9; k++) { var hx = x - 12 + (k * 7) % 24, hy = lt + 4 + ((k * 11 + Math.round(t * 8 * (m + .1))) % (bot - lt - 8)); o += '<rect x="' + hx + '" y="' + hy.toFixed(0) + '" width="1" height="1" fill="#5aa04e"/>'; }
           o += '<rect x="' + (x - rx + 2) + '" y="' + (top + 8) + '" width="2" height="' + (bot - top - 14) + '" fill="#ffffff" opacity=".75"/><rect x="' + (x + rx - 4) + '" y="' + (top + 10) + '" width="1" height="' + (bot - top - 20) + '" fill="#ffffff" opacity=".5"/>';
           o += E(x, top + 6, rx + 1, ry + 1, "#3a2414") + E(x, top + 6, rx, ry, "#b8d8e0");
@@ -17078,7 +17084,7 @@ window.__EXTRAS = true;
     return p2Pix(rows, { K: P2K, S: "#5a3a1a", s: "#3a2410", b: "#c8a060", Y: "#ffd34a", y: "#f0b020" });
   }
   // ---------- new planting steps ----------
-  var FUR = { x0: 38, x1: 96, y: 98, n: 9 };
+  var FUR = { x0: 38, x1: 92, y: 98, n: 9 };   // keeps clear of the hamster in the corner
   function p2Seg(x) { return Math.floor((x - FUR.x0) / ((FUR.x1 - FUR.x0) / FUR.n)); }
   function p2SegX(i) { return FUR.x0 + i * (FUR.x1 - FUR.x0) / FUR.n; }
   function p2Furrow(G) {                                              // draw a groove along the dotted line, left to right
@@ -17135,7 +17141,7 @@ window.__EXTRAS = true;
     } });
     return function () { return G.knocks >= 3; };
   }
-  var BED = { x0: 36, x1: 104, y0: 86, y1: 112 };   // the middle of the bed, where the closer camera looks
+  var BED = { x0: 36, x1: 98, y0: 86, y1: 112 };   // the middle of the bed, where the closer camera looks
   function p2Blow(G) {                                                // swipe across the dandelion clock: its seeds sail the way you swipe
     G.left = 16; G.landed = []; G.lost = 0; G.flying = 0; var cx = 94, cy = 66;
     var clk = lEl("div", "p2-clock", pzLay, p2Clock(16)); pzPos(clk, cx - 13, cy - 12, 26, 40); clk.style.zIndex = 144; G.clockEl = clk;
@@ -17203,8 +17209,27 @@ window.__EXTRAS = true;
         } else { G.misses++; pile.push(e); pzPos(e, SX - 4 + (pile.length - 1) * 3 - (need - 1) * 1.5, SY - 2, 5, 6); e.style.zIndex = 141; pzTip("Daneben. Genau über dem Loch loslassen."); beep([[200, .06]]); } } });
     return function () { if (G.sown >= need) { sau.remove(); return true; } return false; };
   }
+  // young plants drawn at their real size (18x27, crown at row 14): outlined leaves with light and a vein, stems, a root ball with roots
+  function p2SeedlArt(kind) {
+    var W = 18, H = 27, g = []; for (var y = 0; y < H; y++) g.push(new Array(W + 1).join(".").split(""));
+    var put = function (x, y, c) { x = Math.round(x); y = Math.round(y); if (x >= 0 && y >= 0 && x < W && y < H) g[y][x] = c; };
+    var leaf = function (cx, cy, rx, ry, ang) { for (var y = -ry - 1; y <= ry + 1; y++) for (var x = -rx - 1; x <= rx + 1; x++) { var u = x * Math.cos(ang) + y * Math.sin(ang), v = -x * Math.sin(ang) + y * Math.cos(ang); if (u * u / (rx * rx) + v * v / (ry * ry) > 1) continue; put(cx + x, cy + y, Math.abs(v) < .6 ? "G" : (v < 0 ? "g" : "L")); } };
+    var line = function (x0, y0, x1, y1, c) { var n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1; for (var i = 0; i <= n; i++) put(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, c); };
+    // the root ball and its roots
+    for (var y2 = 14; y2 < 26; y2++) for (var x2 = 2; x2 < 16; x2++) { var d = Math.pow((x2 - 8.5) / 6.5, 2) + Math.pow((y2 - 20) / 5.6, 2); if (d <= 1) put(x2, y2, (x2 * 5 + y2 * 3) % 7 === 0 ? "d" : (x2 - 8.5) + (y2 - 20) < -4 ? "b" : "B"); }
+    line(6, 25, 5, 26, "r"); line(11, 25, 12, 26, "r"); put(8, 26, "r");
+    for (var x3 = 6; x3 <= 11; x3++) put(x3, 14, "C"); 
+    if (kind === "tom") { line(8, 13, 8, 2, "S"); line(9, 13, 9, 3, "s"); [[4, 10, -.5], [13, 9, .5], [5, 6, -.6], [12, 5, .6]].forEach(function (q) { leaf(q[0], q[1], 3.2, 1.6, q[2]); }); leaf(8.5, 1.5, 2.2, 1.4, 0); }
+    else if (kind === "bush") { line(8, 13, 5, 3, "H"); line(9, 13, 9, 2, "H"); line(10, 13, 13, 4, "H"); [[4, 3, -.4], [9, 1.5, 0], [14, 3, .4], [6, 7, -.6], [12, 8, .6]].forEach(function (q) { leaf(q[0], q[1], 2.4, 1.4, q[2]); }); }
+    else if (kind === "rhu") { [[6, 4], [9, 3], [12, 4]].forEach(function (q) { line(q[0], q[1] + 2, 8.5 + (q[0] - 9) * .3, 13, "R"); leaf(q[0], q[1], 2.2, 1.8, 0); }); for (var x4 = 7; x4 <= 10; x4++) put(x4, 13, "R"); }
+    else { line(8, 13, 4, 7, "S"); line(9, 13, 9, 5, "S"); line(10, 13, 14, 7, "S"); leaf(4, 5, 3.2, 2.4, -.4); leaf(9, 3, 3.2, 2.4, 0); leaf(14, 5, 3.2, 2.4, .4); }
+    // outline everything with one dark line
+    var o = g.map(function (r) { return r.slice(); });
+    for (var y5 = 0; y5 < H; y5++) for (var x5 = 0; x5 < W; x5++) { if (g[y5][x5] !== ".") continue; if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (q) { var r = g[y5 + q[1]]; return r && r[x5 + q[0]] && r[x5 + q[0]] !== "."; })) o[y5][x5] = "K"; }
+    return p2Pix(o.map(function (r) { return r.join(""); }), { K: "#24180c", G: "#3e8a3a", g: "#9ae07a", L: "#5ab04a", S: "#4a9a3a", s: "#8ad86a", H: "#8a6a3a", R: "#d8384a", B: "#6a4428", b: "#8a5e3a", d: "#4e301c", r: "#e8d8b0", C: "#a8844a" });
+  }
   function p2Seedling(G) {                                            // set the young plant into the hole at the right height
-    var deep = G.c === "tomato", spr = deep ? P2A.tomseedl : G.c === "rhubarb" ? P2A.rhuseedl : /berry|currant/.test(G.c) ? P2A.bushseedl : P2A.seedl, el = lEl("div", "p2-seedl", pzLay, spr); pzPos(el, 86, 58, 18, 27); el.style.zIndex = 146; G.plantEl = el;
+    var deep = G.c === "tomato", spr = p2SeedlArt(deep ? "tom" : G.c === "rhubarb" ? "rhu" : /berry|currant/.test(G.c) ? "bush" : "seedl"), el = lEl("div", "p2-seedl", pzLay, spr); pzPos(el, 86, 58, 18, 27); el.style.zIndex = 146; G.plantEl = el;
     var line = null, inHole = false, drag = false, hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; G.setDone = false;
     var want = deep ? [100, 106] : G.c === "rhubarb" ? [97, 101] : [94, 98];                          // where the crown (the dark band) should sit: at the soil line, or deep for tomatoes
     pzTip(deep ? "Die Tomate tief ins Loch setzen, bis über die Wurzel." : G.c === "rhubarb" ? "Den Wurzelstock setzen, die roten Knospen knapp unter die Erde." : "Die Pflanze ins Loch setzen. Das Herz bleibt genau auf Erdhöhe.");
@@ -17317,7 +17342,7 @@ window.__EXTRAS = true;
       up: function (p) { if (!hand) return; var h = hand; hand = null; var py = p[1] - itemWH[1] / 2 - 4, best = null, bd = 10;
         G.spots.forEach(function (o) { if (o.done) return; var d = Math.hypot(o.x - p[0], o.y - py); if (d < bd) { bd = d; best = o; } });
         if (!best) { h.remove(); pzTip("Auf eine der markierten Stellen legen."); return; }
-        best.done = true; best.el.remove(); pzPos(h, best.x - itemWH[0] / 2, best.y - itemWH[1] / 2 - 1, itemWH[0], itemWH[1]); h.style.zIndex = 103; h.className = "p2-placed"; onPut(best); p2Burst(best.x, best.y - 2, 4);
+        best.done = true; best.el.remove(); pzPos(h, best.x - itemWH[0] / 2, best.y - itemWH[1] / 2 - 1, itemWH[0], itemWH[1]); h.style.zIndex = best.y < (G.crown || 97) ? 99 : 103;   /* behind the plant when it lies further back */ h.className = "p2-placed"; onPut(best); p2Burst(best.x, best.y - 2, 4);
         if (G.spots.every(function (o) { return o.done; })) src.remove(); } });
     return function () { return G.spots.every(function (o) { return o.done; }); };
   }
@@ -17354,7 +17379,7 @@ window.__EXTRAS = true;
     return function () { if (G.marks.every(function (o) { return o.done; })) { sh.remove(); return true; } return false; };
   }
   function p2Compost(G) {                                             // three handfuls of compost around the rhubarb
-    return p2Carry(G, P2A.bucket, [86, 64, 14, 8], P2A.compost, [12, 6], [[58, 99], [70, 96], [82, 99]], "Kompost aus dem Eimer holen und rund um die Pflanze auf die Markierungen legen.", function (o) { beep([[180, .05], [140, .06]]); pzCrumbs(o.x, o.y, 4); });
+    return p2Carry(G, P2A.bucket, [86, 64, 14, 8], P2A.compost, [12, 6], [[58, 99], [70, 93], [82, 99]], "Kompost aus dem Eimer holen und rund um die Pflanze auf die Markierungen legen.", function (o) { beep([[180, .05], [140, .06]]); pzCrumbs(o.x, o.y, 4); });
   }
   function p2Poke(G) {                                                // onions: poke five little holes in a row
     G.holes = [0, 2, 4, 6, 8].map(function (i) { var x = p2SegX(i) + 4, r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, x - 3, FUR.y - 3, 6, 6); r.style.zIndex = 148; return { x: x, y: FUR.y, el: r, done: false, set: false }; });
@@ -17398,13 +17423,13 @@ window.__EXTRAS = true;
   P2A.aph = p2Pix([".KKK.", "KgGgK", "KGGGK", ".K.K."], { K: "#2a3a18", g: "#c8f088", G: "#8ad050" });
   function p2Stones(G) {
     G.items = []; var n = 3 + Math.floor(Math.random() * 2);
-    for (var q = 0; q < n; q++) { var x = rnd(40, 100), y = rnd(88, 108), el = lEl("div", "p2-stone", pzLay, P2A.stone); pzPos(el, x - 4, y - 3, 8, 6); el.style.zIndex = 102; G.items.push({ x: x, y: y, el: el, done: false }); }
+    for (var q = 0; q < n; q++) { var x = rnd(40, 90), y = rnd(88, 106), el = lEl("div", "p2-stone", pzLay, P2A.stone); pzPos(el, x - 4, y - 3, 8, 6); el.style.zIndex = 102; G.items.push({ x: x, y: y, el: el, done: false }); }
     var hit = p2Hit(20, 70, 110, 50); G.hitEl = hit; pzTip("Die Steine aus dem Beet sammeln.");
     p2Drag(hit, { down: function (p) { G.items.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 7) return; o.done = true; o.el.classList.add("p2-toss"); beep([[500, .03], [300, .04]]); pzCrumbs(o.x, o.y, 3); setTimeout(function () { o.el.remove(); }, 600); }); } });
     return function () { return G.items.every(function (o) { return o.done; }); };
   }
   function p2Loosen(G) {
-    G.items = []; for (var q = 0; q < 4; q++) { var x = 40 + q * 20 + rnd(-4, 4), y = rnd(90, 106), el = lEl("div", "p2-clod", pzLay, P2A.clod); pzPos(el, x - 5, y - 4, 10, 7); el.style.zIndex = 102; G.items.push({ x: x, y: y, el: el, hp: 3 }); }
+    G.items = []; for (var q = 0; q < 4; q++) { var x = 42 + q * 15 + rnd(-3, 3), y = rnd(90, 104), el = lEl("div", "p2-clod", pzLay, P2A.clod); pzPos(el, x - 5, y - 4, 10, 7); el.style.zIndex = 102; G.items.push({ x: x, y: y, el: el, hp: 3 }); }
     var hit = p2Hit(20, 70, 110, 50); G.hitEl = hit; var last = null; pzTip("Die harten Erdklumpen zerkrümeln, einfach drüberwischen.");
     p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { var a = last; last = p; G.items.forEach(function (o) { if (o.hp <= 0) return;
       var sx = p[0] - a[0], sy = p[1] - a[1], L2 = sx * sx + sy * sy || 1, u = Math.max(0, Math.min(1, ((o.x - a[0]) * sx + (o.y - a[1]) * sy) / L2));
@@ -17412,7 +17437,7 @@ window.__EXTRAS = true;
     return function () { return G.items.every(function (o) { return o.hp <= 0; }); };
   }
   function p2Snail(G) {
-    var x = rnd(44, 96), y = rnd(92, 104), el = lEl("div", "p2-snail", pzLay, P2A.snail); pzPos(el, x - 6, y - 4, 12, 7); el.style.zIndex = 103; G.sn = { x: x, y: y, el: el, out: false };
+    var x = rnd(44, 88), y = rnd(92, 104), el = lEl("div", "p2-snail", pzLay, P2A.snail); pzPos(el, x - 6, y - 4, 12, 7); el.style.zIndex = 103; G.sn = { x: x, y: y, el: el, out: false };
     var hit = p2Hit(0, 50, 180, 85); G.hitEl = hit; var drag = false; pzTip("Die Schnecke vorsichtig nach oben ins Gras tragen.");
     p2Drag(hit, { down: function (p) { if (Math.hypot(G.sn.x - p[0], G.sn.y - p[1]) < 9) { drag = true; el.innerHTML = P2A.shell; } }, move: function (p) { if (drag) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 6, p[1] - 4, 12, 7); } },
       up: function (p) { if (!drag) return; drag = false; var inBed = p[1] > 62;   // out means: up into the grass at the top
@@ -17421,7 +17446,7 @@ window.__EXTRAS = true;
     return function () { return G.sn.out; };
   }
   function p2Sweep(G) {
-    G.items = []; for (var q = 0; q < 5; q++) { var x = rnd(40, 100), y = rnd(86, 108), el = lEl("div", "p2-aleaf", pzLay, P2A.aleaf); pzPos(el, x - 5.5, y - 5, 11, 10); el.style.zIndex = 104; el.style.transform = "rotate(" + rnd(-40, 40) + "deg)"; G.items.push({ x: x, y: y, el: el, done: false }); }
+    G.items = []; for (var q = 0; q < 5; q++) { var x = rnd(40, 90), y = rnd(86, 106), el = lEl("div", "p2-aleaf", pzLay, P2A.aleaf); pzPos(el, x - 5.5, y - 5, 11, 10); el.style.zIndex = 104; el.style.transform = "rotate(" + rnd(-40, 40) + "deg)"; G.items.push({ x: x, y: y, el: el, done: false }); }
     var hit = p2Hit(10, 60, 140, 60); G.hitEl = hit; var last = null; pzTip("Das Laub vom Beet wischen.");
     p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { var a = last; last = p; G.items.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 7 || Math.hypot(p[0] - a[0], p[1] - a[1]) < 1) return;
       o.done = true; var k = pzPxU(); o.el.style.setProperty("--dx", (p[0] - a[0]) * 8 * k + "px"); o.el.style.setProperty("--dy", -20 * k + "px"); o.el.classList.add("p2-blow"); beep([[900 + rnd(0, 300), .02]]); setTimeout(function () { o.el.remove(); }, 700); }); } });
@@ -17506,7 +17531,7 @@ window.__EXTRAS = true;
     };
     ["pointerup", "pointercancel", "pointerleave"].forEach(function (t) { pzLay.addEventListener(t, function () { if (PZG === G && G.pouring) { G.pouring = false; front({ paws: "down" }); } }); });
     G.hz = ham.style.zIndex; scene.insertBefore(ham, document.getElementById("thought")); ham.style.zIndex = ""; scene.classList.add("pz-on");
-    moveTo(150, 130, 0); H.dir = -1; front({ eyes: "happy", mouth: "smile", paws: "down" }); fadeX(true);
+    moveTo(156, 134, 0); H.dir = -1; front({ eyes: "happy", mouth: "smile", paws: "down" }); fadeX(true);
     var rainy = !gh && (weather.type === "rain" || weather.type === "storm");
     function chk() { if (G.cancel) throw "cancel"; }
     function hide() { ["pz-paws", "pz-done", "pz-gauge", "pz-act"].forEach(function (k) { var e = pzUi.querySelector("." + k); if (e) e.hidden = true; }); if (G.hitEl) { G.hitEl.remove(); G.hitEl = null; } pzTip(""); }
