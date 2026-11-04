@@ -2208,6 +2208,17 @@ body.dz-on .dz-panel { display: block; }
 .cq-say.ico { padding: 2px 3px; }
 .cq-say svg { display: block; width: auto; height: 1.3em; }
 @keyframes cq-pop { from { transform: translate(-50%, -80%) scale(.4); opacity: 0; } }
+/* order view: picture moved up, a taller wooden counter front with room for big text */
+.cq-pov { background: linear-gradient(#f4e8cc 60%, #9a6638 60%); }
+.cq-bg, .cq-front { transform: translateY(-14%); }
+.cq-ani { bottom: 39%; }
+.cq-pov::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 15%; background: repeating-linear-gradient(90deg, #8a5a30 0 30%, #6a4424 30% 31%, #9a6638 31% 33%); pointer-events: none; }
+.cq-box { bottom: 3%; padding: 8px 10px 9px; z-index: 2; min-height: 27%; align-content: start; }
+.cq-name { font-size: .86rem; }
+.cq-text { font-size: .95rem; line-height: 1.25; min-height: 3.75em; }
+.cq-row .pbtn { font-size: .9rem; padding: 8px 12px; }
+.cq-wish { top: -44px; }
+.cq-bell { z-index: 59; }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -18192,7 +18203,8 @@ window.__EXTRAS = true;
   var cqBell = document.createElement("button"); cqBell.type = "button"; cqBell.className = "cq-bell"; cqBell.setAttribute("aria-label", "Nächster Gast");
   cqBell.innerHTML = '<svg viewBox="0 0 16 14" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M7 0h2v1h1v1h1v1h1v1h1v4h1v2h1v2H0v-2h1V8h1V4h1V3h1V2h1V1h1z"/><path fill="#f2c860" d="M7 1h2v1h1v1h1v1h1v4h1v2H2V8h1V4h1V3h1V2h2z"/><path fill="#fff1b0" d="M6 3h1v1H6zM5 4h1v3H5z"/><path fill="#b8862a" d="M11 4h1v4h1v2h-2zM1 11h14v1H1z"/><path fill="#3a2414" d="M7 12h2v2H7z"/></svg><b class="cq-n"></b>';
   cafeEl.appendChild(cqBell);
-  function cqBellShow() { var n = cqList().length; cqBell.hidden = !cafeOn || gClosing(); cqBell.classList.toggle("full", n >= CQ_MAX); cqBell.querySelector(".cq-n").textContent = n ? n : ""; }
+  function cqBellShow() { if (!cqBell.isConnected) cafeEl.appendChild(cqBell);   /* the café picture may have been rebuilt: put the bell back */
+    var n = cqList().length; cqBell.hidden = !cafeOn || gClosing(); cqBell.classList.toggle("full", n >= CQ_MAX); cqBell.querySelector(".cq-n").textContent = n ? n : ""; }
   setInterval(cqBellShow, 600);
   cqBell.addEventListener("click", function (e) { e.stopPropagation(); cqRing(); });
   function cqRing() {
@@ -18213,7 +18225,9 @@ window.__EXTRAS = true;
   // ---- the view over the counter, drawn in the room's pixel style: back wall with shelf, window, lamp and menu board; the counter in front ----
   function cqR(o, x, y, w, h, c) { o.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + c + '"/>'); }
   function cqSvg(o) { return '<svg viewBox="0 0 180 135" preserveAspectRatio="none" shape-rendering="crispEdges" aria-hidden="true">' + o.join("") + '</svg>'; }
-  function cqBack() {
+  var CQ_BG = 1;   // which backdrop the order view uses (drafts 1 to 4)
+  function cqBack() { if (CQ_BG === 2) return cqBack2(); if (CQ_BG === 3) return cqBack3(); if (CQ_BG === 4) return cqBack4(); return cqBack1(); }
+  function cqBack1() {
     var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
     R(0, 0, 180, 135, "#f4e8cc"); for (var x = 0; x < 180; x += 12) { R(x, 0, 1, 70, "#ecdcb8"); R(x + 6, 0, 1, 70, "#f8eed8"); }
     for (var x2 = 3; x2 < 180; x2 += 9) for (var y2 = 6; y2 < 64; y2 += 10) R(x2 + ((y2 / 10) % 2) * 4, y2, 1, 1, "#e8d4b0");          // a little dotted wallpaper
@@ -18234,6 +18248,67 @@ window.__EXTRAS = true;
     // a hanging lamp, warm light
     R(90, 0, 1, 10, K); R(84, 10, 13, 6, K); R(85, 11, 11, 4, "#e8b830"); R(86, 11, 6, 1, "#f6dc78"); R(87, 16, 7, 2, "#fff1a8");
     o.push('<path d="M87 18 L60 70 L120 70 L94 18Z" fill="#fff1a8" opacity=".14"/>');
+    return cqSvg(o);
+  }
+  function cqDisc(R, cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = x * x / (rx * rx) + y * y / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) R(cx + x, cy + y, 1, 1, c); } } }
+  // draft 2: the café counter seen from the guest: an espresso machine, a glass case with cakes, a menu board on the wall, two lamps
+  function cqBack2() {
+    var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
+    R(0, 0, 180, 30, "#e8d8b8"); o.push('<g transform="translate(0 14)">');   /* drawn a little lower: the order view shows the picture moved up */
+    R(0, 0, 180, 135, "#e8d8b8"); for (var y = 0; y < 66; y += 6) for (var x = (y / 6) % 2 ? 0 : 6; x < 180; x += 12) { R(x, y, 11, 5, "#f4ead4"); R(x, y, 11, 1, "#fbf4e4"); }   // brick tiles
+    R(0, 64, 180, 2, K); R(0, 66, 180, 34, "#6a4428"); for (var px = 0; px < 180; px += 6) R(px, 66, 1, 34, "#5a3820");
+    R(36, 4, 108, 26, K); R(37, 5, 106, 24, "#2e3a34"); R(37, 5, 106, 1, "#3e4a44");   // the big menu board
+    [[42, 10, "#f6c84a"], [42, 17, "#e8eee8"], [42, 24, "#e8eee8"], [96, 10, "#f6c84a"], [96, 17, "#e8eee8"], [96, 24, "#e8eee8"]].forEach(function (l) { for (var q = 0; q < 34; q += 2) R(l[0] + q, l[1], 1, 1, l[2]); });
+    R(78, 8, 6, 6, "#e8554a"); R(79, 9, 4, 1, "#ff8a7a");
+    // espresso machine on the left
+    R(4, 34, 34, 32, K); R(5, 35, 32, 30, "#c8d0d8"); R(5, 35, 32, 2, "#eef2f6"); R(30, 37, 6, 26, "#9aa4ae"); R(10, 44, 20, 3, K); R(12, 47, 3, 6, K); R(25, 47, 3, 6, K); R(11, 54, 6, 5, "#f4f1ea"); R(23, 54, 6, 5, "#f4f1ea"); R(9, 38, 4, 3, "#e8554a"); R(15, 38, 4, 3, "#6fae5a");
+    R(4, 30, 34, 4, K); R(5, 31, 32, 2, "#a8b0b8"); for (var cu = 0; cu < 4; cu++) { R(7 + cu * 8, 25, 6, 5, K); R(8 + cu * 8, 26, 4, 3, "#fff8ec"); }
+    // glass case with cakes on the right
+    R(138, 34, 40, 32, K); R(139, 35, 38, 30, "#d8eef8"); R(139, 35, 38, 1, "#ffffff"); R(140, 49, 36, 2, "#a8b0b8");
+    [[142, 43, "#f0a8c0"], [154, 43, "#8a5a32"], [166, 43, "#f6dc78"], [146, 58, "#e8554a"], [160, 58, "#c8a060"]].forEach(function (c) { R(c[0], c[1], 9, 6, K); R(c[0] + 1, c[1] + 1, 7, 2, "#fff8ec"); R(c[0] + 1, c[1] + 3, 7, 2, c[2]); });
+    R(142, 37, 2, 10, "#ffffff"); R(158, 52, 2, 10, "#ffffff");
+    // two hanging lamps with warm light
+    [52, 128].forEach(function (lx) { R(lx, 30, 1, 6, K); R(lx - 6, 36, 13, 5, K); R(lx - 5, 37, 11, 3, "#e8b830"); R(lx - 3, 41, 7, 2, "#fff1a8"); o.push('<path d="M' + (lx - 3) + ' 43 L' + (lx - 18) + ' 64 L' + (lx + 18) + ' 64 L' + (lx + 3) + ' 43Z" fill="#fff1a8" opacity=".16"/>'); });
+    o.push('</g>');
+    return cqSvg(o);
+  }
+  // draft 3: cosy wood and plants: plank wall, a big window with the garden and curtains, hanging plants, a string of lights
+  function cqBack3() {
+    var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
+    R(0, 0, 180, 30, "#b88450"); o.push('<g transform="translate(0 14)">');   /* drawn a little lower: the order view shows the picture moved up */
+    R(0, 0, 180, 135, "#b88450"); for (var y = 0; y < 70; y += 7) { R(0, y, 180, 1, "#8a5a32"); for (var x = (y * 7) % 23; x < 180; x += 37) R(x, y + 3, 9, 1, "#a87448"); }
+    R(0, 66, 180, 34, "#6a4428"); R(0, 66, 180, 2, K);
+    // the window: sky, hedge, meadow, a frame and curtains
+    R(52, 6, 76, 50, K); R(54, 8, 72, 46, "#b4dff4"); R(54, 34, 72, 10, "#4e8a32"); for (var hx = 54; hx < 126; hx += 3) R(hx, 33 + (hx % 2), 2, 2, "#6fae4a"); R(54, 44, 72, 10, "#7ac860"); R(89, 8, 2, 46, "#c8945a"); R(54, 30, 72, 2, "#c8945a");
+    R(60, 12, 10, 3, "#ffffff"); R(58, 13, 14, 2, "#ffffff"); R(104, 16, 8, 2, "#ffffff");
+    R(44, 2, 92, 4, K); R(45, 3, 90, 2, "#c8945a");
+    [[46, 1], [124, -1]].forEach(function (c) { R(c[0], 6, 10, 54, K); R(c[0] + 1, 6, 8, 53, "#e8554a"); for (var cy = 8; cy < 58; cy += 4) R(c[0] + 2 + (c[1] > 0 ? 0 : 5), cy, 1, 2, "#c8403a"); });
+    R(50, 56, 80, 3, K); R(51, 56, 78, 2, "#d8a468"); R(64, 50, 7, 6, K); R(65, 51, 5, 5, "#e88a5a"); R(63, 46, 9, 5, "#5ab04a"); R(110, 50, 7, 6, K); R(111, 51, 5, 5, "#e88a5a"); R(108, 45, 11, 6, "#6fae4a");
+    // hanging plants left and right, with trailing leaves
+    [[18, 20], [160, 24]].forEach(function (pl) { R(pl[0], 0, 1, pl[1] - 6, K); R(pl[0] - 7, pl[1] - 6, 15, 8, K); R(pl[0] - 6, pl[1] - 5, 13, 6, "#d8784a"); cqDisc(R, pl[0], pl[1] - 7, 9, 4, function (x, y, d) { return d > .8 ? "#24461a" : y < 0 ? "#8ad86a" : "#5ab04a"; });
+      for (var t = 0; t < 22; t++) { R(pl[0] - 6 + (t % 3) * 6 + Math.round(Math.sin(t) * 2), pl[1] + 2 + t, 2, 2, t % 2 ? "#5ab04a" : "#3e8a3a"); } });
+    // string of lights over the wall
+    for (var lx = 0; lx < 180; lx++) { var ly = Math.round(4 + 5 * Math.sin(lx / 180 * Math.PI * 3) ** 2); R(lx, ly, 1, 1, "#3a2414"); if (lx % 12 === 6) { R(lx - 1, ly + 1, 3, 3, ["#ffd34a", "#ff8a7a", "#9ad8f4"][(lx / 12 | 0) % 3]); R(lx, ly + 1, 1, 1, "#ffffff"); } }
+    o.push('</g>');
+    return cqSvg(o);
+  }
+  // draft 4: the terrace: a striped awning, the garden behind, flower boxes on the counter
+  function cqBack4() {
+    var o = [], K = "#3a2414", R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); };
+    R(0, 0, 180, 30, "#b4dff4"); o.push('<g transform="translate(0 14)">');   /* drawn a little lower: the order view shows the picture moved up */
+    for (var y = 0; y < 70; y++) R(0, y, 180, 1, y < 30 ? (y % 2 ? "#b4dff4" : "#c4e6f6") : "#c4e6f6");
+    cqDisc(R, 30, 22, 12, 5, function (x, y) { return y > 1 ? "#e4f2fa" : "#ffffff"; }); cqDisc(R, 140, 16, 14, 5, function (x, y) { return y > 1 ? "#e4f2fa" : "#ffffff"; });
+    for (var hx = 0; hx < 180; hx++) { var top = 36 + Math.round(Math.sin(hx / 7) * 2 + Math.sin(hx / 3) * 1); R(hx, top, 1, 70 - top, "#4e8a32"); R(hx, top, 1, 1, "#24461a"); R(hx, top + 1, 1, 1, "#6fae4a"); }
+    for (var k = 0; k < 240; k++) { var x2 = (k * 47) % 180, y2 = 40 + (k * 29) % 26; R(x2, y2, 2, 1, k % 3 ? "#6fae4a" : "#2e5a22"); }
+    // trees peeking over the hedge
+    cqDisc(R, 18, 30, 16, 12, function (x, y, d) { return d > .85 ? "#24461a" : y < -2 ? "#6fae4a" : "#4e8a32"; }); cqDisc(R, 166, 28, 18, 13, function (x, y, d) { return d > .85 ? "#24461a" : y < -2 ? "#6fae4a" : "#4e8a32"; });
+    // the awning: red and cream stripes with a scalloped edge
+    for (var ax = 0; ax < 180; ax++) { var st = Math.floor(ax / 12) % 2; R(ax, 0, 1, 14, st ? "#e8554a" : "#fff8ec"); var sc = 14 + Math.round(2 * Math.sin((ax % 12) / 12 * Math.PI)); R(ax, 14, 1, sc - 14, st ? "#e8554a" : "#fff8ec"); R(ax, sc, 1, 1, K); }
+    R(0, 0, 180, 1, K); R(4, 15, 3, 55, K); R(5, 15, 1, 55, "#c8945a"); R(173, 15, 3, 55, K); R(174, 15, 1, 55, "#c8945a");
+    R(0, 66, 180, 34, "#8a5a30"); R(0, 66, 180, 2, K);
+    // flower boxes at both ends
+    [[10, "#e8554a"], [146, "#f6c84a"]].forEach(function (fb) { R(fb[0], 56, 26, 10, K); R(fb[0] + 1, 57, 24, 8, "#c8603a"); R(fb[0] + 1, 57, 24, 1, "#e88a5a"); for (var f = 0; f < 5; f++) { R(fb[0] + 3 + f * 5, 50, 1, 7, "#3e8a3a"); R(fb[0] + 2 + f * 5, 48, 3, 3, fb[1]); R(fb[0] + 3 + f * 5, 49, 1, 1, "#fff8ec"); } });
+    o.push('</g>');
     return cqSvg(o);
   }
   function cqFront() {
@@ -18432,6 +18507,8 @@ window.__EXTRAS = true;
   var _cq_leave = closeCafe; closeCafe = function () { guests.forEach(function (g) { if (g.say) { g.say.remove(); g.say = null; } }); cqConv = {}; return _cq_leave.apply(this, arguments); };
   window.__cq = { ring: cqRing, list: function () { return cqList().map(function (g) { return { id: g.id, state: g.state, x: g.x, order: g.order }; }); }, all: function () { return guests.map(function (g) { return { id: g.id, state: g.state, table: g.table, seat: g.seat, x: g.x, y: g.y }; }); },
     serveFront: function () { var g = cqList()[0]; if (!g) return false; var its = gItems(); if (!its.length) return "empty"; gServeItem(g, its[0]); return true; }, conv: function () { return cqConv; } };
+  window.__cq.bg = function (n) { CQ_BG = n; };
+  window.__cq.ringAs = function (id) { var orig = gKnown; gKnown = function () { return [id]; }; try { cqRing(); } finally { gKnown = orig; } };   // preview test: call a given guest
 
 
   /*TESTHOOK*/
