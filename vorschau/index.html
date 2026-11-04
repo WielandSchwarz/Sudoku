@@ -1704,11 +1704,14 @@ body.dz-on .dz-panel { display: block; }
 .wide-lay { position: absolute; z-index: 1; pointer-events: none; }
 .wide-lay .wide-art { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
 .wide-lay .wide-view { position: absolute; overflow: hidden; }
-.wide-lay .wide-sky { position: absolute; inset: 0; background: #bfe6fa; }
-.wide-lay .wide-gbg { position: absolute; width: 173.08%; left: -28.85%; top: -59.09%; image-rendering: pixelated; }
+/* the garden at half size: frame 180x135 garden px = 90x67.5 room units inside the 104x44 window, centred, from the treetops down to the meadow */
+.wide-lay .wb-garden { position: absolute; left: 6.731%; width: 86.538%; top: -15.909%; height: 153.409%; aspect-ratio: auto; overflow: visible; }
+
 .wide-lay .wide-hit { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; pointer-events: auto; }
 
 #scene.wide-room #k-enter { right: -100%; }
+.wide-lay .wb-garden .map-sky, .wide-lay .wb-garden .map-tint, .wide-lay .wb-garden .map-flash { left: -16.667%; right: -16.667%; }
+.wide-lay .wb-garden svg.map-l { overflow: visible; }
 
 /* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
 #scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
@@ -4688,6 +4691,7 @@ window.__EXTRAS = true;
     }
     $p("pov-tool").innerHTML = rip + '<g fill="#2a1206" opacity=".3">' + shadow + '</g>' + o;
   }
+  window.__pov = { geo: function () { return geo(); }, view: function () { return view; }, fl: function () { return floaters; }, sz: function (k) { return SZ[k]; } };
   function renderFloat(t) {
     if (view !== "pot" && view !== "bowl") return;
     $p("pov-float").innerHTML = floaters.map(function (f, i) {
@@ -4758,7 +4762,7 @@ window.__EXTRAS = true;
             for (var q = 0; q < 3; q++) $p("pov-fx").insertAdjacentHTML("beforeend", '<rect class="pov-crumb" x="' + (kx + rnd(-4, 4)) + '" y="' + (y0 + Hh + rnd(-2, 4)) + '" width="1.5" height="1.5" fill="#dcae72"/>');
             setTimeout(function () {
               done++; kx = place(); knife(kx, y0 - 44); busyCut = false;
-              if (done >= n) { cut[k] = n + 1; setTimeout(function () { $p("pov-float").classList.add("away"); setTimeout(function () { $p("pov-float").classList.remove("away"); $p("pov-fx").innerHTML = ""; res(); }, 450); }, 350); }
+              if (done >= n) { cut[k] = n + 1; setTimeout(function () { $p("pov-fx").innerHTML = ""; res(); }, 650); }
             }, 160);
           };
         });
@@ -10673,7 +10677,10 @@ window.__EXTRAS = true;
 
     // ---- salad: shake the jar until oil and vinegar are one creamy dressing
     COOK_EXT.shake = function (X) {
-      return new Promise(function (res) {
+      var keepFl = floaters.slice(), keepBowl = bowlK, keepView = view;
+      return new Promise(function (res0) {
+        // afterwards the salad bowl comes back with everything that was already in it
+        function res() { if (keepView === "bowl") { setView("bowl"); setBowl(keepBowl || "greens"); floaters = keepFl; } res0(); }
         setView("board"); X.head(X.i, "Dressing schütteln"); $p("pov-ring").hidden = false; X.bar(0);
         var jy = 0, vy = 0, dir = 0, run = 0, n = 0, N = 12, drag = null, done = false, slosh = 0, rot = 0, drops = [], hearts = [], now = 0, said = 0;
         window.__k2shake = function () { return n; };
@@ -12637,14 +12644,13 @@ window.__EXTRAS = true;
         if (I.long) {
           var ex_ = [0].concat(cs.map(function (q) { return q - x0; })).concat([w]);
           if (im2.complete) for (var v_ = 0; v_ < ex_.length - 1; v_++) { var a2_ = ex_[v_], b2_ = ex_[v_ + 1]; if (b2_ - a2_ < 1) continue; var o2 = Math.round((v_ - (ex_.length - 2) / 2) * (cs.length ? sep : 0)); c.drawImage(im2, a2_, 0, b2_ - a2_, h, x0 + a2_ + o2, y0, b2_ - a2_, h); if (v_ > 0) R(c, x0 + a2_ + o2, y0 + 3, 1, h - 6, lerpC(I.cr, "#ffffff", .4)); }
-          if (pr.knife) spr("knife_v", pr.knife[0] - 6, pr.knife[1] - 50);
-          else if (!pr.cuts.length) { spr("knife_v", x0 + w / 2 - 6, y0 - 54 + Math.round(Math.sin(t / 250) * 2)); arrow(x0 + w / 2 + 12, y0 - 16, t); }
+          if (pr.cuts.length < pr.need && !pr.done) { var nx = sliceNext(); for (var gy_ = y0 - 6; gy_ < y0 + h + 6; gy_ += 3) R(c, nx, gy_, 1, 2, "#fff8ec"); var down = pr.cutT && T - pr.cutT < .16; spr("knife_v", nx - 6, (down ? y0 + h - 50 : y0 - 54) + (down ? 0 : Math.round(Math.sin(t / 250) * 2))); if (!pr.cuts.length) arrow(nx + 12, y0 - 16, t); }
+          else if (pr.cutT && T - pr.cutT < .16) spr("knife_v", pr.cutAt - 6, y0 + h - 50);
           gauge(pr.cuts.length / pr.need, [.97, 1], I.dc);
         } else {
         var edges = [0].concat(cs.map(function (q) { return q - y0; })).concat([h]);
         if (im2.complete) for (var s_ = 0; s_ < edges.length - 1; s_++) { var a_ = edges[s_], b_ = edges[s_ + 1]; if (b_ - a_ < 1) continue; var off = Math.round((s_ - (edges.length - 2) / 2) * (cs.length ? sep : 0)); c.drawImage(im2, 0, a_, w, b_ - a_, x0, y0 + a_ + off, w, b_ - a_); if (s_ > 0 && cs.length) R(c, x0 + Math.round(w * .22), y0 + a_ + off, Math.round(w * .56), 1, lerpC(I.cr, "#ffffff", .4)); }
-        if (pr.knife) knifeH(pr.knife[0], pr.knife[1], pr.kdir || 1);
-        else if (!pr.cuts.length) { knifeH(x0 - 30 + Math.round(Math.sin(t / 250) * 3), y0 + h / 2, 1); arrow(x0 - 30, y0 + h / 2 - 14, t); }
+        if (pr.cuts.length < pr.need && !pr.done) { var ny = sliceNext(); for (var gx_ = x0 - 6; gx_ < x0 + w + 6; gx_ += 3) R(c, gx_, ny, 2, 1, "#fff8ec"); var dn = pr.cutT && T - pr.cutT < .16; knifeH(dn ? x0 + w / 2 : x0 - 30 + Math.round(Math.sin(t / 250) * 3), ny, 1); if (!pr.cuts.length) arrow(x0 - 30, ny - 14, t); }
         gauge(pr.cuts.length / pr.need, [.97, 1], I.dc);
         }
       }
@@ -12702,7 +12708,7 @@ window.__EXTRAS = true;
         if (pr.stage === 3) { for (var i = 0; i < 10; i++) parts.push({ x: 90, y: 96, vx: (Math.random() - .5) * 120, vy: -60 - Math.random() * 60, col: i % 2 ? "#b07a44" : "#8a5a30", w: 3, h: 2, life: 1.2, floor: 120 }); itemDone(); }
         return;
       }
-      if (I.prep === "slice") { pr.sw = p; pr.knife = p; return; }
+      if (I.prep === "slice") { sliceTap(); return; }
       if (I.prep === "scoop") { pr.drag = p; scoopAt(p); return; }
       if (I.prep === "drip") { if (pr.level < 1) { pr.hold = true; } return; }
       if (I.prep === "pluck" || I.prep === "pluck2") {
@@ -12741,7 +12747,7 @@ window.__EXTRAS = true;
         }
         return;
       }
-      if (I.prep === "slice" && pr.sw) { if (Math.abs(p[0] - pr.knife[0]) > .5) pr.kdir = p[0] > pr.knife[0] ? 1 : -1; pr.knife = p; return; }
+
       if (I.prep === "scoop" && pr.drag) { pr.drag = p; scoopAt(p); }
     }
     function prepUp(p) {
@@ -12768,6 +12774,15 @@ window.__EXTRAS = true;
           if (pr.cuts.length >= pr.need) itemDone();
         }
       }
+    }
+    // slicing like in the house kitchen: a dashed line shows where the next cut goes, a tap anywhere cuts there
+    function sliceGeo() { var I = BK_ING[it.id], im2 = TIMG[I.fr], w = im2.naturalWidth || 30, h = im2.naturalHeight || 30; return { w: w, h: h, x0: Math.round(90 - w / 2), y0: Math.round(102 - h / 2) }; }
+    function sliceNext() { var I = BK_ING[it.id], g = sliceGeo(), n = pr.need, k = pr.cuts.length + 1; return I.long ? g.x0 + Math.round(g.w * k / (n + 1)) : g.y0 + Math.round(g.h * k / (n + 1)); }
+    function sliceTap() {
+      if (pr.done || pr.cutT && T - pr.cutT < .18 || pr.cuts.length >= pr.need) return;
+      var I = BK_ING[it.id], g = sliceGeo(), q = sliceNext(); pr.cutT = T; pr.cutAt = q;
+      pr.cuts.push(q); beep([[1200, .02], [800, .03]]); burst(I.long ? q : g.x0 + g.w / 2, I.long ? g.y0 + g.h / 2 : q, I.cr, 3, 20);
+      if (pr.cuts.length >= pr.need) setTimeout(function () { if (pr && !pr.done) itemDone(); }, 220);
     }
     // ================= 2b: grinding sunflower kernels to flour on the hand mill (turn the peg in circles)
     var MC = [90, 70];
@@ -15831,19 +15846,41 @@ window.__EXTRAS = true;
   scene.classList.add("wide-room");
   var wRug = xEl("img", "wide-rug", wRoom); wRug.src = WA.rug; wRug.alt = ""; place(wRug, 180, 0, 180);
   var wLay = xEl("div", "wide-lay", wRoom); place(wLay, 180, 0, 180); wLay.style.height = gy(135);
-  wLay.innerHTML = '<div class="wide-view"><div class="wide-sky"></div><img class="wide-gbg" alt=""></div><img class="wide-art" alt="" src="' + WA.art + '">' +
+  wLay.innerHTML = '<div class="wide-view"><div class="wb-garden" id="wb-sky"></div></div><img class="wide-art" alt="" src="' + WA.art + '">' +
     '<button type="button" class="wide-hit" data-w="piano" aria-label="Klavier"></button><button type="button" class="wide-hit" data-w="seat" aria-label="Fensterbank"></button><button type="button" class="wide-hit" data-w="guitar" aria-label="Gitarre"></button>';
   var wView = wLay.querySelector(".wide-view"); place(wView, 64, 29, 104); wView.style.height = gy(44);
-  var wGbg = wView.querySelector(".wide-gbg"), wSky = wView.querySelector(".wide-sky");
-  var WHIT = { piano: [6, 54, 56, 48], seat: [62, 76, 114, 22], guitar: [132, 66, 14, 38] };
-  Object.keys(WHIT).forEach(function (k) { var b = wLay.querySelector('[data-w="' + k + '"]'), r = WHIT[k]; place(b, r[0], r[1], r[2]); b.style.height = gy(r[3]); });
-  function wViewSync() {                                           // the garden and the sky through the bay window, as they are right now
-    var g = document.getElementById("g-bg"), sk = document.getElementById("sky");
-    var src = g && g.src ? g.src : (typeof WBG === "object" && typeof season === "function" ? WBG["bg_" + season()] : "");
-    if (src && wGbg.src !== src) wGbg.src = src;
-    if (sk) { var cs = getComputedStyle(sk); wSky.style.background = cs.background; }
+  // the view out of the bay window is the real garden at half size: the season's trees, hedge and meadow, the sky of the hour and every weather
+  var wbSky = wView.querySelector("#wb-sky"), wbKey = "";
+  function wBayScene() {
+    var se = season(), wt = weather.type, bliz = wt === "storm" && se === "winter", i;
+    var skyCls = (document.getElementById("sky").className.match(/sky-(eve|night)/) || [""])[0];
+    var key = se + wt + skyCls; if (key === wbKey) return; wbKey = key;
+    var L = function (src, cls) { return '<img class="map-l ' + (cls || "") + '" src="' + src + '" alt="" style="left:-16.667%;width:133.333%;top:0;height:100%">'; };
+    var o = '<div class="map-sky ' + skyCls + ' mw-' + wt + '"></div>';
+    if (wt === "rainbow" && A.rainbow) o += '<svg class="map-l" viewBox="0 0 180 135" aria-hidden="true"><g transform="translate(2 -4)" opacity=".85">' + (A.rainbow_big || A.rainbow) + '</g></svg>';
+    if (wt === "clouds" || wt === "rain" || wt === "storm") o += '<svg class="map-l map-wx" viewBox="0 0 180 135" aria-hidden="true"><g class="sp-c2"><g transform="translate(0 6)">' + A.sp_cloud2 + '</g><g transform="translate(200 6)">' + A.sp_cloud2 + '</g></g></svg>';
+    o += L(SBG["far_" + se]);
+    TREES.forEach(function (t, n) { o += '<img class="map-l map-tree" src="' + SBG[t[0] + "_" + se] + '" alt="" style="left:-16.667%;width:133.333%;top:0;height:100%;transform-origin:' + ((t[1] + 30) / 240 * 100) + '% ' + (t[2] / 135 * 100) + '%;--amp:' + t[3] + ';animation-delay:-' + (n * 0.2) + 's">'; });
+    o += L(SBG["rest_" + se]) + L(SBG["fg_" + se]);
+    var w = "", lc = se === "autumn" ? ["#e8822a", "#c8463c", "#f0b040"] : ["#6aa84a", "#9ad070", "#4e8a3a"];
+    if (wt === "rain" || (wt === "storm" && !bliz)) {
+      for (i = 0; i < (wt === "storm" ? 90 : 45); i++) w += '<rect class="' + (i % 3 ? "rf" : "rn") + '" x="' + Math.round(rnd(-20, 220)) + '" y="' + Math.round(rnd(-135, 135)) + '" width="1" height="' + (i % 3 ? 4 : 6) + '" fill="#c8d6ea" opacity=".75"/>';
+      if (wt === "storm") {
+        for (i = 0; i < 8; i++) w += '<g class="lf lf' + (i % 3) + '" style="animation-delay:-' + rnd(0, 2).toFixed(2) + 's;animation-duration:' + rnd(1.4, 2.4).toFixed(2) + 's"><g transform="translate(-6 ' + Math.round(rnd(20, 110)) + ')"><rect class="spin" width="2" height="2" fill="' + lc[i % 3] + '"/></g></g>';
+        w += '<g class="bolt" transform="translate(40 0)">' + A.sp_bolt + '</g>';
+      }
+    } else if (wt === "snow" || bliz) {
+      for (i = 0; i < (bliz ? 130 : 60); i++) w += '<rect class="' + (bliz ? "sz" + (i % 3) : "msn") + '" x="' + Math.round(rnd(-40, 180)) + '" y="' + Math.round(rnd(-20, 135)) + '" width="2" height="2" fill="#ffffff" style="animation-delay:-' + rnd(0, 4).toFixed(2) + 's"/>';
+    }
+    if (w) o += '<svg class="map-l map-wx" viewBox="0 0 180 135" preserveAspectRatio="none" aria-hidden="true">' + w + '</svg>';
+    o += '<div class="map-tint mt-' + wt + (bliz ? " mt-bliz" : "") + '"></div>';
+    if (skyCls) o += '<div class="map-tint ' + skyCls + '" style="background:' + (skyCls === "sky-night" ? "rgba(12,16,48,.45)" : "rgba(80,46,72,.18)") + '"></div>';
+    if (wt === "storm" && !bliz) o += '<div class="map-flash"></div>';
+    wbSky.className = "wb-garden map-scene" + (wt === "storm" ? " stormy" : "");
+    wbSky.innerHTML = o;
   }
-  setInterval(wViewSync, 4000); setTimeout(wViewSync, 300);
+  function wViewSync() { try { wBayScene(); } catch (e) {} }
+  setInterval(wViewSync, 2000); setTimeout(wViewSync, 300);
   // wallpaper and floor are twice as wide now: their tiles are sized in % of the element, so halve the % to keep the pixel size
   function wTiles() {
     ["wallpaper", "floor", "wp-twinkle"].forEach(function (id) {
@@ -16906,17 +16943,17 @@ window.__EXTRAS = true;
       up: function () { pzPos(bag, 118, 66, 16, 16); } });
     return function () { return G.cells.every(Boolean); };
   }
-  var POT = { x: 58, y: 76, w: 24, h: 17 };
+  var P2POT = { x: 58, y: 76, w: 24, h: 17 };
   function p2PotFill(G) {                                             // chili: fill the little pot with soil
-    var pot = lEl("div", "p2-pot", pzLay, P2A.pot); pzPos(pot, POT.x, POT.y, POT.w, POT.h); pot.style.zIndex = 103; G.potEl = pot; G.pf = 0;
+    var pot = lEl("div", "p2-pot", pzLay, P2A.pot); pzPos(pot, P2POT.x, P2POT.y, P2POT.w, P2POT.h); pot.style.zIndex = 103; G.potEl = pot; G.pf = 0;
     var soil = lEl("div", "p2-potsoil", pzLay); soil.style.zIndex = 104; G.soilEl = soil;
     var hit = p2Hit(30, 50, 80, 60); G.hitEl = hit; var last = null; pzTip("Erde in den Topf wischen.");
-    p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { var d = Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; if (Math.abs(p[0] - 70) > 16 || p[1] > POT.y + 6) return;
-      G.pf = Math.min(100, G.pf + d * .8); var h = 1 + G.pf / 100 * 2.5; pzPos(soil, POT.x + 2, POT.y + 3.4 - h, POT.w - 4, h); if (Math.random() < .35) pzCrumbs(70 + rnd(-6, 6), POT.y + 2, 2); } });
+    p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { var d = Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; if (Math.abs(p[0] - 70) > 16 || p[1] > P2POT.y + 6) return;
+      G.pf = Math.min(100, G.pf + d * .8); var h = 1 + G.pf / 100 * 2.5; pzPos(soil, P2POT.x + 2, P2POT.y + 3.4 - h, P2POT.w - 4, h); if (Math.random() < .35) pzCrumbs(70 + rnd(-6, 6), P2POT.y + 2, 2); } });
     return function () { return G.pf >= 100; };
   }
   function p2PotSeed(G) {                                             // two chili seeds into the pot
-    G.spots = [[66, POT.y + 1], [74, POT.y + 1]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 3, q[1] - 3, 6, 6); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
+    G.spots = [[66, P2POT.y + 1], [74, P2POT.y + 1]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 3, q[1] - 3, 6, 6); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
     var hit = p2Hit(40, 60, 60, 40); G.hitEl = hit; pzTip("Zwei Samen in den Topf drücken.");
     p2Drag(hit, { down: function (p) { G.spots.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 6) return; o.done = true; o.el.innerHTML = P2A.seedc; pzPos(o.el, o.x - 1.5, o.y - 1.5, 3, 3); o.el.style.zIndex = 105; beep([[700, .04]]); }); } });
     return function () { return G.spots.every(function (o) { return o.done; }); };
@@ -16925,7 +16962,7 @@ window.__EXTRAS = true;
     var d = lEl("div", "p2-dome", pzLay, P2A.dome); pzPos(d, 118, 52, 26, 16); d.style.zIndex = 146; G.domeEl = d; G.domed = false;
     var hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; var drag = false; pzTip("Die Glashaube über den Topf stülpen.");
     p2Drag(hit, { down: function (p) { if (p[0] > 112 && p[0] < 150 && p[1] > 46 && p[1] < 74) drag = true; }, move: function (p) { if (drag) pzPos(d, p[0] - 13, p[1] - 8, 26, 16); },
-      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 12 && Math.abs(p[1] - (POT.y - 6)) < 12) { G.domed = true; pzPos(d, 57, POT.y - 14, 26, 16); d.style.zIndex = 106; beep([[880, .05], [1175, .08]]); } else pzPos(d, 118, 52, 26, 16); } });
+      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 12 && Math.abs(p[1] - (P2POT.y - 6)) < 12) { G.domed = true; pzPos(d, 57, P2POT.y - 14, 26, 16); d.style.zIndex = 106; beep([[880, .05], [1175, .08]]); } else pzPos(d, 118, 52, 26, 16); } });
     return function () { return G.domed; };
   }
   P2A.bushseedl = p2Pix(["..g...g..g..", ".gGg.gGggGg.", "gGgg.gGg.gGg", ".g.G..G.Gg..", "...G..G.G...", "....G.GG....", ".....GG.....", ".....HH.....", ".....HH.....", "....CCCC....", "...BBBBBB...", "..BBbBBbBB..", "..BbBBBBbB..", "..BBBbBBBB..", "...BBBBbB...", "....BbBB....", ".....rr.....", "....r..r...."], { g: "#6fc05a", G: "#3e8a3a", H: "#8a5a3a", C: "#8a6a2a", B: "#6a4428", b: "#8a5e3a", r: "#a8784a" });
