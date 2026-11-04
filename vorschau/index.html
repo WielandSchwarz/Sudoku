@@ -17019,8 +17019,9 @@ window.__EXTRAS = true;
     rm.forEach(function (q) { o[q[1]][q[0]] = "."; });
     return o.map(function (r) { return r.join(""); });
   }
+  var P2HD = false;   /* sprites in plain pixels, the same size as the garden's (the doubled fine version belonged to the closer camera) */
   function p2Pix(rows, pal) {
-    var o = "", w = 0; rows = p2Up(rows);
+    var o = "", w = 0; if (P2HD) rows = p2Up(rows);
     rows.forEach(function (r, y) { w = Math.max(w, r.length); var x = 0; while (x < r.length) { var k = r[x], c = pal[k]; if (!c) { x++; continue; } var n = 1; while (x + n < r.length && r[x + n] === k) n++; o += '<rect x="' + x + '" y="' + y + '" width="' + n + '" height="1" fill="' + c + '"/>'; x += n; } });
     return '<svg viewBox="0 0 ' + w + ' ' + rows.length + '" aria-hidden="true" shape-rendering="crispEdges">' + o + '</svg>';
   }
@@ -17526,7 +17527,7 @@ window.__EXTRAS = true;
   var _p2_plantGame = plantGame;
   plantGame = async function (i, c, where) {
     where = where || "garden"; if (!P2_STEPS[c]) { PZCAM = null; return _p2_plantGame(i, c, where); }
-    PZCAM = { x: 25, y: 52, z: 2 };   // the closer camera: the bed fills the view, everything twice as big and twice as finely drawn
+    PZCAM = null;   /* back to the normal view of the whole bed: the closer camera (x 25, y 52, z 2) is switched off */   // the closer camera: the bed fills the view, everything twice as big and twice as finely drawn
     var gh = where === "gh", open = p2Opener(where);
     var steps = P2_STEPS[c].map(function (k) { return k === "weed" ? open : k === "water" && gh ? "spray" : k; }).filter(function (k) { return k !== "none"; });
     if (gh && steps[0] !== open && c !== "chili") steps.unshift(open); if (gh && c === "chili") steps.unshift(open);
