@@ -1479,8 +1479,13 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .p2-berry.wob { animation: pz-shake .3s steps(3); }
 .p2-berry.tobask { animation: p2-bask .5s steps(5) forwards; } @keyframes p2-bask { to { transform: translate(60px, 20px) scale(.6); opacity: 0; } }
 .p2-stem { background: #4a9a3a; box-shadow: inset -1px 0 0 #2e6a2a, inset 1px 0 0 #6fc05a; }
-.p2-mark { background: repeating-linear-gradient(90deg, #ffd34a 0 2px, transparent 2px 4px); animation: h-twinkle 1.2s steps(2) infinite; }
+.p2-mark { background: repeating-linear-gradient(90deg, #ffd34a 0 2px, transparent 2px 4px); animation: p2-blink 1.2s steps(2) infinite; }
 .p2-ctop, .p2-head { transform-origin: 50% 100%; }
+.p2-gline { background: repeating-linear-gradient(90deg, #fff8ec 0 2px, transparent 2px 4px); }
+.p2-ring { animation: p2-blink 1s steps(2) infinite; pointer-events: none; }
+.p2-seedl, .p2-trel, .p2-dome, .p2-stake, .p2-bag, .p2-clock, .p2-pot, .p2-potsoil, .p2-mound { pointer-events: none; }
+@keyframes p2-blink { 50% { opacity: .35; } }
+.p2-potsoil { background: #5a3820; box-shadow: inset 0 1px 0 #8a5e3a; }
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -16517,9 +16522,15 @@ window.__EXTRAS = true;
   var P2_STEPS = {
     gcarrot: ["weed", "furrow", "sprinkle", "rake", "water"],
     sunflower: ["weed", "dig", "sow", "cover", "tamp", "stake", "water"],
-    dandelion: ["blow", "press", "water"]
+    dandelion: ["blow", "press", "water"],
+    strawberry: ["weed", "dig", "seedling", "cover", "straw", "water"],
+    pumpkin: ["weed", "mound", "seeds3", "water"],
+    cucumber: ["weed", "trellis", "dig", "sow", "cover", "water"],
+    tomato: ["weed", "dig", "seedling", "cover", "stake", "tie", "water"],
+    herbs: ["weed", "scatter", "press", "spray"],
+    chili: ["potfill", "potseed", "dome", "spray"]
   };
-  var P2_HARV = { gcarrot: ["pull", "knock"], strawberry: ["leaves", "pick"], sunflower: ["cut", "rub"] };
+  var P2_HARV = { gcarrot: ["pull", "knock"], strawberry: ["leaves", "pick"], sunflower: ["cut", "rub"], cucumber: ["leaves", "cut"], pumpkin: ["cut", "roll"], tomato: ["twist", "basket"], dandelion: ["cutl", "bundle"], herbs: ["snip", "tie"], chili: ["pull2", "basket"] };
   // ---- small pixel helpers: sprites from character grids, positions from pointer events ----
   function p2Pix(rows, pal) {
     var o = "", w = 0;
@@ -16665,8 +16676,102 @@ window.__EXTRAS = true;
     } });
     return function () { return G.landed.every(function (s) { return s.pressed; }); };
   }
+  // ---------- more planting steps ----------
+  P2A.seedl = p2Pix(["....g..g....", "...gGggGg...", "..gGggggGg..", ".gGgg..ggGg.", "..gg.gg.gg..", "....gGGg....", ".....GG.....", ".....GG.....", ".....GG.....", "....CCCC....", "...BBBBBB...", "..BBbBBbBB..", "..BbBBBBbB..", "..BBBbBBBB..", "...BBBBbB...", "....BbBB....", ".....rr.....", "....r..r...."], { g: "#6fc05a", G: "#3e8a3a", C: "#8a6a2a", B: "#6a4428", b: "#8a5e3a", r: "#a8784a" });
+  P2A.tomseedl = p2Pix(["...g.g.g....", "..gGgGgGg...", ".gGgGgGgGg..", "..gGg.gGg...", "...gGgGg....", ".....GG.....", "..gg.GG.gg..", "...ggGGgg...", ".....GG.....", ".....GG.....", "....CCCC....", "...BBBBBB...", "..BBbBBbBB..", "..BbBBBBbB..", "..BBBbBBBB..", "...BBBBbB...", "....BbBB....", ".....rr....."], { g: "#7ab84a", G: "#4a8a2a", C: "#8a6a2a", B: "#6a4428", b: "#8a5e3a", r: "#a8784a" });
+  P2A.straw = p2Pix(["y..Y..y.Y.", ".yY.yY.Yy.", "YyyYyYyyYy", ".YyYYyYyY."], { y: "#e8c860", Y: "#c8a040" });
+  P2A.ring = p2Pix([".KKK.", "K...K", "K...K", "K...K", ".KKK."], { K: "#ffd34a" });
+  P2A.trellis = p2Pix(["W.......W.......W", "WW.....WWW.....WW", "W.W...W.W.W...W.W", "W..W.W..W..W.W..W", "W...W...W...W...W", "W..W.W..W..W.W..W", "W.W...W.W.W...W.W", "WW.....WWW.....WW", "W.......W.......W", "WW.....WWW.....WW", "W.W...W.W.W...W.W", "W..W.W..W..W.W..W", "W...W...W...W...W", "W..W.W..W..W.W..W", "W.W...W.W.W...W.W", "WW.....WWW.....WW", "W.......W.......W", "W.......W.......W", "W...............W"], { W: "#b88a5a" });
+  P2A.knot = p2Pix([".kk.", "kKKk", ".kk.", "k..k"], { k: "#e8d8b0", K: "#c8a870" });
+  P2A.pot = p2Pix(["KKKKKKKKKKKKKKKK", "KoOOOOOOOOOOOOoK", "KKKKKKKKKKKKKKKK", ".KoOOOOOOOOOOoK.", ".KoOOOOOOOOOOoK.", ".KoOOOOOOOOOOdK.", "..KoOOOOOOOOdK..", "..KoOOOOOOOOdK..", "..KoOOOOOOOOdK..", "...KoOOOOOOdK...", "...KKKKKKKKKK..."], { K: K, o: "#f0a070", O: "#d8784a", d: "#a85a34" });
+  P2A.dome = p2Pix(["......KKKK......", "....KKwwwwKK....", "...KwwW..wwwK...", "..Kww.W....wwK..", "..Kw..W.....wK..", ".Kw...W......wK.", ".Kw..........wK.", ".Kw..........wK.", ".Kw..........wK.", "KKKKKKKKKKKKKKKK"], { K: "#7a9aa8", w: "#d8eef6", W: "#ffffff" });
+  function p2Seedling(G) {                                            // set the young plant into the hole at the right height
+    var deep = G.c === "tomato", el = lEl("div", "p2-seedl", pzLay, deep ? P2A.tomseedl : P2A.seedl); pzPos(el, 118, 52, 18, 27); el.style.zIndex = 146; G.plantEl = el;
+    var line = null, inHole = false, drag = false, hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; G.setDone = false;
+    var want = deep ? [100, 106] : [94, 98];                          // where the crown (the dark band) should sit: at the soil line, or deep for tomatoes
+    pzTip(deep ? "Die Tomate tief ins Loch setzen, bis über die Wurzel." : "Die Pflanze ins Loch setzen. Das Herz bleibt genau auf Erdhöhe.");
+    p2Drag(hit, { down: function (p) { var r = el.getBoundingClientRect(), q = p2XY({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }); if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 16) drag = true; },
+      move: function (p) { if (!drag) return; var x = inHole ? 70 : p[0]; pzPos(el, x - 9, p[1] - 15, 18, 27);
+        if (!inHole && Math.abs(p[0] - 70) < 12 && p[1] > 80) { inHole = true; line = lEl("div", "p2-gline", pzLay); pzPos(line, 50, deep ? 103 : 96, 40, .6); line.style.zIndex = 145; } },
+      up: function (p) { if (!drag) return; drag = false; if (!inHole) { pzPos(el, 118, 52, 18, 27); return; }
+        var crown = p[1] - 15 + 27 * 9.5 / 18; G.crown = crown;
+        if (crown >= want[0] && crown <= want[1]) { G.setDone = true; el.style.zIndex = 100; if (line) line.remove(); beep([[523, .05], [659, .08]]); }
+        else { pzTip(crown < want[0] ? "Noch zu hoch, tiefer setzen." : "Zu tief, etwas höher."); beep([[200, .06]]); } } });
+    return function () { return G.setDone; };
+  }
+  function p2Straw(G) {                                               // tuck straw under the plant at four spots
+    G.spots = [[52, 100], [62, 106], [80, 106], [90, 100]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 4, q[1] - 4, 8, 8); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
+    var hit = p2Hit(20, 70, 110, 50); G.hitEl = hit; pzTip("Stroh unter die Pflanze legen.");
+    p2Drag(hit, { down: function (p) { G.spots.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 8) return; o.done = true; o.el.innerHTML = P2A.straw; pzPos(o.el, o.x - 8, o.y - 3, 16, 6); o.el.style.zIndex = 103; beep([[700, .04]]); front({ paws: "up", eyes: "happy" }); }); } });
+    return function () { return G.spots.every(function (o) { return o.done; }); };
+  }
+  function p2Mound(G) {                                               // push soil together into a hill for the pumpkin
+    G.mh = 0; var m = lEl("div", "p2-mound", pzLay); m.style.zIndex = 101; G.moundEl = m;
+    var draw = function () { var lv = Math.min(3, Math.floor(G.mh / 34)), w = 30 + G.mh * .3, h = 6 + G.mh * .12; m.innerHTML = pzSvg("mound" + lv); pzPos(m, 70 - w / 2, 102 - h, w, h); };
+    var hit = p2Hit(10, 70, 130, 50); G.hitEl = hit; var last = null; pzTip("Erde von den Seiten zur Mitte wischen.");
+    p2Drag(hit, { down: function (p) { last = p; front({ paws: "hold", eyes: "down", mouth: "teeth" }); }, move: function (p) {
+      var towards = Math.abs(last[0] - 70) - Math.abs(p[0] - 70); last = p; if (towards > 0) { G.mh = Math.min(110, G.mh + towards * .6); draw(); if (Math.random() < .4) pzCrumbs(p[0], 100, 2); } },
+      up: function () { front({ paws: "down" }); } });
+    return function () { return G.mh >= 100; };
+  }
+  function p2Seeds3(G) {                                              // three pumpkin seeds pushed into the top of the hill
+    var top = 102 - (6 + G.mh * .12);
+    G.spots = [[63, top + 2], [70, top], [77, top + 2]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 3, q[1] - 3, 6, 6); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
+    var hit = p2Hit(30, 60, 80, 50); G.hitEl = hit; pzTip("Drei Kerne oben in den Hügel stecken.");
+    p2Drag(hit, { down: function (p) { G.spots.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 6) return; o.done = true; o.el.innerHTML = pzSvg("seedp"); pzPos(o.el, o.x - 2, o.y - 2, 4, 5); o.el.style.zIndex = 102; beep([[500 + rnd(0, 200), .05]]); front({ paws: "up", eyes: "happy" }); body("squat"); setTimeout(function () { body(""); }, 150); }); } });
+    return function () { return G.spots.every(function (o) { return o.done; }); };
+  }
+  function p2Trellis(G) {                                             // stand the climbing frame behind the bed, then knock both posts in
+    var tr = lEl("div", "p2-trel", pzLay, P2A.trellis); pzPos(tr, 120, 48, 26, 29); tr.style.zIndex = 146; G.trEl = tr; G.trPlaced = false; G.trKnocks = 0;
+    var hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; var drag = false; pzTip("Das Rankgitter hinter das Beet stellen, dann die Pfosten einklopfen.");
+    p2Drag(hit, { down: function (p) {
+      if (G.trPlaced) { if (Math.abs(p[1] - 86) < 16 && Math.abs(p[0] - 70) < 20) { G.trKnocks++; beep([[160 + G.trKnocks * 40, .06]]); pzCrumbs(70 + (G.trKnocks % 2 ? -12 : 12), 90, 3); pzPos(tr, 57, 58 + G.trKnocks * 2, 26, 29); front({ paws: "up", eyes: "happy", mouth: "teeth" }); body("squat"); setTimeout(function () { body(""); }, 150); } return; }
+      if (p[0] > 114 && p[0] < 150 && p[1] > 44 && p[1] < 82) drag = true; },
+      move: function (p) { if (drag) pzPos(tr, p[0] - 13, p[1] - 15, 26, 29); },
+      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 18 && p[1] > 60 && p[1] < 96) { G.trPlaced = true; pzPos(tr, 57, 58, 26, 29); tr.style.zIndex = 96; beep([[300, .05]]); pzTip("Zweimal auf die Pfosten klopfen."); } else pzPos(tr, 120, 48, 26, 29); } });
+    return function () { return G.trKnocks >= 2; };
+  }
+  function p2Tie(G) {                                                 // tie the tomato to its stake at three places
+    var x = G.sx || 80;
+    G.spots = [62, 72, 82].map(function (y) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, (70 + x) / 2 - 3, y - 3, 6, 6); r.style.zIndex = 148; return { x: (70 + x) / 2, y: y, el: r, done: false }; });
+    var hit = p2Hit(30, 40, 90, 70, 149); G.hitEl = hit; pzTip("An drei Stellen festbinden.");
+    p2Drag(hit, { down: function (p) { G.spots.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 7) return; o.done = true; o.el.innerHTML = P2A.knot; pzPos(o.el, o.x - 3, o.y - 2, 6, 6); beep([[600, .04], [800, .05]]); front({ paws: "up", eyes: "happy" }); }); } });
+    return function () { return G.spots.every(function (o) { return o.done; }); };
+  }
+  function p2Scatter(G) {                                             // herbs: scatter fine seed over the whole bed, every patch gets some
+    G.cells = [0, 0, 0, 0, 0, 0, 0, 0]; G.landed = []; var bag = lEl("div", "p2-bag", pzLay, P2A.bag); pzPos(bag, 118, 66, 16, 16); bag.style.zIndex = 145; G.bagEl = bag;
+    var hit = p2Hit(10, 50, 140, 70); G.hitEl = hit; var acc = 0, last = null; pzTip("Den Beutel übers ganze Beet führen, überall ein paar Samen.");
+    p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { pzPos(bag, p[0] - 8, p[1] - 22, 16, 16); acc += Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; if (acc < 7) return; acc = 0;
+      var x = p[0] + rnd(-3, 3), y = p[1] + rnd(-2, 2); if (x < BED.x0 || x > BED.x1 || y < BED.y0 || y > BED.y1) return;
+      var ci = Math.min(3, Math.floor((x - BED.x0) / ((BED.x1 - BED.x0) / 4))) + (y > (BED.y0 + BED.y1) / 2 ? 4 : 0); G.cells[ci]++;
+      if (G.landed.length < 14 && G.cells[ci] <= 2) { var sd = lEl("div", "p2-seed", pzLay, P2A.seedc); pzPos(sd, x - 1.5, y - 1.5, 3, 3); sd.style.zIndex = 102; G.landed.push({ x: x, y: y, el: sd, pressed: false }); beep([[900 + rnd(0, 300), .015]]); } },
+      up: function () { pzPos(bag, 118, 66, 16, 16); } });
+    return function () { return G.cells.every(Boolean); };
+  }
+  var POT = { x: 58, y: 76, w: 24, h: 17 };
+  function p2PotFill(G) {                                             // chili: fill the little pot with soil
+    var pot = lEl("div", "p2-pot", pzLay, P2A.pot); pzPos(pot, POT.x, POT.y, POT.w, POT.h); pot.style.zIndex = 103; G.potEl = pot; G.pf = 0;
+    var soil = lEl("div", "p2-potsoil", pzLay); soil.style.zIndex = 104; G.soilEl = soil;
+    var hit = p2Hit(30, 50, 80, 60); G.hitEl = hit; var last = null; pzTip("Erde in den Topf wischen.");
+    p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { var d = Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; if (Math.abs(p[0] - 70) > 16 || p[1] > POT.y + 6) return;
+      G.pf = Math.min(100, G.pf + d * .8); var h = 1 + G.pf / 100 * 2.5; pzPos(soil, POT.x + 2, POT.y + 3.4 - h, POT.w - 4, h); if (Math.random() < .35) pzCrumbs(70 + rnd(-6, 6), POT.y + 2, 2); } });
+    return function () { return G.pf >= 100; };
+  }
+  function p2PotSeed(G) {                                             // two chili seeds into the pot
+    G.spots = [[66, POT.y + 1], [74, POT.y + 1]].map(function (q) { var r = lEl("div", "p2-ring", pzLay, P2A.ring); pzPos(r, q[0] - 3, q[1] - 3, 6, 6); r.style.zIndex = 148; return { x: q[0], y: q[1], el: r, done: false }; });
+    var hit = p2Hit(40, 60, 60, 40); G.hitEl = hit; pzTip("Zwei Samen in den Topf drücken.");
+    p2Drag(hit, { down: function (p) { G.spots.forEach(function (o) { if (o.done || Math.hypot(o.x - p[0], o.y - p[1]) > 6) return; o.done = true; o.el.innerHTML = P2A.seedc; pzPos(o.el, o.x - 1.5, o.y - 1.5, 3, 3); o.el.style.zIndex = 105; beep([[700, .04]]); }); } });
+    return function () { return G.spots.every(function (o) { return o.done; }); };
+  }
+  function p2Dome(G) {                                                // a little glass hood over the pot keeps it warm
+    var d = lEl("div", "p2-dome", pzLay, P2A.dome); pzPos(d, 118, 52, 26, 16); d.style.zIndex = 146; G.domeEl = d; G.domed = false;
+    var hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; var drag = false; pzTip("Die Glashaube über den Topf stülpen.");
+    p2Drag(hit, { down: function (p) { if (p[0] > 112 && p[0] < 150 && p[1] > 46 && p[1] < 74) drag = true; }, move: function (p) { if (drag) pzPos(d, p[0] - 13, p[1] - 8, 26, 16); },
+      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 12 && Math.abs(p[1] - (POT.y - 6)) < 12) { G.domed = true; pzPos(d, 57, POT.y - 14, 26, 16); d.style.zIndex = 106; beep([[880, .05], [1175, .08]]); } else pzPos(d, 118, 52, 26, 16); } });
+    return function () { return G.domed; };
+  }
   // ---------- the planting game: the crop's steps one after the other ----------
-  var P2_TITLE = { weed: "Unkraut jäten", dig: "Loch buddeln", sow: "Samen einpflanzen", cover: "Zuschütten", tamp: "Festklopfen", water: "Gießen", furrow: "Rille ziehen", sprinkle: "Samen streuen", rake: "Zudecken", stake: "Stützstab", blow: "Pusteblume pusten", press: "Andrücken" };
+  var P2_TITLE = { weed: "Unkraut jäten", dig: "Loch buddeln", sow: "Samen einpflanzen", cover: "Zuschütten", tamp: "Festklopfen", water: "Gießen", furrow: "Rille ziehen", sprinkle: "Samen streuen", rake: "Zudecken", stake: "Stützstab", blow: "Pusteblume pusten", press: "Andrücken", seedling: "Einsetzen", straw: "Stroh unterlegen", mound: "Hügel häufeln", seeds3: "Kerne stecken", trellis: "Rankgitter", tie: "Festbinden", scatter: "Samen verteilen", spray: "Einsprühen", potfill: "Topf füllen", potseed: "Samen hinein", dome: "Haube drüber" };
   var _p2_plantGame = plantGame;
   plantGame = async function (i, c, where) {
     if ((where || "garden") !== "garden" || !P2_STEPS[c]) return _p2_plantGame(i, c, where);
@@ -16690,7 +16795,7 @@ window.__EXTRAS = true;
     pzLay.onpointerdown = function (e) {
       if (PZG !== G) return; var sr = scene.getBoundingClientRect(), wx = (e.clientX - sr.left) / sr.width * 180;
       if (G.step === 2 && !G.dug) { e.preventDefault(); pzDigTap(G, wx < 70 ? "l" : "r"); }
-      else if (G.step === 5 && !G.watered) { e.preventDefault(); if (G.toolEl) G.toolEl.classList.remove("pz-hint"); G.pouring = true; front({ paws: "hold", eyes: "happy", mouth: "smile" }); }
+      else if (G.step === 5 && !G.watered) { e.preventDefault(); if (G.toolEl) G.toolEl.classList.remove("pz-hint"); if (G.where === "gh") pzSprayTap(G); else { G.pouring = true; front({ paws: "hold", eyes: "happy", mouth: "smile" }); } }
     };
     ["pointerup", "pointercancel", "pointerleave"].forEach(function (t) { pzLay.addEventListener(t, function () { if (PZG === G && G.pouring) { G.pouring = false; front({ paws: "down" }); } }); });
     G.hz = ham.style.zIndex; scene.insertBefore(ham, document.getElementById("thought")); ham.style.zIndex = ""; scene.classList.add("pz-on");
@@ -16722,6 +16827,10 @@ window.__EXTRAS = true;
           if (G.fill > 125) { G.pen++; G.notes.push("Zu viel Erde"); } else if (G.fill < 95) { G.pen++; G.notes.push("Loch nicht ganz zu"); } else G.notes.push("Gut zugeschüttet");
         } else if (k === "tamp") {
           G.step = 45; pzTampSetup(G); await pzUntil(function () { return G.cancel || G.patted; }); chk(); if (G.tampEl) G.tampEl.remove(); await wait(500);
+        } else if (k === "spray") {
+          G.step = 5; G.where = "gh"; pzWaterSetup(G); var tl = G.toolEl; if (tl) pzPos(tl, 84, 62, 12, 20);
+          await pzUntil(function () { return G.cancel || G.watered; }); chk(); G.where = "garden"; await wait(400);
+          if (G.wet > 100) { G.pen++; G.notes.push("Zu nass gesprüht"); } else if (G.wet < 55) { G.pen++; G.notes.push("Zu wenig gesprüht"); } else G.notes.push("Fein eingesprüht");
         } else if (k === "water") {
           G.step = 5;
           if (rainy) { pzBanner((n + 1) + " · Gießen macht heute der Regen!"); G.wet = 75; G.rainDid = true; G.notes.push("Der Regen hat gegossen"); await wait(1600); }
@@ -16729,13 +16838,23 @@ window.__EXTRAS = true;
             if (G.wet > 100) { G.pen++; G.notes.push("Zu viel Wasser"); } else if (G.wet < 55) { G.pen++; G.notes.push("Zu wenig Wasser"); } else G.notes.push("Gut gegossen"); }
         } else {
           G.step = 10 + n;
-          var done = { furrow: p2Furrow, sprinkle: p2Sprinkle, rake: p2Rake, stake: p2Stake, blow: p2Blow, press: p2Press }[k](G);
+          var done = { furrow: p2Furrow, sprinkle: p2Sprinkle, rake: p2Rake, stake: p2Stake, blow: p2Blow, press: p2Press, seedling: p2Seedling, straw: p2Straw, mound: p2Mound, seeds3: p2Seeds3, trellis: p2Trellis, tie: p2Tie, scatter: p2Scatter, potfill: p2PotFill, potseed: p2PotSeed, dome: p2Dome }[k](G);
           await pzUntil(function () { return G.cancel || done(); }); chk(); await wait(500);
           if (k === "sprinkle") { var thick = G.cnt.filter(function (v) { return v > 3; }).length; if (G.bagEl) G.bagEl.remove(); if (thick >= 3) { G.pen++; G.notes.push("Stellenweise zu dicht gesät"); } else G.notes.push("Schön gleichmäßig gesät"); }
           if (k === "furrow") G.notes.push("Gerade Rille gezogen");
           if (k === "stake") G.notes.push(G.stakeHit ? "Der Stab hat den Kern fast getroffen" : "Stützstab sitzt fest"), G.stakeHit && G.pen++;
           if (k === "blow") { G.notes.push(G.lost > 6 ? G.lost + " Samen sind davongeflogen" : "Die Samen landen im Beet"); if (G.lost > 6) G.pen++; }
           if (k === "press") G.notes.push("Alle Samen angedrückt");
+          if (k === "seedling") G.notes.push(G.c === "tomato" ? "Schön tief gesetzt" : "Das Herz sitzt auf Erdhöhe");
+          if (k === "straw") G.notes.push("Stroh hält die Früchte sauber");
+          if (k === "mound") G.notes.push("Ein schöner Kürbishügel");
+          if (k === "seeds3") G.notes.push("Drei Kerne im Hügel");
+          if (k === "trellis") G.notes.push("Das Rankgitter steht");
+          if (k === "tie") G.notes.push("Gut festgebunden");
+          if (k === "scatter") { if (G.bagEl) G.bagEl.remove(); G.notes.push("Überall Samen verteilt"); }
+          if (k === "potfill") G.notes.push("Topf mit Erde gefüllt");
+          if (k === "potseed") G.notes.push("Zwei Samen im Topf");
+          if (k === "dome") G.notes.push("Unter der Haube bleibt es warm");
         }
         hide(); front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 380); await wait(500); front({ paws: "down" });
       }
@@ -16830,7 +16949,7 @@ window.__EXTRAS = true;
   }
   // ---------- harvesting in a close-up: the plant fills the picture, two steps, then the usual harvest ----------
   var hvV = mPov("p2h-pov", "Ernte abbrechen"), HV = null;
-  var P2_HTITLE = { pull: "Herausziehen", knock: "Erde abklopfen", leaves: "Blätter beiseite", pick: "Rote pflücken", cut: "Kopf abschneiden", rub: "Kerne rubbeln" };
+  var P2_HTITLE = { pull: "Herausziehen", knock: "Erde abklopfen", leaves: "Blätter beiseite", pick: "Rote pflücken", cut: "Abschneiden", rub: "Kerne rubbeln", roll: "In den Korb rollen", twist: "Reife abdrehen", basket: "In den Korb", pull2: "Rote abzupfen", cutl: "Blätter schneiden", bundle: "Zum Bündel legen", snip: "Obere Stiele schneiden", tie: "Bund binden" };
   function hR(x, y, w, h, col) { mR(hvV.c, x, y, w, h, col); }
   function hDisc(cx, cy, rx, ry, f) { for (var y = -ry; y <= ry; y++) for (var x = -rx; x <= rx; x++) { var d = (x * x) / (rx * rx) + (y * y) / (ry * ry); if (d <= 1) { var c = f(x, y, d); if (c) hR(cx + x, cy + y, 1, 1, c); } } }
   function hvBg(t, groundY) {                                         // a soft garden behind, a cut through the bed in front
@@ -16876,6 +16995,7 @@ window.__EXTRAS = true;
     if (c === "gcarrot") { HV.lift = 0; HV.loose = 0; HV.tilt = 0; HV.clumps = []; }
     if (c === "strawberry") { HV.berries = [[60, 88, 1], [78, 102, 1], [96, 86, 0], [112, 100, 1], [130, 90, 1], [70, 112, 0], [118, 114, 1]].map(function (b) { return { x: b[0], y: b[1], red: !!b[2], picked: false, wob: 0 }; });
       HV.leaves = [[62, 84, -.3], [92, 82, .1], [124, 86, .4], [86, 106, -.2], [116, 108, .3]].map(function (l) { return { x: l[0], y: l[1], r: l[2], ox: l[0], oy: l[1], away: false, a: 1 }; }); HV.green = 0; HV.basket = 0; }
+    hxStart(c);
     if (c === "sunflower") { HV.cut = false; HV.fall = 0; HV.seeds = []; for (var i = 0; i < 260; i++) { var r = Math.sqrt(i / 260) * 30, a = i * 2.39996; HV.seeds.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, on: true }); } HV.bowl = 0; }
     hvStep();
   }
@@ -16915,8 +17035,105 @@ window.__EXTRAS = true;
       } else { hvBg(t, 40); hvSunHead(80, 80, 42, HV.seeds.map(function (sd) { return { x: sd.x * 1.35, y: sd.y * 1.35, on: sd.on }; }), 0);
         hR(140, 104, 34, 18, "#3a2414"); hR(141, 105, 32, 14, "#e8d8b8"); hR(141, 105, 32, 2, "#fff8ec"); for (var bs = 0; bs < Math.min(HV.bowl, 60); bs++) hR(143 + (bs * 7) % 28, 116 - Math.floor(bs / 4) * .6, 2, 1, "#2a1a0c"); }
     }
+    hxDraw(t, HV.c, k);
     HV.fx = HV.fx.filter(function (f) { f.life -= .016; f.x += f.vx * .016; f.y += f.vy * .016; f.vy += 80 * .016; c.globalAlpha = Math.min(1, f.life * 2); hR(f.x, f.y, f.s || 1, f.s || 1, f.c); c.globalAlpha = 1; return f.life > 0; });
     HV.raf = requestAnimationFrame(hvDraw);
+  }
+  // ---- the other crops in the close-up ----
+  function hvScissors(p) { var x = p[0], y = p[1]; hR(x - 7, y - 2, 7, 2, "#3a2414"); hR(x - 7, y + 1, 7, 2, "#3a2414"); hR(x - 6, y - 2, 6, 1, "#d8e0e8"); hR(x - 6, y + 2, 6, 1, "#d8e0e8");
+    hDisc(x + 4, y - 3, 3, 3, function (dx, dy, d) { return d > .55 ? "#3a2414" : "#e8402a"; }); hDisc(x + 4, y + 4, 3, 3, function (dx, dy, d) { return d > .55 ? "#3a2414" : "#e8402a"; }); }
+  function hvBasket(x, y, n, drawItem) { hR(x, y, 30, 22, "#3a2414"); hR(x + 1, y + 1, 28, 20, "#c8945a"); for (var bw = 0; bw < 28; bw += 4) hR(x + 1 + bw, y + 1, 1, 20, "#a87448"); hR(x + 1, y + 9, 28, 1, "#a87448"); hR(x + 4, y - 8, 22, 2, "#3a2414"); hR(x + 3, y - 8, 2, 9, "#3a2414"); hR(x + 25, y - 8, 2, 9, "#3a2414");
+    for (var q = 0; q < n; q++) drawItem(x + 7 + (q % 3) * 8, y - 1 - Math.floor(q / 3) * 4); }
+  function hvBigLeaf(x, y, r, a) {                                     // a big rough cucumber or pumpkin leaf
+    var c = hvV.c; c.save(); c.globalAlpha = a; c.translate(x, y); c.rotate(r || 0);
+    for (var yy = -15; yy <= 13; yy++) for (var xx = -17; xx <= 17; xx++) { var rr = Math.hypot(xx, yy * 1.1), ang = Math.atan2(yy, xx), lob = 14 + Math.cos(ang * 5) * 2.5; if (rr > lob) continue;
+      mR(c, xx, yy, 1, 1, rr > lob - 1.2 ? "#24502a" : (Math.abs(Math.sin(ang * 5)) < .12 && rr > 3) ? "#3e8a3a" : (xx + yy < -6 ? "#7ac85a" : "#5ab04a")); }
+    c.restore(); }
+  function hvCucumber(x, y, len, ang) { var c = hvV.c; c.save(); c.translate(x, y); c.rotate(ang || 0);
+    for (var i = 0; i < len; i++) { var w = i < 3 || i > len - 4 ? 3 : 5; for (var j = -w; j <= w; j++) { var u = (j + w) / (2 * w); mR(c, j, i, 1, 1, Math.abs(j) === w ? "#1e4a1e" : u < .3 ? "#7ac860" : u < .7 ? "#3e8a3a" : "#2e6a2a"); }
+      if (i % 5 === 2) { mR(c, -2, i, 1, 1, "#c8e8a0"); mR(c, 2, i + 2, 1, 1, "#c8e8a0"); } }
+    mR(c, -1, -6, 2, 7, "#5a8a3a"); c.restore(); }
+  function hvPumpkin(x, y, rot) { var c = hvV.c; c.save(); c.translate(x, y); c.rotate(rot || 0);
+    for (var yy = -20; yy <= 20; yy++) for (var xx = -27; xx <= 27; xx++) { var d = (xx * xx) / 729 + (yy * yy) / 400; if (d > 1) continue; var rib = Math.abs(Math.sin(xx / 27 * 2.6)), l = (-xx - yy) / 40;
+      mR(c, xx, yy, 1, 1, d > .9 ? "#7a3a10" : rib < .12 ? "#c8661a" : l > .25 ? "#ffb060" : l > -.15 ? "#f08a2a" : "#d8701c"); }
+    mR(c, -2, -26, 5, 8, "#3a2414"); mR(c, -1, -25, 3, 7, "#6a8a3a"); c.restore(); }
+  function hvTomato(x, y, red, wob) { x += wob ? Math.round(Math.sin(performance.now() / 40) * 1.5) : 0;
+    hDisc(x, y, 8, 7, function (dx, dy, d) { if (d > .85) return red ? "#7a1a14" : "#3e6a2a"; var l = (-dx - dy) / 12; return red ? (l > .4 ? "#ff9a7a" : l > -.1 ? "#e8402a" : "#b82a1e") : (l > .3 ? "#b8e08a" : l > -.1 ? "#8ac860" : "#6aa848"); });
+    for (var k = -3; k <= 3; k++) hR(x + k * 1.2, y - 7 - (Math.abs(k) % 2), 2, 2, "#3e8a3a"); hR(x, y - 10, 1, 3, "#3e8a3a"); }
+  function hvChili(x, y, red, dropY) { y += dropY || 0; for (var i = 0; i < 16; i++) { var w = i < 2 ? 2 : i > 12 ? 1 : 2, cx = x + Math.sin(i / 6) * 2; hR(cx - w, y + i, w * 2 + 1, 1, i === 15 ? (red ? "#7a1a14" : "#2e5a1e") : red ? (i % 3 ? "#e8402a" : "#ff7a5a") : (i % 3 ? "#5aa040" : "#8ad06a")); }
+    hR(x - 2, y - 2, 5, 2, "#3e8a3a"); hR(x, y - 5, 1, 3, "#3e8a3a"); }
+  function hvDLeaf(cx, cy, ang, len, cut) {                            // a long jagged dandelion leaf lying on the ground
+    for (var i = 0; i < len; i++) { var w = Math.max(1, Math.round(4 - Math.abs(i - len * .55) / len * 5)) + ((i % 6 < 3) ? 2 : 0), x = cx + Math.cos(ang) * i, y = cy + Math.sin(ang) * i * .55;
+      for (var j = -w; j <= w; j++) hR(x - Math.sin(ang) * j, y + Math.cos(ang) * j * .55, 1, 1, j === 0 ? "#b8d890" : Math.abs(j) === w ? "#2e6a2a" : "#5aa848"); }
+    if (!cut) for (var m = 0; m < 6; m += 2) hR(cx + Math.cos(ang) * (6 + m) - 1, cy + Math.sin(ang) * (6 + m) * .55 - 3, 1, 1, Math.floor(performance.now() / 300) % 2 ? "#ffd34a" : "#fff8ec"); }
+  function hvHerb(x, y0, y1, cutY) { for (var y = y0; y > y1; y--) { if (cutY && y < cutY) break; hR(x, y, 1, 1, "#3e8a3a"); if ((y0 - y) % 7 === 3) { hDisc(x - 4, y - 1, 3, 2, function (dx, dy, d) { return d > .7 ? "#2e6a2a" : "#6fc05a"; }); hDisc(x + 4, y - 3, 3, 2, function (dx, dy, d) { return d > .7 ? "#2e6a2a" : "#6fc05a"; }); } } }
+  function hxStart(c) {
+    HV.basket = 0; HV.green = 0;
+    if (c === "cucumber") { HV.leaves = [[70, 70, -.2], [100, 66, .2], [86, 92, .1], [116, 88, -.3]].map(function (l) { return { x: l[0], y: l[1], r: l[2], ox: l[0], oy: l[1], away: false, a: 1 }; }); HV.cutX = 90; HV.cutY = 60; HV.cuY = 0; }
+    if (c === "pumpkin") { HV.cutX = 80; HV.cutY = 66; HV.px = 80; HV.prot = 0; }
+    if (c === "tomato") { HV.items = [[66, 56, 1], [84, 70, 1], [104, 58, 0], [72, 86, 1], [102, 84, 1], [88, 44, 0]].map(function (q) { return { x: q[0], y: q[1], red: !!q[2], off: false, wob: 0, turn: 0 }; }); HV.bowlX = 90; HV.bowlY = 116; }
+    if (c === "chili") { HV.items = [[70, 54, 1], [84, 62, 0], [98, 52, 1], [76, 76, 1], [104, 74, 1], [92, 82, 0]].map(function (q) { return { x: q[0], y: q[1], red: !!q[2], off: false, wob: 0, dy: 0 }; }); HV.bowlX = 90; HV.bowlY = 116; }
+    if (c === "dandelion") { HV.items = [0, 1, 2, 3, 4].map(function (i) { var ang = -Math.PI * .9 + i * Math.PI * .45; return { ang: ang, len: 34, cut: false, off: false, x: 90 + Math.cos(ang) * 8, y: 104 + Math.sin(ang) * 4 }; }); }
+    if (c === "herbs") { HV.stems = [64, 72, 80, 88, 96, 104, 112]; HV.cutAt = 0; HV.knots = [0, 0, 0]; }
+  }
+  function hxBowl() { var x = HV.bowlX, y = HV.bowlY; hR(x - 16, y - 6, 32, 10, "#3a2414"); hR(x - 15, y - 5, 30, 8, "#e8d8b8"); hR(x - 15, y - 5, 30, 1, "#fff8ec");
+    HV.items.forEach(function (it, i) { if (it.off) { if (HV.c === "tomato") hvTomato(x - 10 + (i % 4) * 7, y - 7, true); else hvChili(x - 10 + (i % 4) * 6, y - 14, true); } }); }
+  function hxDraw(t, c, k) {
+    if (c === "cucumber") { hvBg(t, 96);
+      for (var vx = 20; vx < 170; vx++) hR(vx, 52 + Math.sin(vx / 14) * 4, 1, 2, "#3e8a3a");
+      if (!HV.cut) hvCucumber(90, 64, 40, 0); else { HV.cuY = Math.min(40, HV.cuY + 1.5); hvCucumber(90 + HV.cuY * 1.4, 64 + HV.cuY, 40, HV.cuY / 30); }
+      HV.leaves.forEach(function (l) { if (l.a <= 0) return; hvBigLeaf(l.x, l.y, l.r, l.a); if (l.away) { l.a -= .05; l.y -= .5; } });
+      hvBasket(146, 104, HV.cut && HV.cuY >= 40 ? 1 : 0, function (x, y) { hvCucumber(x + 4, y - 4, 20, 1.4); });
+      if (k === "cut") { if (!HV.cut) for (var mk = 0; mk < 12; mk += 2) hR(84 + mk, 60, 1, 1, Math.floor(t / 300) % 2 ? "#ffd34a" : "#fff8ec"); hvScissors(HV.sc || [128, 60]); } }
+    if (c === "pumpkin") { hvBg(t, 100);
+      for (var vx2 = 80; vx2 < 176; vx2++) hR(vx2, 62 + Math.sin(vx2 / 10) * 3, 1, 2, "#3e8a3a"); hvBigLeaf(130, 70, .2, 1); hvBigLeaf(160, 78, -.3, 1);
+      if (!HV.cut) { hR(79, 58, 3, 12, "#5a8a3a"); for (var mk2 = 0; mk2 < 12; mk2 += 2) hR(74 + mk2, 66, 1, 1, Math.floor(t / 300) % 2 ? "#ffd34a" : "#fff8ec"); }
+      hvPumpkin(HV.px, 96, HV.prot); hvBasket(146, 104, 0, function () {});
+      if (k === "cut") hvScissors(HV.sc || [126, 66]);
+      if (k === "roll" && !HV.stepDone && !HV.drag) { var b = Math.sin(t / 150) * 3; hR(112 + b, 92, 10, 2, "#ffd34a"); hR(120 + b, 90, 2, 6, "#ffd34a"); } }
+    if (c === "tomato" || c === "chili") { hvBg(t, 104);
+      hR(89, 30, 3, 76, "#3e8a3a"); hR(89, 30, 1, 76, "#6fc05a"); if (c === "tomato") { hR(96, 24, 4, 84, "#3a2414"); hR(97, 25, 2, 82, "#c8945a"); }
+      [[70, 50], [108, 54], [78, 70], [104, 76], [86, 38]].forEach(function (l) { hDisc(l[0], l[1], 9, 5, function (dx, dy, d) { return d > .8 ? "#24502a" : dy < 0 ? "#6ab04a" : "#4a9a3a"; }); });
+      HV.items.forEach(function (it) { if (it.off) return; if (c === "tomato") hvTomato(it.x, it.y, it.red, it.wob > 0); else hvChili(it.x + (it.wob > 0 ? Math.round(Math.sin(t / 40) * 1.5) : 0), it.y, it.red, it.dy); if (it.wob > 0) it.wob -= .02;
+        if (c === "tomato" && it.turn && !it.off) { for (var q = 0; q < Math.abs(it.turn) / (Math.PI * 2) * 12; q++) { var an = q / 12 * Math.PI * 2; hR(it.x + Math.cos(an) * 12, it.y + Math.sin(an) * 11, 2, 2, "#ffd34a"); } } });
+      if (k === "basket" && !HV.stepDone) { if (HV.drag && HV.bowlGrab) { HV.bowlX = HV.drag[0]; HV.bowlY = HV.drag[1]; } }
+      hxBowl(); hvBasket(146, 104, k === "basket" && HV.stepDone ? HV.items.filter(function (i) { return i.off; }).length : 0, function (x, y) { if (c === "tomato") hvTomato(x, y - 3, true); else hvChili(x, y - 12, true); }); }
+    if (c === "dandelion") { hvBg(t, 80);
+      HV.items.forEach(function (it, i) { if (it.off) return; if (!it.cut) hvDLeaf(90, 104, it.ang, it.len, false); else hvDLeaf(it.x, it.y, it.ang, it.len, true); });
+      hDisc(90, 104, 4, 3, function (dx, dy, d) { return d > .7 ? "#3a2414" : "#8a6a3a"; });
+      if (!HV.items.every(function (i) { return i.cut; })) hvScissors(HV.sc || [150, 70]);
+      hR(140, 108, 34, 6, "#3a2414"); hR(141, 109, 32, 4, "#c8a870"); for (var bq = 0; bq < HV.items.filter(function (i) { return i.off; }).length; bq++) hvDLeaf(144, 104 - bq * 2, 0, 26, true); }
+    if (c === "herbs") { hvBg(t, 106);
+      if (k === "snip") { HV.stems.forEach(function (x, i) { hvHerb(x, 106, 30 + (i % 3) * 6, 0); }); for (var mk3 = 60; mk3 < 118; mk3 += 3) hR(mk3, 66, 1, 1, Math.floor(t / 300) % 2 ? "#ffd34a" : "#fff8ec"); hvScissors(HV.sc || [140, 66]); }
+      else { HV.stems.forEach(function (x) { hR(x, 100, 1, 6, "#3e8a3a"); });                    // short stubs stay and grow again
+        for (var hs = 0; hs < 7; hs++) { var yy = 84 + hs * 2; for (var xx = 56; xx < 124; xx++) { hR(xx, yy, 1, 1, "#3e8a3a"); if (xx < 92 && (xx + hs * 3) % 7 === 0) { hDisc(xx, yy - 2, 3, 2, function (dx, dy, d) { return d > .7 ? "#2e6a2a" : "#6fc05a"; }); hDisc(xx + 2, yy + 2, 3, 2, function (dx, dy, d) { return d > .7 ? "#2e6a2a" : "#7ac860"; }); } } }
+        HV.knots.forEach(function (kn, i) { var x = 84 + i * 6, y = 74 + i * 2 + 18; if (kn) { hR(x - 2, y - 1, 5, 3, "#3a2414"); hR(x - 1, y, 3, 1, "#e8d8b0"); } else if (Math.floor(t / 300) % 2) { hR(x - 2, y - 2, 5, 1, "#ffd34a"); hR(x - 2, y + 2, 5, 1, "#ffd34a"); hR(x - 2, y - 2, 1, 5, "#ffd34a"); hR(x + 2, y - 2, 1, 5, "#ffd34a"); } }); } }
+  }
+  function hxDown(k, p) {
+    var c = HV.c;
+    if (k === "twist" || k === "pull2") HV.items.forEach(function (it) { if (it.off || Math.hypot(it.x - p[0], it.y - p[1] + (c === "chili" ? 8 : 0)) > 11) return;
+      if (!it.red) { it.wob = 1; HV.green++; beep([[200, .06]]); mBan(hvV, c === "chili" ? "Die ist noch grün" : "Die ist noch nicht reif"); HV.hold = null; return; }
+      HV.hold = it; HV.ang0 = Math.atan2(p[1] - it.y, p[0] - it.x); HV.py0 = p[1]; });
+    if (k === "basket") HV.bowlGrab = Math.hypot(p[0] - HV.bowlX, p[1] - HV.bowlY) < 18;
+    if (k === "roll") HV.rollGrab = Math.abs(p[0] - HV.px) < 28 && Math.abs(p[1] - 96) < 22;
+    if (k === "bundle") HV.items.forEach(function (it) { if (!it.cut || it.off) return; var ex = it.x + Math.cos(it.ang) * 16, ey = it.y + Math.sin(it.ang) * 9; if (Math.hypot(ex - p[0], ey - p[1]) > 14) return; it.off = true; beep([[600 + rnd(0, 200), .05]]); hvSpark(ex, ey, 6, "#8ad86a"); if (HV.items.every(function (q) { return q.off; })) hvNext(); });
+    if (k === "tie") HV.knots.forEach(function (kn, i) { var x = 84 + i * 6, y = 92 + i * 2; if (kn || Math.hypot(x - p[0], y - p[1]) > 7) return; HV.knots[i] = 1; beep([[600, .04], [800, .05]]); if (HV.knots.every(Boolean)) { hvSpark(90, 90, 14); hvNext(); } });
+  }
+  function hxMove(k, p, a, dx, dy) {
+    var c = HV.c;
+    if (k === "cut" && HV.cut && c === "pumpkin" && !HV.pumpCut) HV.pumpCut = true;
+    if (k === "twist" && HV.hold) { var it = HV.hold, an = Math.atan2(p[1] - it.y, p[0] - it.x), d = an - HV.ang0; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; HV.ang0 = an; it.turn += d;
+      if (Math.abs(it.turn) >= Math.PI * 2) { it.off = true; HV.hold = null; hvSpark(it.x, it.y, 10); beep([[700 + HV.items.filter(function (q) { return q.off; }).length * 80, .06]]); if (HV.items.every(function (q) { return !q.red || q.off; })) hvNext(); } }
+    if (k === "pull2" && HV.hold) { var it2 = HV.hold; it2.dy = Math.max(0, Math.min(12, p[1] - HV.py0)); if (it2.dy >= 12) { it2.off = true; HV.hold = null; hvSpark(it2.x, it2.y + 10, 8); beep([[600 + rnd(0, 200), .05], [900, .04]]); if (HV.items.every(function (q) { return !q.red || q.off; })) hvNext(); } }
+    if (k === "basket" && HV.bowlGrab) { HV.bowlX = p[0]; HV.bowlY = p[1]; }
+    if (k === "basket" && HV.bowlGrab && Math.hypot(HV.bowlX - 161, HV.bowlY - 108) < 18) { HV.bowlGrab = false; HV.bowlX = 2000; hvSpark(161, 100, 14); hvNext(); }
+    if (k === "roll" && HV.rollGrab) { var nx = Math.max(HV.px, Math.min(160, p[0])); HV.prot += (nx - HV.px) / 27; HV.px = nx; if (HV.px >= 150) { HV.rollGrab = false; HV.px = 2000; hvSpark(161, 100, 16); beep([[392, .05], [523, .06], [659, .1]]); hvNext(); } }
+    if (k === "cutl") { HV.sc = p; HV.items.forEach(function (it) { if (it.cut) return; var bx = 90 + Math.cos(it.ang) * 9, by = 104 + Math.sin(it.ang) * 5;
+      var sx = p[0] - a[0], sy = p[1] - a[1], L2 = sx * sx + sy * sy || 1, u = Math.max(0, Math.min(1, ((bx - a[0]) * sx + (by - a[1]) * sy) / L2)), d2 = Math.hypot(a[0] + sx * u - bx, a[1] + sy * u - by);
+      if (d2 < 4 && Math.hypot(sx, sy) > 2) { it.cut = true; it.x = 90 + Math.cos(it.ang) * 12; it.y = 104 + Math.sin(it.ang) * 7; beep([[1200, .03], [700, .05]]); hvSpark(bx, by, 6, "#8ad86a"); if (HV.items.every(function (q) { return q.cut; })) hvNext(); } }); }
+    if (k === "snip") { HV.sc = p;
+      if (HV.cutAt) return; if (HV.snipStart == null && p[0] < 64) HV.snipStart = p[1]; if (HV.snipStart != null && p[0] > 114) { var y = (HV.snipStart + p[1]) / 2; HV.snipStart = null;
+        if (y > 92) { mBan(hvV, "Zu tief, nur die obere Hälfte"); beep([[200, .06]]); return; } HV.cutAt = Math.max(46, y); beep([[1200, .03], [700, .05], [1200, .03]]); hvSpark(90, y, 14, "#8ad86a"); hvNext(); } }
   }
   hvV.cv.style.touchAction = "none";
   hvV.cv.addEventListener("pointerdown", function (e) {
@@ -16927,6 +17144,7 @@ window.__EXTRAS = true;
       if (!bb.red) { bb.wob = 1; HV.green++; beep([[200, .06]]); mBan(hvV, "Die ist noch grün"); return; }
       bb.picked = true; HV.basket++; hvSpark(bb.x, bb.y, 8); beep([[800 + HV.basket * 90, .05]]);
       if (HV.berries.every(function (q) { return !q.red || q.picked; })) hvNext(); });
+    hxDown(k, p);
   });
   hvV.cv.addEventListener("pointermove", function (e) {
     if (!HV || !HV.drag || HV.stepDone) return; var p = mPt(hvV, e), a = HV.last; HV.last = p; var dx = p[0] - a[0], dy = p[1] - a[1], k = HV.k;
@@ -16934,30 +17152,49 @@ window.__EXTRAS = true;
       if (dy < 0) HV.lift = Math.min(HV.loose, HV.lift - dy * .6); if (Math.abs(dx) > 1 && Math.random() < .3) hvSpark(90 + rnd(-14, 14), 62, 2, "#6a4428");
       if (HV.lift >= 60) { HV.lift = 60; hvSpark(90, 40, 20); beep([[523, .06], [784, .1]]); hvNext(); } }
     if (k === "leaves" && HV.grab) { var l = HV.grab; l.x = p[0]; l.y = p[1]; if (Math.hypot(l.x - l.ox, l.y - l.oy) > 30) { l.away = true; HV.grab = null; beep([[500, .03]]); if (HV.leaves.every(function (q) { return q.away; })) hvNext(); } }
-    if (k === "cut") { HV.sc = p; if (!HV.cut && (a[0] - 90) * (p[0] - 90) <= 0 && Math.abs(p[1] - 70) < 9) { HV.cut = true; beep([[1200, .03], [600, .06]]); hvSpark(90, 70, 12, "#7ac860"); setTimeout(hvNext, 900); } }
+    if (k === "cut") { HV.sc = p; var cX = HV.cutX || 90, cY = HV.cutY || 70; if (!HV.cut && (a[0] - cX) * (p[0] - cX) <= 0 && Math.abs(p[1] - cY) < 9) { HV.cut = true; beep([[1200, .03], [600, .06]]); hvSpark(cX, cY, 12, "#7ac860"); setTimeout(hvNext, 900); } }
+    hxMove(k, p, a, dx, dy);
     if (k === "rub") { var n = Math.max(1, Math.round(Math.hypot(dx, dy))), got = 0;
       for (var s2 = 0; s2 <= n; s2++) { var qx = (a[0] + dx * s2 / n - 80) / 1.35, qy = (a[1] + dy * s2 / n - 80) / 1.35;
         HV.seeds.forEach(function (sd) { if (sd.on && Math.hypot(sd.x - qx, sd.y - qy) < 4) { sd.on = false; got++; } }); }
       if (got) { HV.bowl += got; if (Math.random() < .5) { HV.fx.push({ x: p[0], y: p[1], vx: 30 + Math.random() * 30, vy: -30, life: .7, c: "#2a1a0c", s: 2 }); beep([[1000 + rnd(0, 300), .015]]); } }
       if (HV.seeds.filter(function (sd) { return sd.on; }).length < 260 * .12) { HV.seeds.forEach(function (sd) { sd.on = false; }); hvSpark(80, 80, 20); hvNext(); } }
   });
-  ["pointerup", "pointercancel"].forEach(function (ty) { hvV.cv.addEventListener(ty, function () { if (!HV) return; HV.drag = null; if (HV.grab) { HV.grab.x = HV.grab.ox; HV.grab.y = HV.grab.oy; HV.grab = null; } }); });
+  ["pointerup", "pointercancel"].forEach(function (ty) { hvV.cv.addEventListener(ty, function () { if (!HV) return; HV.drag = null; if (HV.hold && HV.k === "pull2") HV.hold.dy = 0; HV.hold = null; HV.snipStart = null; HV.bowlGrab = false; HV.rollGrab = false; if (HV.grab) { HV.grab.x = HV.grab.ox; HV.grab.y = HV.grab.oy; HV.grab = null; } }); });
+  async function hvRun(c) {                                            // the zoomed harvest; true when both steps were done
+    hvV.el.hidden = false; hvV.card.hidden = true; hvStart(c, P2_HARV[c]); HV.raf = requestAnimationFrame(hvDraw);
+    var cancel = false, onX = function (e) { e.stopPropagation(); cancel = true; }; hvV.el.querySelector(".bp-x").addEventListener("click", onX);
+    var me = HV; while (!cancel && HV === me && !me.done) await wait(100);
+    cancelAnimationFrame(me.raf); if (HV === me) HV = null; hvV.el.hidden = true; hvV.el.querySelector(".bp-x").removeEventListener("click", onX);
+    if (!me.done) { say("Ernten abgebrochen."); return false; }
+    if (c === "strawberry" && me.green) setTimeout(function () { say("Die grünen Erdbeeren reifen noch."); }, 1500);
+    return true;
+  }
   var _p2_harvest = harvestSeq;
   harvestSeq = async function (i) {
     var p = garden.plots[i], c = p && p.crop;
     if (!c || !P2_HARV[c] || place2 !== "garden") return _p2_harvest(i);
     await toPlot(i);
-    hvV.el.hidden = false; hvV.card.hidden = true; hvStart(c, P2_HARV[c]); HV.raf = requestAnimationFrame(hvDraw);
-    var cancel = false, onX = function (e) { e.stopPropagation(); cancel = true; }; hvV.el.querySelector(".bp-x").addEventListener("click", onX);
-    var me = HV; while (!cancel && HV === me && !me.done) await wait(100);
-    cancelAnimationFrame(me.raf); var g = me.green; if (HV === me) HV = null; if (!me.done) cancel = true; hvV.el.hidden = true; hvV.el.querySelector(".bp-x").removeEventListener("click", onX);
-    if (cancel) { say("Ernten abgebrochen."); return; }
-    await _p2_harvest(i);
-    if (c === "strawberry" && g) say("Die grünen Erdbeeren reifen noch.");
+    if (await hvRun(c)) await _p2_harvest(i);
   };
+  // the greenhouse: a ripe box of one of these crops opens the same close-up first
+  ghUi.addEventListener("click", function (e) {
+    var b = e.target.closest(".l-ghbox"); if (!b || decor) return;
+    var i = +b.dataset.i, L = life(), p = L.gh[i]; if (!p || stage(p) !== 3 || !P2_HARV[p.crop]) return;
+    e.stopImmediatePropagation(); closeLPop(); if (s.asleep) { say(N() + " schläft gerade."); return; }
+    if (busy && !interruptible()) return; if (busy) interrupt();
+    act("harvest", async function () {
+      await walkTo(GHX[i], 122); var c = p.crop;
+      if (!(await hvRun(c))) return;
+      front({ paws: "up", eyes: "happy", mouth: "grin" }); pulse("hop", 400);
+      L.gh[i] = null; garden.harvest[c] = (garden.harvest[c] || 0) + 2; renderGH(); renderFoods();
+      say(N() + " erntet 2 × " + CROPS[c].name + " im Gewächshaus."); await wait(600); front({ paws: "down" });
+      if (typeof ibFor === "function" && ibFor(c)) itemPop({ k: ibFor(c), title: "Du hast 2 × " + CROPS[c].name + " geerntet!", sub: "Frisch aus dem Gewächshaus." });
+    });
+  }, true);
   var _p2_interrupt = interrupt; interrupt = function () { if (!window.__resume && HV) { cancelAnimationFrame(HV.raf); HV = null; hvV.el.hidden = true; } return _p2_interrupt.apply(this, arguments); };
   window.__hv = function () { return HV; };
-  window.__p2 = { G: function () { return PZG; }, steps: P2_STEPS, harv: P2_HARV, plant: function (i, c) { garden.seeds[c] = Math.max(1, garden.seeds[c] || 0); garden.plots[i] = null; if (busy) interrupt(); act("plant", function () { return plantSeq(i, c); }); }, harvest: function (i, c) { garden.plots[i] = { crop: c, prog: 1, wetUntil: 0 }; renderBed(); if (busy) interrupt(); act("harvest", function () { return harvestSeq(i); }); } };
+  window.__p2 = { G: function () { return PZG; }, gh: function (i, c) { life().gh[i] = { crop: c, prog: 1, wetUntil: 0 }; renderGH(); }, goGH: function () { if (busy) interrupt(); act("gh", goGHSeq); }, steps: P2_STEPS, harv: P2_HARV, plant: function (i, c) { garden.seeds[c] = Math.max(1, garden.seeds[c] || 0); garden.plots[i] = null; if (busy) interrupt(); act("plant", function () { return plantSeq(i, c); }); }, harvest: function (i, c) { garden.plots[i] = { crop: c, prog: 1, wetUntil: 0 }; renderBed(); if (busy) interrupt(); act("harvest", function () { return harvestSeq(i); }); } };
 
 
   /*TESTHOOK*/
