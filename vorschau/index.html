@@ -1705,7 +1705,7 @@ body.dz-on .dz-panel { display: block; }
 .wide-lay .wide-art { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
 .wide-lay .wide-view { position: absolute; overflow: hidden; }
 /* the garden at half size in its own half-size pixels: frame 180x135 garden px = 90x67.5 room units inside the 104x44 window, from the treetops down to the meadow */
-.wide-lay .wb-garden { position: absolute; left: 6.731%; width: 86.538%; top: -15.909%; height: 153.409%; aspect-ratio: auto; overflow: visible; }
+.wide-lay .wb-garden { position: absolute; left: -0.962%; width: 86.538%; top: -15.909%; height: 153.409%; aspect-ratio: auto; overflow: visible; }
 .wide-lay .wb-garden img { max-width: none !important; max-height: none !important; }
 
 .wide-lay .wide-hit { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; pointer-events: auto; }
@@ -1713,6 +1713,15 @@ body.dz-on .dz-panel { display: block; }
 #scene.wide-room #k-enter { right: -100%; }
 .wide-lay .wb-garden .map-sky, .wide-lay .wb-garden .map-tint, .wide-lay .wb-garden .map-flash { left: -16.667%; right: -16.667%; }
 .wide-lay .wb-garden svg.map-l { overflow: visible; }
+/* the door window (34x43 at room 111,56): the garden picture starts at room x 108 and y 22, like the bay window's */
+#sky .door-garden { position: absolute; left: 35.294%; width: 264.706%; top: -79.07%; height: 156.977%; aspect-ratio: auto; overflow: visible; pointer-events: none; }
+#sky .door-garden img { max-width: none !important; max-height: none !important; }
+#sky .door-garden .map-sky, #sky .door-garden .map-tint, #sky .door-garden .map-flash { left: -16.667%; right: -16.667%; }
+#sky .door-garden svg.map-l { overflow: visible; }
+#sky.has-garden { overflow: hidden; }
+#sky.has-garden > .win-view { display: none; }
+#sky.has-garden { filter: none !important; }
+#sky.has-garden::after, #sky.has-garden > .sky-storm { display: none !important; }
 
 /* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
 #scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
@@ -15863,6 +15872,9 @@ window.__EXTRAS = true;
     if (wt === "clouds" || wt === "rain" || wt === "storm") o += '<svg class="map-l map-wx" viewBox="0 0 180 135" aria-hidden="true"><g class="sp-c2"><g transform="translate(0 6)">' + A.sp_cloud2 + '</g><g transform="translate(200 6)">' + A.sp_cloud2 + '</g></g></svg>';
     o += L(WBH["far_" + se]);
     TREES.forEach(function (t, n) { o += '<img class="map-l map-tree" src="' + WBH[t[0] + "_" + se] + '" alt="" style="left:-16.667%;width:133.333%;top:0;height:100%;transform-origin:' + ((t[1] + 30) / 240 * 100) + '% ' + (t[2] / 135 * 100) + '%;--amp:' + t[3] + ';animation-delay:-' + (n * 0.2) + 's">'; });
+    // below the picture the meadow goes on (the door window sits lower and sees more ground): the meadow once more, 20 rows further down
+    var M = function (src) { return '<img class="map-l" src="' + src + '" alt="" style="left:-16.667%;width:133.333%;top:29.63%;height:100%;clip-path:inset(70% 0 0 0)">'; };
+    o += M(WBH["rest_" + se]) + M(WBH["fg_" + se]);
     o += L(WBH["rest_" + se]) + L(WBH["fg_" + se]);
     var w = "", lc = se === "autumn" ? ["#e8822a", "#c8463c", "#f0b040"] : ["#6aa84a", "#9ad070", "#4e8a3a"];
     if (wt === "rain" || (wt === "storm" && !bliz)) {
@@ -15880,6 +15892,9 @@ window.__EXTRAS = true;
     if (wt === "storm" && !bliz) o += '<div class="map-flash"></div>';
     wbSky.className = "wb-garden map-scene" + (wt === "storm" ? " stormy" : "");
     wbSky.innerHTML = o;
+    // the door window looks onto the same garden: same pixel size, same horizon, and the panorama repeats every 120 room px
+    var dsk = document.getElementById("sky");
+    if (dsk) { var dg = dsk.querySelector(".door-garden"); if (!dg) { dg = document.createElement("div"); dsk.appendChild(dg); } dg.className = "wb-garden door-garden map-scene" + (wt === "storm" ? " stormy" : ""); dg.innerHTML = o; dsk.classList.add("has-garden"); }
   }
   function wViewSync() { try { wBayScene(); } catch (e) {} }
   setInterval(wViewSync, 2000); setTimeout(wViewSync, 300);
