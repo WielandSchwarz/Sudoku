@@ -5894,7 +5894,7 @@ window.__EXTRAS = true;
     sleepSpot = b.dataset.s; sleep();
   });
   // ---- the hamster nap: curls up right where he is; in 10 seconds he gets half his energy back, then wakes by himself ----
-  var NAP_MS = 10000, nap = null;
+  var NAP_MS = 10000, hNapSt = null;
   function napIcon() {
     var z = function (x, y, n, c) { var o = ""; for (var i = 0; i < n; i++) o += '<rect x="' + (x + i) + '" y="' + y + '" width="1" height="1" fill="' + c + '"/><rect x="' + (x + n - 1 - i) + '" y="' + (y + i) + '" width="1" height="1" fill="' + c + '"/><rect x="' + (x + i) + '" y="' + (y + n - 1) + '" width="1" height="1" fill="' + c + '"/>'; return o; };
     return '<svg viewBox="0 0 30 22" aria-hidden="true"><g transform="translate(0 4)">' + A.mini_ham0 + '</g>' + z(19, 1, 5, "#3a2414") + z(25, 7, 3, "#3a2414") + '</svg>';
@@ -5903,29 +5903,29 @@ window.__EXTRAS = true;
     front({ eyes: "tired", mouth: "yawn", paws: "up" }); pulse("stretch", 800); await wait(800);
     front({ eyes: "half", mouth: "smile", paws: "down", blush: true }); await wait(250);
     s.asleep = true; syncButtons(); skyTime();
-    nap = { t0: Date.now(), e0: s.energy };
+    hNapSt = { t0: Date.now(), e0: s.energy };
     say(N() + " macht ein kurzes Nickerchen.");
     front({ blanket: 0 }); await wait(220); front({ blanket: 1 }); pulse("squat", 200); await wait(220);
     front({ blanket: 2, eyes: "sleep", mouth: "flat", ears: "flat" }); body("snooze"); startZzz();
   }
   function napTick() {
-    if (!nap) return;
-    if (!s.asleep) { nap = null; return; }
-    var u = Math.min(1, (Date.now() - nap.t0) / NAP_MS);
-    s.energy = Math.max(s.energy, clamp(nap.e0 + 50 * u)); renderNeeds();
-    if (u >= 1 && !busy) { nap.done = true; wake(); }
+    if (!hNapSt) return;
+    if (!s.asleep) { hNapSt = null; return; }
+    var u = Math.min(1, (Date.now() - hNapSt.t0) / NAP_MS);
+    s.energy = Math.max(s.energy, clamp(hNapSt.e0 + 50 * u)); renderNeeds();
+    if (u >= 1 && !busy) { hNapSt.done = true; wake(); }
   }
   setInterval(napTick, 250);
   document.addEventListener("visibilitychange", function () {             // leaving the app mid-nap: the nap counts in full, he is awake on return
-    if (document.visibilityState !== "hidden" || !nap) return;
-    s.energy = Math.max(s.energy, clamp(nap.e0 + 50)); nap = null; s.asleep = false;
+    if (document.visibilityState !== "hidden" || !hNapSt) return;
+    s.energy = Math.max(s.energy, clamp(hNapSt.e0 + 50)); hNapSt = null; s.asleep = false;
     try { stopZzz(); front({ blanket: null, eyes: "open", mouth: "smile", paws: "down", ears: "up" }); body(""); syncButtons(); skyTime(); renderNeeds(); } catch (e) {}
     if (window.SudokuSave) window.SudokuSave();
   }, true);
   var _h_wakeSeqNap = wakeSeq;
   wakeSeq = async function (byPoke) {
-    if (!nap) return _h_wakeSeqNap(byPoke);
-    nap = null; s.asleep = false; stopZzz(); syncButtons(); skyTime();
+    if (!hNapSt) return _h_wakeSeqNap(byPoke);
+    hNapSt = null; s.asleep = false; stopZzz(); syncButtons(); skyTime();
     front({ eyes: "half", ears: "up", blanket: 2 }); body(""); await wait(350);
     front({ blanket: 1 }); await wait(220); front({ blanket: 0 }); pulse("squat", 200); await wait(220);
     front({ blanket: null, eyes: "happy", mouth: "yawn", paws: "up" }); pulse("stretch", 900); await wait(900);
@@ -7776,6 +7776,9 @@ window.__EXTRAS = true;
     letterEl.classList.add("bye"); setTimeout(function () { letterEl.hidden = true; letterEl.innerHTML = ""; letterEl.className = "l-fly"; }, 380);
     front({ paws: "down" });
   }
+  /* safety net: if anything goes wrong while the letter flies in, it still opens fully and can be closed */
+  var _lArrive = letterArrives;
+  letterArrives = function () { var pr = _lArrive.apply(this, arguments); pr.catch(function () { if (letterOn) { letterEl.classList.add("landed", "open", "out", "unfold"); } }); return pr; };
   letterEl.addEventListener("click", function (e) { if (e.target.closest("[data-a=ok]") || (letterEl.classList.contains("unfold") && e.target.classList.contains("lf-dim"))) closeLetter(); });
   // a letter every few hours of play, only when you are looking at the hamster
   // a new friend writes right away, but only once the hamster screen is open and nothing else is in the way
