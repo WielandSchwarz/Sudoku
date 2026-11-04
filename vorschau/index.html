@@ -1510,14 +1510,10 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 @keyframes pz-starpop { 0% { transform: scale(0) rotate(-30deg); } 60% { transform: scale(1.35) rotate(8deg); } 80% { transform: scale(.92) rotate(-3deg); } 100% { transform: scale(1) rotate(0); } }
 .pz-win .pz-ok { opacity: 0; animation: pz-okin .3s steps(3) 1.2s forwards; min-width: 140px; }
 @keyframes pz-okin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-/* step done: sparkles */
-.p2-spk { position: absolute; pointer-events: none; animation: p2-spk .9s steps(9) both; }
+/* step done: a few big white twinkles around the spot */
+.p2-spk { position: absolute; pointer-events: none; transform: scale(0); animation: p2-spk .8s steps(8) both; filter: drop-shadow(0 0 2px rgba(255, 246, 200, .9)); }
 .p2-spk svg { width: 100%; height: 100%; display: block; }
-@keyframes p2-spk { 0% { transform: translate(0, 0) scale(.2) rotate(0); opacity: 1; } 35% { transform: translate(calc(var(--dx) * .7), calc(var(--dy) * .7)) scale(1.5) rotate(45deg); opacity: 1; } 70% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(90deg); opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--dy) + 8px)) scale(0) rotate(135deg); opacity: 0; } }
-.p2-ring { position: absolute; pointer-events: none; border-radius: 50%; box-shadow: 0 0 0 2px #fff6b8, 0 0 10px 3px rgba(255, 240, 160, .8); animation: p2-ring .5s steps(5) forwards; }
-@keyframes p2-ring { 0% { transform: scale(.2); opacity: 1; } 100% { transform: scale(2.6); opacity: 0; } }
-.p2-glit { position: absolute; pointer-events: none; animation: p2-glit 1.2s steps(10) both; }
-@keyframes p2-glit { 0% { transform: translate(0, 0); opacity: 1; } 20% { opacity: .2; } 30% { opacity: 1; } 50% { transform: translate(var(--dx), var(--dy)); opacity: .3; } 60% { opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--dy) + 22px)); opacity: 0; } }
+@keyframes p2-spk { 0% { transform: scale(0); opacity: 1; } 30% { transform: scale(1.25); opacity: 1; } 55% { transform: scale(.85); opacity: 1; } 75% { transform: scale(1); opacity: .9; } 100% { transform: scale(0); opacity: 0; } }
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -16893,21 +16889,15 @@ window.__EXTRAS = true;
     g.forEach(function (r, y) { for (var x = 0; x < n; x++) if (r[x] === "W" || r[x] === "Y") o += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + C[r[x]] + '"/>'; });
     return '<svg viewBox="0 0 ' + n + ' ' + n + '" shape-rendering="crispEdges">' + o + '</svg>';
   }
-  function p2Burst(x, y, n, cols) {
-    n = Math.max(10, Math.round((n || 8) * 1.4)); cols = cols || ["#ffd34a", "#ff9ab0", "#8ad8ff", "#b8f08a"];
-    var ring = lEl("i", "p2-ring", pzLay); pzPos(ring, x - 9, y - 9, 18, 18); ring.style.zIndex = 159; setTimeout(function () { ring.remove(); }, 600);
-    for (var k = 0; k < n; k++) {
-      var big = k % 3 === 0, sz = big ? 7 : 5, c = lEl("i", "p2-spk", pzLay, p2SpkSvg(big ? "long" : "big", cols[k % cols.length]));
-      pzPos(c, x - sz / 2, y - sz / 2, sz, sz); c.style.zIndex = 160;
-      var a = k / n * Math.PI * 2 + rnd(-.2, .2), r = rnd(16, 34) * (big ? 1.2 : 1);
-      c.style.setProperty("--dx", (Math.cos(a) * r).toFixed(1) + "px"); c.style.setProperty("--dy", (Math.sin(a) * r * .8 - 10).toFixed(1) + "px");
-      c.style.animationDelay = (rnd(0, .12)).toFixed(2) + "s"; c.style.animationDuration = (rnd(.75, 1.05)).toFixed(2) + "s";
+  function p2Burst(x, y, n) {
+    // a few big white twinkles around the spot, each pops up in place and fades, one after another
+    var m = 7, a0 = rnd(0, 6.28);
+    for (var k = 0; k < m; k++) {
+      var big = k % 2 === 0, sz = big ? 11 : 8, c = lEl("i", "p2-spk", pzLay, p2SpkSvg(big ? "long" : "big", "#fff3b0"));
+      var a = a0 + k / m * Math.PI * 2, r = rnd(13, 19);
+      pzPos(c, x + Math.cos(a) * r - sz / 2, y + Math.sin(a) * r * .75 - sz / 2 - 3, sz, sz); c.style.zIndex = 160;
+      c.style.animationDelay = (k * 0.07).toFixed(2) + "s";
       setTimeout(function (el) { el.remove(); }.bind(null, c), 1300);
-    }
-    for (var d = 0; d < Math.round(n * .8); d++) {   // glitter dots that drift down
-      var g = lEl("i", "p2-glit", pzLay); pzPos(g, x - .5 + rnd(-6, 6), y - .5 + rnd(-6, 4), 1, 1); g.style.zIndex = 160; g.style.background = d % 2 ? "#ffffff" : cols[d % cols.length];
-      g.style.setProperty("--dx", rnd(-40, 40).toFixed(0) + "px"); g.style.setProperty("--dy", rnd(-36, 10).toFixed(0) + "px"); g.style.animationDelay = rnd(0, .25).toFixed(2) + "s";
-      setTimeout(function (el) { el.remove(); }.bind(null, g), 1500);
     }
   }
   // a finer star, in the scene's own pixel size (15x15): 1px outline, light top left, shade bottom right
