@@ -2862,7 +2862,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 99 · 02.11.2026</p>
+    <p class="opt-version">Version 100 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -18693,7 +18693,7 @@ window.__EXTRAS = true;
   // the real café room behind the guest, as the hamster sees it from behind the counter: the guest room of the current café
   // (fireplace, tables, rug, lamps, in its own style) at the same pixel size, a little darker and warmer far back, with soft light
   function cqRoomBg() {
-    var src = cafeEl.querySelector(".cf-svg"); if (!src) return cqBack1();
+    var src = cafeEl.querySelector(".cf-svg") || document.querySelector(".cf-svg"); if (!src) return cqBack1();
     var vb = (src.getAttribute("viewBox") || "0 0 470 135").split(/\s+/).map(Number), W = vb[2], H = vb[3];
     var cl = src.cloneNode(true); cl.removeAttribute("class"); cl.setAttribute("class", "cq-room");
     // only the back wall: no counter, no hamster, no goods, no guests, no fire glow
@@ -19017,7 +19017,8 @@ window.__EXTRAS = true;
   function cqAutoSpawn() {
     var free = cqFreeSeats(), reserve = 1 + cqList().length;            // one seat for the bell, and one for everybody already queuing at the counter
     if (free.length <= reserve) return false;
-    var pool = gKnown(); if (!pool.length) pool = gAnyone(); pool = pool.filter(function (id) { return ALLANI[id] && !guests.some(function (g) { return g.id === id; }); });
+    var here = function (id) { return ALLANI[id] && !guests.some(function (g) { return g.id === id; }); };
+    var pool = gKnown().filter(here); if (pool.length < 2) pool = pool.concat(gAnyone().filter(here));   /* friends first, otherwise any animal from around */
     if (!pool.length) return false;
     var sh = free.filter(function (f) { return guests.some(function (g) { return g.table === f.t && g.state !== "gone"; }); });   // now and then they join someone
     var f = sh.length && Math.random() < .5 ? sh[Math.floor(Math.random() * sh.length)] : free[Math.floor(Math.random() * free.length)];
@@ -19033,9 +19034,9 @@ window.__EXTRAS = true;
   setInterval(function () {
     if (!cafeOn || gClosing() || (typeof cfGameOn !== "undefined" && cfGameOn) || uiBusy()) return;
     cqAuto -= 1; if (cqAuto > 0) return;
-    cqAutoSpawn(); cqAuto = 12 + Math.floor(Math.random() * 14);
+    cqAutoSpawn(); cqAuto = cqFreeSeats().length > 3 ? 3 + Math.floor(Math.random() * 4) : 7 + Math.floor(Math.random() * 7);   /* an empty café fills quickly */
   }, 1000);
-  var _cq_start2 = guestsStart; guestsStart = function () { _cq_start2.apply(this, arguments); cqAuto = 5; };
+  var _cq_start2 = guestsStart; guestsStart = function () { _cq_start2.apply(this, arguments); cqAuto = 2; };
   // tapping a table where someone has not ordered yet: the hamster walks over, and the guest tells you what they would like
   function cqTableOrder(g) {
     if (g.taking) return; g.taking = true;
