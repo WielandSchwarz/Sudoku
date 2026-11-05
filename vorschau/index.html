@@ -4488,7 +4488,14 @@ window.__EXTRAS = true;
   function xEl(tag, cls, parent, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; if (parent) parent.appendChild(e); return e; }
   // ---- one popup at a time: anything that pops up by itself waits until no other popup, zoom or mini game is open ----
   var UI_POP = ".bee-pov:not([hidden]), .gift-wrap, .gift-ask, .ip, .pc-modal:not([hidden]), .l-fly:not([hidden]), .cf-book:not([hidden])";
+  /* battery: setting an SVG attribute to the value it already has still makes the browser redraw, and the café sets dozens every frame */
+  (function () { var sa = Element.prototype.setAttribute; if (window.SVGElement && !SVGElement.prototype.__saCache) { SVGElement.prototype.setAttribute = function (k, v) { if (this.getAttribute(k) === String(v)) return; return sa.call(this, k, v); }; SVGElement.prototype.__saCache = 1; } })();
+  var uiBusyT = 0, uiBusyV = false;
   function uiBusy(self) {
+    if (!self) { var now = performance.now(); if (now - uiBusyT < 250) return uiBusyV; uiBusyT = now; uiBusyV = uiBusyRaw(); return uiBusyV; }   /* asked every frame: look at most four times a second */
+    return uiBusyRaw(self);
+  }
+  function uiBusyRaw(self) {
     var q = document.querySelectorAll(UI_POP);
     for (var i = 0; i < q.length; i++) if (q[i] !== self && !(self && self.contains && self.contains(q[i])) && q[i].getClientRects().length) return true;
     return false;
@@ -13555,10 +13562,10 @@ window.__EXTRAS = true;
         var tr = cfTray(ic, iw, g.order.kind === "cake" ? 11 : 8); cfHold(tr.svg, tr.w, tr.h, true); return cfHamGo(to); }).then(function () {
         if (!cafeOn || g.state !== "bring") return;
         cfHold("");
-        if (gClosing()) { gToGo(g); return cfWait(900).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); }); }
+        if (gClosing()) { gToGo(g); return cfWait(900).then(function () { cfHamSet({}); }); }
         g.state = "eat"; g.t0 = performance.now(); gItemOnTable(g, true);
         cfHamSet({ eyes: "happy", mouth: "grin" }); say(gServeLine(g)); beep([[659, .05], [784, .05], [988, .06]]);
-        return cfWait(900).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); });
+        return cfWait(900).then(function () { cfHamSet({}); });
       });
     });
     if (window.SudokuSave) window.SudokuSave();
@@ -13824,10 +13831,10 @@ window.__EXTRAS = true;
         var tr = cfTray(ic, iw, it.kind === "cake" ? 11 : 8); cfHold(tr.svg, tr.w, tr.h, true); return cfHamGo(to); }).then(function () {
         if (!cafeOn || g.state !== "bring") return;
         cfHold("");
-        if (gClosing()) { gToGo(g); return cfWait(900).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); }); }
+        if (gClosing()) { gToGo(g); return cfWait(900).then(function () { cfHamSet({}); }); }
         g.state = "eat"; g.t0 = performance.now(); gItemOnTable(g, true);
         cfHamSet({ eyes: "happy", mouth: "grin" }); say(gServeLine(g)); beep([[659, .05], [784, .05], [988, .06]]);
-        return cfWait(900).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); });
+        return cfWait(900).then(function () { cfHamSet({}); });
       });
     });
     cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); setTimeout(function () { cfHamSet({}); }, 900);
@@ -18669,8 +18676,8 @@ window.__EXTRAS = true;
   // ---- moving: the queue and the walk to the table ----
   var cqLast = 0;
   function cqTick(t) {
+    if (!cafeOn || document.hidden) { cqLast = 0; setTimeout(function () { requestAnimationFrame(cqTick); }, 500); return; }   /* battery: no frame loop while the café is closed */
     requestAnimationFrame(cqTick);
-    if (!cafeOn) { cqLast = 0; return; }
     var dt = Math.min(.05, (t - (cqLast || t)) / 1000); cqLast = t;
     guests.forEach(function (g) {
       if (g.state === "qwalk") { if (gStep(g, dt)) { g.mov = false; g.state = "queue"; g.face = -1; } }
@@ -18821,6 +18828,14 @@ window.__EXTRAS = true;
   window.__cq.tableTalk = function (id) { cqTalkTo(id, gOrderNew(id), false, null, true); };   // preview test: the order view at a table
   window.__cq.fireDx = function (d, y) { CQ_FIREDX = d; if (y != null) CQ_FIREY = y; };
   window.__cq.theme = function (t) { cfL().theme = t; cfRebuild(); };   // preview test: switch the café style
+
+  // he only goes back behind the counter when you want to make something: tea, coffee or a cake
+  (function () {
+    var home = function () { if (cafeOn && typeof cfHamAway === "function" && cfHamAway()) cfHamJob(function () { return cfHamHome(); }); };
+    var _t = teaGame; teaGame = function () { home(); return _t.apply(this, arguments); };
+    var _c = coffeeGame; coffeeGame = function () { home(); return _c.apply(this, arguments); };
+    var _b = cfStartBake; cfStartBake = function () { home(); return _b.apply(this, arguments); };
+  })();
 
 
   /*TESTHOOK*/
