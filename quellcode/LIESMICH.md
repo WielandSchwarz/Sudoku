@@ -1,6 +1,7 @@
 # Quellcode des Hamster-Spiels
 
 - `spiel/` – alle Quelldateien (JS, CSS, JSON mit Pixel-Art, Python-Generatoren). `python3 spiel/build.py` baut die Vorschau nach `/home/claude/hamster-preview.html` (Ziel mit `HAMOUT=...` änderbar).
+- `mock2/`, `wild/`, `wlde/` – weitere Grafikdaten, die `build.py` braucht.
 - `werkzeuge/` – Python-Generatoren für Sprites (Ernte `hvart`, Abwasch `dish`).
 
 ## Zusammenarbeit mehrerer Chats
