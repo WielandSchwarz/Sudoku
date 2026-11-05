@@ -1539,6 +1539,13 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .p2-arrow.p2-arrl { animation-name: p2arl; } @keyframes p2arl { 50% { transform: translateX(-12%); } }
 
 .pz-pile { display: none !important; }   /* no little heap of pulled weeds left at the side */
+
+.p2-leafy2, .p2-say { pointer-events: none; }
+.p2-say { background: #fffbe8; border: 2px solid #3a2414; border-radius: 7px; color: #3a2414; font-weight: 700; font-size: clamp(10px, 2.6vw, 14px); text-align: center; white-space: nowrap; padding: 2px 6px; box-sizing: border-box; animation: p2-say-in .25s ease-out; }
+.p2-say::after { content: ""; position: absolute; right: 16%; bottom: -7px; border: 5px solid transparent; border-top-color: #3a2414; border-bottom: 0; }
+@keyframes p2-say-in { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.p2-nibble { animation: p2-nib .5s steps(2) infinite; }
+@keyframes p2-nib { 50% { transform: translateX(-4.545%); } }
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -8530,7 +8537,7 @@ window.__EXTRAS = true;
   // the pixel gauge, lying flat under the tip: level k (1..12) is block k - 1, filled from the left
   function pzGauge(G, lit) {
     var z = G.gz, el = pzUi.querySelector(".pz-gauge"); if (!z || !el) return;
-    el.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: lit / 12, zone: [(z.a - 1) / 12, z.b / 12], col: function () { return z.c; } });
+    var done = z.done || z.a; el.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: Math.min(1, lit / done), zone: null, col: function () { return z.c; } });   /* just progress, no target zone */
   }
   function pzDigSetup(G) {
     var t = DEPTH[G.c] || [5, 7]; G.target = t; G.depth = 0; G.last = null; G.dug = false;
@@ -8645,7 +8652,7 @@ window.__EXTRAS = true;
   function pzCoverSetup(G) {
     G.fill = 0; G.pats = 0; G.covered = false;
     var gauge = pzUi.querySelector(".pz-gauge"), segs = "";
-    G.gz = { a: 9, b: 10, c: "#8a5e3a" }; pzGauge(G, 0); gauge.hidden = false;
+    G.gz = { a: 9, b: 10, done: 8, c: "#8a5e3a" }; pzGauge(G, 0); gauge.hidden = false;
     var hit = lEl("div", "pz-cover", pzLay); pzPos(hit, 30, 74, 80, 40); G.coverEl = hit; hit.style.zIndex = 112;
     var last = null;
     function unitsPerPx() { return 180 / scene.getBoundingClientRect().width / (PZCAM ? PZCAM.z : 1); }
@@ -8712,9 +8719,9 @@ window.__EXTRAS = true;
   function pzWaterSetup(G) {
     G.wet = 0; G.watered = false; G.pouring = false;
     var gauge = pzUi.querySelector(".pz-gauge"), segs = "";
-    G.gz = { a: 8, b: 10, c: "#5aa0c8", off: "#dbe8f0" }; pzGauge(G, 0); gauge.hidden = false;
+    G.gz = { a: 8, b: 10, done: 9, c: "#5aa0c8", off: "#dbe8f0" }; pzGauge(G, 0); gauge.hidden = false;
     var gh = G.where === "gh", tool = lEl("div", "pz-tool " + (gh ? "spray" : "can"), pzLay, pzSvg(gh ? "spray" : "can"));
-    if (gh) pzPos(tool, 80, 66, 12, 20); else if (typeof P2A === "object" && P2A.can2) { tool.innerHTML = P2A.can2; pzPos(tool, 74, 34, 40, 26);   /* above and right of the plant, the rose over it */ } else pzPos(tool, 76, 64, 26, 16);
+    if (gh) pzPos(tool, 80, 66, 12, 20); else if (typeof P2A === "object" && P2A.can2) { var tx = G.fur ? 65 : 70, ty = G.plantEl ? 34 : 54; G.canX = tx; G.canY = ty + 13; tool.innerHTML = P2A.can2; pzPos(tool, tx + 3, ty, 40, 26); }   /* the can hangs where the watering happens: over the plant, or low over the row */ else pzPos(tool, 76, 64, 26, 16);
     tool.style.zIndex = 400; G.toolEl = tool;   /* always in front: nothing ever covers the can */
     pzUi.querySelector(".pz-act").hidden = true; tool.classList.add("pz-hint");
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true; pzUi.querySelector(".pz-done").textContent = "Fertig";
@@ -8725,7 +8732,7 @@ window.__EXTRAS = true;
         var now = performance.now(), dt = lastT ? (now - lastT) / 1000 : 0; lastT = now;
         if (!G.pouring || G.watered) { tool.classList.remove("tilt"); return; }
         tool.classList.add("tilt"); G.wet = Math.min(130, G.wet + dt * 26);
-        for (var k = 0; k < 2; k++) { var d = lEl("i", "pz-drop", pzLay); pzPos(d, 72 + rnd(-4, 3), 47, PZCAM ? .5 : 1, PZCAM ? 1.5 : 2); d.style.zIndex = 125; setTimeout(function (el) { el.remove(); }.bind(null, d), 520); }
+        for (var k = 0; k < 2; k++) { var d = lEl("i", "pz-drop", pzLay); pzPos(d, (G.canX || 70) + 2 + rnd(-4, 3), G.canY || 47, PZCAM ? .5 : 1, PZCAM ? 1.5 : 2); d.style.zIndex = 125; setTimeout(function (el) { el.remove(); }.bind(null, d), 520); }
         pzWetDraw(G);
       }, 90);
     }
@@ -17120,7 +17127,7 @@ window.__EXTRAS = true;
       if (Math.abs(p[1] - FUR.y) > 9) { lastX = null; return; }
       var a = p2Seg(lastX == null ? p[0] : lastX), b = p2Seg(p[0]); lastX = p[0];   /* a fast swipe fills every piece it passes */
       for (var i = Math.min(a, b); i <= Math.max(a, b); i++) { if (i < 0 || i >= FUR.n || G.fur[i]) continue;
-        G.fur[i] = 1; var el = lEl("div", "p2-fur", pzLay, P2A.furrow); pzPos(el, p2SegX(i), FUR.y - 2, sw + .5, 5); el.style.zIndex = 99; G.furEls.push(el);
+        G.fur[i] = 1; var el = lEl("div", "p2-fur", pzLay, P2A.furrow); pzPos(el, p2SegX(i), FUR.y - 2, sw, 5); el.style.zIndex = 99; G.furEls.push(el);
         pzCrumbs(p2SegX(i) + 4, FUR.y, 3); beep([[260 + i * 25, .03]]); }
     }, up: function () { front({ paws: "down", eyes: "open", mouth: "smile" }); } });
     return function () { return G.fur.every(Boolean); };
@@ -17288,14 +17295,15 @@ window.__EXTRAS = true;
     return function () { return G.setDone; };
   }
   function p2Straw(G) {                                               // tuck straw under the plant at four spots
-    return p2Carry(G, P2A.bale, [84, 66, 18, 8], P2A.straw, [12, 5], [[54, 99], [62, 104], [78, 104], [86, 99]], "Stroh vom Ballen holen und auf die markierten Stellen unter der Pflanze legen.", function () { beep([[700, .04]]); front({ paws: "up", eyes: "happy" }); });
+    return p2Carry(G, P2A.bale, [86, 58, 28, 14], P2A.straw, [16, 7], [[52, 99], [61, 104], [79, 104], [88, 99]], "Stroh vom Ballen holen und auf die Umrisse unter der Pflanze legen.", function () { beep([[700, .04]]); front({ paws: "up", eyes: "happy" }); });
   }
   P2A.arrR = p2Pix(["K....", "KYK..", "KYYK.", "KYYYK", "KYYK.", "KYK..", "K...."], { K: "#3a2414", Y: "#ffe27a" });   // little arrow hints, pointing right / left / down
   P2A.arrL = p2Pix(["....K", "..KYK", ".KYYK", "KYYYK", ".KYYK", "..KYK", "....K"], { K: "#3a2414", Y: "#ffe27a" });
   P2A.arrD = p2Pix(["KKKKKKK", "KYYYYYK", ".KYYYK.", "..KYK..", "...K..."], { K: "#3a2414", Y: "#ffe27a" });
   var P2MOUND = {};
-  function p2MoundArt(w, h) {                                         // a hill of loose soil at its real size: the round surface lit from the upper left, soft steps with a little dither, crumbs, a dark rim
-    w = Math.max(6, Math.round(w)); h = Math.max(3, Math.round(h)); var key = w + "x" + h; if (P2MOUND[key]) return P2MOUND[key];
+  var P2PEATPAL = { K: "#1e1008", L: "#5a3a26", l: "#4a2e1c", m: "#3a2216", d: "#2e1a10", c: "#6e4e30" };
+  function p2MoundArt(w, h, pal) {                                         // a hill of loose soil at its real size: the round surface lit from the upper left, soft steps with a little dither, crumbs, a dark rim
+    w = Math.max(6, Math.round(w)); h = Math.max(3, Math.round(h)); var key = w + "x" + h + (pal ? "p" : ""); if (P2MOUND[key]) return P2MOUND[key];
     var inside = function (x, y) { if (x < 0 || y < 0 || x >= w || y >= h) return false; var u = (x + .5 - w / 2) / (w / 2), v = (h - y - .5) / h; return v <= Math.sqrt(Math.max(0, 1 - u * u)); };
     var rows = [], LX = -.55, LY = .83;
     for (var y = 0; y < h; y++) { var r = ""; for (var x = 0; x < w; x++) { if (!inside(x, y)) { r += "."; continue; }
@@ -17306,7 +17314,7 @@ window.__EXTRAS = true;
         if (y >= h - 2) c = c === "L" ? "l" : c === "l" ? "m" : "d";                         // a little shade where the hill meets the bed
         var hh = ((x * 374761393 + y * 668265263) >>> 0) % 97; if (hh < 7) c = c === "L" ? "l" : c === "d" ? "c" : "d";
         r += c; } rows.push(r); }
-    return (P2MOUND[key] = p2Pix(rows, { K: "#3a2214", L: "#c08e5c", l: "#a8784a", m: "#8a5e3a", d: "#6e4628", c: "#5a3820" }));
+    return (P2MOUND[key] = p2Pix(rows, pal || { K: "#3a2214", L: "#c08e5c", l: "#a8784a", m: "#8a5e3a", d: "#6e4628", c: "#5a3820" }));
   }
   function p2Mound(G) {                                               // push soil together into a hill for the pumpkin
     G.mh = 0; var m = lEl("div", "p2-mound", pzLay); m.style.zIndex = 101; G.moundEl = m;
@@ -17334,18 +17342,18 @@ window.__EXTRAS = true;
       var ar = lEl("div", "p2-arrow p2-arrd", pzLay, P2A.arrD); pzPos(ar, x - 3.5, y - 13, 7, 5); ar.style.zIndex = 150;   /* a little arrow: push it down */
       return { x: x, y: y, el: r, ar: ar, done: false }; });
     var hit = p2Hit(30, 50, 80, 60); G.hitEl = hit; pzTip("Die Kerne nach unten in den Hügel drücken.");
-    p2Swipe(hit, G.spots, p2Down, function (o) { o.ar.remove(); o.el.innerHTML = P2A.ohole; pzPos(o.el, o.x - 2.5, o.y + 1, 5, 3); o.el.style.zIndex = 102; beep([[500 + rnd(0, 200), .05]]); front({ paws: "up", eyes: "happy" }); body("squat"); setTimeout(function () { body(""); }, 150); pzCrumbs(o.x, o.y, 2); });
+    p2Swipe(hit, G.spots, p2Down, function (o) { o.ar.remove(); o.el.innerHTML = P2A.shole; pzPos(o.el, o.x - 2.5, o.y + 1, 5, 3); o.el.style.zIndex = 102; beep([[500 + rnd(0, 200), .05]]); front({ paws: "up", eyes: "happy" }); body("squat"); setTimeout(function () { body(""); }, 150); pzCrumbs(o.x, o.y, 2); });
     return function () { return G.spots.every(function (o) { return o.done; }); };
   }
   function p2Trellis(G) {                                             // stand the climbing frame behind the bed, then knock both posts in
-    var ghost = lEl("div", "p2-ghost", pzLay, P2A.trellis); pzPos(ghost, 55, 58, 30, 36); ghost.style.zIndex = 95;     /* a faint outline shows where it belongs */
+    var ghost = lEl("div", "p2-ghost", pzLay, P2A.trellis); pzPos(ghost, 55, 46, 30, 36); ghost.style.zIndex = 95;     /* a faint outline shows where it belongs */
     var tr = lEl("div", "p2-trel", pzLay, P2A.trellis); pzPos(tr, 96, 46, 30, 36); tr.style.zIndex = 146; G.trEl = tr; G.trPlaced = false; G.trKnocks = 0;
     var hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; var drag = false; pzTip("Das Rankgitter hinter das Beet stellen, dann die Pfosten einklopfen.");
     p2Drag(hit, { down: function (p) {
-      if (G.trPlaced) { if (Math.abs(p[1] - 86) < 16 && Math.abs(p[0] - 70) < 20) { G.trKnocks++; beep([[160 + G.trKnocks * 40, .06]]); pzCrumbs(70 + (G.trKnocks % 2 ? -12 : 12), 90, 3); pzPos(tr, 55, 58 + G.trKnocks * 2, 30, 36); front({ paws: "up", eyes: "happy", mouth: "teeth" }); body("squat"); setTimeout(function () { body(""); }, 150); } return; }
+      if (G.trPlaced) { if (Math.abs(p[1] - 72) < 20 && Math.abs(p[0] - 70) < 20) { G.trKnocks++; beep([[160 + G.trKnocks * 40, .06]]); pzCrumbs(70 + (G.trKnocks % 2 ? -12 : 12), 90, 3); pzPos(tr, 55, 46 + G.trKnocks * 2, 30, 36); front({ paws: "up", eyes: "happy", mouth: "teeth" }); body("squat"); setTimeout(function () { body(""); }, 150); } return; }
       if (p[0] > 92 && p[0] < 130 && p[1] > 42 && p[1] < 86) drag = true; },
       move: function (p) { if (drag) pzPos(tr, p[0] - 15, p[1] - 18, 30, 36); },
-      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 20 && p[1] > 56 && p[1] < 100) { G.trPlaced = true; ghost.remove(); pzPos(tr, 55, 58, 30, 36); tr.style.zIndex = 96; beep([[300, .05]]); pzTip("Zweimal auf die Pfosten klopfen."); } else pzPos(tr, 96, 46, 30, 36); } });
+      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 20 && p[1] > 44 && p[1] < 92) { G.trPlaced = true; ghost.remove(); pzPos(tr, 55, 46, 30, 36); tr.style.zIndex = 96; beep([[300, .05]]); pzTip("Zweimal auf die Pfosten klopfen."); } else pzPos(tr, 96, 46, 30, 36); } });
     return function () { return G.trKnocks >= 2; };
   }
   function p2Tie(G) {                                                 // twine hangs loose from the stake at three heights of the plant: swipe across each to tie stem and stake together
@@ -17366,17 +17374,17 @@ window.__EXTRAS = true;
     p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { pzPos(bag, p[0] - 9, p[1] - 27, 18, 24); acc += Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; if (acc < 7) return; acc = 0;
       var x = p[0] + rnd(-3, 3), y = p[1] + rnd(-2, 2); if (x < BED.x0 || x > BED.x1 || y < BED.y0 || y > BED.y1) return;
       var ci = Math.min(3, Math.floor((x - BED.x0) / ((BED.x1 - BED.x0) / 4))) + (y > (BED.y0 + BED.y1) / 2 ? 4 : 0); G.cells[ci]++;
-      if (G.landed.length < 14 && G.cells[ci] <= 2) { var sd = lEl("div", "p2-seed", pzLay, P2A.seedc); pzPos(sd, x - 1.5, y - 1.5, 3, 3); sd.style.zIndex = 102; G.landed.push({ x: x, y: y, el: sd, pressed: false }); beep([[900 + rnd(0, 300), .015]]); } },
+      if (G.landed.length < 14 && G.cells[ci] <= 2) { var sd = lEl("div", "p2-seed", pzLay, P2A.herbseed); pzPos(sd, x - 2, y - 1.5, 4, 3); sd.style.zIndex = 102; G.landed.push({ x: x, y: y, el: sd, pressed: false }); beep([[900 + rnd(0, 300), .015]]); } },
       up: function () { pzPos(bag, 86, 56, 18, 24); } });
     return function () { return G.cells.every(Boolean); };
   }
-  var P2POT = { x: 58, y: 76, w: 24, h: 17 };
+  var P2POT = { x: 56, y: 72, w: 28, h: 20 };
   function p2PotFill(G) {                                             // chili: fill the little pot with soil
     var pot = lEl("div", "p2-pot", pzLay, P2A.pot); pzPos(pot, P2POT.x, P2POT.y, P2POT.w, P2POT.h); pot.style.zIndex = 103; G.potEl = pot; G.pf = 0;
     var soil = lEl("div", "p2-potsoil", pzLay); soil.style.zIndex = 104; G.soilEl = soil;
     var hit = p2Hit(30, 50, 80, 60); G.hitEl = hit; var last = null; pzTip("Erde in den Topf wischen.");
     p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { var d = Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; if (Math.abs(p[0] - 70) > 16 || p[1] > P2POT.y + 6) return;
-      G.pf = Math.min(100, G.pf + d * .8); var h = 1 + G.pf / 100 * 2.5; pzPos(soil, P2POT.x + 2, P2POT.y + 3.4 - h, P2POT.w - 4, h); if (Math.random() < .35) pzCrumbs(70 + rnd(-6, 6), P2POT.y + 2, 2); } });
+      G.pf = Math.min(100, G.pf + d * .8); var h = 1 + G.pf / 100 * 2.5; pzPos(soil, P2POT.x + 3, P2POT.y + 4 - h, P2POT.w - 6, h); if (Math.random() < .35) pzCrumbs(70 + rnd(-6, 6), P2POT.y + 2, 2); } });
     return function () { return G.pf >= 100; };
   }
   function p2PotSeed(G) {                                             // two seeds lie on the soil in the pot: swipe down to push them in
@@ -17386,10 +17394,10 @@ window.__EXTRAS = true;
     return function () { return G.spots.every(function (o) { return o.done; }); };
   }
   function p2Dome(G) {                                                // a little glass hood over the pot keeps it warm
-    var d = lEl("div", "p2-dome", pzLay, P2A.dome); pzPos(d, 84, 60, 26, 16); d.style.zIndex = 146; G.domeEl = d; G.domed = false;
+    var d = lEl("div", "p2-dome", pzLay, P2A.dome); pzPos(d, 92, 48, 30, 20); d.style.zIndex = 146; G.domeEl = d; G.domed = false;
     var hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; var drag = false; pzTip("Die Glashaube über den Topf stülpen.");
-    p2Drag(hit, { down: function (p) { if (p[0] > 80 && p[0] < 112 && p[1] > 56 && p[1] < 80) drag = true; }, move: function (p) { if (drag) pzPos(d, p[0] - 13, p[1] - 8, 26, 16); },
-      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 12 && Math.abs(p[1] - (P2POT.y - 6)) < 12) { G.domed = true; pzPos(d, 57, P2POT.y - 14, 26, 16); d.style.zIndex = 106; beep([[880, .05], [1175, .08]]); } else pzPos(d, 84, 60, 26, 16); } });
+    p2Drag(hit, { down: function (p) { if (p[0] > 88 && p[0] < 126 && p[1] > 44 && p[1] < 72) drag = true; }, move: function (p) { if (drag) pzPos(d, p[0] - 15, p[1] - 10, 30, 20); },
+      up: function (p) { if (!drag) return; drag = false; if (Math.abs(p[0] - 70) < 12 && Math.abs(p[1] - (P2POT.y - 6)) < 12) { G.domed = true; pzPos(d, 55, P2POT.y - 16, 30, 20); d.style.zIndex = 106; beep([[880, .05], [1175, .08]]); } else pzPos(d, 92, 48, 30, 20); } });
     return function () { return G.domed; };
   }
   P2A.bushseedl = p2Pix(["..g...g..g..", ".gGg.gGggGg.", "gGgg.gGg.gGg", ".g.G..G.Gg..", "...G..G.G...", "....G.GG....", ".....GG.....", ".....HH.....", ".....HH.....", "....CCCC....", "...BBBBBB...", "..BBbBBbBB..", "..BbBBBBbB..", "..BBBbBBBB..", "...BBBBbB...", "....BbBB....", ".....rr.....", "....r..r...."], { g: "#6fc05a", G: "#3e8a3a", H: "#8a5a3a", C: "#8a6a2a", B: "#6a4428", b: "#8a5e3a", r: "#a8784a" });
@@ -17415,14 +17423,14 @@ window.__EXTRAS = true;
   // straw and compost: carry a handful from the bale or bucket to the marked spots around the plant
   function p2Carry(G, srcArt, srcPos, itemArt, itemWH, spots, tip, onPut) {
     var src = lEl("div", "p2-src", pzLay, srcArt); pzPos(src, srcPos[0], srcPos[1], srcPos[2], srcPos[3]); src.style.zIndex = 140; G.srcEl = src;
-    G.spots = spots.map(function (q) { var r = lEl("div", "p2-spot", pzLay, P2A.spot); pzPos(r, q[0] - 7.5, q[1] - 3.5, 15, 7); r.style.zIndex = 99; return { x: q[0], y: q[1], el: r, done: false }; });
+    G.spots = spots.map(function (q) { var r = lEl("div", "p2-ghost", pzLay, itemArt); pzPos(r, q[0] - itemWH[0] / 2, q[1] - itemWH[1] / 2 - 1, itemWH[0], itemWH[1]); r.style.zIndex = 99; return { x: q[0], y: q[1], el: r, done: false }; });   /* a faint outline shows each place */
     var hit = p2Hit(0, 30, 180, 90, 147); G.hitEl = hit; var hand = null; pzTip(tip);
     var sx = srcPos[0] + srcPos[2] / 2, sy = srcPos[1] + srcPos[3] / 2;
     p2Drag(hit, { down: function (p) { if (Math.hypot(p[0] - sx, p[1] - sy) > 13) return; hand = lEl("div", "p2-hand", pzLay, itemArt); hand.style.zIndex = 150; pzPos(hand, p[0] - itemWH[0] / 2, p[1] - itemWH[1] - 4, itemWH[0], itemWH[1]); front({ paws: "hold", eyes: "happy", mouth: "smile" }); },
       move: function (p) { if (hand) pzPos(hand, p[0] - itemWH[0] / 2, p[1] - itemWH[1] - 4, itemWH[0], itemWH[1]); },
       up: function (p) { if (!hand) return; var h = hand; hand = null; var py = p[1] - itemWH[1] / 2 - 4, best = null, bd = 10;
         G.spots.forEach(function (o) { if (o.done) return; var d = Math.hypot(o.x - p[0], o.y - py); if (d < bd) { bd = d; best = o; } });
-        if (!best) { h.remove(); pzTip("Auf eine der markierten Stellen legen."); return; }
+        if (!best) { h.remove(); return; }
         best.done = true; best.el.remove(); pzPos(h, best.x - itemWH[0] / 2, best.y - itemWH[1] / 2 - 1, itemWH[0], itemWH[1]); h.style.zIndex = best.y < (G.crown || 97) ? 99 : 103;   /* behind the plant when it lies further back */ h.className = "p2-placed"; onPut(best); p2Burst(best.x, best.y - 2, 4);
         if (G.spots.every(function (o) { return o.done; })) src.remove(); } });
     return function () { return G.spots.every(function (o) { return o.done; }); };
@@ -17430,13 +17438,13 @@ window.__EXTRAS = true;
   P2A.shears = p2Pix(["K......K", "KwK..KwK", ".KwKKwK.", "..KwwK..", "...KK...", "..KrrK..", ".KrKKrK.", "KrK..KrK", ".K....K."], { K: P2K, w: "#d8e0e8", r: "#e8402a" });
   function p2Peat(G) {                                                // blueberries want sour peat in the hole
     G.pt = 0; var BX = 88, BY = 62, bag = lEl("div", "p2-bag p2-peatbag", pzLay, P2A.peat); pzPos(bag, BX, BY, 18, 20); bag.style.zIndex = 145; G.bagEl = bag;
-    var fill = lEl("div", "p2-peatfill", pzLay, P2A.peatMound); fill.style.zIndex = 100; pzPos(fill, 58, 104, 24, 0.1);
+    var fill = lEl("div", "p2-peatfill", pzLay); fill.style.zIndex = 100; pzPos(fill, 56, 104, 28, 0.1);
     var hit = p2Hit(20, 40, 140, 80); G.hitEl = hit; var last = null; pzTip("Den Sack übers Loch ziehen und die Moorerde hineinrieseln lassen.");
     p2Drag(hit, { down: function (p) { last = p; },
       move: function (p) {
         pzPos(bag, p[0] - 9, p[1] - 22, 18, 20); var d = Math.hypot(p[0] - last[0], p[1] - last[1]); last = p;
         var over = Math.abs(p[0] - 4 - 70) < 16 && p[1] < 100; bag.classList.toggle("tilt", over); if (!over) return;
-        G.pt = Math.min(100, G.pt + Math.max(d, 1.2) * .7); var h = Math.max(.1, G.pt * .09); pzPos(fill, 58, 104 - h, 24, h);
+        G.pt = Math.min(100, G.pt + Math.max(d, 1.2) * .7); var h = Math.max(.1, Math.round(G.pt * .1)); if (h >= 3) fill.innerHTML = p2MoundArt(28, h, P2PEATPAL); pzPos(fill, 56, 104 - h, 28, h);
         // the peat trickles out of the sack's mouth (top left when tilted) down into the hole
         var mx = p[0] - 9, my = p[1] - 9, u = pzPxU();
         for (var k = 0; k < 2; k++) { var c = lEl("i", "p2-peatcrumb", pzLay); var sz = Math.random() < .35 ? 2 : 1; pzPos(c, mx + rnd(-1.5, 1.5), my, sz, sz); c.style.background = ["#2e1a10", "#3a2216", "#5a3a26", "#6e4e30"][Math.floor(Math.random() * 4)]; c.style.zIndex = 144;
@@ -17473,12 +17481,12 @@ window.__EXTRAS = true;
     return function () { if (G.marks.every(function (o) { return o.done; })) { sh.remove(); return true; } return false; };
   }
   function p2Compost(G) {                                             // three handfuls of compost around the rhubarb
-    return p2Carry(G, P2A.bucket, [86, 64, 14, 8], P2A.compost, [12, 6], [[58, 99], [70, 93], [82, 99]], "Kompost aus dem Eimer holen und rund um die Pflanze auf die Markierungen legen.", function (o) { beep([[180, .05], [140, .06]]); pzCrumbs(o.x, o.y, 4); });
+    return p2Carry(G, P2A.bucket, [88, 56, 22, 16], P2A.compost, [15, 7], [[56, 100], [70, 93], [84, 100]], "Kompost aus dem Eimer holen und auf die Umrisse rund um die Pflanze legen.", function (o) { beep([[180, .05], [140, .06]]); pzCrumbs(o.x, o.y, 4); });
   }
   function p2Poke(G) {                                                // onions: five little dents along the row, swipe down into each to make a hole
-    G.holes = [0, 2, 4, 6, 8].map(function (i) { var x = p2SegX(i) + 4, r = lEl("div", "p2-dent", pzLay, p2Pix([".dd.", "dDDd"], { d: "#5a3a22", D: "#3e2414" })); pzPos(r, x - 2, FUR.y - 1, 4, 2); r.style.zIndex = 99; return { x: x, y: FUR.y, el: r, done: false, set: false }; });
+    G.holes = [0, 2, 4, 6, 8].map(function (i) { var x = p2SegX(i) + 4, r = lEl("div", "p2-dent", pzLay, P2A.odent); pzPos(r, x - 3, FUR.y - 1, 6, 3); r.style.zIndex = 99; return { x: x, y: FUR.y, el: r, done: false, set: false }; });
     var hit = p2Hit(20, 60, 110, 55); G.hitEl = hit; pzTip("Mit dem Finger von oben in die fünf Mulden stechen.");
-    p2Swipe(hit, G.holes, p2Down, function (o) { o.el.innerHTML = P2A.ohole; pzPos(o.el, o.x - 3, o.y - 1, 6, 3); beep([[300, .04]]); pzCrumbs(o.x, o.y, 3); });
+    p2Swipe(hit, G.holes, p2Down, function (o) { o.el.innerHTML = P2A.ohole; pzPos(o.el, o.x - 4, o.y - 1, 8, 4); beep([[300, .04]]); pzCrumbs(o.x, o.y, 3); });
     return function () { return G.holes.every(function (o) { return o.done; }); };
   }
   function p2SetOnion(G) {                                            // a little onion above every hole: swipe it down into the hole, tip up
@@ -17497,8 +17505,9 @@ window.__EXTRAS = true;
   }
   P2A.stone = p2Pix(["..KKKK..", ".KwgggK.", "KwggggGK", "KgggGGGK", ".KGGGGK.", "..KKKK.."], { K: "#3a3e48", w: "#d8dce4", g: "#a8acb4", G: "#7a7e88" });
   P2A.clod = p2Pix(["..KKK..", ".KdmdK.", "KdmmdmK", "KmmdmmK", ".KKKKK."], { K: "#3e2414", d: "#6a4428", m: "#8a5e3a" });
-  P2A.snail = p2Pix(["e....e.....", ".e..e......", ".YYYY..KKK.", "YYYYY.KsSsK", ".YYYYKsSSssK", "..YYYKsSsSsK", "YYYYYYKKKKK."], { e: "#3a2414", Y: "#d8c890", K: "#6a4428", s: "#c8945a", S: "#e8b878" });
-  P2A.shell = p2Pix(["..KKK.", ".KsSsK", "KsSSssK", "KsSsSsK", ".KKKKK."], { K: "#6a4428", s: "#c8945a", S: "#e8b878" });
+  P2A.snail = p2Pix(["..K...K...............", ".KBK.KBK...KKKK.......", ".KeK.KeK.KKHHSSKK.....", ".KBK.KBKKHHHSSSSmK....", ".KBBKBBKKHHSssssSmK...", ".KBBBBBKHHSsSSSSsSmK..", ".KLBBBBKHSsSHHSSsSmK..", ".KLBBBBKHSsSHssSsSmK..", "KLLBBBbKSSsSSSsSsmmK..", "KBbBBBbKSSSsssSSmmmK..", "KBBBBBbKKmSSSSSmmmKK..", "KBBLLLLLLBmmmmmmmBBBK.", "KbbbbbbbbbbbbbbbbbbbbK", ".KKbbbbbbbbbbbbbbbbKK.", "...KKKKKKKKKKKKKKKK..."], {"K": "#3a2414", "B": "#e2cf96", "b": "#b49a5e", "L": "#f6ebc4", "S": "#c8803e", "s": "#7e4620", "H": "#eeb878", "m": "#a4642e", "e": "#1e120a"});
+  P2A.shell = p2Pix(["....KKKK.....", "..KKHHSSKK...", ".KHHHSSSSmK..", ".KHHSssssSmK.", "KHHSsSSSSsSmK", "KHSsSHHSSsSmK", "KHSsSHssSsSmK", "KSSsSSSsSsmmK", "KSSSsssSSmmmK", ".KmSSSSSmmmK.", "..KmmmmmmmK..", "...KKKKKKK..."], {"K": "#3a2414", "B": "#e2cf96", "b": "#b49a5e", "L": "#f6ebc4", "S": "#c8803e", "s": "#7e4620", "H": "#eeb878", "m": "#a4642e", "e": "#1e120a"});
+  P2A.leaf = p2Pix([".......KKK..KKKK........", "....KKKGGGKKGGGGKKK.....", "...KGGGgggGGggggGGGK....", "..KGgggggggggggGGGGGK...", ".KGgggggggggwgGGGwGGGK..", "KGGggggwgggwgGGGwGGGGGK.", "KGgggggwggwgGGGwGGGGGGGK", "KvvvvvvvvvvvvvvvvvvvGGGK", "KGGGGGGwGGGwGGGGwGGGGddK", "KdGGGGGGwGGGwGGGGwGGddK.", ".KdGGGGGGwGGGwGGGGwddK..", "..KddGGGGGGGGGGGGdddK...", "...KKdddGGdddGGdddKK....", ".....KKKKKKKKKKKKK......"], {"K": "#2c4418", "G": "#7cc04a", "g": "#a6dc6c", "d": "#58963a", "v": "#d6f0a0", "w": "#bfe68a"});   /* snail 22x15, carried shell 13x12, lettuce leaf 24x14 */
   // an autumn maple leaf with an outline, light on the upper left, veins and a stalk
   P2A.aleaf = p2Pix([".....K.....", "..K.KoK.K..", "..KKooOKK..", "KK.KoOOK.KK", "KoKooVOOKOK", ".KooOVOOOK.", "..KoOVOOK..", ".KOOOVOOrK.", "..KKKVKKK..", ".....V....."], { K: "#5a2a10", O: "#e8862a", o: "#f6b44a", r: "#c8541c", V: "#9a4a1a" });
   P2A.yleaf = p2Pix(["..YY..", ".YyYY.", "YyYYyY", ".YYyY.", "..Yb.."], { Y: "#e8d860", y: "#c8b040", b: "#8a7a3a" });
@@ -17538,13 +17547,19 @@ window.__EXTRAS = true;
       if (Math.hypot(a[0] + sx * u - o.x, a[1] + sy * u - o.y) < 6 && Math.hypot(sx, sy) > 1) { o.hp--; pzCrumbs(o.x, o.y, 4); beep([[220 + o.hp * 40, .03]]); o.el.style.transform = "scale(" + (0.45 + o.hp * .09) + ")"; if (o.hp <= 0) { o.el.remove(); } } }); } });
     return function () { return G.items.every(function (o) { return o.hp <= 0; }); };
   }
-  function p2Snail(G) {
-    var x = rnd(44, 88), y = rnd(92, 104), el = lEl("div", "p2-snail", pzLay, P2A.snail); pzPos(el, x - 6, y - 4, 12, 7); el.style.zIndex = 103; G.sn = { x: x, y: y, el: el, out: false };
-    var hit = p2Hit(0, 50, 180, 85); G.hitEl = hit; var drag = false; pzTip("Die Schnecke vorsichtig nach oben ins Gras tragen.");
-    p2Drag(hit, { down: function (p) { if (Math.hypot(G.sn.x - p[0], G.sn.y - p[1]) < 9) { drag = true; el.innerHTML = P2A.shell; } }, move: function (p) { if (drag) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 6, p[1] - 4, 12, 7); } },
-      up: function (p) { if (!drag) return; drag = false; var inBed = p[1] > 62;   // out means: up into the grass at the top
-        if (inBed) { pzTip("Noch im Beet. Ganz nach oben ins Gras."); setTimeout(function () { el.innerHTML = P2A.snail; }, 600); }
-        else { G.sn.out = true; el.innerHTML = P2A.snail; beep([[660, .05], [880, .06]]); el.classList.add("p2-crawl"); } } });
+  function p2Snail(G) {                                                 /* carry the snail to a lettuce leaf top right; it says thanks */
+    var LX = 110, LY = 66, x = rnd(44, 74), y = rnd(94, 102);
+    var leaf = lEl("div", "p2-leafy2", pzLay, P2A.leaf); pzPos(leaf, LX - 12, LY - 7, 24, 14); leaf.style.zIndex = 101;
+    var gh = lEl("div", "p2-ghost", pzLay, P2A.snail); pzPos(gh, LX - 13, LY - 12, 22, 15); gh.style.zIndex = 102;
+    var el = lEl("div", "p2-snail", pzLay, P2A.snail); pzPos(el, x - 11, y - 8, 22, 15); el.style.zIndex = 103; G.sn = { x: x, y: y, el: el, out: false, on: false };
+    var hit = p2Hit(0, 40, 180, 95); G.hitEl = hit; var drag = false; pzTip("Die Schnecke zum Salatblatt tragen.");
+    p2Drag(hit, { down: function (p) { if (!G.sn.on && Math.hypot(G.sn.x - p[0], G.sn.y - p[1]) < 13) { drag = true; el.innerHTML = P2A.shell; pzPos(el, p[0] - 6.5, p[1] - 6, 13, 12); } },
+      move: function (p) { if (drag) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 6.5, p[1] - 6, 13, 12); } },
+      up: function (p) { if (!drag) return; drag = false; el.innerHTML = P2A.snail;
+        if (Math.hypot(p[0] - LX, p[1] - LY) > 16) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 11, p[1] - 8, 22, 15); return; }
+        G.sn.on = true; gh.remove(); pzPos(el, LX - 13, LY - 12, 22, 15); el.classList.add("p2-nibble"); beep([[660, .05], [880, .06]]);
+        var say = lEl("div", "p2-say", pzLay, "Mmm, lecker!"); pzPos(say, LX - 34, LY - 26, 34, 9); say.style.height = "auto"; say.style.width = "auto"; say.style.zIndex = 150;
+        setTimeout(function () { G.sn.out = true; }, 1400); } });
     return function () { return G.sn.out; };
   }
   function p2Sweep(G) {
@@ -17602,6 +17617,20 @@ window.__EXTRAS = true;
     return function () { return G.ladyOk; };
   }
   // ---------- the planting game: the crop's steps one after the other ----------
+  /* bigger, finer redraws of the sowing props (same pixel size as everything else): bale, straw, compost and its pail, furrow, pot, glass hood, dandelion fluff, herb seed, onion dents and holes */
+  var P2ART2PAL = {"K":"#5a3a14","y":"#f0d070","Y":"#d8b04c","o":"#b08a34","l":"#eef3f8","r":"#c8402a","R":"#e8624a","m":"#d8e0e8","g":"#a8b4c0","M":"#7a8894","c":"#5a3a22","C":"#3e2414","d":"#7a5a36","v":"#6a9a3a","h":"#5a6470","D":"#3e2414","b":"#2a1a0c","L":"#a8784a","O":"#f0a070","t":"#e07a48","T":"#b85a34","q":"#a84c2c","W":"#e8f4fa","w":"#cfe8f4","x":"#ffffff","k":"#9aa8b4","S":"#a89070","s":"#c8b890","B":"#c8a060"};
+  P2A.shole = P2A.ohole;   /* the small hole stays for the pumpkin seeds */
+  P2A.bale = p2Pix(["..KKKKKKKKKKKKKKKKKKKKKKKK..", ".KllylllylllylllylllylllylK.", "KyYyyyyyrRyyyyYYYyyrRyyyyyyK", "KyyyyYyyrRyyoyyYyYYrRoyyyyyK", "KYyoyYoyrRYYoYYYYYYrRoYyoyYK", "KYyoYYYyrRyYoYYoYYorRoYyoYyK", "KYYoYyYYrRYyYyyYYYorRoYYoyYK", "KYYYYyYYrRyyoYyYYYorRoYYYYYK", "KyYYYyYyrRYyYyyoYYorRoYYoYYK", "KYYoyYoYrRYYoYYoYYYrRYyYYYYK", "KoooYooorRYoooYooYYrRooooooK", "KoYoYooYrrooooooooorrooooYoK", ".KoooYoorroYooooYoorroooooK.", "..KKKKKKKKKKKKKKKKKKKKKKKK.."], P2ART2PAL);
+  P2A.straw = p2Pix(["..KKKKKKKKKKKKK.", ".KyyyYYylllyYlyK", "KyyYYlYlYYyllYK.", "KYylYYYlyYlyKK..", ".KYYYlYyKKKKKKK.", "KYKyYYllyYlYYyyK", ".K.KKKKKKKKKKKK."], P2ART2PAL);
+  P2A.bucket = p2Pix([".......KKhhhhKK.......", ".....KKhhKKKKhhKK.....", "....KhhKKKKCKKKhhK....", "...KhKddCcddCvvCdhK...", "..KhcCcvdcvvcvCdvcvK..", ".KhCvcdCcccCcdccCddCK.", "KllllllllllllllllllllK", "KggggMggggMggggMggggMK", "KmmmgggggggggggggMMMMK", "KmmmgggggggggggggMMMMK", ".KmmmgggggggggggMMMMK.", ".KmmmgggggggggggMMMMK.", ".KmmmgggggggggggMMMMK.", ".KmmmgggggggggggMMMMK.", "..KmmmggggggggggMMMK..", "...KKKKKKKKKKKKKKKK..."], P2ART2PAL);
+  P2A.compost = p2Pix([".....KKKKK.....", "...KKdddddKK...", "..KCCcdvcvcdK..", ".KvvCcCcCCcCcK.", "KCCCccCvvcCcCcK", "KdCCCCccdCcddcK", "CCcccccCcCcCcvc"], P2ART2PAL);
+  P2A.furrow = p2Pix(["dddddd", "DDDDDD", "DbDDbD", "bDbbDb", "LLLLLL"], P2ART2PAL);
+  P2A.pot = p2Pix(["KOOOOOOOOOOOOOOOOOOOOOOOOOOK", "KttttttttttttttttttttttttttK", "KttttttttttttttttttttttttttK", "KTTTTTTTTTTTTTTTTTTTTTTTTTTK", ".KOOOOOtttttttttttttqqqqqqK.", ".KOOOOOtttttttttttttqqqqqqK.", ".KOOOOOtttttttttttttqqqqqqK.", "..KOOOOtttttttttttttqqqqqK..", "..KOOOOtttttttttttttqqqqqK..", "..KOOOOtttttttttttttqqqqqK..", "...KOOOOtttttttttttqqqqqK...", "...KOOOOtttttttttttqqqqqK...", "...KOOOOtttttttttttqqqqqK...", "....KOOOOttttttttttqqqqK....", "....KOOOOttttttttttqqqqK....", "....KOOOOttttttttttqqqqK....", ".....KOOOtttttttttqqqqK.....", ".....KOOOtttttttttqqqqK.....", ".....KOOOtttttttttqqqqK.....", "......KKKKKKKKKKKKKKKK......"], P2ART2PAL);
+  P2A.dome = p2Pix([".............kkkk.............", "............kkkkkk............", "..............................", "............WWWWWW............", ".........WWWWWWWWWWWW.w.......", ".......xwWWW......WWWWw.......", "......Wxw............WWw......", "......Wxw.............Ww......", ".....Wxw...............WW.....", "....WWxw................WW....", "...WW.xw.................WW...", "...W.xw...................W...", "..W........................W..", "..W........................W..", "..............................", ".W..........................W.", ".W..........................W.", ".W..........................W.", ".W..........................W.", ".WWWWWWWWWWWWWWWWWWWWWWWWWWWW."], P2ART2PAL);
+  P2A.fluff = p2Pix(["W.W.W", ".WwW.", "..w..", "..s..", "..s..", "..S..", "..S.."], P2ART2PAL);
+  P2A.herbseed = p2Pix([".KK.", "KbBK", ".KK."], P2ART2PAL);
+  P2A.odent = p2Pix([".dddd.", "dDDDDd", ".dddd."], P2ART2PAL);
+  P2A.ohole = p2Pix([".DDDDDD.", "DbbbbbbD", "DbbbbbbD", ".LLLLLL."], P2ART2PAL);
   var P2_TITLE = { weed: "Unkraut jäten", dig: "Loch buddeln", sow: "Samen einpflanzen", cover: "Zuschütten", tamp: "Festklopfen", water: "Gießen", furrow: "Rille ziehen", sprinkle: "Samen streuen", rake: "Zudecken", stake: "Stützstab", blow: "Pusteblume pusten", press: "Andrücken", seedling: "Einsetzen", straw: "Stroh unterlegen", mound: "Hügel häufeln", seeds3: "Kerne stecken", trellis: "Rankgitter", tie: "Festbinden", scatter: "Samen verteilen", spray: "Einsprühen", potfill: "Topf füllen", potseed: "Samen hinein", dome: "Haube drüber", peat: "Moorerde", prune: "Zurückschneiden", stones: "Steine sammeln", loosen: "Erde lockern", snail: "Schnecke umsetzen", sweep: "Laub wegwischen", aphids: "Blattläuse wegwischen", yellow: "Gelbe Blätter", web: "Spinnennetz", ladybug: "Marienkäfer", compost: "Kompost", poke: "Löcher stechen", setonion: "Zwiebeln stecken" };
   var _p2_plantGame = plantGame;
   plantGame = async function (i, c, where) {
@@ -17701,7 +17730,7 @@ window.__EXTRAS = true;
           if (k === "peat") G.notes.push("Saure Moorerde für die Heidelbeere");
           if (k === "stones") G.notes.push("Alle Steine aufgesammelt");
           if (k === "loosen") G.notes.push("Die Erde ist schön locker");
-          if (k === "snail") G.notes.push("Die Schnecke wohnt jetzt im Gras");
+          if (k === "snail") G.notes.push("Die Schnecke knabbert jetzt am Salatblatt");
           if (k === "sweep") G.notes.push("Das Laub ist vom Beet");
           if (k === "yellow") G.notes.push(G.greenTap ? "Gelbe Blätter ab, ein grünes fast mit" : "Alle gelben Blätter abgezupft");
           if (k === "web") G.notes.push("Spinnennetz weg, die Spinne ist umgezogen");
