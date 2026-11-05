@@ -16803,7 +16803,6 @@ window.__EXTRAS = true;
     var cut = null;
     DW_RACK.forEach(function (r, i) {
       var it = S.rack[i], hl = S.drag && !it && S.step === "put" && r.t === dwRack(S.cur ? S.cur.k : "");
-      if (hl) { c.globalAlpha = .3 + .2 * Math.sin(t / 200); mR(c, r.x - 1, r.y - 1, r.w + 2, r.h + 2, "#fff4b0"); c.globalAlpha = 1; }
       if (r.t === "fork") cut = r;
       if (!it) return; var wob = S.wob && S.wob.i === i ? Math.round(Math.sin(S.wob.t * 30) * S.wob.t * 4) : 0, n = { cup: "cup_r", mug: "mug_r", glass: "glass_r", pot: "pot_r", pan: "pan_r" }[it] || dwClean(it), sp = DWSPR[n], w = sp.r[0].length, h = sp.r.length;
       if (r.t === "plate") dwSpr(c, n, r.x + 3.5 - w / 2 + wob, 86 - h);
@@ -16834,15 +16833,12 @@ window.__EXTRAS = true;
     // washing-up liquid: a round green bottle with a label, light on the left
     var sq = S.step === "soap", bz = S.squirt > .6 ? 1 : 0;
     dwSpr(c, "bottle", 30, 24 + bz);   /* it stands at the back of the counter, a little above the stack */
-    if (sq && !S.squirt) dwArrow(c, 36, 20, t, "d");
     // the board with the dirty pieces, a little stack seen from above-front
     mR(c, 2, 88, 36, 6, "#3a2414"); mR(c, 3, 89, 34, 3, "#c8945a"); mR(c, 3, 89, 34, 1, "#e0b07a"); mR(c, 3, 92, 34, 1, "#8a5a32");
-    var sy = 92, topY = 92; S.stack.forEach(function (k, i) { var d = DWSPR[k], w = d.r[0].length, h = d.r.length; dwSpr(c, k, 20 - w / 2 + (i % 2 ? 1 : 0), sy - h + 2); topY = sy - h + 2; sy -= DWLIFT[k] || 3; });
-    sy = topY + 5;
-    if (S.step === "take" && S.stack.length && !S.drag) dwArrow(c, 20, sy - 5, t, "d");
+    var sy = 92, held = S.step === "take" && S.drag ? S.stack.length - 1 : -1; S.stack.forEach(function (k, i) { if (i === held) return; var d = DWSPR[k], w = d.r[0].length, h = d.r.length; dwSpr(c, k, 20 - w / 2 + (i % 2 ? 1 : 0), sy - h + 2); sy -= DWLIFT[k] || 3; });
+    S.heldK = held >= 0 ? S.stack[held] : null;
     // the tap behind the sink: a round base, an arched spout over the middle, a red lever that tips while water runs
     dwWindow(c); dwTap(c, S, t);
-    if (S.step === "rinse" && !S.rinse) dwArrow(c, 128, 26, t, "d");
     // the drying rack on the right, wire and wood, seen from above-front
     dwRackDraw(c, S, t);
     // the piece in the sink, big, in a round of soapy water
@@ -16867,13 +16863,13 @@ window.__EXTRAS = true;
         if (it.k === "cup" && sh === 3 && Math.hypot(dx, dy) > 15 && Math.hypot(dx, dy) < 16.5) col = "#e8650c";
         if (it.k === "pot" && sh === 2 && Math.abs(Math.hypot(dx, dy) - 19) < 1) col = "#6fae5a";
         var dv = it.dirt[y2 * N + x2];
-        if (dv > 0) { var kd = it.kind[y2 * N + x2]; col = kd === 1 ? ((x2 + y2) % 2 ? "#c8945a" : "#a87448") : kd === 2 ? (dv > .5 ? "#fff8f0" : "#f4e8dc") : kd === 3 ? ((x2 * 3 + y2) % 4 ? "#f0d870" : "#fff0a0") : kd === 4 ? (dv > 1.1 ? "#5a3418" : "#8a5a32") : kd === 6 ? ((x2 + y2) % 3 ? "#c8283a" : "#e84a5a") : kd === 7 ? ((x2 * 3 + y2) % 4 ? "#f0a030" : "#f8c060") : kd === 8 ? ((x2 * 5 + y2 * 3) % 7 === 0 ? "#e8b84a" : "#f8f0dc") : (dv > 1.2 ? "#3a2010" : "#6a4020");
+        if (dv > 0 && !(dv < .4 && (x2 + y2) % 2) && !(dv < .2 && (x2 * 3 + y2) % 4)) { var kd = it.kind[y2 * N + x2];   /* dirt thins out (dithered) as it is scrubbed */ col = kd === 1 ? ((x2 + y2) % 2 ? "#c8945a" : "#a87448") : kd === 2 ? (dv > .5 ? "#fff8f0" : "#f4e8dc") : kd === 3 ? ((x2 * 3 + y2) % 4 ? "#f0d870" : "#fff0a0") : kd === 4 ? (dv > 1.1 ? "#5a3418" : "#8a5a32") : kd === 6 ? ((x2 + y2) % 3 ? "#c8283a" : "#e84a5a") : kd === 7 ? ((x2 * 3 + y2) % 4 ? "#f0a030" : "#f8c060") : kd === 8 ? ((x2 * 5 + y2 * 3) % 7 === 0 ? "#e8b84a" : "#f8f0dc") : (dv > 1.2 ? "#3a2010" : "#6a4020");
           if (kd === 2 && (x2 + y2) % 5 === 0) col = "#e8c0c8"; }
         mR(c, DW.cx + dx, DW.cy + dy, 1, 1, col);
       }
       it.foam.forEach(function (f) { mR(c, f[0] - 1, f[1], 3, 1, "#ffffff"); mR(c, f[0], f[1] - 1, 1, 3, "#ffffff"); mR(c, f[0], f[1], 1, 1, "#d8eef8"); });
       if (S.step === "scrub") {                                         // sponge or bottle brush under the finger; before the first rub it shows the motion
-        var first = !S.rubbed, p = S.rub || (first ? [DW.cx + Math.sin(t / 220) * 10, DW.cy + Math.cos(t / 330) * 5] : null);
+        var p = S.rub;   /* the tool only while the finger is on it */
         if (p) { c.globalAlpha = S.rub ? 1 : .8;
           if (it.tool === "sponge") dwSpr(c, "t_sponge", p[0] - 10, p[1] - 7); else dwSpr(c, "t_brush", p[0] - 7, p[1] - 26);
           c.globalAlpha = 1; }
@@ -16894,8 +16890,7 @@ window.__EXTRAS = true;
           dwStep("dry"); } }
       if (S.step === "dry") {
         (S.drops || []).forEach(function (d) { var x = DW.cx + d.x, y = DW.cy + d.y; mR(c, x - 1, y - 2, 3, 5, "#3a5a78"); mR(c, x, y - 3, 1, 1, "#3a5a78"); mR(c, x, y - 1, 1, 3, "#a8d8f0"); mR(c, x, y - 1, 1, 1, "#ffffff"); });
-        var tp = S.towel || [DW.cx + Math.sin(t / 260) * 14, DW.cy + 18 + Math.cos(t / 330) * 3];
-        c.globalAlpha = S.towel ? 1 : .85; dwSpr(c, "t_towel", tp[0] - 18, tp[1] - 12); c.globalAlpha = 1;   /* a big striped terry towel */
+        if (S.towel) dwSpr(c, "t_towel", S.towel[0] - 18, S.towel[1] - 12);   /* a big striped terry towel, under the finger */
       }
     }
     // the clean piece in the hand on its way to the rack
@@ -16904,8 +16899,8 @@ window.__EXTRAS = true;
       if (S.back > 0) { S.back = Math.max(0, S.back - .05); hp = [S.bx + (DW.cx - S.bx) * (1 - S.back), S.by + (DW.cy - 4 - S.by) * (1 - S.back)]; }
       var rk = dwRack(it.k);
       var cs = DWSPR[dwClean(it.k)]; dwSpr(c, dwClean(it.k), hp[0] - cs.r[0].length / 2, hp[1] - cs.r.length / 2);
-      if (!S.drag && !S.back) { var ph = (t / 600) % 1; if (ph < .5) { mR(c, hp[0] + 8, hp[1] - 10, 1, 3, "#ffffff"); mR(c, hp[0] + 7, hp[1] - 9, 3, 1, "#ffffff"); } dwArrow(c, 132, 66, t, "r"); }
     }
+    if (S.heldK && S.drag) { var hd = DWSPR[S.heldK]; dwSpr(c, S.heldK, S.drag[0] - hd.r[0].length / 2, S.drag[1] - hd.r.length / 2); }   /* the piece under the finger */
     S.fx = S.fx.filter(function (f) { f.life -= .016; f.x += f.vx * .016; f.y += f.vy * .016; f.vy += 30 * .016; c.globalAlpha = Math.min(1, f.life * 2); mR(c, f.x, f.y, f.b ? 2 : 1, f.b ? 2 : 1, f.c); c.globalAlpha = 1; return f.life > 0; });
     // the rubber duck bobbing in the suds, soap bubbles drifting up, foam rising while you splash
     if (it && (S.step === "splash" || S.step === "scrub" || S.step === "soap") && S.duck) { var dk = S.duck; dk.a += .01; dk.x = DW.cx + Math.cos(dk.a) * 26; dk.y = DW.cy + Math.sin(dk.a) * 26; var sq = dk.sq > 0 ? 1 : 0; if (dk.sq > 0) dk.sq -= .04;
@@ -16940,7 +16935,7 @@ window.__EXTRAS = true;
     if (!dwS) return; var S = dwS, p = mPt(dwV, e);
     if (S.rub || S.drag || S.splashing) S.paw = p;
     if (S.drag) {
-      if (S.step === "put" && S.cur && !S.cur.slipped) { S.dragD += Math.hypot(p[0] - S.drag[0], p[1] - S.drag[1]); if (S.dragD > 22) {        // soapy: it shoots out of the paws once
+      if (false && S.step === "put" && S.cur && !S.cur.slipped) { S.dragD += Math.hypot(p[0] - S.drag[0], p[1] - S.drag[1]); if (S.dragD > 22) {        // soapy: it shoots out of the paws once
         S.cur.slipped = true; S.drag = null; S.paw = null; var a = Math.random() * Math.PI * 2; S.slipPos = [Math.max(60, Math.min(118, p[0] + Math.cos(a) * 22)), Math.max(40, Math.min(90, p[1] + Math.sin(a) * 16))];
         beep([[700, .04], [400, .06], [900, .05]]); mBan(dwV, "Hupps, rutschig!"); S.face = "oops"; S.faceT = performance.now() + 900; for (var q = 0; q < 8; q++) S.fx.push({ x: p[0], y: p[1], vx: (Math.random() - .5) * 50, vy: -20 - Math.random() * 20, life: .6, c: "#ffffff" }); return; } }
       S.drag = p; return; }
@@ -16977,7 +16972,7 @@ window.__EXTRAS = true;
   function dwRub(a, b) {
     var S = dwS, it = S.cur, N = DW.R * 2, n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))), rr = it.tool === "brush" ? 4 : 5, hit = false;
     for (var s = 0; s <= n; s++) { var x = a[0] + (b[0] - a[0]) * s / n - DW.cx + DW.R, y = a[1] + (b[1] - a[1]) * s / n - DW.cy + DW.R;
-      for (var yy = -rr; yy <= rr; yy++) for (var xx = -rr; xx <= rr; xx++) { if (xx * xx + yy * yy > rr * rr) continue; var ix = Math.round(x + xx), iy = Math.round(y + yy); if (ix < 0 || iy < 0 || ix >= N || iy >= N) continue; var j = iy * N + ix; if (it.dirt[j] > 0) { it.dirt[j] = Math.max(0, it.dirt[j] - .12); hit = true; } } }
+      for (var yy = -rr; yy <= rr; yy++) for (var xx = -rr; xx <= rr; xx++) { if (xx * xx + yy * yy > rr * rr) continue; var ix = Math.round(x + xx), iy = Math.round(y + yy); if (ix < 0 || iy < 0 || ix >= N || iy >= N) continue; var j = iy * N + ix; if (it.dirt[j] > 0) { it.dirt[j] = Math.max(0, it.dirt[j] - .03); hit = true; } } }
     if (hit && Math.random() < .3) { it.foam.push([b[0] + Math.random() * 8 - 4, b[1] + Math.random() * 8 - 4]); if (it.foam.length > 40) it.foam.shift(); S.fx.push({ x: b[0], y: b[1], vx: (Math.random() - .5) * 10, vy: -16, life: .9, c: "#ffffff" }); }
     if (hit && Math.random() < .25) beep([[1400 + Math.random() * 400, .02]]);
     if (dwLeft(it) <= it.tot * .05) { for (var j2 = 0; j2 < it.dirt.length; j2++) it.dirt[j2] = 0; S.rub = null; beep([[660, .05], [880, .08]]); dwStep("rinse"); }
