@@ -1379,7 +1379,7 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .pz-tool { pointer-events: none; transform-origin: 30% 80%; transition: transform .2s steps(3); }
 .pz-tool.can.tilt { transform: rotate(-28deg) translate(-10%, 10%); }
 .pz-tool.spray.puff { animation: pz-puff .2s steps(2); } @keyframes pz-puff { 50% { transform: translateY(6%) scaleY(.94); } }
-.pz-drop { background: #8ac8e8; animation: pz-fall .5s linear forwards; } @keyframes pz-fall { to { transform: translateY(1700%); opacity: .6; } }
+.pz-drop { background: #8ac8e8; animation: pz-fall .5s linear forwards; } @keyframes pz-fall { to { transform: translateY(2400%); opacity: .6; } }
 .pz-mist { background: #e8f4fc; animation: pz-mist .6s steps(6) forwards; } @keyframes pz-mist { to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
 .pz-act { position: absolute; left: 4% !important; bottom: 5% !important; width: auto !important; padding: 8px 16px !important; touch-action: none; user-select: none; -webkit-user-select: none; }
 .pz-act[hidden], .pz-done[hidden] { display: none !important; }
@@ -1537,6 +1537,8 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 @keyframes p2ar { 50% { transform: translateX(12%); } }
 .p2-arrow.p2-arrd { animation-name: p2ard; } @keyframes p2ard { 50% { transform: translateY(18%); } }
 .p2-arrow.p2-arrl { animation-name: p2arl; } @keyframes p2arl { 50% { transform: translateX(-12%); } }
+
+.pz-pile { display: none !important; }   /* no little heap of pulled weeds left at the side */
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -8712,7 +8714,7 @@ window.__EXTRAS = true;
     var gauge = pzUi.querySelector(".pz-gauge"), segs = "";
     G.gz = { a: 8, b: 10, c: "#5aa0c8", off: "#dbe8f0" }; pzGauge(G, 0); gauge.hidden = false;
     var gh = G.where === "gh", tool = lEl("div", "pz-tool " + (gh ? "spray" : "can"), pzLay, pzSvg(gh ? "spray" : "can"));
-    if (gh) pzPos(tool, 80, 66, 12, 20); else if (typeof P2A === "object" && P2A.can2) { tool.innerHTML = P2A.can2; pzPos(tool, 74, 48, 40, 26);   /* above and right of the plant, the rose over it */ } else pzPos(tool, 76, 64, 26, 16);
+    if (gh) pzPos(tool, 80, 66, 12, 20); else if (typeof P2A === "object" && P2A.can2) { tool.innerHTML = P2A.can2; pzPos(tool, 74, 34, 40, 26);   /* above and right of the plant, the rose over it */ } else pzPos(tool, 76, 64, 26, 16);
     tool.style.zIndex = 400; G.toolEl = tool;   /* always in front: nothing ever covers the can */
     pzUi.querySelector(".pz-act").hidden = true; tool.classList.add("pz-hint");
     pzUi.querySelector(".pz-done").hidden = false; pzUi.querySelector(".pz-done").disabled = true; pzUi.querySelector(".pz-done").textContent = "Fertig";
@@ -8723,7 +8725,7 @@ window.__EXTRAS = true;
         var now = performance.now(), dt = lastT ? (now - lastT) / 1000 : 0; lastT = now;
         if (!G.pouring || G.watered) { tool.classList.remove("tilt"); return; }
         tool.classList.add("tilt"); G.wet = Math.min(130, G.wet + dt * 26);
-        for (var k = 0; k < 2; k++) { var d = lEl("i", "pz-drop", pzLay); pzPos(d, 72 + rnd(-4, 3), 62, PZCAM ? .5 : 1, PZCAM ? 1.5 : 2); d.style.zIndex = 125; setTimeout(function (el) { el.remove(); }.bind(null, d), 520); }
+        for (var k = 0; k < 2; k++) { var d = lEl("i", "pz-drop", pzLay); pzPos(d, 72 + rnd(-4, 3), 47, PZCAM ? .5 : 1, PZCAM ? 1.5 : 2); d.style.zIndex = 125; setTimeout(function (el) { el.remove(); }.bind(null, d), 520); }
         pzWetDraw(G);
       }, 90);
     }
@@ -17289,17 +17291,19 @@ window.__EXTRAS = true;
   P2A.arrL = p2Pix(["....K", "..KYK", ".KYYK", "KYYYK", ".KYYK", "..KYK", "....K"], { K: "#3a2414", Y: "#ffe27a" });
   P2A.arrD = p2Pix(["KKKKKKK", "KYYYYYK", ".KYYYK.", "..KYK..", "...K..."], { K: "#3a2414", Y: "#ffe27a" });
   var P2MOUND = {};
-  function p2MoundArt(w, h) {                                         // a hill of fresh, loose soil at its real size: round top, lit from the upper left, crumbs, a dark rim
+  function p2MoundArt(w, h) {                                         // a hill of loose soil at its real size: the round surface lit from the upper left, soft steps with a little dither, crumbs, a dark rim
     w = Math.max(6, Math.round(w)); h = Math.max(3, Math.round(h)); var key = w + "x" + h; if (P2MOUND[key]) return P2MOUND[key];
-    var g = [], x, y; for (y = 0; y < h; y++) { g.push([]); for (x = 0; x < w; x++) { var u = (x + .5 - w / 2) / (w / 2), v = (h - y - .5) / h; g[y].push(v <= Math.sqrt(Math.max(0, 1 - u * u)) ? 1 : 0); } }
-    var rows = [];
-    for (y = 0; y < h; y++) { var r = ""; for (x = 0; x < w; x++) { if (!g[y][x]) { r += "."; continue; }
-        var edge = y === 0 || !g[y - 1][x] || x === 0 || x === w - 1 || !g[y][x - 1] || !g[y][x + 1];
-        var u = (x + .5 - w / 2) / (w / 2), ny = (y + .5) / h, lit = -u * .55 - (1 - ny) * .9 + .45;
-        var c = edge ? "K" : lit > .35 ? "L" : lit > .05 ? "l" : lit > -.3 ? "m" : "d";
-        var hh = ((x * 374761393 + y * 668265263) >>> 0) % 97; if (!edge && hh < 9) c = c === "L" ? "l" : c === "d" ? "c" : "d";   /* scattered crumbs, no stripes */
+    var inside = function (x, y) { if (x < 0 || y < 0 || x >= w || y >= h) return false; var u = (x + .5 - w / 2) / (w / 2), v = (h - y - .5) / h; return v <= Math.sqrt(Math.max(0, 1 - u * u)); };
+    var rows = [], LX = -.55, LY = .83;
+    for (var y = 0; y < h; y++) { var r = ""; for (var x = 0; x < w; x++) { if (!inside(x, y)) { r += "."; continue; }
+        if (!inside(x, y - 1) || !inside(x - 1, y) || !inside(x + 1, y)) { r += "K"; continue; }
+        var u = (x + .5 - w / 2) / (w / 2), v = (h - y - .5) / h, top = Math.sqrt(Math.max(.0001, 1 - u * u)), t = Math.min(1, v / top);
+        var nx = u * t, ny = Math.sqrt(Math.max(0, 1 - nx * nx)) * t + (1 - t) * .2, b = nx * LX + ny * LY + (((x + y) & 1) ? .04 : -.04);
+        var c = b > .62 ? "L" : b > .4 ? "l" : b > .16 ? "m" : "d";
+        if (y >= h - 2) c = c === "L" ? "l" : c === "l" ? "m" : "d";                         // a little shade where the hill meets the bed
+        var hh = ((x * 374761393 + y * 668265263) >>> 0) % 97; if (hh < 7) c = c === "L" ? "l" : c === "d" ? "c" : "d";
         r += c; } rows.push(r); }
-    return (P2MOUND[key] = p2Pix(rows, { K: "#3a2214", L: "#c89a68", l: "#a8784a", m: "#8a5e3a", d: "#6a4428", c: "#5a3820" }));
+    return (P2MOUND[key] = p2Pix(rows, { K: "#3a2214", L: "#c08e5c", l: "#a8784a", m: "#8a5e3a", d: "#6e4628", c: "#5a3820" }));
   }
   function p2Mound(G) {                                               // push soil together into a hill for the pumpkin
     G.mh = 0; var m = lEl("div", "p2-mound", pzLay); m.style.zIndex = 101; G.moundEl = m;
