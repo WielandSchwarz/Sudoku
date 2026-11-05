@@ -1779,6 +1779,14 @@ body.dz-on .dz-panel { display: block; }
 .fest.wreath-lie .wr-flame { animation: wrfl 1.6s steps(1) infinite; }
 @keyframes wrfl { 0%, 55% { opacity: 1; } 56%, 100% { opacity: .7; } }
 
+.win-garden { position: absolute; aspect-ratio: auto; overflow: visible; pointer-events: none; }
+.win-garden img { max-width: none !important; max-height: none !important; }
+.win-garden .map-sky, .win-garden .map-tint, .win-garden .map-flash { left: -16.667%; right: -16.667%; }
+.win-garden svg.map-l { overflow: visible; }
+.sky.has-garden { overflow: hidden; filter: none !important; }
+.sky.has-garden > .win-view { display: none; }
+.sky.has-garden::after, .sky.has-garden > .sky-storm, .sky.has-garden > i, .sky.has-garden > .sun { display: none !important; }
+
 /* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
 #scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
 #scene .gpop, #scene .l-pop, #scene .f-card, #scene .say-box, .pz-ui, .l-recipes { font-family: system-ui, sans-serif !important; letter-spacing: 0; }
@@ -3039,14 +3047,13 @@ window.__EXTRAS = true;
       front({ eyes: "look_l" }); await wait(500);
     }
   }
-  async function startle() {
-    front({ eyes: "wide", ears: "up", mouth: "open", paws: "up", blush: false }); pulse("bighop", 620);
-    fx("bang", H.x + 15, headY() - 4, "pop", 1.4);
-    say("Huch! " + N() + " hat sich erschreckt.");
+  var HOP_SAY = ["Huhu!", "Knusper, knusper!", "Hihi!", "Hallo du!", "Da bin ich!", "Juhu!", "Pieps!", "Schön, dass du da bist!", "Hast du ein Leckerli?", "Hopsa!", "Na, was machen wir heute?", "Ich hab dich lieb!"], hopLast = -1;
+  async function startle() {                                          // tapped: a happy little jump and a word or two, no fright
+    var i; do { i = Math.floor(Math.random() * HOP_SAY.length); } while (i === hopLast && HOP_SAY.length > 1); hopLast = i;
+    front({ eyes: "happy", ears: "up", mouth: "grin", paws: "up", blush: true }); pulse("bighop", 620);
+    say(HOP_SAY[i]); beep([[784, .04], [988, .05], [1175, .06]]);
     s.love = clamp(s.love + 2);
-    await wait(650); front({ paws: "down" }); await wait(300);
-    front({ eyes: "look_l" }); await wait(450); front({ eyes: "look_r" }); await wait(450);
-    front({ eyes: "happy", mouth: "grin" }); await wait(600);
+    await wait(650); front({ eyes: "happy", mouth: "smile", paws: "down", blush: true }); await wait(700);
   }
   function poke() {
     if (s.asleep) { if (!busy) act("wake", function () { return wakeSeq(true); }); return; }
@@ -15968,6 +15975,7 @@ window.__EXTRAS = true;
     if (wt === "storm" && !bliz) o += '<div class="map-flash"></div>';
     wbSky.className = "wb-garden map-scene" + (wt === "storm" ? " stormy" : "");
     wbSky.innerHTML = o;
+    wbHtml = o; wbStormy = wt === "storm";
     // the door window looks onto the same garden: same pixel size, same horizon, and the panorama repeats every 120 room px
     var dsk = document.getElementById("sky");
     if (dsk) { var dg = dsk.querySelector(".door-garden"); if (!dg) { dg = document.createElement("div"); dsk.appendChild(dg); } dg.className = "wb-garden door-garden map-scene" + (wt === "storm" ? " stormy" : ""); dg.innerHTML = o; dsk.classList.add("has-garden"); }
@@ -15979,7 +15987,20 @@ window.__EXTRAS = true;
     if (sx + 34 > base + 120) base += 120 - (sx + 34 - base);   // never across the seam of the picture
     dg.style.left = ((base + 15 - sx) / 34 * 100).toFixed(3) + "%";
   }
-  function wViewSync() { try { wBayScene(); wDoorPos(); } catch (e) {} }
+  // the kitchen and bedroom windows look onto the same real garden, at the same pixel size
+  var wbHtml = "", wbStormy = false, WINSZ = { "k-sky": [36, 36], "b-sky": [36, 36], "bt-sky": [28, 36] };
+  function wWinScenes() {
+    if (!wbHtml) return;
+    Object.keys(WINSZ).forEach(function (id) {
+      var h = document.getElementById(id); if (!h) return; var w = WINSZ[id][0], hh = WINSZ[id][1];
+      var g = h.querySelector(".win-garden"); if (!g) { g = document.createElement("div"); h.appendChild(g); }
+      if (g.dataset.k === wbKey) return; g.dataset.k = wbKey;
+      g.className = "wb-garden win-garden map-scene" + (wbStormy ? " stormy" : "");
+      g.style.cssText = "width:" + (90 / w * 100).toFixed(3) + "%;height:" + (67.5 / hh * 100).toFixed(3) + "%;left:" + (-(90 - w) / 2 / w * 100).toFixed(3) + "%;top:" + (-16 / hh * 100).toFixed(3) + "%";   /* the tree tops, hedge and a strip of meadow */
+      g.innerHTML = wbHtml; h.classList.add("has-garden");
+    });
+  }
+  function wViewSync() { try { wBayScene(); wDoorPos(); wWinScenes(); } catch (e) {} }
   setInterval(wViewSync, 2000); setTimeout(wViewSync, 300);
   // wallpaper and floor are twice as wide now: their tiles are sized in % of the element, so halve the % to keep the pixel size
   function wTiles() {
