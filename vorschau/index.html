@@ -1544,8 +1544,6 @@ button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .p2-say { background: #fffbe8; border: 2px solid #3a2414; border-radius: 7px; color: #3a2414; font-weight: 700; font-size: clamp(10px, 2.6vw, 14px); text-align: center; white-space: nowrap; padding: 2px 6px; box-sizing: border-box; animation: p2-say-in .25s ease-out; }
 .p2-say::after { content: ""; position: absolute; right: 16%; bottom: -7px; border: 5px solid transparent; border-top-color: #3a2414; border-bottom: 0; }
 @keyframes p2-say-in { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
-.p2-nibble { animation: p2-nib .5s steps(2) infinite; }
-@keyframes p2-nib { 50% { transform: translateX(-4.545%); } }
 /* animals outside: the frame loop does the stepping, so no bouncing on top of it */
 .va svg { overflow: visible; }
 .visitor-g.va.moving .vb, .l-visitor.va.moving svg, .bs-guest.va.walking { animation: none !important; }
@@ -17508,6 +17506,8 @@ window.__EXTRAS = true;
   P2A.snail = p2Pix(["..K...K...............", ".KBK.KBK...KKKK.......", ".KeK.KeK.KKHHSSKK.....", ".KBK.KBKKHHHSSSSmK....", ".KBBKBBKKHHSssssSmK...", ".KBBBBBKHHSsSSSSsSmK..", ".KLBBBBKHSsSHHSSsSmK..", ".KLBBBBKHSsSHssSsSmK..", "KLLBBBbKSSsSSSsSsmmK..", "KBbBBBbKSSSsssSSmmmK..", "KBBBBBbKKmSSSSSmmmKK..", "KBBLLLLLLBmmmmmmmBBBK.", "KbbbbbbbbbbbbbbbbbbbbK", ".KKbbbbbbbbbbbbbbbbKK.", "...KKKKKKKKKKKKKKKK..."], {"K": "#3a2414", "B": "#e2cf96", "b": "#b49a5e", "L": "#f6ebc4", "S": "#c8803e", "s": "#7e4620", "H": "#eeb878", "m": "#a4642e", "e": "#1e120a"});
   P2A.shell = p2Pix(["....KKKK.....", "..KKHHSSKK...", ".KHHHSSSSmK..", ".KHHSssssSmK.", "KHHSsSSSSsSmK", "KHSsSHHSSsSmK", "KHSsSHssSsSmK", "KSSsSSSsSsmmK", "KSSSsssSSmmmK", ".KmSSSSSmmmK.", "..KmmmmmmmK..", "...KKKKKKK..."], {"K": "#3a2414", "B": "#e2cf96", "b": "#b49a5e", "L": "#f6ebc4", "S": "#c8803e", "s": "#7e4620", "H": "#eeb878", "m": "#a4642e", "e": "#1e120a"});
   P2A.leaf = p2Pix([".......KKK..KKKK........", "....KKKGGGKKGGGGKKK.....", "...KGGGgggGGggggGGGK....", "..KGgggggggggggGGGGGK...", ".KGgggggggggwgGGGwGGGK..", "KGGggggwgggwgGGGwGGGGGK.", "KGgggggwggwgGGGwGGGGGGGK", "KvvvvvvvvvvvvvvvvvvvGGGK", "KGGGGGGwGGGwGGGGwGGGGddK", "KdGGGGGGwGGGwGGGGwGGddK.", ".KdGGGGGGwGGGwGGGGwddK..", "..KddGGGGGGGGGGGGdddK...", "...KKdddGGdddGGdddKK....", ".....KKKKKKKKKKKKK......"], {"K": "#2c4418", "G": "#7cc04a", "g": "#a6dc6c", "d": "#58963a", "v": "#d6f0a0", "w": "#bfe68a"});   /* snail 22x15, carried shell 13x12, lettuce leaf 24x14 */
+  P2A.leafF = [[".......KKK..KKKK........", "....KKKGGGKKGGGGK.......", "...KGGGgggGGggggdK......", "..KGgggggggggggGdK......", ".KGgggggggggwgGGGdK.....", "KGGggggwgggwgGGGwGdK....", "KGgggggwggwgGGGwGdK.....", "KvvvvvvvvvvvvvvvdK......", "KGGGGGGwGGGwGGGGdK......", "KdGGGGGGwGGGwGGGGdK.....", ".KdGGGGGGwGGGwGGGGdK....", "..KddGGGGGGGGGGGGdK.....", "...KKdddGGdddGGddK......", ".....KKKKKKKKKKKK......."], [".......KKK..KKK.........", "....KKKGGGKKGGdK........", "...KGGGgggGGgdK.........", "..KGgggggggggdK.........", ".KGgggggggggwgdK........", "KGGggggwgggwgGGdK.......", "KGgggggwggwgGGdK........", "KvvvvvvvvvvvvdK.........", "KGGGGGGwGGGwGdK.........", "KdGGGGGGwGGGwGdK........", ".KdGGGGGGwGGGwGdK.......", "..KddGGGGGGGGGdK........", "...KKdddGGddddK.........", ".....KKKKKKKKK.........."], [".......KKK..............", "....KKKGGdK.............", "...KGGGggdK.............", "..KGgggggdK.............", ".KGgggggggdK............", "KGGggggwgggdK...........", "KGgggggwggdK............", "KvvvvvvvvdK.............", "KGGGGGGwGdK.............", "KdGGGGGGwGdK............", ".KdGGGGGGwGdK...........", "..KddGGGGGdK............", "...KKdddGdK.............", ".....KKKKK.............."], ["........................", "....KK..................", "...KGdK.................", "..KGgdK.................", ".KGgggdK................", "KGGggggdK...............", "KGggggdK................", "KvvvvdK.................", "KGGGGdK.................", "KdGGGGdK................", ".KdGGGGdK...............", "..KddGdK................", "...KKdK.................", ".....K.................."], ["........................", "........................", "........................", "..KK....................", ".KGdK...................", "KGGgdK..................", "KGgdK...................", "KvdK....................", "KGdK....................", "KdGdK...................", ".KdGdK..................", "..KdK...................", "...K....................", "........................"]].map(function (r) { return p2Pix(r, {"K": "#2c4418", "G": "#7cc04a", "g": "#a6dc6c", "d": "#58963a", "v": "#d6f0a0", "w": "#bfe68a"}); }); var P2LEAFCUT = [19, 16, 12, 8, 5];   /* the leaf, bitten away from the right in five stages */
+  P2A.snailR = P2A.snail.replace('<svg ', '<svg style="transform:scaleX(-1)" ');
   // an autumn maple leaf with an outline, light on the upper left, veins and a stalk
   P2A.aleaf = p2Pix([".....K.....", "..K.KoK.K..", "..KKooOKK..", "KK.KoOOK.KK", "KoKooVOOKOK", ".KooOVOOOK.", "..KoOVOOK..", ".KOOOVOOrK.", "..KKKVKKK..", ".....V....."], { K: "#5a2a10", O: "#e8862a", o: "#f6b44a", r: "#c8541c", V: "#9a4a1a" });
   P2A.yleaf = p2Pix(["..YY..", ".YyYY.", "YyYYyY", ".YYyY.", "..Yb.."], { Y: "#e8d860", y: "#c8b040", b: "#8a7a3a" });
@@ -17547,18 +17547,25 @@ window.__EXTRAS = true;
       if (Math.hypot(a[0] + sx * u - o.x, a[1] + sy * u - o.y) < 6 && Math.hypot(sx, sy) > 1) { o.hp--; pzCrumbs(o.x, o.y, 4); beep([[220 + o.hp * 40, .03]]); o.el.style.transform = "scale(" + (0.45 + o.hp * .09) + ")"; if (o.hp <= 0) { o.el.remove(); } } }); } });
     return function () { return G.items.every(function (o) { return o.hp <= 0; }); };
   }
-  function p2Snail(G) {                                                 /* carry the snail to a lettuce leaf top right; it says thanks */
-    var LX = 110, LY = 66, x = rnd(44, 74), y = rnd(94, 102);
-    var leaf = lEl("div", "p2-leafy2", pzLay, P2A.leaf); pzPos(leaf, LX - 12, LY - 7, 24, 14); leaf.style.zIndex = 101;
-    var gh = lEl("div", "p2-ghost", pzLay, P2A.snail); pzPos(gh, LX - 13, LY - 12, 22, 15); gh.style.zIndex = 102;
+  function p2Snail(G) {                                                 /* carry the snail to a lettuce leaf top right; it eats it bit by bit on its own and then crawls off to the right */
+    var LX = 128, LY = 64, L0 = LX - 12, x = rnd(40, 70), y = rnd(94, 102), SX = function (cut) { return L0 + cut - 4; };
+    var leaf = lEl("div", "p2-leafy2", pzLay, P2A.leaf); pzPos(leaf, L0, LY - 7, 24, 14); leaf.style.zIndex = 101;
+    var gh = lEl("div", "p2-ghost", pzLay, P2A.snail); pzPos(gh, SX(22), LY - 9, 22, 15); gh.style.zIndex = 102;
     var el = lEl("div", "p2-snail", pzLay, P2A.snail); pzPos(el, x - 11, y - 8, 22, 15); el.style.zIndex = 103; G.sn = { x: x, y: y, el: el, out: false, on: false };
     var hit = p2Hit(0, 40, 180, 95); G.hitEl = hit; var drag = false; pzTip("Die Schnecke zum Salatblatt tragen.");
+    var say = function (t, x0, ms) { var b = lEl("div", "p2-say", pzLay, t); pzPos(b, x0, LY - 25, 34, 9); b.style.height = "auto"; b.style.width = "auto"; b.style.zIndex = 150; setTimeout(function () { b.remove(); }, ms); };
+    function eat(stage) {                                               /* runs in the background, also while the next steps go on */
+      if (!el.isConnected) return;
+      if (stage < P2A.leafF.length) { leaf.innerHTML = P2A.leafF[stage]; var sx = SX(P2LEAFCUT[stage]); pzPos(el, sx, LY - 9, 22, 15); beep([[300, .03]]); setTimeout(function () { eat(stage + 1); }, 1300); return; }
+      leaf.remove(); el.innerHTML = P2A.snailR; var cx = SX(P2LEAFCUT[P2LEAFCUT.length - 1]); say("Tschüüüß! :)", cx - 6, 1800);
+      var t = setInterval(function () { if (!el.isConnected || cx > 184) { clearInterval(t); el.remove(); return; } cx += 1; pzPos(el, cx, LY - 9, 22, 15); }, 90);
+    }
     p2Drag(hit, { down: function (p) { if (!G.sn.on && Math.hypot(G.sn.x - p[0], G.sn.y - p[1]) < 13) { drag = true; el.innerHTML = P2A.shell; pzPos(el, p[0] - 6.5, p[1] - 6, 13, 12); } },
       move: function (p) { if (drag) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 6.5, p[1] - 6, 13, 12); } },
       up: function (p) { if (!drag) return; drag = false; el.innerHTML = P2A.snail;
-        if (Math.hypot(p[0] - LX, p[1] - LY) > 16) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 11, p[1] - 8, 22, 15); return; }
-        G.sn.on = true; gh.remove(); pzPos(el, LX - 13, LY - 12, 22, 15); el.classList.add("p2-nibble"); beep([[660, .05], [880, .06]]);
-        var say = lEl("div", "p2-say", pzLay, "Mmm, lecker!"); pzPos(say, LX - 34, LY - 26, 34, 9); say.style.height = "auto"; say.style.width = "auto"; say.style.zIndex = 150;
+        if (Math.hypot(p[0] - LX, p[1] - LY) > 18 && Math.hypot(p[0] - SX(22) - 11, p[1] - LY) > 14) { G.sn.x = p[0]; G.sn.y = p[1]; pzPos(el, p[0] - 11, p[1] - 8, 22, 15); return; }
+        G.sn.on = true; gh.remove(); pzPos(el, SX(22), LY - 9, 22, 15); beep([[660, .05], [880, .06]]);
+        say("Mmm, lecker!", LX - 18, 1700); setTimeout(function () { eat(0); }, 1500);
         setTimeout(function () { G.sn.out = true; }, 1400); } });
     return function () { return G.sn.out; };
   }
@@ -17872,7 +17879,7 @@ window.__EXTRAS = true;
   var HV_SEASONPAL = {
     summer: { h: ["#2e5e28", "#3e7a32", "#5e9a42", "#7cb84e", "#a8d468"], z: ["#6a9a7a", "#7fae8a", "#94c09c"], m: ["#4e8a32", "#6aa83e", "#8cc458", "#b4dc78"], f: ["#ffffff", "#ffd34e", "#f4a3b4", "#e8554a", "#8ab4f0"] },
     spring: { h: ["#3a6e2e", "#4e8a3a", "#6aa84a", "#9ad86a", "#c4ec8a"], z: ["#78ad86", "#8cbf96", "#a4d0aa"], m: ["#5a9a3a", "#78b848", "#9ad060", "#c4ec8a"], f: ["#ffffff", "#ffc0d0", "#ffd34e", "#f4a3b4"] },
-    autumn: { h: ["#4e5a26", "#6a7a32", "#8a8a36", "#a89a3a", "#c8b45a"], a: ["#d8862c", "#f0b448", "#a83a28"], z: ["#8e7e56", "#a89a6a", "#c0b284"], m: ["#7a8436", "#9aa64a", "#bcbe62", "#d8c878"], f: ["#ffffff", "#f0b448", "#a83a28", "#d8862c"] },
+    autumn: { h: ["#4e5a26", "#6a7a32", "#8a8a36", "#a89a3a", "#c8b45a"], a: ["#d8862c", "#f0b448", "#a83a28"], z: ["#8e7e56", "#a89a6a", "#c0b284"], m: ["#7a8436", "#9aa64a", "#bcbe62", "#d8c878"], f: [] },
     winter: { h: ["#5e7458", "#6a8064", "#7a9070", "#c4ccd6", "#ffffff"], snow: 1, z: ["#b0bac6", "#c4ccd6", "#d8dee8"], m: ["#c4ccd8", "#dce4ee", "#eef3f8", "#ffffff"], f: [] }
   };
   function hvBg(t, groundY) {
@@ -17890,36 +17897,31 @@ window.__EXTRAS = true;
       if (ph !== "night") [[28, hazeTop * .35], [128, hazeTop * .15]].forEach(function (q) { var cx = q[0], cy = Math.round(q[1]);
         [[0, 2, 10, 3], [3, 0, 6, 2], [6, -1, 4, 1], [-3, 3, 4, 2], [9, 3, 4, 2]].forEach(function (r) { P(cx + r[0], cy + r[1], r[2], r[3], "#ffffff"); }); P(cx - 3, cy + 5, 16, 1, "#e4eef6"); });
       else for (var k0 = 0; k0 < 30; k0++) P(Math.floor(R() * 180), Math.floor(R() * Math.max(8, hedgeTop)), 1, 1, R() < .3 ? "#fff8d0" : "#c8d4f0");
-      // far bushes in haze: soft round tops, speckled in the garden's hill tones
-      for (var x1 = 0; x1 < 180; x1++) { var top1 = Math.round(hazeTop + 4 - Math.abs(Math.sin(x1 / 17)) * 6 - Math.sin(x1 / 7) * 1.5);
-        for (var y1 = top1; y1 < hedgeTop + 8; y1++) { var r1 = R(); P(x1, y1, 1, 1, y1 === top1 ? Z[2] : r1 < .25 ? Z[2] : r1 < .7 ? Z[1] : Z[0]); } }
-      // the hedge up close: big leaf clumps in rows, each lit from the upper left and speckled like the garden's hedge
-      var tops = []; for (var x2 = 0; x2 < 180; x2++) tops.push(Math.round(hedgeTop + Math.sin(x2 / 11) * 3 + Math.sin(x2 / 4.3) * 1.2));
-      for (var x3 = 0; x3 < 180; x3++) for (var y3 = tops[x3] + 3; y3 < groundY; y3++) P(x3, y3, 1, 1, R() < .5 ? H[0] : H[1]);
-      [0, 1, 2].forEach(function (row) {
-        var n = [9, 8, 7][row];
-        for (var k = 0; k < n + 1; k++) { var cx = Math.round((k - .3 + R() * .6) * 180 / n), y0 = tops[Math.max(0, Math.min(179, cx))];
-          var cy = Math.round(y0 + 6 + row * (groundY - y0) * .28 + R() * 4), rx = 11 + Math.floor(R() * 6), ry = 8 + Math.floor(R() * 4);
-          for (var yy = -ry; yy <= ry; yy++) for (var xx = -rx; xx <= rx; xx++) { var d = xx * xx / (rx * rx) + yy * yy / (ry * ry); if (d > 1 || cy + yy >= groundY) continue;
-            var edge = d + Math.sin(xx * 1.7 + yy * 2.3 + k) * .12; if (edge > .95) continue;      /* ragged leafy outline, no smooth blob */
-            var lit = (-xx * .5 - yy) / (rx + ry) + (R() - .5) * .7 + (row - 1) * .06, i = lit > .42 ? 4 : lit > .16 ? 3 : lit > -.1 ? 2 : lit > -.34 ? 1 : 0;
-            if (pal.snow) { var cap = -ry * .35 + Math.sin(xx * .9 + k) * 1.5; i = yy < cap ? (yy < cap - 2 || R() < .8 ? 4 : 3) : yy < cap + 1 ? 3 : Math.min(i, 2); }
-            if (edge > .8 && yy > 0) i = 0; P(cx + xx, cy + yy, 1, 1, pal.a && i >= 3 && R() < .12 ? pal.a[Math.floor(R() * pal.a.length)] : H[Math.min(4, i)]); }
-          // a few single leaf shapes catching the light on top of the clump
-          for (var lf = 0; lf < (pal.snow ? 0 : 4); lf++) { var lx = cx - Math.round(rx * .6) + Math.floor(R() * rx), ly = cy - Math.round(ry * .7) + Math.floor(R() * ry * .5); if (ly >= groundY) continue;
-            P(lx, ly, 3, 1, H[4]); P(lx + 1, ly - 1, 1, 1, H[4]); P(lx, ly + 1, 3, 1, H[2]); } } });
-      if (pal.f.length) for (var k2 = 0; k2 < 5; k2++) { var fx = 4 + Math.floor(R() * 172), fy = tops[fx] + 6 + Math.floor(R() * Math.max(1, (groundY - tops[fx]) * .6)); if (fy >= groundY - 4) continue; var fc = pal.f[Math.floor(R() * pal.f.length)];
+      // far hills in haze: one flat tone with a lighter rim, a few speckles (calm, like the sowing scenes)
+      for (var x1 = 0; x1 < 180; x1++) { var top1 = Math.round(hazeTop + 4 - Math.abs(Math.sin(x1 / 23)) * 5 - Math.sin(x1 / 9) * 1);
+        P(x1, top1, 1, hedgeTop + 6 - top1, Z[1]); P(x1, top1, 1, 1, Z[2]); }
+      for (var k1 = 0; k1 < 40; k1++) { var fx1 = Math.floor(R() * 180), fy1 = hazeTop + 3 + Math.floor(R() * Math.max(1, hedgeTop - hazeTop)); P(fx1, fy1, 2, 1, R() < .5 ? Z[0] : Z[2]); }
+      // the hedge: the same calm strip as behind the sowing bed, just taller: flat leaf green, a soft bumpy lit top, sparse leaf speckles, darker towards the ground
+      var tops = []; for (var x2 = 0; x2 < 180; x2++) tops.push(Math.round(hedgeTop + Math.sin(x2 / 7) * 2 + Math.sin(x2 / 3.1)));
+      for (var x3 = 0; x3 < 180; x3++) { P(x3, tops[x3], 1, groundY - tops[x3], H[2]); P(x3, tops[x3], 1, 1, pal.snow ? "#ffffff" : H[3]); if (pal.snow) P(x3, tops[x3] + 1, 1, 1, Math.sin(x3 * 1.3) > -.2 ? "#ffffff" : "#dce8f0"); }
+      var hh = groundY - hedgeTop, nsp = Math.round(180 * hh / 42);
+      for (var k = 0; k < nsp; k++) { var sx3 = Math.floor(R() * 179), sy3 = tops[sx3] + 3 + Math.floor(R() * Math.max(1, groundY - tops[sx3] - 6)), u3 = (sy3 - hedgeTop) / hh;
+        var c3 = u3 < .35 ? (R() < .6 ? H[3] : H[4]) : u3 < .7 ? (R() < .55 ? H[3] : H[1]) : (R() < .7 ? H[1] : H[0]);
+        if (pal.snow) c3 = u3 < .3 && R() < .5 ? "#eef3f8" : R() < .5 ? H[1] : H[0];
+        if (pal.a && R() < .08) c3 = pal.a[Math.floor(R() * pal.a.length)];
+        P(sx3, sy3, 1, 1, c3); P(sx3 + 1, sy3, 1, 1, c3 === H[4] ? H[3] : c3); }
+      for (var y4 = groundY - 6; y4 < groundY; y4++) for (var x4 = 0; x4 < 180; x4++) if ((x4 + y4) % 3 === 0 && y4 >= groundY - 3 || (x4 + y4) % 3 === 0 && (x4 + y4 * 2) % 2 === 0) P(x4, y4, 1, 1, H[0]);
+      if (pal.f.length) for (var k2 = 0; k2 < 3; k2++) { var fx = 6 + Math.floor(R() * 168), fy = tops[fx] + 5 + Math.floor(R() * Math.max(1, (groundY - tops[fx]) * .5)); var fc = pal.f[Math.floor(R() * pal.f.length)];
         P(fx + 1, fy, 1, 1, fc); P(fx, fy + 1, 3, 1, fc); P(fx + 1, fy + 2, 1, 1, fc); P(fx + 1, fy + 1, 1, 1, "#f0a030"); }
-      for (var x4 = 0; x4 < 180; x4++) for (var y4 = groundY - 4; y4 < groundY; y4++) if (R() < (y4 - groundY + 5) / 5) P(x4, y4, 1, 1, H[0]);
       // soil below the ground line, in the garden bed's tones
       for (var x5 = 0; x5 < 180; x5++) { P(x5, groundY, 1, 135 - groundY, "#6a4428"); P(x5, groundY + 1, 1, 2, "#8a5e3a"); }
-      for (var k3 = 0; k3 < 700; k3++) { var sx = Math.floor(R() * 180), sy = groundY + 3 + Math.floor(R() * (132 - groundY)); P(sx, sy, R() < .4 ? 2 : 1, 1, ["#4e301c", "#8a5e3a", "#3a2214", "#5a3820"][Math.floor(R() * 4)]); }
-      for (var k4 = 0; k4 < Math.round((135 - groundY) / 7); k4++) { var px = 4 + Math.floor(R() * 170), py = groundY + 7 + Math.floor(R() * Math.max(1, 124 - groundY)), w = 2 + Math.floor(R() * 3);
+      for (var k3 = 0; k3 < Math.round((135 - groundY) * 9); k3++) { var sx = Math.floor(R() * 180), sy = groundY + 3 + Math.floor(R() * (132 - groundY)); P(sx, sy, R() < .4 ? 2 : 1, 1, ["#4e301c", "#8a5e3a", "#3a2214", "#5a3820"][Math.floor(R() * 4)]); }
+      for (var k4 = 0; k4 < Math.round((135 - groundY) / 14); k4++) { var px = 4 + Math.floor(R() * 170), py = groundY + 7 + Math.floor(R() * Math.max(1, 124 - groundY)), w = 2 + Math.floor(R() * 3);
         P(px, py - 1, w, 1, "#3a2214"); P(px, py + 2, w, 1, "#3a2214"); P(px - 1, py, 1, 2, "#3a2214"); P(px + w, py, 1, 2, "#3a2214"); P(px, py, w, 1, "#c4c4cc"); P(px, py + 1, w, 1, "#9a9aa2"); P(px, py, 1, 1, "#e4e4ec"); }
       // tall meadow grass along the ground line, seen from down low: blades of different heights, now and then a flower on its stem
-      for (var x6 = 0; x6 < 180; x6++) { P(x6, groundY, 1, 1, M[0]); if (R() < .5) { var bh = 3 + Math.floor(R() * (R() < .12 ? 9 : 5)), lean = R() < .5 ? -1 : 1;
+      for (var x6 = 0; x6 < 180; x6++) { P(x6, groundY, 1, 1, M[0]); if (R() < .3) { var bh = 2 + Math.floor(R() * (R() < .08 ? 6 : 3)), lean = R() < .5 ? -1 : 1;
         for (var b2 = 0; b2 < bh; b2++) P(x6 + (b2 > bh * .55 ? lean : 0), groundY - b2, 1, 1, b2 < 2 ? M[0] : b2 < bh * .6 ? M[1] : b2 < bh - 1 ? M[2] : M[3]); } }
-      if (pal.f.length) for (var k5 = 0; k5 < 3; k5++) { var sx2 = 6 + Math.floor(R() * 168), sh = 8 + Math.floor(R() * 8), fc2 = pal.f[Math.floor(R() * pal.f.length)];
+      if (pal.f.length) for (var k5 = 0; k5 < 2; k5++) { var sx2 = 6 + Math.floor(R() * 168), sh = 8 + Math.floor(R() * 8), fc2 = pal.f[Math.floor(R() * pal.f.length)];
         for (var q = 0; q < sh; q++) P(sx2, groundY - q, 1, 1, M[1]); P(sx2 + 1, groundY - 4, 1, 1, M[2]); var fy2 = groundY - sh - 1;
         P(sx2, fy2 - 1, 1, 1, fc2); P(sx2 - 1, fy2, 1, 1, fc2); P(sx2 + 1, fy2, 1, 1, fc2); P(sx2, fy2 + 1, 1, 1, fc2); P(sx2, fy2, 1, 1, "#f0a030"); }
       for (var x7 = 0; x7 < 180; x7++) { P(x7, groundY + 1, 1, 1, "#4e301c"); }
