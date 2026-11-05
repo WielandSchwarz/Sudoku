@@ -11736,17 +11736,7 @@ window.__EXTRAS = true;
     function book(t) { shadow(BOOK.x + 3, BOOK.y + 36, 36); spr("book", BOOK.x, BOOK.y); var sw = Math.floor(t / 400) % 2; R(c, BOOK.x + 19 + sw, BOOK.y + 10, 1, 1, "#fff8ec"); }
     function arrow(x, y, t) { var on = Math.floor(t / 300) % 2; R(c, x - 1, y + on * 2, 3, 4, "#f6c84a"); R(c, x - 3, y + 4 + on * 2, 7, 1, "#f6c84a"); R(c, x - 2, y + 5 + on * 2, 5, 1, "#f6c84a"); R(c, x - 1, y + 6 + on * 2, 3, 1, "#f6c84a"); }
     // ---------- fire: strike a match, light the logs, blow (or fan) until the kettle whistles three times ----------
-    function micStart() {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-        navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }).then(function (st) {
-          if (phase === "gone") { st.getTracks().forEach(function (t) { t.stop(); }); return; }
-          var AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), an = ac.createAnalyser(); an.fftSize = 512;
-          ac.createMediaStreamSource(st).connect(an); mic = { st: st, ac: ac, an: an, buf: new Uint8Array(512) };
-          if (phase === "fire" && lit) G_.banner("Puste ins Feuer");
-        }).catch(function () {});
-      } catch (e) {}
-    }
+    function micStart() { }   /* blowing into the microphone is switched off: the fire is only fanned by hand, and the app never asks for the microphone */
     function micLevel() {
       if (!mic) return 0; mic.an.getByteTimeDomainData(mic.buf); var s_ = 0;
       for (var i = 0; i < mic.buf.length; i++) { var v = (mic.buf[i] - 128) / 128; s_ += v * v; }
@@ -11803,7 +11793,7 @@ window.__EXTRAS = true;
       fire = Math.max(.08, fire - dt * .13);
       if (ketDX === 0) water = Math.min(1.2, water + fire * dt * .11);
       var ns = water >= .9 ? 3 : water >= .72 ? 2 : water >= .5 ? 1 : 0;
-      if (ns !== stage) { stage = ns; whistleSet(ns); G_.banner(["Puste ins Feuer", "Die Kanne pfeift leise", "Sie pfeift lauter", "Runter vom Feuer!"][ns]); if (ns && !mic) G_.banner(["", "Die Kanne pfeift leise", "Sie pfeift lauter", "Runter vom Feuer!"][ns]); }
+      if (ns !== stage) { stage = ns; whistleSet(ns); G_.banner(["Fächel das Feuer an", "Die Kanne pfeift leise", "Sie pfeift lauter", "Runter vom Feuer!"][ns]); if (ns && !mic) G_.banner(["", "Die Kanne pfeift leise", "Sie pfeift lauter", "Runter vom Feuer!"][ns]); }
       if (stage >= 3) { boilT += dt; if (boilT > 3 && !boiled) { boiled = true; G_.banner("Sie kocht über!"); beep([[160, .1], [120, .14]]); } }
     }
     function pullOff() {
@@ -12032,7 +12022,7 @@ window.__EXTRAS = true;
         if (match) {
           if (!match.lit && inR(p, MBOX)) { match.rub += Math.abs(p[0] - match.lx); if (match.rub > 26) { match.lit = true; beep([[900, .03], [500, .05]]); G_.banner("Ans Holz halten"); } }
           match.lx = p[0]; match.x = p[0]; match.y = p[1];
-          if (match.lit && inR(p, LOGS)) { lit = true; match = null; fire = .25; beep([[200, .08], [260, .1]]); G_.banner(mic ? "Puste ins Feuer" : "Fächel das Feuer an"); }
+          if (match.lit && inR(p, LOGS)) { lit = true; match = null; fire = .25; beep([[200, .08], [260, .1]]); G_.banner(mic ? "Fächel das Feuer an" : "Fächel das Feuer an"); }
         } else if (ketDrag) {
           ketDX = Math.max(-40, Math.min(40, p[0] - ketDrag.x0));
           if (Math.abs(ketDX) > 30) { ketDrag = null; pullOff(); }
