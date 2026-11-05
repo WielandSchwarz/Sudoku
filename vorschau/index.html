@@ -1766,6 +1766,9 @@ body.dz-on .dz-panel { display: block; }
 .cap-book-h { font-weight: 800; margin: 6px 0 2px; }
 .cap-book { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; font-size: .66rem; font-weight: 700; }
 .cap-book span { padding: 2px 5px; background: #fff1d4; box-shadow: inset 0 0 0 1px #3a2414; } .cap-book span.no { opacity: .45; } .cap-book span.nw { background: #ffe08a; }
+
+.cap-rudt { margin: 0 0 6px; font-size: .82rem; text-align: center; }
+.cap-row2 { display: flex; gap: 8px; align-items: center; } .cap-row2 .cap-sp { flex: 1.2; } .cap-row2 .cap-gl { flex: 1; } .cap-row2 .cap-go { flex: 1; width: auto; padding: 6px 0 9px; }
 /* the wide living room: 360 wide, a camera slides it */
 #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #scene.wide-room #room > .wallpaper, #scene.wide-room #room > .floor, #scene.wide-room #room > .baseboard { right: -100%; }
@@ -15967,17 +15970,19 @@ window.__EXTRAS = true;
     reset: function () { var M = pcSt(); M.pc = {}; M.model = 0; pcSig = ""; pcRoom(); },
     shelf: function (id) { if (home.owned.shelf.indexOf(id) < 0) home.owned.shelf.push(id); home.placed.shelf = id; renderRoom(); renderCosy(); pcRoom(); } };
   // ===================== the captain of the MS Pausbacke (preview, turn based) =====================
-  // The other role on the same voyage. Every leg lies ahead as three lanes and five rows of sea. Near rows are clear,
-  // far rows hide behind a "?" until the binoculars are put on them (two looks per leg; in fog only the first row is clear).
-  // The player plans the rudder for every row in peace; a ghost line shows the course. The rudder acts one row later
-  // (two at full ahead). "Los!" sails the plan: ice and boats must be missed, harbour buoys passed between.
-  // Whales, dolphins and seals only show far out and dive before the ship comes: only the binoculars put them in the logbook.
-  var CP_LEGS = [
-    { n: "Ausfahrt Southamsterton", h: 1 }, { n: "Durch den Ärmelkanal" }, { n: "Vor Schnüffelbourg", h: 1 }, { n: "Kanal im Nebel", f: 1 },
-    { n: "Einfahrt Backentown", h: 1 }, { n: "Offener Hamslantik" }, { n: "Walgründe", a: 1 }, { n: "Nebelbank", f: 1 },
-    { n: "Eisfeld bei Neufundland", i: 1 }, { n: "Treibeis bei Nacht", i: 1, nt: 1 }, { n: "Vor Nuss York" }, { n: "Einfahrt Nuss York", h: 1, ev: 1 }];
+  // The other role on the same voyage, seen from the bridge: three windows ahead, the wheel in front of you.
+  // One decision per turn: the rudder for the next stretch (hard to port ... hard to starboard) and the speed.
+  // A ghost line on the water shows the curve the ship will sail. "Los!" sails that stretch: the ship turns,
+  // so the whole view swings round; nothing slides sideways. Ice, boats and driftwood must be missed,
+  // harbour buoys passed between. Far out things only shimmer until the binoculars are put on them;
+  // whales, dolphins and seals show only far out and dive before the ship comes: the logbook needs the glasses.
+  var CP_CHAP = [
+    { n: "Ausfahrt Southamsterton", h: 1, len: 15 }, { n: "Durch den Ärmelkanal", len: 18 }, { n: "Vor Schnüffelbourg", h: 1, len: 15 }, { n: "Kanal im Nebel", f: 1, len: 15 },
+    { n: "Offener Hamslantik", len: 22 }, { n: "Walgründe", a: 1, len: 22 }, { n: "Nebelbank", f: 1, len: 15 }, { n: "Eisfeld bei Neufundland", i: 1, len: 22 },
+    { n: "Treibeis bei Nacht", i: 1, nt: 1, len: 18 }, { n: "Einfahrt Nuss York", h: 1, ev: 1, len: 18 }];
   var CP_NAME = { whale: "Buckelwal", dolph: "Delfine", seal: "Robbe auf der Scholle", bottle: "Flaschenpost", gull: "Möwenschwarm", tower: "Leuchtturm", orca: "Schwertwal", bear: "Eisbär auf der Scholle" };
-  var CP_ANI = ["whale", "dolph", "seal", "bottle", "gull", "tower", "orca", "bear"];
+  var CP_ANI = ["whale", "dolph", "seal", "bottle", "gull", "tower", "orca", "bear"], CP_HARD = ["ice", "floe", "boat", "wood"];
+  var CP_RUD = [[-2, "◀◀"], [-1, "◀"], [0, "▲"], [1, "▶"], [2, "▶▶"]], CP_TURN = .2;   /* radians per rudder step and stretch */
   var cpEl = xEl("div", "bee-pov fi-pov cap-pov", scene); cpEl.hidden = true;
   cpEl.innerHTML = '<canvas width="180" height="135" class="fi-cv cap-cv"></canvas><div class="fi-card" hidden></div><div class="cap-toast" hidden></div><button type="button" class="bp-x" aria-label="Brücke verlassen">×</button>';
   var cpCv = cpEl.querySelector(".cap-cv"), cpc = cpCv.getContext("2d"); cpc.imageSmoothingEnabled = false;
@@ -15986,35 +15991,36 @@ window.__EXTRAS = true;
   var cp = null, cpRaf = 0, cpOpen = false;
   function cpLog() { if (!s.capLog) s.capLog = {}; return s.capLog; }
   function cpRnd(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function cpDelay() { return cp.speed === "volle" ? 2 : 1; }
-  // the course a rudder plan gives: lane per row (0 left, 1 middle, 2 right); the ship starts in its lane
-  function cpLanes(rud, start, delay) { var L = [], l = start; for (var r = 0; r < 5; r++) { var k = r - delay; if (k >= 0) l = Math.max(0, Math.min(2, l + rud[k])); L.push(l); } return L; }
-  function cpLegMake(i, start) {
-    var lg = CP_LEGS[i], G = [], r, c;
-    for (r = 0; r < 5; r++) G.push([null, null, null]);
-    // a course that can be sailed (at half ahead), kept free of anything hard
-    var rud = [0, 0, 0, 0, 0].map(function () { return cpRnd([-1, 0, 0, 1]); }), safe = cpLanes(rud, start, 1);
-    var hz = lg.i ? .5 : lg.h ? .25 : .32, kinds = lg.i ? ["ice", "ice", "floe"] : lg.h ? ["boat", "boat", "wood"] : ["ice", "boat", "wood"];
-    for (r = 1; r < 5; r++) for (c = 0; c < 3; c++) if (c !== safe[r] && Math.random() < hz) G[r][c] = { k: cpRnd(kinds) };
-    if (lg.h) { var gr = 2 + Math.floor(Math.random() * 3); G[gr][safe[gr]] = { k: "gate" }; }   // a pair of harbour buoys on the free course
-    // animals and finds only far out, where only the binoculars reach
-    var nA = lg.a ? 2 : 1;
-    for (var a = 0; a < nA; a++) { r = 3 + Math.floor(Math.random() * 2); c = Math.floor(Math.random() * 3); if (!G[r][c]) G[r][c] = { k: lg.i ? cpRnd(["seal", "bear", "seal"]) : lg.h ? cpRnd(["gull", "tower", "bottle"]) : cpRnd(["whale", "dolph", "whale", "orca", "bottle"]) }; }
-    var seen = []; for (r = 0; r < 5; r++) seen.push([0, 0, 0].map(function () { return lg.f ? r < 1 : r < 3; }));
-    return { G: G, seen: seen };
+  function cpChap() { var y = cp ? cp.y : 0, a = 0; for (var i = 0; i < CP_CHAP.length; i++) { a += CP_CHAP[i].len; if (y < a) return CP_CHAP[i]; } return CP_CHAP[CP_CHAP.length - 1]; }
+  function cpChapAt(y) { var a = 0; for (var i = 0; i < CP_CHAP.length; i++) { a += CP_CHAP[i].len; if (y < a) return CP_CHAP[i]; } return CP_CHAP[CP_CHAP.length - 1]; }
+  var CP_END = CP_CHAP.reduce(function (a, c) { return a + c.len; }, 0);
+  // the sea as a map: north is ahead, the voyage runs from y 0 to CP_END; things are placed chapter by chapter
+  function cpWorld() {
+    var O = [], y = 14;
+    while (y < CP_END - 8) {
+      var ch = cpChapAt(y), dens = ch.i ? .9 : ch.h ? .55 : .5, x0 = Math.sin(y / 37) * 8;
+      if (Math.random() < dens) O.push({ k: ch.i ? cpRnd(["ice", "ice", "floe"]) : ch.h ? cpRnd(["boat", "wood"]) : cpRnd(["ice", "boat", "wood"]), x: x0 + (Math.random() * 2 - 1) * 9, y: y + Math.random() * 3 });
+      if (Math.random() < dens * .6) O.push({ k: ch.i ? "ice" : cpRnd(["boat", "wood", "ice"]), x: x0 + (Math.random() < .5 ? -1 : 1) * (8 + Math.random() * 10), y: y + 3 + Math.random() * 3 });
+      if (ch.h && Math.random() < .4) { var gx = x0 + (Math.random() * 2 - 1) * 6; O.push({ k: "gate", x: gx, y: y + 5 }); }
+      if (Math.random() < (ch.a ? .5 : .22)) O.push({ k: ch.i ? cpRnd(["seal", "bear", "seal"]) : ch.h ? cpRnd(["gull", "tower", "bottle"]) : cpRnd(["whale", "dolph", "whale", "orca", "bottle"]), x: x0 + (Math.random() * 2 - 1) * 16, y: y + 4, ani: 1 });
+      y += 9 + Math.random() * 5;
+    }
+    O.forEach(function (o) { o.seen = false; o.done = false; });
+    return O;
   }
-  function cpNew() {
-    var o = { leg: 0, lane: 1, speed: "halbe", rud: [0, 0, 0, 0, 0], looks: 2, hits: 0, gates: 0, gatesAll: 0, time: 0, found: [], newF: [], anim: null, done: false, intro: true, look: null, shake: 0 };
-    var m = cpLegMake(0, 1); o.G = m.G; o.seen = m.seen; return o;
-  }
-  // ---- the picture: sky, sea in perspective, what floats on it, the Pausbacke from behind ----
-  var CP_HZ = 18, cpCam = 1;   /* cpCam: the lane the bridge looks from (the view pans when the ship changes lane) */
-  function cpY(d) { return CP_HZ + 54 * Math.pow(Math.max(0, 1 - d / 5.6), 1.25); }   /* rows spread down the sea, closer together towards the horizon */
-  function cpX(lane, d) { return 90 + (lane - cpCam) * cpW(d); }
-  function cpW(d) { return 46 * (1 - Math.max(0, d) / 6.5); }
+  function cpNew() { return { x: 0, y: 0, h: 0, rud: 0, speed: "halbe", looks: 2, turns: 0, hits: 0, gates: 0, gatesAll: 0, found: [], newF: [], O: cpWorld(), anim: null, done: false, intro: true, look: null, shake: 0 }; }
+  function cpStepLen() { return cp.speed === "volle" ? 9 : 6; }
+  // where the ship will be along a stretch: the heading turns evenly while it sails
+  function cpArc(x, y, h, rud, len, u) { var dh = rud * CP_TURN, n = 12, k = Math.round(n * u), px = x, py = y, hh = h;
+    for (var i = 0; i < k; i++) { hh = h + dh * (i + .5) / n; px += Math.sin(hh) * len / n; py += Math.cos(hh) * len / n; } return [px, py, h + dh * k / n]; }
+  // the view from the bridge: forward f and sideways s from the ship, then onto the screen
+  var CP_HZ = 18;
+  function cpProj(ox, oy) { var dx = ox - cp.x, dy = oy - cp.y, f = dx * Math.sin(cp.h) + dy * Math.cos(cp.h), sd = dx * Math.cos(cp.h) - dy * Math.sin(cp.h);
+    if (f < .8) return null; var k = 10 / (f + 6); return { x: 90 + sd * k * 28, y: CP_HZ + 54 * k, f: f, sz: f < 14 ? 3 : f < 28 ? 2 : 1 }; }
+  function cpVisible(o, f) { var ch = cpChap(); return o.seen || f < (ch.f ? 9 : 24); }
   var cpSea = null, cpSeaKey = "";
   function cpSeaPic() {
-    var lg = CP_LEGS[cp.leg], key = cp.leg + (lg.nt ? "n" : "d");
+    var lg = cpChap(), key = lg.n;
     if (cpSeaKey === key) return cpSea; cpSeaKey = key;
     var cv = document.createElement("canvas"); cv.width = 180; cv.height = 160; var g = cv.getContext("2d"), y, x;
     var sky = lg.nt ? ["#1e2a52", "#2a3a6a", "#34467a"] : lg.ev ? ["#f4a878", "#f8c898", "#fbe0b8"] : ["#8fd0f4", "#b4e0f8", "#d8f0fc"];
@@ -16024,7 +16030,7 @@ window.__EXTRAS = true;
     var sea = lg.nt ? ["#1a2c4a", "#24385a", "#6a7ca0"] : lg.ev ? ["#3a6a9a", "#4a7aa8", "#f8d8a8"] : ["#3a7ab0", "#4a8ac0", "#d8eef8"];
     for (y = CP_HZ; y < 160; y++) { var u = (y - CP_HZ) / (135 - CP_HZ), per = 1 + Math.floor(u * 7);
       var row = Math.floor(Math.pow(y - CP_HZ, 1.15) / Math.max(1, per >> 1));
-      for (x = 0; x < 180; x += per) { var hv = cpHash(Math.floor(x / per) + (row & 1) * 7, row); g.fillStyle = hv < .55 ? sea[0] : sea[1]; g.fillRect(x, y, per, 1); if (cpHash(x, y + 999) < .03 + u * .05) { g.fillStyle = sea[2]; g.fillRect(x, y, Math.max(1, per - 1), 1); } } }
+      for (x = 0; x < 180; x += per) { var hv = cpHash(Math.floor(x / per) + (row & 1) * 7, row); g.fillStyle = hv < .55 ? sea[0] : sea[1]; g.fillRect(x, y, per, 1); if (cpHash(x, y + 999) < .008 + u * .02) { g.fillStyle = sea[2]; g.fillRect(x, y, Math.max(1, per - 1), 1); } } }
     g.fillStyle = sea[2]; g.fillRect(0, CP_HZ, 180, 1);
     cpSea = cv; return cv;
   }
@@ -16062,10 +16068,13 @@ window.__EXTRAS = true;
     if (k === "tower") { var th = Math.round(22 * R) + 3, tw = Math.max(2, Math.round(4 * R)); mR(cpc, x - tw - 1, y - th - 1, tw * 2 + 2, th + 2, "#3a2414"); for (var ty = 0; ty < th; ty++) mR(cpc, x - tw, y - th + ty, tw * 2, 1, Math.floor(ty / Math.max(2, Math.round(4 * R))) % 2 ? "#fff8ec" : "#c83a2a");
       mR(cpc, x - tw, y - th - 2, tw * 2, 2, Math.floor(t / 500) % 2 ? "#ffd34a" : "#fff4b0"); return; }
   }
-  function cpUnknown(x, y, sz, t) {                                     // a shimmer far out: something is there, but what?
-    var w = sz === 1 ? 5 : 8; for (var i = 0; i < w * 2; i++) if ((i + Math.floor(t / 250)) % 3) mR(cpc, x - w + i, y - 1 - (i % 2), 1, 1, "#e8f2f8");
-    var Q = ["0110", "1001", "0010", "0100", "0000", "0100"]; Q.forEach(function (row, j) { for (var i2 = 0; i2 < 4; i2++) if (row[i2] === "1") mR(cpc, x - 2 + i2, y - 10 + j, 1, 1, "#fff8ec"); });
+  function cpUnknown(x, y, sz, t) {                                     // something far out: a grey smudge with a little "?" sign over it
+    var w = sz === 1 ? 3 : 5, bob = Math.floor(t / 400) % 2;
+    cpBlob(x, y - 1, w + .6, 1.8, function () { return "#5a6a7a"; }); cpBlob(x, y - 1, w, 1.2, function (dx) { return dx < 0 ? "#c8d4dc" : "#a8b4c0"; });
+    var Q = ["111", "001", "010", "000", "010"], qx = x - 2, qy = y - 11 - bob;
+    mR(cpc, qx - 1, qy - 1, 5, 7, "#3a2414"); mR(cpc, qx, qy, 3, 5, "#fff8ec"); Q.forEach(function (row, j) { for (var i = 0; i < 3; i++) if (row[i] === "1") mR(cpc, qx + i, qy + j, 1, 1, "#3a2414"); });
   }
+
   var cpFrameCv = null;
   function cpFrame() {                                                  // the wheelhouse: wood all round three big windows with brass frames (drawn once)
     if (cpFrameCv) return cpFrameCv; var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var g = cv.getContext("2d");
@@ -16093,51 +16102,34 @@ window.__EXTRAS = true;
     var na = (sp ? -25 : -60) * Math.PI / 180; for (var k = 0; k < 9; k++) mR(cpc, Math.round(tx + Math.cos(na) * k), Math.round(ty + Math.sin(na) * k), 1, 1, "#3a2414");
     // compass on the binnacle: the card turns a little with the course
     cpBlob(147, 109, 11, 6, function (dx, dy) { var d = dx * dx + dy * dy; return d > .72 ? "#c8a040" : "#f8f4ec"; });
-    var ca = ((cp.anim && cp.anim.rudNow) || 0) * .5; mR(cpc, Math.round(147 + Math.sin(ca) * 6), 106, 2, 2, "#c83a2a");
+    var ca = cp.h; mR(cpc, Math.round(147 - Math.sin(ca) * 8), Math.round(109 - Math.cos(ca) * 4), 2, 2, "#c83a2a");   /* north on the compass card */
     // the ship's wheel in front of you, turned by the rudder
-    var rn = cp.anim ? (cp.anim.rudNow || 0) : cp.rud[0], ang = rn * .5 + (cp.anim ? Math.sin(t / 500) * .03 : 0), cx = 90, cy = 112;
+    var ang = (cp.wheelA != null ? cp.wheelA : cp.rud * .45) + (cp.anim ? Math.sin(t / 500) * .03 : 0), cx = 90, cy = 112;
     for (var a = 0; a < 8; a++) { var aa = ang + a * Math.PI / 4; for (var r = 4; r < 27; r++) { var px = Math.round(cx + Math.cos(aa) * r), py = Math.round(cy + Math.sin(aa) * r); if (py < 135) mR(cpc, px, py, r > 22 ? 2 : 1, r > 22 ? 2 : 1, r > 22 ? "#c8945a" : "#e0b07a"); } }
     for (var q = 0; q < 160; q++) { var b = q / 160 * Math.PI * 2; for (var rr = 17; rr <= 20; rr++) { var qx = Math.round(cx + Math.cos(b) * rr), qy = Math.round(cy + Math.sin(b) * rr); if (qy < 135) mR(cpc, qx, qy, 1, 1, rr === 17 || rr === 20 ? "#5a3a22" : (q % 9 ? "#a87448" : "#8a5a32")); } }
     cpBlob(cx, cy, 4.5, 4.5, function (dx, dy) { return dx + dy < 0 ? "#f0d070" : "#c8a040"; });
-  }
-  function cpShip(x, t) {                                               // the Pausbacke from behind: dark hull, white decks, two funnels with smoke
-    x = Math.round(x); var y = 108;
-    mR(cpc, x - 17, y + 10, 34, 18, "#141018"); mR(cpc, x - 16, y + 11, 32, 16, "#2a2a34"); mR(cpc, x - 16, y + 11, 32, 2, "#3a3a46"); mR(cpc, x - 16, y + 24, 32, 3, "#a82a1e");
-    mR(cpc, x - 13, y + 2, 26, 10, "#3a2414"); mR(cpc, x - 12, y + 3, 24, 8, "#fff8ec"); mR(cpc, x - 12, y + 3, 24, 1, "#ffffff"); for (var w = 0; w < 6; w++) mR(cpc, x - 10 + w * 4, y + 6, 2, 2, "#5a6a7a");
-    [-6, 5].forEach(function (fx) { mR(cpc, x + fx - 3, y - 9, 7, 12, "#3a2414"); mR(cpc, x + fx - 2, y - 8, 5, 11, "#e8a03a"); mR(cpc, x + fx - 2, y - 8, 5, 3, "#1e1a18"); mR(cpc, x + fx - 2, y - 5, 1, 7, "#f8c060"); });
-    var ph = (t / 900) % 1; [[-6, 0], [5, .5]].forEach(function (f) { var p = (ph + f[1]) % 1; mR(cpc, x + f[0] - 2 - p * 3, y - 12 - p * 14, 4 + p * 3, 3, "rgba(220,220,224," + (0.8 - p * .7).toFixed(2) + ")"); });
-    for (var k = 0; k < 6; k++) { mR(cpc, x - 18 - k, y + 22 + k, 2, 1, "#ffffff"); mR(cpc, x + 17 + k, y + 22 + k, 2, 1, "#ffffff"); }
   }
   function cpDraw(t) {
     cpRaf = cp && cp.anim ? requestAnimationFrame(cpDraw) : 0;   /* frames only while the ship sails or the glass is up */
     if (!cp) return;
     try {
-      var lg = CP_LEGS[cp.leg], sh = cp.shake > 0 ? Math.round(Math.sin(t / 30) * 2) : 0;
-      cpc.setTransform(1, 0, 0, 1, sh, 0); cpc.drawImage(cpSeaPic(), 0, 0);
-      var prog = cp.anim ? cp.anim.p : 0, L = cpLanes(cp.rud, cp.lane, cpDelay()); cpCam = cp.anim && cp.anim.cam != null ? cp.anim.cam : cp.lane;
-      // the plan: lanes and the ghost line, only while planning
-      if (!cp.anim) {
-        for (var ln = 0; ln <= 3; ln++) for (var d = -.2; d < 5; d += .12) { var x = 90 + (ln - .5 - cpCam) * cpW(d); if (Math.floor(d * 8) % 2) mR(cpc, Math.round(x), Math.round(cpY(d)), 1, 1, "rgba(255,255,255,.6)"); }
-        var DIG = { 1: ["010", "110", "010", "010", "111"], 2: ["110", "001", "010", "100", "111"], 3: ["110", "001", "010", "001", "110"], 4: ["101", "101", "111", "001", "001"], 5: ["111", "100", "110", "001", "110"] };
-        for (var rn = 0; rn < 5; rn++) { var ry = Math.round(cpY(rn)) - 3, rx = Math.round(cpX(0, rn) - cpW(rn) * .5) - 6; mR(cpc, rx - 1, ry - 1, 5, 7, "rgba(30,40,60,.45)"); DIG[rn + 1].forEach(function (row, j) { for (var i = 0; i < 3; i++) if (row[i] === "1") mR(cpc, rx + i, ry + j, 1, 1, "#fff8ec"); }); }   /* row numbers, as in the rudder panel */
-        var px = 90, py = 74;
-        for (var r = 0; r < 5; r++) { var nx = cpX(L[r], r), ny = cpY(r), n = Math.ceil(Math.hypot(nx - px, ny - py) / 2);
-          for (var q = 0; q < n; q += 2) mR(cpc, Math.round(px + (nx - px) * q / n), Math.round(py + (ny - py) * q / n), 2, 1, "#ffd34a");
-          px = nx; py = ny; mR(cpc, Math.round(nx) - 1, Math.round(ny) - 1, 3, 2, "#ffd34a"); }
-      }
-      // what lies on the sea, far rows first
-      for (var r2 = 4; r2 >= 0; r2--) { var dd = r2 - prog; if (dd < -.6) continue; var yy = cpY(Math.max(dd, -.4)), sz = dd < 1.2 ? 3 : dd < 2.6 ? 2 : 1;
-        for (var c = 0; c < 3; c++) { var it = cp.G[r2][c], xx = Math.round(cpX(c, Math.max(dd, -.4)));
-          if (!cp.anim && !cp.seen[r2][c]) { cpUnknown(xx, Math.round(yy), sz, t); continue; }   // far out and not looked at yet
-          if (!it) continue; var ani = CP_ANI.indexOf(it.k) >= 0;
-          if (ani && cp.anim && (dd < 2.2 || !cp.seen[r2][c])) continue;   // the animals dive before the ship comes close
-          cpThing(it.k, xx, Math.round(yy), sz, t); } }
-      // fog: a veil that thins near the ship
-      if (lg.f) for (var fy = 0; fy < 135; fy += 1) { var a = fy < CP_HZ ? .7 : Math.max(0, .75 - (fy - CP_HZ) / 70); if (a > 0) { cpc.fillStyle = "rgba(226,232,236," + a.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
+      var lg = cpChap(), sh = cp.shake > 0 ? Math.round(Math.sin(t / 30) * 2) : 0, sea = cpSeaPic(), off = (((-cp.h * 160) % 180) + 180) % 180;
+      cpc.setTransform(1, 0, 0, 1, sh, 0); cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0);   // the sea turns with the ship
+      // the ghost line: where the next stretch goes, dotted on the water
+      if (!cp.anim) { for (var i = 1; i <= 12; i++) { var a = cpArc(cp.x, cp.y, cp.h, cp.rud, cpStepLen(), i / 12), p = cpProj(a[0], a[1]); if (p) mR(cpc, Math.round(p.x) - 1, Math.round(p.y), i % 2 ? 2 : 3, 1, "#ffd34a"); }
+        var e = cpArc(cp.x, cp.y, cp.h, cp.rud, cpStepLen(), 1), pe = cpProj(e[0], e[1]); if (pe) mR(cpc, Math.round(pe.x) - 2, Math.round(pe.y) - 1, 5, 3, "#ffd34a"); }
+      // what floats on the sea, far things first
+      var vis = []; cp.O.forEach(function (o) { if (o.done) return; var p = cpProj(o.x, o.y); if (!p || p.f > 60 || p.x < -30 || p.x > 210) return; vis.push([o, p]); });
+      vis.sort(function (a, b) { return b[1].f - a[1].f; });
+      vis.forEach(function (v) { var o = v[0], p = v[1], X = Math.round(p.x), Y = Math.round(p.y);
+        if (o.ani && p.f < 18) return;                                  // the animals dive before the ship comes close
+        if (!cpVisible(o, p.f)) { cpUnknown(X, Y, p.sz, t); return; }
+        if (o.ani && !o.seen) return;
+        cpThing(o.k, X, Y, p.sz, t); });
+      if (lg.f) for (var fy = 0; fy < 80; fy++) { var al = fy < CP_HZ ? .7 : Math.max(0, .78 - (fy - CP_HZ) / 70); if (al > 0) { cpc.fillStyle = "rgba(226,232,236," + al.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
       cpBridge(t);
-      // the binoculars: everything dark but two round glasses with the thing big in them
       if (cp.look) { var lk = cp.look; cpc.fillStyle = "#141018"; cpc.fillRect(0, 0, 180, 135);
-        cpc.save(); cpc.beginPath(); cpc.arc(66, 64, 44, 0, 7); cpc.arc(114, 64, 44, 0, 7); cpc.clip(); cpc.drawImage(cpSeaPic(), 0, -24);
+        cpc.save(); cpc.beginPath(); cpc.arc(66, 64, 44, 0, 7); cpc.arc(114, 64, 44, 0, 7); cpc.clip(); cpc.drawImage(sea, 0, -24);
         if (lk.k) cpThing(lk.k, 90, 78, 3, t); if (lg.f) { cpc.fillStyle = "rgba(226,232,236,.35)"; cpc.fillRect(0, 0, 180, 135); } cpc.restore();
         cpc.strokeStyle = "#3a3a44"; cpc.lineWidth = 2; cpc.beginPath(); cpc.arc(66, 64, 44, 0, 7); cpc.stroke(); cpc.beginPath(); cpc.arc(114, 64, 44, 0, 7); cpc.stroke(); }
       cpc.setTransform(1, 0, 0, 1, 0, 0);
@@ -16145,88 +16137,83 @@ window.__EXTRAS = true;
     if (cp.anim) cpStep(t);
   }
   function cpRedraw() { if (!cpRaf) cpDraw(performance.now()); }
-  // ---- sailing the plan ----
+  // ---- sailing one stretch ----
   function cpStep(t) {
-    var A = cp.anim; if (!A.t0) A.t0 = t; var per = cp.speed === "volle" ? 650 : 1000, p = Math.min(5.4, (t - A.t0) / per), L = A.L;
-    if (cp.shake > 0) cp.shake -= .016;
+    var A = cp.anim; if (!A.t0) A.t0 = t; if (cp.shake > 0) cp.shake -= .016;
     if (A.look) { if (t > A.look) { cp.look = null; cp.anim = null; cpPanelDraw(); } return; }
-    A.p = p;
-    var fr = Math.min(4, Math.max(0, Math.floor(p + .35))), frac = Math.min(1, Math.max(0, p + .35 - fr)), from = fr === 0 ? cp.lane : L[fr - 1], to = L[fr];
-    A.cam = from + (to - from) * Math.min(1, frac * 1.6); A.rudNow = to - from;
-    while (A.next <= 4 && p >= A.next + .35) { var r = A.next, it = cp.G[r][L[r]];          // the ship is at row r
-      if (it && (it.k === "ice" || it.k === "boat" || it.k === "wood" || it.k === "floe")) { cp.hits++; A.hit = (A.hit || 0) + 1; cp.shake = .5; beep([[110, .12], [80, .14]]); cpSay(it.k === "boat" ? "Rumms! Das Fischerboot gestreift" : it.k === "wood" ? "Rumms! Treibholz" : "Rumms! Eis am Rumpf"); }
-      if (it && it.k === "gate") { cp.gates++; beep([[660, .05], [880, .06]]); cpSay("Sauber zwischen den Tonnen"); }
-      cp.G[r].forEach(function (o, c) { if (o && o.k === "gate" && c !== L[r]) cpSay("Tonnen verpasst"); });
-      A.next++; }
-    if (p >= 5.4) { cp.lane = L[4]; cp.anim = null; cp.time += cp.speed === "volle" ? 1 : 2; cpLegDone(A.hit || 0); }
+    var u = Math.min(1, (t - A.t0) / 1700), e = cpArc(A.x0, A.y0, A.h0, A.rud, A.len, u); cp.x = e[0]; cp.y = e[1]; cp.h = e[2];
+    cp.O.forEach(function (o) { if (o.done) return; var dx = o.x - cp.x, dy = o.y - cp.y, f = dx * Math.sin(cp.h) + dy * Math.cos(cp.h), sd = dx * Math.cos(cp.h) - dy * Math.sin(cp.h);
+      if (f > .8) return; o.done = true;                               // the ship is level with it now
+      if (CP_HARD.indexOf(o.k) >= 0 && Math.abs(sd) < 2.6) { cp.hits++; cp.shake = .5; beep([[110, .12], [80, .14]]); cpSay(o.k === "boat" ? "Rumms! Das Fischerboot gestreift" : o.k === "wood" ? "Rumms! Treibholz" : "Rumms! Eis am Rumpf"); }
+      if (o.k === "gate") { cp.gatesAll++; if (Math.abs(sd) < 4) { cp.gates++; beep([[660, .05], [880, .06]]); cpSay("Sauber zwischen den Tonnen"); } else cpSay("Tonnen verpasst"); } });
+    if (u >= 1) { var before = cpChap(); cp.anim = null; cp.turns++; cp.looks = 2; cp.rud = 0;
+      if (cp.y >= CP_END) return cpEnd();
+      cpPanelDraw(); var now = cpChap(); if (now !== before) { cpSeaKey = ""; cpSay(now.n + (now.f ? " – Nebel!" : "")); } cpRedraw(); }
   }
   function cpSay(t) { cpToast.textContent = t; cpToast.hidden = false; cpToast.classList.remove("pop"); void cpToast.offsetWidth; cpToast.classList.add("pop"); clearTimeout(cpSay.t); cpSay.t = setTimeout(function () { cpToast.hidden = true; }, 1600); }
   function cpGo() {
     if (!cp || cp.anim || cp.intro || cp.done) return;
-    cp.G.forEach(function (row) { row.forEach(function (o) { if (o && o.k === "gate") cp.gatesAll++; }); });
-    cp.anim = { p: 0, next: 0, L: cpLanes(cp.rud, cp.lane, cpDelay()), cam: cp.lane }; beep([[523, .05], [784, .07]]); cpPanelDraw(); cpRaf = requestAnimationFrame(cpDraw);
+    cp.anim = { x0: cp.x, y0: cp.y, h0: cp.h, rud: cp.rud, len: cpStepLen() }; beep([[523, .05], [784, .07]]); cpPanelDraw(); cpRaf = requestAnimationFrame(cpDraw);
   }
-  function cpLegDone(hit) {
-    if (cp.leg >= CP_LEGS.length - 1) return cpEnd();
-    cp.leg++; var m = cpLegMake(cp.leg, cp.lane); cp.G = m.G; cp.seen = m.seen; cp.rud = [0, 0, 0, 0, 0]; cp.looks = 2; cpSeaKey = "";
-    cpPanelDraw(); cpRedraw(); cpSay(CP_LEGS[cp.leg].n + (CP_LEGS[cp.leg].f ? " – Nebel!" : ""));
-  }
-  // ---- the binoculars: tap a "?" (or anything far out) on the sea ----
+  // ---- the binoculars: tap something shimmering far out ----
+  function cpPt(e) { var r0 = cpCv.getBoundingClientRect(); return [(e.clientX - r0.left) / r0.width * 180, (e.clientY - r0.top) / r0.height * 135]; }
+  // ---- the wheel: grab it and turn it, like the red valve wheel down in the stokehold; the telegraph: tap it ----
+  var cpWheel = null;
+  cpCv.addEventListener("pointermove", function (e) { if (!cpWheel || !cp) return; var p = cpPt(e), a = Math.atan2(p[1] - 112, p[0] - 90), d = a - cpWheel.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+    cp.wheelA = Math.max(-1.1, Math.min(1.1, cpWheel.r0 * .45 + d)); var r = Math.max(-2, Math.min(2, Math.round(cp.wheelA / .45))); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); cpPanelDraw(); } cpRedraw(); });
+  function cpWheelUp() { if (!cpWheel || !cp) return; cpWheel = null; cp.wheelA = null; cpRedraw(); }
+  cpCv.addEventListener("pointerup", cpWheelUp); cpCv.addEventListener("pointercancel", cpWheelUp);
   cpCv.addEventListener("pointerdown", function (e) {
     if (!cp || cp.anim || cp.intro || cp.done || cp.look) return; e.preventDefault();
-    var r0 = cpCv.getBoundingClientRect(), x = (e.clientX - r0.left) / r0.width * 180, y = (e.clientY - r0.top) / r0.height * 135, best = null, bd = 99;
-    for (var r = 0; r < 5; r++) for (var c = 0; c < 3; c++) { var dx = cpX(c, r) - x, dy = cpY(r) - 6 - y, dd = Math.hypot(dx, dy * 1.4); if (dd < bd) { bd = dd; best = [r, c]; } }
-    if (!best || bd > 16) return; var R = best[0], C = best[1];
-    if (cp.seen[R][C] && !(cp.G[R][C] && CP_ANI.indexOf(cp.G[R][C].k) >= 0)) return;
-    if (cp.seen[R][C]) return;
-    if (cp.looks <= 0) { cpSay("Keine Blicke mehr in diesem Abschnitt"); beep([[200, .04]]); return; }
-    cp.looks--; cp.seen[R][C] = true; var it = cp.G[R][C];
-    cp.look = { k: it ? it.k : null }; beep([[1046, .03]]);
-    var msg = !it ? "Nur Wellen" : it.k === "ice" ? "Ein Eisberg!" : it.k === "floe" ? "Eine Scholle" : it.k === "boat" ? "Ein Fischerboot" : it.k === "wood" ? "Treibholz" : it.k === "gate" ? "Die Hafentonnen" : CP_NAME[it.k];
-    if (it && CP_ANI.indexOf(it.k) >= 0) { var LG = cpLog(), first = !LG[it.k]; LG[it.k] = (LG[it.k] || 0) + 1; if (cp.found.indexOf(it.k) < 0) cp.found.push(it.k); if (first) cp.newF.push(it.k); msg = first ? "Neu im Logbuch: " + CP_NAME[it.k] + "!" : CP_NAME[it.k] + "!"; if (window.SudokuSave) window.SudokuSave(); }
-    cpSay(msg); cpPanelDraw();
-    cp.anim = { look: performance.now() + 1300, p: 0, next: 9, L: [] };   // the glass stays up a moment, then the plan again
-    cpRaf = requestAnimationFrame(cpDraw);
+    var pp = cpPt(e);
+    if (Math.hypot(pp[0] - 90, pp[1] - 112) < 28) { cpWheel = { a0: Math.atan2(pp[1] - 112, pp[0] - 90), r0: cp.rud }; try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
+    if (Math.hypot(pp[0] - 30, pp[1] - 104) < 16) { cp.speed = cp.speed === "volle" ? "halbe" : "volle"; dzTone(880, .2, .05, "square"); beep([[cp.speed === "volle" ? 784 : 523, .05]]); cpPanelDraw(); cpRedraw(); return; }
+    var x = pp[0], y = pp[1], best = null, bd = 99;
+    cp.O.forEach(function (o) { if (o.done || o.seen) return; var p = cpProj(o.x, o.y); if (!p || p.f > 60 || cpVisible(o, p.f) && !o.ani) return; if (o.ani && p.f < 18) return; var d = Math.hypot(p.x - x, (p.y - 5 - y) * 1.4); if (d < bd) { bd = d; best = o; } });
+    if (!best || bd > 14) return;
+    if (cp.looks <= 0) { cpSay("Keine Blicke mehr bis zum nächsten Zug"); beep([[200, .04]]); return; }
+    cp.looks--; best.seen = true; cp.look = { k: best.k }; beep([[1046, .03]]);
+    var it = best, msg = it.k === "ice" ? "Ein Eisberg!" : it.k === "floe" ? "Eine Scholle" : it.k === "boat" ? "Ein Fischerboot" : it.k === "wood" ? "Treibholz" : it.k === "gate" ? "Die Hafentonnen" : CP_NAME[it.k];
+    if (it.ani) { var LG = cpLog(), first = !LG[it.k]; LG[it.k] = (LG[it.k] || 0) + 1; if (cp.found.indexOf(it.k) < 0) cp.found.push(it.k); if (first) cp.newF.push(it.k); msg = first ? "Neu im Logbuch: " + CP_NAME[it.k] + "!" : CP_NAME[it.k] + "!"; if (window.SudokuSave) window.SudokuSave(); }
+    cpSay(msg); cpPanelDraw(); cp.anim = { look: performance.now() + 1300 }; cpRaf = requestAnimationFrame(cpDraw);
   });
-  // ---- the panel below the picture: the leg, the rudder for every row, the speed, the glasses, "Los!" ----
+  // ---- the panel: the chapter, how far to Nuss York, the rudder for the next stretch, the speed, the glasses, "Los!" ----
+  function cpTarget() { return Math.round(CP_END / 7.2); }
   function cpPanelDraw() {
-    if (!cp) return; var lg = CP_LEGS[cp.leg], dl = cpDelay(), busy = !!cp.anim, h = "";
-    h += '<div class="cap-top"><b>' + lg.n + '</b><span>Abschnitt ' + (cp.leg + 1) + '/' + CP_LEGS.length + ' · Fahrzeit ' + cp.time + '/' + cpTarget() + '</span></div>';
-    h += '<div class="cap-grid">';
-    for (var r = 4; r >= 0; r--) { var dead = r > 4 - dl;
-      h += '<div class="cap-r' + (dead ? ' dead' : '') + '"><span>' + (r + 1) + '</span>' + [[-1, "◀"], [0, "▲"], [1, "▶"]].map(function (b) { return '<button type="button" data-r="' + r + '" data-v="' + b[0] + '" class="' + (cp.rud[r] === b[0] ? "on" : "") + '"' + (busy || dead ? " disabled" : "") + '>' + b[1] + '</button>'; }).join("") + '</div>'; }
-    h += '</div><div class="cap-side"><div class="cap-sp"><button type="button" data-s="halbe" class="' + (cp.speed === "halbe" ? "on" : "") + '"' + (busy ? " disabled" : "") + '>Halbe</button><button type="button" data-s="volle" class="' + (cp.speed === "volle" ? "on" : "") + '"' + (busy ? " disabled" : "") + '>Volle</button></div>' +
+    if (!cp) return; var lg = cpChap(), busy = !!cp.anim, left = Math.max(0, Math.round((CP_END - cp.y) / 10)), h = "";
+    h += '<div class="cap-top"><b>' + lg.n + '</b><span>noch ' + left + ' sm · Züge ' + cp.turns + '/' + cpTarget() + '</span></div>';
+    h += '<p class="cap-rudt">Ruder: <b>' + ["hart Backbord", "Backbord", "geradeaus", "Steuerbord", "hart Steuerbord"][cp.rud + 2] + '</b></p>';
+    h += '<div class="cap-row2"><div class="cap-sp"><button type="button" data-s="halbe" class="' + (cp.speed === "halbe" ? "on" : "") + '"' + (busy ? " disabled" : "") + '>Halbe</button><button type="button" data-s="volle" class="' + (cp.speed === "volle" ? "on" : "") + '"' + (busy ? " disabled" : "") + '>Volle</button></div>' +
       '<p class="cap-gl">Fernglas ' + "●".repeat(cp.looks) + "○".repeat(2 - cp.looks) + '</p><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
     cpPanel.innerHTML = h;
   }
-  function cpTarget() { return Math.round(CP_LEGS.length * 1.5); }
   cpPanel.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || !cp || cp.anim || cp.intro || cp.done) return; e.stopPropagation();
-    if (b.dataset.r) { var r = +b.dataset.r, v = +b.dataset.v; cp.rud[r] = v; beep([[440 + v * 60, .03]]); cpPanelDraw(); cpRedraw(); return; }
-    if (b.dataset.s) { cp.speed = b.dataset.s; for (var k = 5 - cpDelay(); k < 5; k++) cp.rud[k] = 0; beep([[cp.speed === "volle" ? 784 : 523, .05]]); cpPanelDraw(); cpRedraw(); return; }
+    if (b.dataset.v != null) { cp.rud = +b.dataset.v; beep([[440 + cp.rud * 50, .03]]); cpPanelDraw(); cpRedraw(); return; }
+    if (b.dataset.s) { cp.speed = b.dataset.s; beep([[cp.speed === "volle" ? 784 : 523, .05]]); cpPanelDraw(); cpRedraw(); return; }
     if (b.classList.contains("cap-go")) cpGo();
   });
   // ---- cards: the start, the end ----
   function cpIntro() {
     cp.intro = true;
-    cpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Kapitän der Pausbacke</p><p class="dz-route">Southamsterton → Nuss York · ' + CP_LEGS.length + ' Abschnitte</p>' +
-      '<p class="fi-s">Vorn liegt jeder Abschnitt in drei Bahnen. Was weit draußen schimmert, zeigt dir das Fernglas: tipp drauf. Dann leg das Ruder für jede Reihe fest. Es greift eine Reihe später, bei voller Fahrt zwei.</p>' +
-      '<p class="fi-s">★ Nichts rammen<br>★ Höchstens ' + cpTarget() + ' Fahrzeit (Volle 1, Halbe 2)<br>★ Mindestens 4 Tiere und Funde sichten</p>' +
+    cpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Kapitän der Pausbacke</p><p class="dz-route">Southamsterton → Nuss York · ' + Math.round(CP_END / 10) + ' Seemeilen</p>' +
+      '<p class="fi-s">Leg für jeden Zug das Ruder fest: die gelbe Linie zeigt, wohin das Schiff dreht. Was weit draußen schimmert, zeigt dir das Fernglas: tipp drauf.</p>' +
+      '<p class="fi-s">★ Nichts rammen<br>★ In höchstens ' + cpTarget() + ' Zügen ankommen<br>★ Mindestens 4 Tiere und Funde sichten</p>' +
       '<div class="fi-row"><button type="button" class="fi-b" data-a="go">Leinen los!</button></div></div>';
     cpCard.hidden = false;
   }
   function cpEnd() {
-    cp.done = true; var st = [cp.hits === 0, cp.time <= cpTarget(), cp.found.length >= 4], n = st.filter(Boolean).length, LG = cpLog();
+    cp.done = true; var st = [cp.hits === 0, cp.turns <= cpTarget(), cp.found.length >= 4], n = st.filter(Boolean).length, LG = cpLog();
     var book = CP_ANI.map(function (k) { return '<span class="' + (LG[k] ? (cp.newF.indexOf(k) >= 0 ? "nw" : "") : "no") + '">' + (LG[k] ? CP_NAME[k] : "?") + '</span>'; }).join("");
     cpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">' + (n === 3 ? "Willkommen in Nuss York!" : "Angekommen in Nuss York") + '</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p>' +
-      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Nichts gerammt" + (cp.hits ? " (" + cp.hits + "× Rumms)" : "") + '<br>' + (st[1] ? "★" : "☆") + " Fahrzeit " + cp.time + "/" + cpTarget() + '<br>' + (st[2] ? "★" : "☆") + " " + cp.found.length + " gesichtet</p>" +
+      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Nichts gerammt" + (cp.hits ? " (" + cp.hits + "× Rumms)" : "") + '<br>' + (st[1] ? "★" : "☆") + " " + cp.turns + " Züge (höchstens " + cpTarget() + ")" + '<br>' + (st[2] ? "★" : "☆") + " " + cp.found.length + " gesichtet</p>" +
       '<p class="fi-s cap-book-h">Logbuch</p><div class="cap-book">' + book + '</div>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Nochmal</button></div></div>';
-    cpCard.hidden = false; cpPanelDraw(); beep(n === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]);
+    cpCard.hidden = false; cpPanelDraw(); cpRedraw(); beep(n === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]);
   }
   cpCard.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return; e.stopPropagation();
-    if (b.dataset.a === "go") { cp.intro = false; cpCard.hidden = true; beep([[880, .06], [880, .06], [660, .08]]); cpPanelDraw(); cpRedraw(); cpSay(CP_LEGS[0].n); return; }
+    if (b.dataset.a === "go") { cp.intro = false; cpCard.hidden = true; beep([[880, .06], [880, .06], [660, .08]]); cpPanelDraw(); cpRedraw(); cpSay(cpChap().n); return; }
     if (b.dataset.a === "again") { var rs = cp.resolve; cp = cpNew(); cp.resolve = rs; cpSeaKey = ""; cpPanelDraw(); cpRedraw(); cpIntro(); return; }
     capEnd();
   });
@@ -16252,7 +16239,9 @@ window.__EXTRAS = true;
     if (b.dataset.a === "stoker") { e.stopPropagation(); _cp_dzIntro(); }
     if (b.dataset.a === "captain") { e.stopPropagation(); var r = dz && dz.resolve; if (dz) dz.resolve = null; steamEnd(); capGame().then(function () { if (r) r(); }); }
   }, true);
-  window.__cap = { open: function () { return capGame(); }, st: function () { return cp && { leg: cp.leg, lane: cp.lane, rud: cp.rud.slice(), speed: cp.speed, looks: cp.looks, hits: cp.hits, gates: cp.gates, time: cp.time, found: cp.found.slice(), done: cp.done, intro: cp.intro, anim: !!cp.anim, G: cp.G.map(function (r) { return r.map(function (o) { return o && o.k; }); }) }; } };
+  window.__capSetRud = function (r) { if (cp && !cp.anim) { cp.rud = r; cpPanelDraw(); cpRedraw(); } };   /* preview test hook */
+  window.__cap = { open: function () { return capGame(); }, st: function () { return cp && { x: cp.x, y: cp.y, h: cp.h, rud: cp.rud, speed: cp.speed, looks: cp.looks, hits: cp.hits, gates: cp.gates, turns: cp.turns, found: cp.found.slice(), done: cp.done, intro: cp.intro, anim: !!cp.anim, end: CP_END,
+    near: cp.O.filter(function (o) { return !o.done && o.y > cp.y && o.y < cp.y + 25; }).map(function (o) { return { k: o.k, x: +o.x.toFixed(1), y: +o.y.toFixed(1) }; }) }; } };
   // ===================== the wide living room: to the right of the old room, a music nook with a piano and a bay window seat =====================
   // The room is now 360 wide. A camera (camX, 0..180) slides the room, the hamster and his little effects together;
   // swipe the room to look around, and the camera follows the hamster when he walks out of view.
