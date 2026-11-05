@@ -1,0 +1,47 @@
+/* ===== cooking view in the pixel look of the planting game (preview only) ===== */
+.cook-pov { font-family: system-ui, -apple-system, sans-serif; }
+.cook-pov .pov-head { left: 0; right: 0; top: 0; padding: 0; background: none; border: 0; border-radius: 0; gap: 0; display: block; pointer-events: none; }
+.cook-pov .pov-head b { position: absolute; left: 50%; top: 3%; transform: translateX(-50%); margin-top: 6px; background: #fff8ec; color: #3a2414; font-size: 0.9rem; font-weight: 400; padding: 3px 10px; white-space: nowrap; box-shadow: 0 0 0 2px #3a2414, 0 3px 0 2px #3a2414; }
+.cook-pov .pov-head span { position: absolute; left: 6%; right: 6%; top: 46px; text-align: left; font-size: 0.72rem; color: #fff; line-height: 1.25; text-shadow: 1px 0 #3a2414, -1px 0 #3a2414, 0 1px #3a2414, 0 -1px #3a2414, 1px 1px #3a2414, -1px -1px #3a2414, 1px -1px #3a2414, -1px 1px #3a2414; }
+.cook-pov.c2-gauge .pov-head span { right: 22%; }
+.cook-pov .pov-x { right: 2%; top: 2%; width: 26px; height: 26px; border: 0; border-radius: 0; background: #fff8ec; box-shadow: inset 0 0 0 2px #3a2414; font: inherit; font-size: 1rem; font-weight: 400; line-height: 1; clip-path: var(--px-notch2); }
+/* ingredients: small pixel cards */
+.cook-pov .pov-board { left: 3%; bottom: 4%; width: 24%; gap: 5px; }
+.cook-pov .pov-ing { border: 0; border-radius: 0; background: #fff8ec; padding: 4px; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e6d4ba; clip-path: var(--px-notch2); transition: transform .4s steps(5), opacity .4s steps(5); }
+.cook-pov .pov-ing:active { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #e6d4ba; }
+/* progress: a segmented pixel bar */
+.cook-pov .pov-ring { left: 26%; right: 26%; bottom: 5%; height: 12px; border: 0; border-radius: 0; padding: 2px; background: #fff8ec; box-shadow: 0 0 0 2px #3a2414; overflow: visible; }
+.cook-pov .pov-ring i { background: repeating-linear-gradient(90deg, #4e8a32 0 8px, transparent 8px 9px); transition: width .1s steps(2); }
+/* heat: the planting game's gauge panel, label on top */
+.cook-pov .pov-gauge { right: 4%; top: 24%; bottom: 20%; width: 18px; border: 0; border-radius: 0; box-shadow: 0 0 0 2px #3a2414, 0 0 0 5px #fff8ec, 0 0 0 7px #3a2414; overflow: visible;
+  background: repeating-linear-gradient(transparent 0 6px, rgba(255, 248, 236, .7) 6px 7px), linear-gradient(#e2483a, #f0a830 18%, #b8e08a 26%, #b8e08a 74%, #f0a830 82%, #e2483a) !important; }
+.cook-pov .pov-gauge::before { content: "Hitze"; position: absolute; left: 50%; top: -26px; transform: translateX(-50%); font-size: 0.62rem; color: #fff; text-shadow: 1px 0 #3a2414, -1px 0 #3a2414, 0 1px #3a2414, 0 -1px #3a2414; }
+.cook-pov .pov-gauge .z2 { background: repeating-linear-gradient(transparent 0 6px, rgba(255, 248, 236, .7) 6px 7px), #4e8a32; }
+.cook-pov .pov-gauge .mark { left: -8px; right: -8px; height: 4px; background: #3a2414; border: 0; box-shadow: 0 -2px 0 #fff8ec, 0 2px 0 #fff8ec; }
+/* oven: the same pixel panel, lying flat */
+.cook-pov .pov-bake { left: 4%; right: 34%; bottom: 7%; height: 18px; border: 0; border-radius: 0; box-shadow: 0 0 0 2px #3a2414, 0 0 0 4px #fff8ec, 0 0 0 6px #3a2414; background: repeating-linear-gradient(90deg, transparent 0 9px, rgba(255, 248, 236, .6) 9px 10px), linear-gradient(90deg, #f6e6bc, #ecc888 25%, #d89038 50%, #a8602a 72%, #5e3018) !important; }
+.cook-pov .pov-bake .l1, .cook-pov .pov-bake .l2 { width: 2px; top: -2px; bottom: -2px; background: #4e8a32; box-shadow: none; }
+.cook-pov .pov-bake .mark { top: -6px; bottom: -6px; width: 4px; margin-left: -2px; background: #3a2414; border: 0; box-shadow: -2px 0 0 #fff8ec, 2px 0 0 #fff8ec; }
+.cook-pov .pov-bake span { bottom: auto; top: -20px; font-weight: 400; font-size: 0.62rem; color: #fff; text-shadow: 1px 0 #3a2414, -1px 0 #3a2414, 0 1px #3a2414, 0 -1px #3a2414; }
+/* action button: the orange pixel button */
+.cook-pov .pov-go { right: 3%; bottom: 4%; border: 0; border-radius: 0; padding: 8px 16px; font-size: 0.9rem; font-weight: 800; background: var(--orange, #e8701a); color: #fff; text-shadow: 0 1px 0 #b85a18; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -5px 0 2px #b84c06; clip-path: var(--px-notch2); }
+.cook-pov .pov-go:active { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #b84c06; transform: translateY(2px); }
+/* result: same card as after planting */
+.cook-pov .pov-done { background: rgba(42, 24, 16, .45); }
+.cook-pov .pov-card { width: 72%; gap: 4px; padding: 10px 12px; background: #fff8ec; border: 0; border-radius: 0; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; font-size: 0.75rem; animation: pz-ban .35s steps(4); }
+.cook-pov .pov-card b { font-size: 0.9rem; font-weight: 400; }
+.cook-pov .pov-stars { display: flex; justify-content: center; gap: 6px; } .cook-pov .pov-stars svg { width: 28px; display: block; }
+.cook-pov .pov-card .pbtn { margin-top: 4px; min-height: 32px; font-size: 0.8rem; }
+/* recipe list: no small footnote */
+.kpop .pn { display: none; }
+
+/* user: no small explanation text in the kitchen, only the step banner */
+.cook-pov .pov-head span { display: none !important; }
+/* timing gauges: the shared pixel gauge svg sits in a bare box, in scene pixels */
+.cook-pov .pgx { box-shadow: none !important; background: none !important; border: 0 !important; border-radius: 0 !important; overflow: visible !important; height: auto !important; }
+.cook-pov .pgx::before { content: none !important; }
+
+.cook-pov .pov-scene.k-done { animation: kdone .5s ease-out; transform-origin: 50% 60%; }
+@keyframes kdone { 0% { transform: scale(1); } 40% { transform: scale(1.025); } 100% { transform: scale(1); } }
+.cook-pov .k-sp { animation: ksp .8s ease-out both; transform-box: fill-box; transform-origin: center; }
+@keyframes ksp { 0% { opacity: 0; transform: scale(.4); } 30% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(.8) translateY(-4px); } }

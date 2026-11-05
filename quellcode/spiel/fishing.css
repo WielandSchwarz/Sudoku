@@ -1,0 +1,56 @@
+/* ===== fishing from the jetty ===== */
+.fi-pov .fi-cv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.fi-pov .fi-lh { position: absolute; inset: 0; pointer-events: none; }
+.fi-pov .fi-lh svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fi-pov .fi-dark { position: absolute; inset: 0; pointer-events: none; }
+.fi-pov .fi-dark.e { background: rgba(74, 46, 72, .08); } .fi-pov .fi-dark.n { background: rgba(12, 16, 48, .18); }
+.fi-pov .fi-ban:empty { display: none; }
+.fi-card { position: absolute; inset: 0; z-index: 4; padding-top: 2%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: rgba(43, 29, 18, .32); }
+.fi-card[hidden] { display: none; }
+.fi-c { position: relative; background: #fff8ec; color: #3a2414; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; padding: 10px 12px 12px; text-align: center; width: 78%; max-width: 320px; max-height: 92%; overflow-y: auto; overscroll-behavior: contain; }
+.fi-h { margin: 0 0 8px; font-size: 1.05rem; font-weight: 800; }
+.fi-hl { text-align: left; }
+.fi-baits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.fi-t { border: 0; background: #fff8ec; color: #3a2414; font: inherit; font-weight: 700; font-size: 0.9rem; padding: 7px 3px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e0d0b4; cursor: pointer; }
+.fi-t img, .fi-pic img, .fi-bt img { image-rendering: pixelated; display: block; }
+.fi-sel { background: #ffe0d0; box-shadow: inset 0 0 0 3px #e8650c, inset 0 -4px 0 3px #b84c06; }
+.fi-row { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.fi-b, .fi-b2 { border: 0; font: inherit; font-weight: 800; font-size: 0.95rem; padding: 7px 14px 10px; cursor: pointer; }
+.fi-b { background: #e8650c; color: #fff; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #b84c06; }
+.fi-b2 { background: #fff8ec; color: #3a2414; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e0d0b4; }
+.fi-pic { display: flex; justify-content: center; margin: 4px 0 2px; }
+.fi-cm { margin: 6px 0 0; font-size: 1.1rem; font-weight: 800; }
+.fi-s { margin: 6px 0 0; font-size: 0.85rem; }
+.fi-new { position: absolute; top: 6px; right: 6px; background: #e8650c; color: #fff; font-size: 0.85rem; font-weight: 800; padding: 2px 7px 4px; box-shadow: 0 0 0 2px #3a2414; transform: rotate(8deg); }
+.fi-book { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.fi-bt { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0d0b4; padding: 4px 2px 7px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; min-height: 52px; font-size: 0.8rem; font-weight: 700; line-height: 1.1; }
+.fi-no img { filter: brightness(0) opacity(.22); }
+.fi-st { display: block; color: #e8a020; font-size: 1rem; letter-spacing: 2px; margin: -4px 0 4px; }
+.fi-st i { font-style: normal; color: #e0d0b4; }
+.fi-bt .fi-st { font-size: 0.7rem; margin: 0; letter-spacing: 1px; }
+.fi-bt { border: 0; font: inherit; color: #3a2414; background: #fff8ec; cursor: pointer; }
+.fi-bt.fi-sel { background: #ffe0d0; }
+.fi-gd { box-shadow: inset 0 0 0 2px #3a2414, inset 0 0 0 4px #f6c84a, inset 0 -3px 0 4px #e0a830 !important; }
+.fi-tape { position: relative; display: flex; flex-direction: column; align-items: center; margin: 4px 0 0; }
+.fi-onr { margin-bottom: -2px; }
+.fi-gold { display: inline-block; background: #f6c84a; color: #3a2414; font-size: 0.8rem; padding: 1px 6px 2px; box-shadow: 0 0 0 2px #3a2414; margin-left: 4px; }
+.fi-tip { font-weight: 800; color: #b84c06; }
+.fi-hint { font-size: 0.85rem; margin: -2px 0 8px; text-align: left; min-height: 2.4em; }
+.fi-t:disabled { opacity: .45; cursor: default; }
+/* the house style for menus: cards with stepped pixel corners, buttons with the two-step notch and drawn corner pixels */
+.fi-c { box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .18), inset 0 -2px 0 0 #ecdcc4 !important; }
+.fi-t, .fi-b, .fi-b2, .fi-bt, #scene .seedtabs button { position: relative; clip-path: var(--px-notch2); }
+.fi-new, .fi-gold { clip-path: var(--px-notch); }
+.fi-t::after, .fi-b::after, .fi-b2::after, .fi-bt::after, #scene .seedtabs button::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#3a2414, #3a2414) 2px 2px / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#3a2414, #3a2414) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat; }
+.fi-sel::after { background: linear-gradient(#e8650c, #e8650c) 2px 2px / 2px 2px no-repeat, linear-gradient(#e8650c, #e8650c) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#e8650c, #e8650c) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#e8650c, #e8650c) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat !important; }
+.fi-new, .fi-gold { box-shadow: inset 0 0 0 2px #3a2414 !important; }
+
+.fi-c .fi-h { margin-bottom: 4px; }
+.fi-c .fi-st { margin: -2px 0 2px; }
+.fi-c .fi-cm { margin: 2px 0 0; }
+.fi-c .fi-s { margin: 3px 0 0; font-size: 0.8rem; line-height: 1.25; }
+.fi-c .fi-row { margin-top: 8px; }

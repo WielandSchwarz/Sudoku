@@ -1,0 +1,257 @@
+
+/* ===================== one pixel look for the whole hamster game: font, buttons, bars, popups ===================== */
+#scr-hamster, #scr-hamster button, #scr-hamster input, .ham-album, .ham-album button, .map-ov, .map-card, .map-card button,
+#scene .gpop, #scene .l-pop, #scene .f-card, #scene .say-box, .pz-ui, .l-recipes { font-family: system-ui, sans-serif !important; letter-spacing: 0; }
+
+/* header: name, mood line, five square icon buttons that never squeeze the text */
+#scr-hamster > .top { gap: 8px; align-items: center; }
+#scr-hamster > .top > div:first-child { min-width: 0; flex: 1; }
+#scr-hamster > .top h1 { font-size: 1.55rem; font-weight: 700; line-height: 1.05; margin: 0; }
+#scr-hamster > .top h1 button { font: inherit !important; text-decoration: none; border-bottom: 2px dotted #3a2414; }
+#scr-hamster > .top .age, #scr-hamster > .top p { font-size: 0.82rem; color: #8a6a4a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 0; }
+#scr-hamster .top-btns { gap: 6px !important; flex: none; }
+#scr-hamster .top-btns .close { width: 38px !important; height: 38px !important; border-radius: 0 !important; background: #fff8ec !important; border: 0 !important;
+  box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4 !important; display: grid; place-items: center; padding: 0 !important; font-size: 1.1rem !important; color: #3a2414; }
+#scr-hamster .top-btns .close svg { width: 20px; height: 20px; }
+#scr-hamster .top-btns .close:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #ecdcc4 !important; }
+
+/* the room frame and the side arrows */
+#scr-hamster .scene { border-radius: 0 !important; box-shadow: 0 0 0 3px #3a2414, 0 5px 0 3px #3a2414 !important; border: 0 !important; margin-top: 4px; margin-bottom: 8px; }
+#scene .say-box { font-size: 0.86rem !important; font-weight: 400 !important; line-height: 1.25 !important; padding: 5px 10px 6px !important; max-width: 78%; }
+
+/* needs: chunky segmented pixel bars */
+#scr-hamster .needs { gap: 8px 14px !important; margin-top: 6px; }
+#scr-hamster .need-head, #scr-hamster .cosy-head { font-size: 0.9rem !important; font-weight: 400; color: #3a2414; margin-bottom: 3px; }
+#scr-hamster .need-head span:last-child { color: #8a6a4a; }
+#scr-hamster .bar { height: 14px !important; border-radius: 0 !important; background: #fff8ec !important; border: 0 !important; padding: 3px; box-sizing: border-box;
+  box-shadow: inset 0 0 0 2px #3a2414 !important; overflow: hidden; }
+#scr-hamster .bar i { border-radius: 0 !important; height: 100% !important; display: block;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 7px, rgba(0,0,0,.22) 7px 8px), linear-gradient(rgba(255,255,255,.28) 0 2px, rgba(255,255,255,0) 2px) !important; }
+#scr-hamster .cosy { margin-top: 10px; }
+#scr-hamster .cosy-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+#scr-hamster .cosy-head span { flex: 1; min-width: 0; }
+#scr-hamster .cosy-head b { white-space: nowrap; font-weight: 700; }
+
+/* every button in the game: square, ink outline, a little bevel underneath */
+#scr-hamster .act, #scr-hamster .food-btn, #scr-hamster .track, #scr-hamster .decor-btn, #scr-hamster .tab, #scr-hamster .item, #scr-hamster .clear-btn,
+#scene .gpop button:not(.l-x), #scene .l-pop button:not(.l-x), .map-card .hs-btn, .map-card button.style, .ham-album .close, .map-card .close {
+  border-radius: 0 !important; border: 0 !important; background-color: #fff8ec; color: #3a2414;
+  box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4 !important; }
+#scr-hamster .act:active, #scr-hamster .food-btn:active, #scr-hamster .track:active, #scr-hamster .tab:active, #scr-hamster .item:active, #scene .gpop button:active, #scene .l-pop button:active {
+  transform: translateY(1px); box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #ecdcc4 !important; }
+#scr-hamster .actions { gap: 8px !important; margin-top: 12px; }
+#scr-hamster .act { font-size: 0.86rem !important; font-weight: 400 !important; padding: 8px 2px 9px !important; min-height: 64px; }
+#scr-hamster .act svg { width: 30px !important; height: 26px !important; }
+#scr-hamster .act[aria-pressed="true"], #scr-hamster .act.on { background-color: #ffe3c4 !important; }
+
+/* food and music lists: a tidy pixel tray that opens under the buttons and closes again */
+#scr-hamster .foods[hidden], #scr-hamster .tracks[hidden] { display: none !important; }
+#scr-hamster .foods, #scr-hamster .tracks { margin-top: 10px !important; padding: 8px !important; border-radius: 0 !important; background: #f6e8d2 !important;
+  box-shadow: inset 0 0 0 2px #3a2414 !important; gap: 8px !important; }
+#scr-hamster .foods { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)) !important; }
+#scr-hamster .food-btn { font-size: 0.8rem !important; padding: 6px 3px 8px !important; min-height: 58px; hyphens: auto; line-height: 1.1; }
+#scr-hamster .food-btn svg { height: 24px !important; width: auto !important; }
+#scr-hamster .track { font-size: 0.92rem !important; font-weight: 400 !important; padding: 9px 12px 11px !important; }
+#scr-hamster .tray-x { display: none; }
+
+/* decorating: the big button and the catalog */
+#scr-hamster .decor-btn { width: 100%; margin-top: 12px; min-height: 46px; font-size: 1rem !important; font-weight: 700 !important; }
+#scr-hamster .scene.decor ~ .decor-btn, #scr-hamster .decor-btn[aria-pressed="true"] { background-color: #e8650c !important; color: #fff !important; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #b84c06 !important; }
+#scr-hamster .catalog { border-radius: 0 !important; background: #f6e8d2 !important; box-shadow: inset 0 0 0 2px #3a2414 !important; padding: 10px !important; margin-top: 10px; }
+#scr-hamster .catalog .tabs { gap: 6px !important; display: grid !important; grid-template-columns: repeat(3, 1fr); background: none !important; padding: 0 !important; }
+#scr-hamster .catalog .tab { font-size: 0.85rem !important; font-weight: 400 !important; padding: 7px 4px 9px !important; }
+#scr-hamster .catalog .tab.on, #scr-hamster .catalog .tab[aria-selected="true"] { background-color: #ffe3c4 !important; box-shadow: inset 0 0 0 2px #e8650c, inset 0 -4px 0 2px #f8c89a !important; }
+#scr-hamster .catalog .cat-head { font-size: 0.9rem; margin: 10px 0 6px; }
+#scr-hamster .catalog .items { gap: 8px !important; }
+#scr-hamster .catalog .item { font-size: 0.75rem !important; }
+#scr-hamster .catalog .item.sel, #scr-hamster .catalog .item.on, #scr-hamster .catalog .item[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #e8650c, inset 0 -4px 0 2px #f8c89a !important; background-color: #fff3e4 !important; }
+
+/* popups inside the scene: readable size, never wider than needed, pixel frame */
+#scene .gpop, #scene .l-pop { font-size: 0.8rem !important; line-height: 1.3 !important; border-radius: 0 !important; padding: 7px 9px 9px !important;
+  box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414 !important; max-height: 88%; overflow-y: auto; }
+#scene .gpop .ph, #scene .l-pop .ph { font-size: 0.88rem; font-weight: 700; margin: 0 0 6px; }
+#scene .gpop .pn, #scene .l-pop .pn, #scene .gpop .pl, #scene .l-pop .pl { font-size: 0.74rem; }
+#scene .gpop.seeds, #scene .l-pop.seeds { width: 74% !important; max-width: 300px !important; }
+#scene .seedgrid { gap: 5px !important; }
+#scene .seedrow { font-size: 0.78rem !important; padding: 4px 6px 6px !important; min-height: 0 !important; gap: 5px !important; }
+#scene .seedrow svg { width: 10px !important; height: auto; }
+#scene .seedrow[disabled] { opacity: .45; box-shadow: inset 0 0 0 2px #c8b49a !important; }
+#scene .pbtn { font-family: system-ui, sans-serif !important; }
+.pz-switch { font-size: 0.78rem !important; }
+
+/* visitor card: same frame */
+#scene .f-card { border-radius: 0 !important; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414 !important; border: 0 !important; }
+#scene .f-card .fc-name { font-size: 0.82rem !important; }
+#scene .f-card .fc-btn { font-family: inherit !important; font-size: 0.8rem !important; border-radius: 0 !important; }
+
+/* signs on the bed */
+#scene .sign .t { font-family: system-ui, sans-serif !important; font-weight: 400 !important; }
+#scene .sign .bar { border-radius: 0 !important; height: 4px !important; }
+
+/* sheets: album and house map */
+.ham-album-card, .map-card { border-radius: 0 !important; background: #fdf3e2 !important; box-shadow: 0 0 0 3px #3a2414, 0 6px 0 3px #3a2414 !important; }
+.ham-album-top h2, .map-card h2 { font-family: system-ui, sans-serif !important; font-size: 1.35rem !important; font-weight: 700; }
+.ham-album-sub, .map-card p { font-size: 0.85rem !important; }
+.ham-album .close, .map-card .close { width: 34px !important; height: 34px !important; display: grid; place-items: center; font-size: 1.1rem !important; padding: 0 !important; }
+.album-grid .sticker { border-radius: 0 !important; box-shadow: inset 0 0 0 2px #e6d4ba !important; background: #fff8ec !important; }
+.album-grid .sticker:not(.locked) { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4 !important; }
+.album-grid .sticker span, .album-grid .sticker b { font-size: 0.72rem !important; }
+.map-card .map-pic, .map-card .map-track { border-radius: 0 !important; }
+.map-card .map-pic { box-shadow: 0 0 0 2px #3a2414 !important; }
+.map-card button.style, .map-card .hs-btn { font-size: 0.72rem !important; }
+#scr-hamster > .top h1, #scr-hamster > .top h1 button { font-family: system-ui, sans-serif !important; }
+#scr-hamster > .top .age, #scr-hamster > .top p { white-space: normal !important; overflow: visible; line-height: 1.15; }
+#scene .gpop.seeds { top: 4% !important; bottom: auto !important; left: 13% !important; right: auto !important; transform: none !important; }
+/* gift question */
+.gift-ask { position: absolute; inset: 0; z-index: 900; background: rgba(43, 29, 18, .35); display: flex; align-items: center; justify-content: center; }
+.gift-ask .ga-card { width: 78%; max-width: 300px; background: #fff8ec; color: #3a2414; padding: 10px 12px 12px; text-align: center; box-shadow: 0 0 0 2px #3a2414, 0 4px 0 2px #3a2414; max-height: 90%; overflow-y: auto; }
+.gift-ask .ga-h { margin: 0 0 8px; font-size: 0.92rem; font-weight: 700; }
+.gift-ask .ga-s { margin: -4px 0 10px; font-size: 0.75rem; color: #8a6a4a; }
+.gift-ask .ga-ic svg { width: 28px; height: auto; shape-rendering: crispEdges; }
+.gift-ask .ga-ic { margin: 0 0 4px; }
+.gift-ask .ga-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.gift-ask button { font-family: system-ui, sans-serif !important; border: 0; border-radius: 0; background: #fff8ec; color: #3a2414; cursor: pointer;
+  box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4; padding: 6px 4px 8px; font-size: 0.75rem; }
+.gift-ask .ga-grid button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.gift-ask .ga-grid svg { height: 20px; width: auto; shape-rendering: crispEdges; }
+.gift-ask .ga-grid b { position: absolute; right: 4px; top: 2px; font-size: 0.7rem; color: #e8650c; }
+.gift-ask .ga-row { display: flex; gap: 8px; justify-content: center; }
+.gift-ask .ga-row button { flex: 1; padding: 8px 6px 10px; font-size: 0.82rem; }
+.gift-ask .ga-yes { background: #e8650c !important; color: #fff !important; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #b84c06 !important; }
+#scene:has(.gpop, .l-pop, .gift-ask) .f-card, #scene:has(.gpop, .l-pop, .gift-ask) .l-pcard { visibility: hidden; }
+/* normal app font everywhere (no pixel letters), slightly tighter sizes */
+.pixtext, .pixtext *, #scr-hamster, #scr-hamster button, #scene .say-box, #scene .gpop, #scene .l-pop, #scene .f-card, .pz-ui, .gift-ask button, .ham-album, .map-card { font-family: var(--f-body, system-ui), -apple-system, "Segoe UI", Roboto, sans-serif !important; }
+#scr-hamster > .top h1, #scr-hamster > .top h1 button, .ham-album-top h2, .map-card h2 { font-family: var(--f-display, var(--f-body, system-ui)), serif !important; }
+#scene .say-box { font-weight: 600 !important; }
+#scr-hamster .act, #scr-hamster .food-btn, #scr-hamster .track, #scr-hamster .tab { font-weight: 600 !important; }
+/* visitor card close button */
+#scene .f-card .fc-x { position: absolute; right: -9px; top: -9px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 0; background: #fff8ec; color: #3a2414; font-size: 14px; line-height: 1; cursor: pointer;
+  box-shadow: inset 0 0 0 2px #3a2414; display: grid; place-items: center; }
+#scene .f-card { position: absolute; overflow: visible !important; }
+.k-item.locked .ic { filter: grayscale(1) brightness(1.1); opacity: .45; }
+.k-item.locked span:not(.lock) { opacity: .5; }
+.k-item .lock { display: block; font-size: 0.66rem; color: #8a6a4a; margin-top: 2px; }
+.gift .v-stage svg { width: 180px; max-width: 70vw; height: auto; shape-rendering: crispEdges; display: block; margin: 0 auto; }
+
+/* room arrows: back, but quiet and round like before */
+#scene .k-enter, #scene .g-exit, #scene .h-stairs { background: none !important; }
+#scene .k-enter span, #scene .g-exit span, #scene .h-stairs span, #scene .h-up span { width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, .62) !important; color: rgba(58, 36, 20, .8);
+  font: 700 17px/20px system-ui, -apple-system, sans-serif !important; text-align: center; box-shadow: 0 1px 2px rgba(0, 0, 0, .12) !important; display: block; transition: background .15s; }
+#scene .k-enter:hover span, #scene .g-exit:hover span, #scene .h-stairs:hover span, #scene .h-up:hover span { background: rgba(255, 255, 255, .9) !important; }
+#scene .h-stairs span { transform: rotate(90deg); }
+#scene .h-up { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 18%; height: 9%; z-index: 9; border: 0; padding: 0; background: none; cursor: pointer; display: flex; align-items: flex-start; justify-content: center; }
+#scene .h-up span { margin-top: 3px; transform: rotate(-90deg); }
+.decor .h-up { display: none; }
+/* ===== pixel-rounded corners for every square button: one 2 px step cut from each corner ===== */
+:root { --px-notch: polygon(0 2px, 2px 2px, 2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px));
+  --px-notch2: polygon(0 4px, 2px 4px, 2px 2px, 4px 2px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 2px, calc(100% - 2px) 2px, calc(100% - 2px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 2px) calc(100% - 4px), calc(100% - 2px) calc(100% - 2px), calc(100% - 4px) calc(100% - 2px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 2px), 2px calc(100% - 2px), 2px calc(100% - 4px), 0 calc(100% - 4px)); }
+/* buttons that drew their dark frame outside get it inside, so the cut corners stay clean */
+#scene .pbtn, .lf-paper .pbtn, .pz-ui .pbtn, .gift-ask .ga-yes { border-radius: 0 !important; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -5px 0 2px #b84c06 !important; }
+#scene .fc-btn { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e0ccac !important; }
+#scene .fc-btn.bye { box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #b84c06 !important; }
+#scr-hamster .top-btns .close, #scr-hamster .act, #scr-hamster .food-btn, #scr-hamster .track, #scr-hamster .decor-btn, #scr-hamster .tab, #scr-hamster .item, #scr-hamster .clear-btn,
+#scene .gpop button, #scene .l-pop button, #scene .pbtn, #scene .fc-btn, #scene .fc-x, .lf-paper .pbtn, .gift-ask button, .pz-paws button, .pz-ui .pbtn, .pz-x,
+.ham-album .close, .map-card .close, .map-card .hs-btn, .map-card button.style { clip-path: var(--px-notch2); }
+/* inner frame steps: draw the corner pixels of the outline so the rounding reads as a drawn edge */
+#scr-hamster .top-btns .close::after, #scr-hamster .act::after, #scr-hamster .food-btn::after, #scr-hamster .track::after, #scr-hamster .decor-btn::after, #scr-hamster .tab::after, #scr-hamster .item::after,
+#scene .gpop button::after, #scene .l-pop button::after, #scene .pbtn::after, #scene .fc-btn::after, .lf-paper .pbtn::after, .gift-ask button::after, .pz-paws button::after, .pz-ui .pbtn::after, .ham-album .close::after, .map-card .close::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#3a2414, #3a2414) 2px 2px / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#3a2414, #3a2414) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat; }
+#scr-hamster .top-btns .close, #scr-hamster .act, #scr-hamster .food-btn, #scr-hamster .track, #scr-hamster .decor-btn, #scr-hamster .tab, #scr-hamster .item,
+#scene .gpop button, #scene .l-pop button, #scene .pbtn, #scene .fc-btn, .lf-paper .pbtn, .gift-ask button, .pz-paws button, .pz-ui .pbtn, .ham-album .close, .map-card .close { position: relative; }
+
+/* minigame buttons stay inside the scene (pixel-corner rule set them relative) */
+.pz-ui .pz-act, .pz-ui .pz-done { position: absolute !important; }
+
+/* ===== one text box style for every message and explanation (the visitor box) =====
+   cream field, 3 px dark frame with stepped corners, soft drop below, light seam inside at the bottom.
+   No tail. Text sits in the optical middle; longer text wraps into a second line at the same size. */
+#scene .say-box, .pz-ban, .pz-tip, .cook-pov .pov-head b, .ip-banner {
+  background: #fff8ec !important; color: #3a2414 !important; text-shadow: none !important; border: 0 !important; border-radius: 0 !important;
+  box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .18), inset 0 -2px 0 0 #ecdcc4 !important;
+  font-family: var(--f-body, system-ui), -apple-system, "Segoe UI", Roboto, sans-serif !important; font-size: 0.86rem !important; font-weight: 600 !important; line-height: 1.25 !important;
+  text-align: center !important; padding: 5px 12px 7px !important; box-sizing: border-box; text-wrap: balance;
+  display: block; }
+#scene .say-box::after { display: none !important; content: none !important; }
+#scene .say-box { width: max-content; max-width: 80% !important; }
+.pz-ban, .cook-pov .pov-head b { white-space: nowrap; max-width: 70%; top: 3% !important; margin-top: 3px !important; }
+.pz-tip { left: 50% !important; right: auto !important; top: calc(3% + 42px) !important; transform: translateX(-50%); width: max-content; max-width: 90%; }
+.pz-tip br { display: none; }
+.ip-banner b { font-size: inherit !important; font-weight: 600 !important; }
+
+/* ===== pixel progress bars (drawn as SVG in world pixels) ===== */
+.cook-pov .pov-ring, .bee-pov .bp-bar { left: 50% !important; right: auto !important; bottom: 4% !important; transform: translateX(-50%); width: 44.44% !important; height: auto !important; aspect-ratio: 80 / 10;
+  padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; overflow: visible; }
+.cook-pov .pov-ring i, .bee-pov .bp-bar i { display: none !important; }
+#scene .gpop .g2-bar, #scene .l-pop .g2-bar { display: block; width: 100%; height: auto; aspect-ratio: 50 / 10; padding: 0; background: none; box-shadow: none; }
+
+/* ===== one typeface everywhere and no text below about 12.5 px ===== */
+#scr-hamster, #scr-hamster *, #scene, #scene *, .gift-ask, .gift-ask *, .lf-paper, .lf-paper *, .ip, .ip *, .map-card, .map-card *, .ham-album, .ham-album * { font-family: var(--f-ui, system-ui), -apple-system, "Segoe UI", Roboto, sans-serif !important; }
+#scr-hamster h1, #scr-hamster h2, #scr-hamster #ham-name, .map-card h2, .ham-album h2 { font-family: var(--f-display, Georgia), Georgia, serif !important; }
+.map-style { font-size: 0.75rem !important; hyphens: auto; }
+#scr-hamster .catalog .item, #scr-hamster .catalog .item span, #scr-hamster .catalog .item small { font-size: 0.78rem !important; }
+.gift-ask .ga-s { font-size: 0.82rem !important; }
+#scene .gpop .seedrow { font-size: 0.82rem !important; min-height: 30px; }
+#scene .gpop .seedrow svg { width: 13px; }
+#scene .gpop .pn, #scene .l-pop .pn { display: none !important; }
+#scene .gpop, #scene .l-pop { font-size: 0.8rem; }
+/* wooden bars (woodBarSvg): sized in screen pixels by the svg itself, centred */
+.cook-pov .pov-ring, .bee-pov .bp-bar { width: auto !important; aspect-ratio: auto !important; height: auto !important; background: none !important; box-shadow: none !important; padding: 0 !important; }
+#scene .gpop .g2-bar, #scene .l-pop .g2-bar { width: auto !important; aspect-ratio: auto !important; display: flex !important; justify-content: center; }
+.cook-pov .pov-bake { left: 50% !important; right: auto !important; bottom: 3% !important; transform: translateX(-50%); width: auto !important; cursor: pointer; pointer-events: auto !important; }
+.cook-pov .pov-gauge { right: 3% !important; left: auto !important; top: 15% !important; width: auto !important; cursor: pointer; pointer-events: auto !important; }
+.pz-gauge { width: auto !important; right: auto !important; left: 50% !important; transform: translateX(-50%); top: 33% !important; }
+.wb-sp { animation: wb-sp 1.6s steps(1) infinite; opacity: 0; }
+@keyframes wb-sp { 0% { opacity: 1; } 22% { opacity: 0; } 100% { opacity: 0; } }
+.cook-pov .pov-bake, .cook-pov .pov-gauge, .cook-pov .pov-ring, .bee-pov .bp-bar, .pz-gauge { width: max-content !important; max-width: none !important; }
+
+/* ---- one close button everywhere: cream square, dark frame, beige bottom edge, pixel corners, a pixel x ---- */
+.cook-pov .pov-x, .bee-pov .bp-x, .pz-x, .pip-x, #scene .f-card .fc-x, .ham-album .close, .map-card .close {
+  width: 32px !important; height: 32px !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; cursor: pointer;
+  background: #fff8ec url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges' fill='%233a2414'%3E%3Crect x='0' y='0' width='1' height='1'/%3E%3Crect x='1' y='1' width='1' height='1'/%3E%3Crect x='2' y='2' width='1' height='1'/%3E%3Crect x='3' y='3' width='1' height='1'/%3E%3Crect x='4' y='4' width='1' height='1'/%3E%3Crect x='5' y='5' width='1' height='1'/%3E%3Crect x='6' y='6' width='1' height='1'/%3E%3Crect x='6' y='0' width='1' height='1'/%3E%3Crect x='5' y='1' width='1' height='1'/%3E%3Crect x='4' y='2' width='1' height='1'/%3E%3Crect x='2' y='4' width='1' height='1'/%3E%3Crect x='1' y='5' width='1' height='1'/%3E%3Crect x='0' y='6' width='1' height='1'/%3E%3C/svg%3E") center / 14px 14px no-repeat !important; color: transparent !important; font-size: 0 !important; text-shadow: none !important;
+  box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4 !important; clip-path: var(--px-notch2); }
+.cook-pov .pov-x, .bee-pov .bp-x, .pz-x { position: absolute !important; right: 2% !important; top: 2% !important; }
+#scene .f-card .fc-x { width: 26px !important; height: 26px !important; background-size: 14px 14px !important; right: -11px; top: -11px; }
+.cook-pov .pov-x:active, .bee-pov .bp-x:active, .pz-x:active, .pip-x:active, #scene .f-card .fc-x:active, .ham-album .close:active, .map-card .close:active {
+  transform: translateY(1px); box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #ecdcc4 !important; }
+.cook-pov .pov-x::after, .bee-pov .bp-x::after, .pz-x::after, .pip-x::after, #scene .f-card .fc-x::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#3a2414, #3a2414) 2px 2px / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) 2px / 2px 2px no-repeat,
+    linear-gradient(#3a2414, #3a2414) 2px calc(100% - 2px) / 2px 2px no-repeat, linear-gradient(#3a2414, #3a2414) calc(100% - 2px) calc(100% - 2px) / 2px 2px no-repeat; }
+.ham-album .close svg, .map-card .close svg { display: none; }
+/* ---- digging paws: the same cream buttons, with a pixel paw print in UI pixels ---- */
+.pz-paws { gap: 12px !important; }
+.pz-paws button { width: 60px !important; height: 56px !important; padding: 0 !important; display: grid !important; place-items: center; background: #fff8ec !important;
+  box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #ecdcc4 !important; }
+.pz-paws button:active { transform: translateY(1px); box-shadow: inset 0 0 0 2px #3a2414, inset 0 -2px 0 2px #ecdcc4 !important; }
+.pz-paws button svg { width: 40px !important; height: 37.5px !important; }
+.pz-paws button.next { box-shadow: inset 0 0 0 2px #3a2414, inset 0 0 0 4px #f6c84a, inset 0 -6px 0 4px #e8b030 !important; }
+/* planting minigame: no explanation text, one centred row of controls at the bottom */
+.pz-tip { display: none !important; }
+.pz-row { position: absolute; left: 0; right: 0; bottom: 4%; display: flex; justify-content: center; align-items: center; gap: 12px; pointer-events: none !important; }
+.pz-row > * { pointer-events: auto; }
+.pz-ui .pz-row .pz-act, .pz-ui .pz-row .pz-done, .pz-row .pz-paws { position: relative !important; left: auto !important; right: auto !important; bottom: auto !important; top: auto !important; transform: none !important; }
+.pz-row .pz-paws[hidden], .pz-row .pz-act[hidden], .pz-row .pz-done[hidden] { display: none !important; }
+.pz-ui .pz-done.is-fertig { display: none !important; }
+.pz-ready { position: absolute; z-index: 150; pointer-events: none; }
+.pz-ready[hidden] { display: none; }
+.pz-ready i { position: absolute; width: 7%; aspect-ratio: 1; opacity: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffd34a' d='M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z'/%3E%3Cpath fill='%23fff' d='M3 2h1v3H3zM2 3h3v1H2z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; animation: spk-tw 2.2s steps(1) infinite; }
+/* direct interaction: no buttons in the planting game, the hamster, the soil and the tools are tapped instead */
+.pz-ui .pz-done, .pz-ui .pz-act, .pz-ui .pz-paws { display: none !important; }
+.pz-pawmark { position: absolute; pointer-events: none; opacity: .55; }
+.pz-pawmark svg { width: 100%; height: 100%; display: block; }
+.pz-pawmark.next { opacity: 1; filter: drop-shadow(1px 0 0 #f6c84a) drop-shadow(-1px 0 0 #f6c84a) drop-shadow(0 1px 0 #f6c84a) drop-shadow(0 -1px 0 #f6c84a); animation: pz-bob 0.8s steps(2) infinite; }
+.pz-pawmark.tap { animation: pz-press .25s steps(2); }
+@keyframes pz-bob { 0% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes pz-press { 0% { transform: scale(.85); } 100% { transform: scale(1); } }
+.pz-tool.pz-hint { animation: pz-bob 0.8s steps(2) infinite; }
+/* planting gauges sit at the bottom, out of the way (the buttons are gone) */
+.pz-gauge { top: auto !important; bottom: 3% !important; }
+
+/* planting gauges: upright on the left edge, always in sight */
+.pz-gauge { left: 2% !important; right: auto !important; top: 19% !important; bottom: auto !important; transform: none !important; }
+/* the upright heat gauge in the kitchen also sits on the left, like the planting gauges */
+.cook-pov .pov-gauge { left: 2% !important; right: auto !important; top: 19% !important; }
+
+.pz-tamp { position: absolute; cursor: pointer; touch-action: none; }
+.pz-tamp .pz-pawmark { position: absolute; }

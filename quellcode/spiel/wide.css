@@ -1,0 +1,43 @@
+/* the wide living room: 360 wide, a camera slides it */
+#scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
+#scene.wide-room #room > .wallpaper, #scene.wide-room #room > .floor, #scene.wide-room #room > .baseboard { right: -100%; }
+.wide-rug { position: absolute; image-rendering: pixelated; pointer-events: none; z-index: 1; display: block; }
+.wide-lay { position: absolute; z-index: 1; pointer-events: none; }
+.wide-lay .wide-art { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+.wide-lay .wide-view { position: absolute; overflow: hidden; }
+/* the garden at half size in its own half-size pixels: frame 180x135 garden px = 90x67.5 room units inside the 104x44 window, from the treetops down to the meadow */
+.wide-lay .wb-garden { position: absolute; left: -0.962%; width: 86.538%; top: -15.909%; height: 153.409%; aspect-ratio: auto; overflow: visible; }
+.wide-lay .wb-garden img { max-width: none !important; max-height: none !important; }
+
+.wide-lay .wide-hit { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; pointer-events: auto; }
+
+#scene.wide-room #k-enter { right: -100%; }
+.wide-lay .wb-garden .map-sky, .wide-lay .wb-garden .map-tint, .wide-lay .wb-garden .map-flash { left: -16.667%; right: -16.667%; }
+.wide-lay .wb-garden svg.map-l { overflow: visible; }
+/* the door window (34x43 at room 111,56): the garden picture starts at room x 108 and y 22, like the bay window's */
+#sky .door-garden { position: absolute; left: 35.294%; width: 264.706%; top: -79.07%; height: 156.977%; aspect-ratio: auto; overflow: visible; pointer-events: none; }
+#sky .door-garden img { max-width: none !important; max-height: none !important; }
+#sky .door-garden .map-sky, #sky .door-garden .map-tint, #sky .door-garden .map-flash { left: -16.667%; right: -16.667%; }
+#sky .door-garden svg.map-l { overflow: visible; }
+#sky.has-garden { overflow: hidden; }
+#sky.has-garden > .win-view { display: none; }
+#sky.has-garden { filter: none !important; }
+#sky.has-garden::after, #sky.has-garden > .sky-storm { display: none !important; }
+/* bats fly over the whole wide wall */
+#scene.wide-room .fest-room .fest-bat { animation-name: batflyw; animation-duration: 14s !important; }
+@keyframes batflyw { 0% { left: -10%; transform: translateY(0); } 25% { transform: translateY(14px); } 50% { transform: translateY(-4px); } 75% { transform: translateY(10px); } 100% { left: 210%; transform: translateY(0); } }
+.fest.fest-wl { pointer-events: none !important; }
+.fest.fest-wl svg { width: 100%; height: auto; display: block; shape-rendering: crispEdges; }
+.fest-wl .gl1 { animation: twinkle 1.1s steps(1) infinite; } .fest-wl .gl2 { animation: twinkle 1.5s steps(1) infinite reverse; }
+.fest.wreath-lie { pointer-events: auto; }
+.fest.wreath-lie svg { width: 100%; height: auto; display: block; shape-rendering: crispEdges; overflow: visible; }
+.fest.wreath-lie .wr-flame { animation: wrfl 1.6s steps(1) infinite; }
+@keyframes wrfl { 0%, 55% { opacity: 1; } 56%, 100% { opacity: .7; } }
+
+.win-garden { position: absolute; aspect-ratio: auto; overflow: visible; pointer-events: none; }
+.win-garden img { max-width: none !important; max-height: none !important; }
+.win-garden .map-sky, .win-garden .map-tint, .win-garden .map-flash { left: -16.667%; right: -16.667%; }
+.win-garden svg.map-l { overflow: visible; }
+.sky.has-garden { overflow: hidden; filter: none !important; }
+.sky.has-garden > .win-view { display: none; }
+.sky.has-garden::after, .sky.has-garden > .sky-storm, .sky.has-garden > i, .sky.has-garden > .sun { display: none !important; }

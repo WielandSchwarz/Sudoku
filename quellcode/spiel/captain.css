@@ -1,0 +1,38 @@
+.cap-pov .fi-cv { touch-action: none; }
+.cap-pov .bp-x { left: 2% !important; right: auto !important; }
+.cap-toast { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); background: #fff8ec; color: #3a2414; font-weight: 800; font-size: .78rem; padding: 4px 10px; box-shadow: 0 0 0 2px #3a2414; white-space: nowrap; pointer-events: none; z-index: 3; }
+.cap-toast.pop { animation: cap-pop .3s steps(3); } @keyframes cap-pop { from { transform: translate(-50%, -40%); opacity: 0; } }
+.cap-panel { display: none; margin: 6px 2px 0; color: #3a2414; }
+.cap-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .82rem; margin-bottom: 6px; }
+.cap-top span { color: #8a5a2a; font-weight: 700; font-size: .74rem; white-space: nowrap; }
+.cap-panel { grid-template-columns: 1fr; }
+.cap-grid { display: inline-flex; flex-direction: column; gap: 3px; vertical-align: top; width: 58%; }
+.cap-r { display: flex; gap: 3px; align-items: center; } .cap-r span { width: 14px; font-size: .7rem; font-weight: 800; color: #8a5a2a; text-align: center; }
+.cap-r button, .cap-sp button { flex: 1; border: 0; font: inherit; font-weight: 800; font-size: .8rem; padding: 4px 0 6px; background: #fff8ec; color: #3a2414; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0d0b4; cursor: pointer; }
+.cap-r button.on, .cap-sp button.on { background: #e8650c; color: #fff; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #b84a08; }
+.cap-r.dead button { opacity: .35; }
+.cap-side { display: inline-flex; flex-direction: column; gap: 6px; width: 40%; margin-left: 2%; vertical-align: top; }
+.cap-sp { display: flex; gap: 4px; }
+.cap-gl { margin: 2px 0; font-weight: 800; font-size: .8rem; text-align: center; letter-spacing: 1px; }
+.cap-go { width: 100%; }
+.cap-roles { display: flex; gap: 8px; margin-top: 8px; }
+.cap-roles button { flex: 1; border: 0; font: inherit; background: #fff1d4; color: #3a2414; padding: 8px 6px 10px; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e0c89c; cursor: pointer; }
+.cap-roles b { display: block; font-size: .95rem; } .cap-roles small { display: block; font-size: .7rem; line-height: 1.25; margin-top: 3px; }
+.cap-book-h { font-weight: 800; margin: 6px 0 2px; }
+.cap-book { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; font-size: .66rem; font-weight: 700; }
+.cap-book span { padding: 2px 5px; background: #fff1d4; box-shadow: inset 0 0 0 1px #3a2414; } .cap-book span.no { opacity: .45; } .cap-book span.nw { background: #ffe08a; }
+
+.cap-rudt { margin: 0 0 6px; font-size: .82rem; text-align: center; }
+.cap-row2 { display: flex; gap: 8px; align-items: center; } .cap-row2 .cap-sp { flex: 1.2; } .cap-row2 .cap-gl { flex: 1; } .cap-row2 .cap-go { flex: 1; width: auto; padding: 6px 0 9px; }
+.dz-t.o-cap { background: #fff1d4; padding: 3px 0; }
+.cap-plan { margin-bottom: 4px; }
+.cap-msg { margin: 0 0 6px; font-size: .8rem; line-height: 1.3; min-height: 3.9em; }
+.cap-msg .dz-d { display: block; font-size: .72rem; color: #8a5a2a; margin-bottom: 2px; }
+.cap-sp button.l0.on { background: #d8463c; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #a02e26; }
+.cap-sp button.l1.on { background: #e8b03a; color: #3a2414; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #b8862a; }
+.cap-sp button.l2.on { background: #4a9a3a; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #2e6a26; }
+.cap-row2 .cap-sp { flex: 2; } .cap-row2 .cap-gl { flex: .6; }
+.cap-glb, .cap-glx { border: 0; font: inherit; font-weight: 800; font-size: .78rem; padding: 4px 6px 6px; background: #fff8ec; color: #3a2414; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0d0b4; cursor: pointer; }
+.cap-glb:disabled { opacity: .5; }
+.cap-glrow span { font-size: .72rem; font-weight: 800; color: #8a5a2a; }
+.cap-foc { flex: 1; min-width: 0; accent-color: #e8650c; height: 28px; }

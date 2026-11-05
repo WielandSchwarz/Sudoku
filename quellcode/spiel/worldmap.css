@@ -1,0 +1,16 @@
+/* ===== world map (preview) ===== */
+.world-map .wm-pic { aspect-ratio: 200 / 150; position: relative; overflow: hidden; }
+.world-map .wm-scene { position: absolute; inset: 0; aspect-ratio: auto !important; }
+.world-map .wm-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.world-map .wm-spot { position: absolute; border: 0; background: none; padding: 0; cursor: pointer; z-index: 4; }
+.world-map .wm-label { position: absolute; z-index: 5; pointer-events: none; }
+.world-map .wm-ham { position: absolute; z-index: 6; }
+/* fast travel: the marker scurries along the paths and leaves little footprints */
+.world-map .wm-ham.flip svg { transform: scaleX(-1); }
+.world-map.wm-going .wm-ham { animation: none !important; }
+.world-map .wm-ham.land { animation: wm-land .5s steps(4) 1 !important; }
+@keyframes wm-land { 0% { transform: translateY(0); } 40% { transform: translateY(-18%); } 70% { transform: translateY(0) scale(1.1, .9); } 100% { transform: none; } }
+.world-map .wm-trail { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.world-map .wm-trail i { position: absolute; width: 1%; height: 1.33%; margin: -.5% 0 0 -.5%; background: #6a4026; opacity: .7; animation: wm-dot 1.6s steps(4) forwards; }
+@keyframes wm-dot { to { opacity: 0; } }
+.world-map.wm-going .wm-spot { pointer-events: none; }

@@ -1,0 +1,32 @@
+/* ===== mushroom hunt ===== */
+.mu-look { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 2px 0 4px; }
+.mu-look img, .mu-say img, .mu-bag img { image-rendering: pixelated; display: block; }
+.mu-ft { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 2px 0 0; }
+.mu-ft span { background: #f2e4c8; color: #3a2414; font-size: 0.8rem; font-weight: 700; padding: 2px 7px 3px; box-shadow: inset 0 0 0 2px #3a2414; clip-path: var(--px-notch); }
+.mu-tx { margin: 4px 0 0; font-size: 0.95rem; line-height: 1.3; }
+.mu-say { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin: 2px 0; }
+.mu-pov .mu-say svg.mu-dachs { width: 77px !important; height: 80px !important; position: static !important; display: block; flex: none; }
+.mu-bag { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.mu-bag span { display: flex; flex-direction: column; align-items: center; font-weight: 800; }
+.mu-ed { display: inline-block; font-size: 0.75rem; padding: 1px 6px 2px; margin-right: 4px; box-shadow: inset 0 0 0 2px #3a2414; clip-path: var(--px-notch); }
+.mu-e { background: #b8e0a0; } .mu-g { background: #f4a0a0; } .mu-u { background: #f2d890; }
+.mu-pov .fi-new { right: auto; left: 6px; transform: rotate(-8deg); }
+.mu-q { position: absolute; top: 6px; left: 6px; width: 30px; height: 30px; border: 0; font: inherit; font-weight: 800; font-size: 1.05rem; background: #fff8ec; color: #3a2414; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0d0b4; clip-path: var(--px-notch); cursor: pointer; }
+.mu-guide { text-align: left; display: flex; flex-direction: column; gap: 6px; }
+.mu-gr { display: flex; gap: 8px; align-items: center; padding-bottom: 6px; border-bottom: 2px solid #ecdcc4; }
+.mu-gp { display: flex; gap: 2px; flex: none; min-width: 32px; justify-content: center; }
+.mu-gp img { image-rendering: pixelated; display: block; }
+.mu-gt { font-size: 0.85rem; line-height: 1.3; }
+.mu-note { font-size: 0.8rem; margin: 6px 0 0; font-weight: 700; color: #b84c06; }
+/* the forest level */
+.l-place.forest .mu-cv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; z-index: 1; }
+.l-place.forest .l-dark { z-index: 2; }
+.mu-fg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; z-index: 70; pointer-events: none; }
+.mu-fg[hidden] { display: none; }
+.mu-fg.sky-eve { filter: brightness(.93); } .mu-fg.sky-night { filter: brightness(.82) saturate(.92); }
+.mu-wrap { position: absolute; inset: 0; z-index: 95; }
+.mu-wrap[hidden] { display: none; }
+.mu-basket { position: absolute; left: 2.5%; top: 3%; border: 0; background: none; padding: 0; cursor: pointer; z-index: 41; display: flex; align-items: center; gap: 2px; }
+.mu-basket img { width: 39px; height: 30px; image-rendering: pixelated; display: block; }
+.mu-n { font-weight: 800; color: #fff8ec; font-size: 0.95rem; text-shadow: 0 2px 0 #3a2414, 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 -2px 0 #3a2414; }
+body.mu-card-on #status { visibility: hidden; }

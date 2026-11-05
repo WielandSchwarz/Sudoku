@@ -1,0 +1,30 @@
+/* ===== battleships (preview) ===== */
+.bs-pov .bs-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: none; cursor: pointer; }
+.bs-prop { position: absolute; z-index: 4; pointer-events: none; }
+.bs-prop svg { display: block; width: 100%; height: auto; }
+.bs-boxbtn { pointer-events: auto; border: 0; background: none; padding: 0; cursor: pointer; z-index: 5; }
+.bs-boxbtn::after { content: ""; position: absolute; right: -20%; top: -40%; width: 30%; aspect-ratio: 1; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffd34a' d='M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z'/%3E%3Cpath fill='%23fff' d='M3 2h1v3H3zM2 3h3v1H2z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; animation: spk-tw 2.2s steps(1) infinite; opacity: 0; }
+.bs-guest { position: absolute; z-index: 6; pointer-events: none; }
+.bs-guest svg { display: block; width: 100%; height: auto; }
+.bs-guest.walking { animation: bs-bob .3s steps(2) infinite; }
+@keyframes bs-bob { 50% { transform: translateY(-4%); } }
+#k-table.bs-clear { opacity: 0; transition: opacity .3s steps(3); }
+.bs-picnic { z-index: 3; }
+
+.bs-tbl { z-index: 3; pointer-events: none; transition: opacity .35s steps(3), transform .35s steps(3); }
+.bs-tbl.bs-gone { opacity: 0; transform: translateY(-3%); }
+
+.bs-pov .bs-ban { top: auto; bottom: 2%; margin-top: 0; }   /* the banner sits on the near edge of the table, so the view behind stays free */
+
+.bs-shore { z-index: 3; }
+.bs-shore .bs-sh-t { display: block; margin-top: 15%; }
+.bs-shore .bs-sh-b { position: absolute; left: 28%; top: 0; width: 44%; }
+.bs-shore span svg { display: block; width: 100%; height: auto; }
+.bs-bot, .bs-cap { z-index: 3; }
+.bs-bot::after, .bs-cap::after { display: none; }
+.bs-bot.bs-wob { animation: bs-wob .5s steps(4) 3; }
+@keyframes bs-wob { 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+.bs-fly { z-index: 7; transition: left .45s steps(5), top .45s steps(5); }
+.bs-shelf { z-index: 3; }
+
+.bs-away { display: none !important; }

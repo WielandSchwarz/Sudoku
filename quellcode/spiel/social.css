@@ -1,0 +1,13 @@
+/* ===== new friend screen (preview) ===== */
+.ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
+.ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
+.ipf-ani { width: 50%; margin: 0 auto; animation: ip-lift .7s steps(7) both, ipf-hop 1.4s steps(4) .7s infinite; transform-origin: 50% 100%; }
+.ipf-hearts { display: flex; justify-content: center; align-items: center; gap: 4%; margin-top: 4%; }
+.ipf-h { width: 15%; display: block; animation: ipf-pop .35s steps(4) both; }
+.ipf-hearts b { color: #fff8ec; font-size: 1rem; text-shadow: 0 2px 0 #3a2414; }
+.ipf-fl { position: absolute; bottom: -8%; width: 5%; opacity: .75; animation: ipf-float 4s steps(16) infinite; }
+.ipf-ban .ipf-gift { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; font-size: 0.9rem; color: #3a2414; }
+.ipf-gi { width: 30px; flex: none; display: block; }
+@keyframes ipf-hop { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-8%) scaleY(1.04); } 60% { transform: translateY(0) scaleY(.96); } }
+@keyframes ipf-pop { 0% { transform: scale(0); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes ipf-float { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .75; } 100% { transform: translateY(-1100%); opacity: 0; } }

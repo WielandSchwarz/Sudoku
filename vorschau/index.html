@@ -15994,7 +15994,7 @@ window.__EXTRAS = true;
   var CP_ANI = ["whale", "dolph", "seal", "bottle", "gull", "orca", "bear"];
   var CP_TX = {
     abfahrt: "Southamsterton, 10. April, Mittag: Leinen los! Drei lange Töne mit der Pfeife (Griff rechts), dann vorsichtig zwischen den Kaimauern hinaus.",
-    newyork: "Der Sog der Pausbacke reißt die Mümmel von ihren Leinen! Sie treibt quer vor unseren Bug.",
+    newyork: "Achtung! Der Sog der Pausbacke reißt die Mümmel von ihren Leinen, ihr Heck schwenkt auf uns zu! Je schneller wir sind, desto stärker zieht der Sog.",
     solent: "Durch den Kernsund an der Isle of Weizen vorbei. Die Fahrrinne biegt nach links: zwischen den Tonnen bleiben.",
     lotse: "Beim Feuerschiff Knabber kommt das Lotsenboot längsseits. Der Lotse geht von Bord.",
     kanal: "Offenes Wasser im Pfotenkanal. Freie Fahrt nach Frankreich!",
@@ -16051,7 +16051,8 @@ window.__EXTRAS = true;
       ob("m3", 10, 1, { m: "shed", w: 6, l: 20 }); ob("m3", -17, 7, { m: "shed", w: 7, l: 16 }); ob("m3", 6.2, 15, { m: "crane", side: 1 }); ob("m3", -13.2, 19, { m: "crane", side: -1 });
       ob("m3", 5.4, 21.2, { m: "lhouse", c: "#d8463c" }); ob("m3", -11.8, 25.2, { m: "lhouse", c: "#4a9a3a" }); ob("m3", -9.6, 3, { m: "ship3" });
       ob("m3", -1.8, 16, { m: "tug", lead: 1, tow: 1 }); ob("m3", 1.8, 19, { m: "tug", lead: 1, tow: 1 }); B.push({ k: "land", b0: -1.3, b1: -.45 }, { k: "land", b0: .35, b1: 1.2 }); }
-    else if (k === "newyork") { ob("quay", -9, 0, { y0: -4, y1: 20 }); ob("ship", 0, 13, { x0: 9, mv: .25, r: 4, hard: 1, sq: [[.35, 0, 13], [1, 14, 19]] }); ob("tug", 16, 19, { so: 1, sq: [[.35, 3.5, 13.5], [1, 17.5, 19.5]] }); B.push({ k: "town", b: -.1 }); }
+    else if (k === "newyork") { ob("quay", -9, 0, { y0: -6, y1: 36, crowd: 1 }); ob("m3", -15, 22, { m: "shed", w: 6, l: 14 }); ob("m3", -10.6, 34, { m: "crane", side: -1 });
+      ob("ship", 0, 0, { sw: { px: -7.4, py: 28 }, hard: 1, ropes: 1, sqAll: 1, r: 3.2 }); ob("tug", 12, 22, { so: 1, a: -1.3, sq: [[.3, .8, 15.5], [1, -3.6, 15]] }); B.push({ k: "land", b0: .3, b1: 1.3 }); }
     else if (k === "solent") { gates(-1); B.push({ k: "land", b0: .25, b1: 1.3 }, { k: "land", b0: -1.5, b1: -.7 }); }
     else if (k === "cherAus") { gates(1); B.push({ k: "land", b0: -1.4, b1: -.5 }, { k: "town", b: -.9 }); }
     else if (k === "queAus") { gates(-1); ob("tower", -10, 30); B.push({ k: "land", b0: -1.6, b1: -.75 }); }
@@ -16082,6 +16083,7 @@ window.__EXTRAS = true;
     else ob("pax", x, y, { so: 1, c: i, w: [a, a + .3], sq: [[a, x, y], [a + .3, .3, 9.4], [1, .3, 9.4]] }); } }
   // where a thing is at time u of the leg (some drift in, some lead the way)
   function cpOP(o, u, d) { var m = o.mv ? Math.min(1, u / o.mv) : 1, e = o.mv >= 1 ? m : m * (2 - m);
+    if (o.lead) { var pe = cpSm((u - .6) / .4), tx = o.x > 0 ? 9.5 : 6.5; return [o.x + (tx - o.x) * pe, o.y + d - 9 * pe]; }   // the tugs cast off at the harbour mouth and fall back to starboard
     return [o.x0 != null ? o.x0 + (o.x - o.x0) * e : o.x, (o.y0 != null ? o.y0 + (o.y - o.y0) * e : o.y) + (o.lead ? d : 0)]; }
   function cpSqPos(o, v) { var q = o.sq, p0 = cpOP(o, 1, 0), pv = 0, px = p0[0], py = p0[1];
     for (var i = 0; i < q.length; i++) { if (v <= q[i][0]) { var f = (v - pv) / Math.max(1e-6, q[i][0] - pv); return [px + (q[i][1] - px) * f, py + (q[i][2] - py) * f]; } pv = q[i][0]; px = q[i][1]; py = q[i][2]; } return [px, py]; }
@@ -16090,7 +16092,9 @@ window.__EXTRAS = true;
     if (o.leg < cp.leg) return o.sq && o.seqd ? cpSqPos(o, 1) : cpOP(o, 1, o.dEnd || 0);
     if (A && A.seq) return o.sq ? cpSqPos(o, A.seqV || 0) : cpOP(o, 1, A.S);
     return A && !A.look ? cpOP(o, A.u || 0, cp.d) : cpOP(o, 0, 0); }
-  function cpWP(o) { var q = cpLP(o); return cpW(cp.anc[o.leg], q[0], q[1]); }
+  function cpWP(o) { var q; if (o.sw) { o.a = cpSwA(o); q = cpSwPos(o, o.a); } else q = cpLP(o);
+    if (o.kT && !o.sw) { var kv = cpSm((performance.now() - o.kT) / 700); q = [q[0] + o.kDir * 3 * kv, q[1] + kv]; }   // knocked aside
+    return cpW(cp.anc[o.leg], q[0], q[1]); }
   function cpRel(px, py, h, ox, oy) { var dx = ox - px, dy = oy - py; return [dx * Math.sin(h) + dy * Math.cos(h), dx * Math.cos(h) - dy * Math.sin(h)]; }
   // what happens if the leg is sailed like this: the first bump and when it comes (a pure function)
   function cpSim(rud, lvl) {
@@ -16098,10 +16102,11 @@ window.__EXTRAS = true;
     for (var i = 1; i <= N; i++) { var u = i / N, d = cpDistU(lvl, S, u), P = cpPath(rud, d);
       for (var j = 0; j < cp.O.length; j++) { var o = cp.O[j]; if (o.leg !== cp.leg || o.so) continue;
         if (o.k === "quay") { if (P[1] > o.y0 && P[1] < o.y1 && Math.abs(P[0] - o.x) < 1.8) return { k: "quay", u: u }; continue; }
+        if (o.sw) { if (done[j]) continue; var sp = cpSwPts(o, cpSwA(o, u, lvl)); for (var m = 0; m < sp.length; m++) { var rs = cpRel(P[0], P[1], P[2], sp[m][0], sp[m][1]); if (rs[0] < 2.4 && rs[0] > -6 && Math.abs(rs[1]) < o.r) return { k: "ship", u: u, sd: rs[1] }; } continue; }
         if (done[j] || !(o.hard || o.gate)) continue; var q = cpOP(o, u, d), r = cpRel(P[0], P[1], P[2], q[0], q[1]);
-        if (r[0] < .8) { done[j] = 1; if (o.gate ? Math.abs(r[1]) >= o.r : Math.abs(r[1]) < o.r) return { k: o.k, u: u }; } } }
+        if (r[0] < .8) { done[j] = 1; if (o.gate ? Math.abs(r[1]) >= o.r : Math.abs(r[1]) < o.r) return { k: o.k, u: u, j: j, sd: r[1] }; } } }
     var E = cpPath(rud, S);
-    for (var jj = 0; jj < cp.O.length; jj++) { var oo = cp.O[jj]; if (oo.leg !== cp.leg || done[jj] || !oo.hard || oo.k === "quay") continue; var qq = cpOP(oo, 1, S), rr = cpRel(E[0], E[1], E[2], qq[0], qq[1]); if (rr[0] < 1.6 && Math.abs(rr[1]) < oo.r) return { k: oo.k, u: 1 }; }
+    for (var jj = 0; jj < cp.O.length; jj++) { var oo = cp.O[jj]; if (oo.leg !== cp.leg || done[jj] || !oo.hard || oo.k === "quay" || oo.sw) continue; var qq = cpOP(oo, 1, S), rr = cpRel(E[0], E[1], E[2], qq[0], qq[1]); if (rr[0] < 1.6 && Math.abs(rr[1]) < oo.r) return { k: oo.k, u: 1 }; }
     return null;
   }
   function cpNew() {
@@ -16112,7 +16117,9 @@ window.__EXTRAS = true;
     if (!cp.info[cp.leg]) cpBuild(cp.leg);
     var IN = cp.info[cp.leg], A = cp.anc[cp.leg]; cp.ev = IN.ev; cp.extra = IN.extra;
     cp.O = cp.O.filter(function (o) { return o.leg >= cp.leg - 1; }); cp.B = cp.B.filter(function (b) { return b.leg >= cp.leg - 1; });
-    cp.rud = 0; cp.wh = false; cp.looks = 2; cp.px = A.x; cp.py = A.y; cp.h = A.h; cp.d = 0; cp.glass = null; cpPanelDraw(); cpRedraw();
+    cp.rud = 0; cp.wh = false; cp.looks = 2; cp.px = A.x; cp.py = A.y; cp.h = A.h; cp.d = 0; cp.glass = null;
+    var swo = cp.O.filter(function (o) { return o.leg === cp.leg && o.sw && !o.snapped; })[0]; if (swo) { cp.anim = { lead: 1, dur: 2600, sw: swo }; cpPanelDraw(); if (!cpRaf) cpRaf = requestAnimationFrame(cpDraw); return; }
+    cpPanelDraw(); cpRedraw();
   }
 
   // ---- drawing ----
@@ -16275,7 +16282,7 @@ window.__EXTRAS = true;
   // a hamster in the crowd: a little upright figure, more pixels the nearer it stands
   function cpHam(wx, wy, wz, seed, t) {
     var p = cpProj(wx, wy, wz); if (!p || p.f > 50 || p.x < -4 || p.x > 184) return;
-    var s = p.k * 16, h = Math.max(3, Math.round(.55 * s)), w = Math.max(2, Math.round(.36 * s)), fast = cp.anim && cp.anim.pre ? 2 : 1, hop = (Math.floor(t * fast / 260) + seed) % 4 === 0 ? 1 : 0;
+    var s = p.k * 16, h = Math.max(3, Math.round(.55 * s)), w = Math.max(2, Math.round(.36 * s)), fast = cp.anim && (cp.anim.pre || cp.anim.crash || cp.anim.splash) ? 2.5 : 1, hop = (Math.floor(t * fast / 260) + seed) % 4 === 0 ? 1 : 0;
     var x = Math.round(p.x - w / 2), y = Math.round(p.y) - h - hop, c = ["#c8945a", "#e8d8b0", "#f6c88a", "#a86a4a", "#9a8a7a", "#f0e8d8"][seed % 6], dr = ["#3a5a8a", "#c8463c", "#4a7a3a", "#e8dcc8", "#6a4a8a"][seed % 5];
     mR(cpc, x - 1, y - 1, w + 2, h + 2, "#2a1a10"); mR(cpc, x, y, w, h, c); mR(cpc, x, y + Math.ceil(h * .55), w, h - Math.ceil(h * .55), dr); if (w >= 3) mR(cpc, x + 1, y + 1, w - 2, 1, "#fff1d8");
     if (s > 9) { mR(cpc, x, y - 2, 1, 1, "#2a1a10"); mR(cpc, x + w - 1, y - 2, 1, 1, "#2a1a10"); }
@@ -16296,8 +16303,78 @@ window.__EXTRAS = true;
     for (var y = o.y1 - 1; y > o.y0; y -= 5) { var b = T.P(o.x + side * .45, y, 0); cpBox3(b[0], b[1], AN.h, .34, .34, Z1, Z1 + .34, CP_IRON); }
   }
   var CP_LAND = { shed: 1, crane: 1, lhouse: 1 };
+  // ---- everything that floats, as little 3D models ----
+  var CP_3K = { ship: 1, tug: 1, pilot: 1, tender: 1, boat: 1, schooner: 1, light: 1, buoyR: 1, buoyG: 1, wood: 1, floe: 1, ice: 1, tower: 1, dinghy: 1, pier: 1, pax: 1 };
+  var CP_STRUCT = { quay: 1, gate: 1, pier: 1, ice: 1 };
+  function cpSm(v) { v = Math.max(0, Math.min(1, v)); return v * v * (3 - 2 * v); }
+  function cpBlink(t, w) { return Math.floor(t / 500 + (w || 0)) % 2; }
+  function cpBill(w3, wpx, hpx, c) { var p = cpProj(w3[0], w3[1], w3[2]); if (!p) return; mR(cpc, Math.round(p.x), Math.round(p.y) - hpx, wpx, hpx, c); }
+  function cpSmoke(w3, t, n) { var p = cpProj(w3[0], w3[1], w3[2]); if (!p) return; for (var k = 0; k < n; k++) mR(cpc, Math.round(p.x) + k * 2 + (Math.floor(t / 400) % 2), Math.round(p.y) - k * 2 - 1, 2, 2, k > 2 ? "#a8a8b0" : "#c8c8d0"); }
+  function cpShip3(w, a, t, o) {                                         // a steamer: red bottom, black hull, white decks, buff funnels with black tops
+    var T = cpLoc(w[0], w[1], a), big = !!o.big, s = big ? 1.5 : 1, hw = big ? 1.7 : 1.3, fn = big ? [-5.4, -2.2, 1, 4.2] : [-2.6, .2];
+    var hull = [[-hw, -7 * s], [hw, -7 * s], [hw, 5 * s], [0, 7.4 * s], [-hw, 5 * s]];
+    cpPrism(w[0], w[1], a, hull, -.2, .3, ["#a8342a", "#b8443a", "#8a2a20", "#2a1010"]); cpPrism(w[0], w[1], a, hull, .3, 1.5, ["#c8a07a", "#34343c", "#1e1e24", "#101014"]);
+    var sp = T.P(0, -1 * s, 0); cpBox3(sp[0], sp[1], a, hw * 1.5, 7 * s, 1.5, 2.4, CP_WHITE); var s2 = T.P(0, -1.4 * s, 0); cpBox3(s2[0], s2[1], a, hw * 1.2, 4 * s, 2.4, 3.0, CP_WHITE);
+    fn.forEach(function (v, i) { var f = T.P(0, v, 0); cpBox3(f[0], f[1], a, .7, .9, 3.0, 4.6, ["#e8a03a", "#f0b04a", "#b8802a", "#4a2a10"]); cpBox3(f[0], f[1], a, .72, .92, 4.6, 5.0, CP_IRON); if (!big || i < 3) cpSmoke(T.P(0, v, 5.2), t, 4); });
+    cpLine3(T.P(0, -6 * s, 1.5), T.P(0, -6 * s, 7), "#3a2414"); cpLine3(T.P(0, 5.4 * s, 1.5), T.P(0, 5.4 * s, 7.4), "#3a2414"); cpLine3(T.P(0, -6 * s, 7), T.P(0, 5.4 * s, 7.4), "#c8bca8");
+    if (o.ropes && !o.snapped) { var AN = cp.anc[o.leg], b1 = cpW(AN, -8.75, 31), b2 = cpW(AN, -8.75, 12); cpRope3(T.P(-hw, 6.2, 1.45), [b1[0], b1[1], 1.5], .3, "#e0d0a8"); cpRope3(T.P(-hw, -6.4, 1.45), [b2[0], b2[1], 1.5], .3, "#e0d0a8"); }
+  }
+  function cpTugM(w, a, t, o, kind) {
+    var T = cpLoc(w[0], w[1], a), s = kind === "tender" ? 1.45 : 1, hc = kind === "pilot" ? ["#c8a07a", "#2a3a5a", "#1a2a44", "#0a1222"] : kind === "tender" ? ["#c8a07a", "#2e2e34", "#1e1e22", "#0a0a0e"] : ["#c8a07a", "#8a3a2a", "#5a2418", "#2a1008"];
+    var th = [[-.8 * s, -2.1 * s], [.8 * s, -2.1 * s], [.8 * s, 1.2 * s], [0, 2.2 * s], [-.8 * s, 1.2 * s]];
+    cpPrism(w[0], w[1], a, th, -.1, .75, hc); var tc = T.P(0, -.3 * s, 0); cpBox3(tc[0], tc[1], a, 1 * s, (kind === "tender" ? 2.4 : 1.4) * s, .75, 1.45, CP_WHITE);
+    var tf = T.P(0, .05 * s, 0), fc = kind === "tug" ? ["#c8342a", "#d8463c", "#9a2a20", "#3a1008"] : ["#e8a03a", "#f0b04a", "#b8802a", "#4a2a10"]; cpBox3(tf[0], tf[1], a, .45, .45, 1.45, 2.4, fc); cpBox3(tf[0], tf[1], a, .47, .47, 2.15, 2.4, CP_IRON); cpSmoke(T.P(0, .05 * s, 2.6), t, 3);
+    if (kind === "pilot") { var m = T.P(0, 1.2, 0); cpLine3([m[0], m[1], .75], [m[0], m[1], 3.2], "#3a2414"); var fp = cpProj(m[0], m[1], 3.2); if (fp) { var fw = Math.floor(t / 250) % 2; mR(cpc, Math.round(fp.x) + 1, Math.round(fp.y), 4 - fw, 2, "#d8463c"); mR(cpc, Math.round(fp.x) + 1, Math.round(fp.y) + 2, 4, 2, "#f8f4ec"); } }
+    if (o.tow && o.leg === cp.leg && !(cp.anim && cp.anim.u > .6)) cpRope3(T.P(0, -2.1, .75), shipW(o.x > 0 ? .4 : -.4, 2.1, 1.35), .5, "#d8c8a0");
+  }
+  function cpKind(o, w, a, t, k) {
+    var T = cpLoc(w[0], w[1], a);
+    if (k === "ship") return cpShip3(w, a, t, o);
+    if (k === "tug" || k === "pilot" || k === "tender") return cpTugM(w, a, t, o, k);
+    if (k === "pax") return cpHam(w[0], w[1], .9, (o.c || 0) * 7 + 3, t);
+    if (k === "boat" || k === "schooner") { var sc = k === "schooner", L = sc ? 2.8 : 1.7, hw = sc ? .75 : .55;
+      cpPrism(w[0], w[1], a, [[-hw, -L], [hw, -L], [hw, L * .55], [0, L], [-hw, L * .55]], -.1, .45, sc ? ["#c8a07a", "#3a5a7a", "#26405a", "#10202e"] : ["#c8a07a", "#a8744a", "#7a5032", "#3a2414"]);
+      (sc ? [[-.9, 4.2], [1.1, 4.8]] : [[.2, 3.2]]).forEach(function (m, i) { var mb = T.P(0, m[0], 0); cpLine3([mb[0], mb[1], .45], [mb[0], mb[1], m[1]], "#3a2414");
+        var sail = sc ? [T.P(0, m[0] - .15, .8), T.P(0, m[0] - .15, m[1] - .3), T.P(0, m[0] - 1.9, m[1] - .9), T.P(0, m[0] - 1.9, .9)] : [T.P(0, m[0], .7), T.P(0, m[0], m[1] - .2), T.P(0, m[0] - 1.5, .8)];
+        cpPolyW(sail, "#fff8ec", "#a8987a");
+        if (sc && i === 1) { var fp = cpProj(mb[0], mb[1], m[1]); if (fp) { var fw = Math.floor(t / 250) % 2; mR(cpc, Math.round(fp.x) - 4 - fw, Math.round(fp.y), 3, 2, "#d8463c"); mR(cpc, Math.round(fp.x) - 4, Math.round(fp.y) + 2, 3, 2, "#ffd34a"); mR(cpc, Math.round(fp.x) - 4 - fw, Math.round(fp.y) + 4, 3, 2, "#d8463c"); } } });
+      return; }
+    if (k === "dinghy") { cpPrism(w[0], w[1], a, [[-.35, -.8], [.35, -.8], [.35, .5], [0, .85], [-.35, .5]], -.05, .3, ["#c8945a", "#a8744a", "#7a5032", "#3a2414"]); cpHam(T.P(0, -.3, 0)[0], T.P(0, -.3, 0)[1], .2, 2, t); cpHam(T.P(0, .3, 0)[0], T.P(0, .3, 0)[1], .2, 9, t);
+      var ow = Math.floor(t / 300) % 2 ? .3 : -.3; cpLine3(T.P(-.35, 0, .3), T.P(-1.1, ow, 0), "#3a2414"); cpLine3(T.P(.35, 0, .3), T.P(1.1, ow, 0), "#3a2414"); return; }
+    if (k === "light") { cpPrism(w[0], w[1], a, [[-.8, -3], [.8, -3], [.8, 2], [0, 3], [-.8, 2]], -.1, 1.0, ["#c8a07a", "#d8463c", "#a02e26", "#3a1008"]); var dh = T.P(0, -1, 0); cpBox3(dh[0], dh[1], a, 1, 1.4, 1.0, 1.6, CP_WHITE);
+      var mt = T.P(0, .6, 0); cpLine3([mt[0], mt[1], 1.0], [mt[0], mt[1], 4.4], "#3a2414"); var on = cpBlink(t); cpPrism(mt[0], mt[1], a, cpOct(.3), 4.2, 4.7, [on ? "#ffe08a" : "#8a7a4a", on ? "#fff4b0" : "#9a8a5a", on ? "#ffd34a" : "#6a5a3a", "#3a2414"]); return; }
+    if (k === "buoyR") { cpPrism(w[0], w[1], 0, cpOct(.34), 0, 1.0, ["#e8584a", "#d8463c", "#9a2a20", "#3a1008"]); if (cpBlink(t, w[0])) cpBill([w[0], w[1], 1.2], 1, 1, "#ffd34a"); return; }
+    if (k === "buoyG") { var G = ["#5ab04a", "#4a9a3a", "#2e6a26", "#102a0c"]; cpPrism(w[0], w[1], 0, cpOct(.4), 0, .4, G); cpPrism(w[0], w[1], 0, cpOct(.27), .4, .75, G); cpPrism(w[0], w[1], 0, cpOct(.14), .75, 1.05, G); if (cpBlink(t, w[0])) cpBill([w[0], w[1], 1.25], 1, 1, "#ffd34a"); return; }
+    if (k === "wood") { cpBox3(w[0], w[1], a + .8, .36, 2.6, -.05, .22, ["#b8844c", "#8a5a32", "#6a4428", "#2a1a10"]); return; }
+    if (k === "floe" || k === "ice") { var IC = ["#ffffff", "#d8ecf8", "#a8c8dc", "#4a6a80"], blob = function (r, n, sd) { var p = []; for (var i = 0; i < n; i++) { var an = i / n * Math.PI * 2, rr = r * (.75 + cpHash(i + sd, 5) * .4); p.push([rr * Math.cos(an), rr * Math.sin(an)]); } return p; };
+      if (k === "floe") { cpPrism(w[0], w[1], a, blob(1.5, 7, 3), -.05, .25, IC); return; }
+      var R0 = o.big ? 3.4 : 1.8; cpPrism(w[0], w[1], a, blob(R0, 8, 1), -.1, R0 * .4, IC); var c2 = T.P(R0 * .15, R0 * .1, 0); cpPrism(c2[0], c2[1], a, blob(R0 * .7, 7, 2), R0 * .4, R0 * 1.0, IC); var c3 = T.P(-R0 * .2, R0 * .15, 0); cpPrism(c3[0], c3[1], a, blob(R0 * .38, 6, 4), R0 * 1.0, R0 * 1.55, IC); return; }
+    if (k === "tower") { cpPrism(w[0], w[1], a, cpOct(1.8), -.2, .9, ["#8a8a84", "#7a7a74", "#5a5a54", "#2a2a26"]); var oc = cpOct(.55), C2 = ["#d8463c", "#d8463c", "#a02e26", "#3a2414"];
+      cpPrism(w[0], w[1], a, oc, .9, 2.0, CP_WHITE); cpPrism(w[0], w[1], a, oc, 2.0, 3.0, C2); cpPrism(w[0], w[1], a, oc, 3.0, 3.9, CP_WHITE); var on2 = cpBlink(t); cpPrism(w[0], w[1], a, cpOct(.42), 3.9, 4.4, [on2 ? "#ffe08a" : "#8a7a4a", on2 ? "#fff4b0" : "#9a8a5a", on2 ? "#ffd34a" : "#6a5a3a", "#3a2414"]); return; }
+    if (k === "pier") { var pf = T.P(0, 1.6, 0); cpBox3(pf[0], pf[1], a, 30, 3.2, 0, 1.2, CP_STONE);
+      for (var px = -13; px <= 13; px += .7) { var hv = cpHash(Math.round(px * 10), 77); if (hv > .75) continue; var hp = T.P(px, .5 + cpHash(Math.round(px * 10), 5) * 1.6, 0); cpHam(hp[0], hp[1], 1.2, Math.floor(hv * 1000), t); }
+      var sh = T.P(0, 6, 0); cpBox3(sh[0], sh[1], a, 16, 5, 1.2, 4.0, ["#c8a07a", "#d8b08a", "#a8805a", "#4a3020"]); cpRoof(sh[0], sh[1], a, 16.4, 5.4, 4.0, 1.4, ["#8a3a2a", "#9a4a3a", "#6a2a1a", "#3a1008"], [0, "#d8b08a", "#a8805a"]); return; }
+  }
+  // ---- sparks, splinters and spray: little particles in the world ----
+  function cpBurst(p, n, cols, spd, up) { cp.fx = cp.fx || []; for (var i = 0; i < n; i++) { var an = Math.random() * Math.PI * 2, sp = spd * (.4 + Math.random() * .8); cp.fx.push({ x: p[0], y: p[1], z: p[2], vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, vz: up * (.5 + Math.random()), l: .7 + Math.random() * .6, c: cols[i % cols.length] }); } }
+  function cpFxDraw(t) { var dt = Math.min(.05, (t - (cp.fxT || t)) / 1000); cp.fxT = t; if (!cp.fx || !cp.fx.length) return;
+    cp.fx = cp.fx.filter(function (q) { q.l -= dt; q.vz -= 9 * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt; if (q.z < 0) q.l = 0; var p = q.l > 0 && cpProj(q.x, q.y, q.z); if (p) mR(cpc, Math.round(p.x), Math.round(p.y), p.f < 6 ? 2 : 1, p.f < 6 ? 2 : 1, q.c); return q.l > 0; }); }
+  // the Mümmel: moored parallel, then the suction swings her stern out round her bow; at speed the pull is stronger
+  function cpSwA(o, uu, lvl) {
+    var S = o.sw; if (uu != null) return -.12 + ([-.42, -.64, -.78][lvl] + .12) * cpSm(uu / .45);
+    if (o.leg !== cp.leg) return 0; var A = cp.anim, now = performance.now();
+    if (!A) return o.snapped ? -.12 : 0;
+    if (A.lead) return -.12 * cpSm(((A.v || 0) - .35) / .65);
+    if (A.seq) return (o.aEnd != null ? o.aEnd : -.42) * (1 - cpSm(A.seqV || 0));
+    if (o.kT) return o.aK + .42 * cpSm((now - o.kT) / 1100);
+    if (A.lvl == null) return o.snapped ? -.12 : 0;
+    return cpSwA(o, A.u || 0, A.lvl);
+  }
+  function cpSwPos(o, a) { var S = o.sw; return [S.px - 7.4 * Math.sin(a), S.py - 7.4 * Math.cos(a)]; }
+  function cpSwPts(o, a) { var c = cpSwPos(o, a); return [-7, -4.5, -2].map(function (v) { return [c[0] + v * Math.sin(a), c[1] + v * Math.cos(a)]; }); }
   function cpModel(o, w, t) {
     var a = cp.anc[o.leg].h + (o.a || 0), T = cpLoc(w[0], w[1], a);
+    if (o.k !== "m3") return cpKind(o, w, a, t, o.k);
     if (o.m === "shed") { var W = o.w, L = o.l; cpBox3(w[0], w[1], a, W, L, 1.2, 4.2, ["#b8644a", "#c8745a", "#8a4a36", "#4a2418"]);
       [-1, 1].forEach(function (su) { var u = su * (W / 2 + .03), n = T.N(su, 0); if (!cpSees([T.P(u, -L / 2, 1.2), T.P(u, L / 2, 4.2)], n)) return;
         for (var v = -L / 2 + 1.4; v < L / 2 - 1; v += 2.1) { if (Math.abs(v) < 1.6) continue; [[2, 2.8], [3.2, 3.9]].forEach(function (zz) { cpPolyW([T.P(u, v - .45, zz[0]), T.P(u, v + .45, zz[0]), T.P(u, v + .45, zz[1]), T.P(u, v - .45, zz[1])], "#2a3a4a"); cpLine3(T.P(u, v - .45, zz[0]), T.P(u, v + .45, zz[0]), "#e8d8b0"); }); }
@@ -16318,20 +16395,13 @@ window.__EXTRAS = true;
       cpPrism(w[0], w[1], a, cpOct(.8), 1.2, 1.6, CP_STONE); cpPrism(w[0], w[1], a, oc, 1.6, 2.6, CP_WHITE); cpPrism(w[0], w[1], a, oc, 2.6, 3.4, C2); cpPrism(w[0], w[1], a, oc, 3.4, 4.0, CP_WHITE);
       var on = Math.floor(t / 600) % 2; cpPrism(w[0], w[1], a, cpOct(.42), 4.0, 4.5, [on ? "#ffe08a" : "#8a7a4a", on ? "#fff4b0" : "#9a8a5a", on ? "#ffd34a" : "#6a5a3a", "#3a2414"]); cpPrism(w[0], w[1], a, cpOct(.6), 4.5, 4.7, C2);
       return; }
-    if (o.m === "ship3") {                                               // a steamer moored in the dock
-      var hull = [[-1.3, -7], [1.3, -7], [1.3, 5], [0, 7.4], [-1.3, 5]];
-      cpPrism(w[0], w[1], a, hull, -.2, .3, ["#a8342a", "#b8443a", "#8a2a20", "#2a1010"]); cpPrism(w[0], w[1], a, hull, .3, 1.5, ["#c8a07a", "#34343c", "#1e1e24", "#101014"]);
-      var sp = T.P(0, -1, 0); cpBox3(sp[0], sp[1], a, 2, 7, 1.5, 2.4, CP_WHITE); var s2 = T.P(0, -1.4, 0); cpBox3(s2[0], s2[1], a, 1.6, 4, 2.4, 3.0, CP_WHITE);
-      [-2.6, .2].forEach(function (v) { var f = T.P(0, v, 0); cpBox3(f[0], f[1], a, .7, .9, 3.0, 4.6, ["#e8a03a", "#f0b04a", "#b8802a", "#4a2a10"]); cpBox3(f[0], f[1], a, .72, .92, 4.6, 5.0, CP_IRON);
-        var sm = cpProj(f[0], f[1], 5.2); if (sm) for (var k = 0; k < 4; k++) mR(cpc, Math.round(sm.x) + k * 2 + (Math.floor(t / 400) % 2), Math.round(sm.y) - k * 2 - 1, 2, 2, "#c8c8d0"); });
-      cpLine3(T.P(0, -6, 1.5), T.P(0, -6, 7), "#3a2414"); cpLine3(T.P(0, 5.4, 1.5), T.P(0, 5.4, 7.4), "#3a2414"); cpLine3(T.P(0, -6, 7), T.P(0, 5.4, 7.4), "#c8bca8");
-      return; }
+    if (o.m === "ship3") return cpShip3(w, a, t, o);
     if (o.m === "tug") {
       var th = [[-.8, -2.1], [.8, -2.1], [.8, 1.2], [0, 2.2], [-.8, 1.2]];
       cpPrism(w[0], w[1], a, th, -.1, .75, ["#c8a07a", "#8a3a2a", "#5a2418", "#2a1008"]); var tc = T.P(0, -.3, 0); cpBox3(tc[0], tc[1], a, 1, 1.4, .75, 1.45, CP_WHITE);
       var tf = T.P(0, .05, 0); cpBox3(tf[0], tf[1], a, .45, .45, 1.45, 2.4, ["#c8342a", "#d8463c", "#9a2a20", "#3a1008"]); cpBox3(tf[0], tf[1], a, .47, .47, 2.15, 2.4, CP_IRON);
       var ts = cpProj(tf[0], tf[1], 2.6); if (ts) for (var k2 = 0; k2 < 3; k2++) mR(cpc, Math.round(ts.x) - k2 * 2 - (Math.floor(t / 350) % 2), Math.round(ts.y) - k2 * 2 - 1, 2, 2, "#c8c8d0");
-      if (o.tow && o.leg === cp.leg) cpRope3(T.P(0, -2.1, .75), shipW(o.x > 0 ? .4 : -.4, 2.1, 1.35), .5, "#d8c8a0");
+      if (o.tow && o.leg === cp.leg && !(cp.anim && cp.anim.u > .6)) cpRope3(T.P(0, -2.1, .75), shipW(o.x > 0 ? .4 : -.4, 2.1, 1.35), .5, "#d8c8a0");
       return; }
   }
   // the foredeck of the Pausbacke below the windows: planks, hatch, windlass, white bulwarks, the jack staff
@@ -16362,14 +16432,17 @@ window.__EXTRAS = true;
     cp.O.forEach(function (o) { if (o.hid) return; if (o.k === "quay") { G0.push(o); return; }
       if (o.so && !(o.leg === cp.leg && sv >= 0 && (!o.w || sv >= o.w[0] && sv <= o.w[1]))) return;   // sequence actors only while their scene plays
       var q = cpWP(o);
-      if (o.k === "m3") { var c = cpC(q[0], q[1], 0); if (c[0] < -9 || c[0] > 90) return; (CP_LAND[o.m] ? G1 : G3).push([o, { f: c[0], w: q }]); return; }
+      if (o.k === "m3" || CP_3K[o.k]) { var c = cpC(q[0], q[1], 0); if (c[0] < -9 || c[0] > 95) return;
+        if (o.k !== "m3" && !glass && cpHidden(o, c[0])) { var pu = cpProj(q[0], q[1]); if (pu) G3.push([o, pu]); return; }
+        (CP_LAND[o.m] ? G1 : G3).push([o, { f: c[0], w: q, m: 1 }]); return; }
       var p = cpProj(q[0], q[1]); if (!p || p.f > 70 || p.x < -60 || p.x > 240) return; G3.push([o, p]); });
     G0.forEach(function (o) { cpQuay3(o, t, 0); }); G1.sort(byf).forEach(function (v) { cpModel(v[0], v[1].w, t); }); G0.forEach(function (o) { cpQuay3(o, t, 1); });
-    G3.sort(byf).forEach(function (v) { var o = v[0], p = v[1]; if (o.k === "m3") return cpModel(o, p.w, t); var X = Math.round(p.x), Y = Math.round(p.y);
+    G3.sort(byf).forEach(function (v) { var o = v[0], p = v[1]; if (p.m) return cpModel(o, p.w, t); var X = Math.round(p.x), Y = Math.round(p.y);
       if (o.k === "pier") return cpPier(p, t);
       if (o.ani && p.f < 18) return;                                     // the animals dive before the ship comes close
       if (!glass && cpHidden(o, p.f)) { cpUnknown(X, Y, p.sz, t); return; }
       cpThing(o, X, Y, p.sz, t); });
+    cpFxDraw(t);
   }
   // ---- the binoculars: look around by dragging, turn the focus until it is sharp; held sharp on something, it is recognised ----
   function cpDrawGlass(t) {
@@ -16469,25 +16542,42 @@ window.__EXTRAS = true;
   function cpGo() {
     if (!cp || cp.anim || cp.intro || cp.done || cp.glass) return;
     var lvl = cp.lvl, S = CP_DIST[lvl] + (lvl === 0 && cpLeg().k === "eis" ? 5 : 0);
-    cp.anim = { lvl: lvl, rud: cp.rud, S: S, dur: lvl ? 3200 : 2300, hit: cpSim(cp.rud, lvl), u: 0, pre: cp.leg === 0 && !cp.castOff ? 1 : 0 };
-    if (cp.leg + 1 < cp.route.length) { var A = cp.anc[cp.leg], E = cpPath(cp.rud, S), W = cpW(A, E[0], E[1]); cp.anc[cp.leg + 1] = { x: W[0], y: W[1], h: A.h + E[2] }; cp.info[cp.leg + 1] = null; cp.O = cp.O.filter(function (o) { return o.leg <= cp.leg; }); cp.B = cp.B.filter(function (b) { return b.leg <= cp.leg; }); cpBuild(cp.leg + 1); }
+    var hit = cpSim(cp.rud, lvl), safe = cp.rud;
+    if (hit && CP_STRUCT[hit.k]) { safe = 0; for (var rr of [0, -1, 1, -2, 2]) { var h2 = cpSim(rr, lvl); if (!h2 || !CP_STRUCT[h2.k]) { safe = rr; break; } } }
+    cp.anim = { lvl: lvl, rud: cp.rud, safe: safe, S: S, dur: lvl ? 3200 : 2300, hit: hit, u: 0, pre: cp.leg === 0 && !cp.castOff ? 1 : 0 };
+    if (cp.leg + 1 < cp.route.length) { var A = cp.anc[cp.leg], E = cpPath(safe, S), W = cpW(A, E[0], E[1]); cp.anc[cp.leg + 1] = { x: W[0], y: W[1], h: A.h + E[2] }; cp.info[cp.leg + 1] = null; cp.O = cp.O.filter(function (o) { return o.leg <= cp.leg; }); cp.B = cp.B.filter(function (b) { return b.leg <= cp.leg; }); cpBuild(cp.leg + 1); }
     if (cp.wh) { dzWhistle(cpLeg().k === "abfahrt" ? 2.2 : 1.4); }
     dzBell(lvl === 0 ? 1 : lvl === 1 ? 2 : 3); cpPanelDraw(); cpRaf = requestAnimationFrame(cpDraw);
   }
   function cpStep(t) {
     var A = cp.anim; if (!A.t0) A.t0 = t; if (cp.shake > 0) cp.shake -= .016;
+    if (A.lead) { if (!A.lt0) A.lt0 = t; A.v = Math.min(1, (t - A.lt0) / A.dur);
+      if (A.v > .35 && !A.sw.snapped) { A.sw.snapped = 1; beep([[220, .05], [140, .09]]); dzBuzz([30]); var AN0 = cp.anc[A.sw.leg]; [31, 12].forEach(function (y) { var b = cpW(AN0, -8.75, y); cpBurst([b[0] + .6, b[1], 1.3], 8, ["#e0d0a8", "#fff8ec"], 2.2, 2.5); }); cpSay("Die Leinen der Mümmel reißen!"); }
+      if (A.v >= 1) { cp.anim = null; cpPanelDraw(); cpRedraw(); } return; }
+    if (A.crash) { var C = A.crash, ct = t - C.t0;
+      if (C.rec && ct > C.hold) { var v = cpSm((ct - C.hold) / (C.dur - C.hold)), P0 = cpPath(A.rud, C.d), P1 = cpPath(A.safe, C.d), AN1 = cp.anc[cp.leg], W1 = cpW(AN1, P0[0] + (P1[0] - P0[0]) * v, P0[1] + (P1[1] - P0[1]) * v); cp.px = W1[0]; cp.py = W1[1]; cp.h = AN1.h + P0[2] + (P1[2] - P0[2]) * v; }
+      if (ct < C.dur) return; A.t0 += C.dur; if (C.rec) A.useSafe = 1; A.crash = null; }
     if (A.pre) { if (!A.pt0) A.pt0 = t; A.preV = Math.min(1, (t - A.pt0) / 2800); if (A.preV >= 1) { A.pre = 0; cp.castOff = 1; A.t0 = t; } return; }   // "Leinen los!": the lines come off first
     if (A.hold) { if (t > A.hold) cpNext(); return; }
     if (A.seq) { A.seqV = Math.min(1, (t - A.seq) / 3600); if (A.seqV >= 1) A.hold = t + 200; return; }
-    var u = Math.min(1, (t - A.t0) / A.dur); A.u = u; cp.d = cpDistU(A.lvl, A.S, u); var P = cpPath(A.rud, cp.d), AN = cp.anc[cp.leg], W = cpW(AN, P[0], P[1]); cp.px = W[0]; cp.py = W[1]; cp.h = AN.h + P[2];
-    if (A.hit && !A.bumped && u >= A.hit.u) { A.bumped = 1; cp.hits++; cp.shake = .6; beep([[110, .12], [80, .16]]); dzBuzz([60, 30, 120]); cpSay(CP_HITS[A.hit.k] || "Rumms!"); }
-    if (u >= 1) { var hasSq = !A.hit && A.lvl === 0 && cp.O.some(function (o) { return o.leg === cp.leg && o.sq; });   // something to watch: boats come alongside, guests come aboard
+    var u = Math.min(1, (t - A.t0) / A.dur); A.u = u; cp.d = cpDistU(A.lvl, A.S, u); var P = cpPath(A.useSafe ? A.safe : A.rud, cp.d), AN = cp.anc[cp.leg], W = cpW(AN, P[0], P[1]); cp.px = W[0]; cp.py = W[1]; cp.h = AN.h + P[2];
+    if (A.lvl && Math.random() < (A.lvl === 2 ? .9 : .45)) { var sd0 = Math.random() < .5 ? -1 : 1, bp = shipW(sd0 * (1.1 + Math.random() * .5), 2.0, .2); cp.fx = cp.fx || []; cp.fx.push({ x: bp[0], y: bp[1], z: bp[2], vx: Math.cos(cp.h) * sd0 * (1.5 + Math.random() * 1.5), vy: -Math.sin(cp.h) * sd0 * 2, vz: 2 + Math.random() * 2, l: .6, c: Math.random() < .5 ? "#ffffff" : "#d8eef8" }); }   // the bow wave
+    if (cpLeg().k === "abfahrt" && A.lvl === 2) { A.splash = 1; if (Math.random() < .8) { var qy = cp.py + 2 + Math.random() * 6; cpBurst([3.9, qy, 1.0], 3, ["#ffffff", "#d8eef8", "#a8d0e8"], 1.2, 5); if (!A.wet) { A.wet = 1; cpSay("Platsch! Die Bugwelle schwappt auf den Kai!"); } } }
+    if (A.hit && !A.bumped && u >= A.hit.u) { A.bumped = 1; cp.hits++; cp.shake = 1.1; beep([[110, .14], [80, .2], [60, .25]]); dzNoise(.6, 300, .8, .3, .01, .4); dzBuzz([80, 40, 160]); cpSay(CP_HITS[A.hit.k] || "Rumms!");
+      var hk = A.hit.k, sd1 = A.hit.sd || 0, cpt = hk === "quay" ? shipW(cpQuaySide() * 2.4, 1.2, 1.0) : shipW(Math.max(-1.5, Math.min(1.5, sd1 * .5)), 2.5, 1.0);
+      cpBurst(cpt, 26, hk === "quay" || hk === "pier" ? ["#a89c88", "#6a625c", "#ffffff", "#d8eef8"] : hk === "ice" ? ["#ffffff", "#d8ecf8", "#a8c8dc"] : hk === "gate" ? ["#8a6a4a", "#c8a87a", "#ffffff"] : ["#8a5a32", "#3a2414", "#c8945a", "#ffffff", "#e8e0d0"], 3.5, 4);
+      var ho = A.hit.j != null ? cp.O[A.hit.j] : cp.O.filter(function (o) { return o.leg === cp.leg && o.sw; })[0];
+      if (ho && ho.sw) { ho.aK = cpSwA(ho); ho.kT = performance.now(); } else if (ho && !CP_STRUCT[hk]) { ho.kT = performance.now(); ho.kDir = sd1 >= 0 ? 1 : -1; }
+      A.crash = { t0: t, d: cp.d, rec: !!CP_STRUCT[hk], hold: 1000, dur: CP_STRUCT[hk] ? 2600 : hk === "ship" ? 2400 : 1200 }; return; }
+    if (u >= 1) { cp.O.forEach(function (o) { if (o.leg === cp.leg && o.sw) o.aEnd = cpSwA(o); });
+      var hasSq = (!A.hit && A.lvl === 0 && cp.O.some(function (o) { return o.leg === cp.leg && o.sq; })) || cp.O.some(function (o) { return o.leg === cp.leg && o.sqAll; });   // something to watch: boats come alongside, guests come aboard
       if (hasSq) { A.seq = t + 250; A.seqV = 0; cp.O.forEach(function (o) { if (o.leg === cp.leg && o.sq) o.seqd = 1; }); } else A.hold = t + 350; }
   }
+  function cpQuaySide() { var q = cp.O.filter(function (o) { return o.leg === cp.leg && o.k === "quay"; }).map(function (o) { return [Math.abs(o.x - cpRel(cp.anc[cp.leg].x, cp.anc[cp.leg].y, cp.anc[cp.leg].h, cp.px, cp.py)[1]), o.x]; }).sort(function (a, b) { return a[0] - b[0]; })[0]; return q && q[1] < 0 ? -1 : 1; }
   function cpNext() {
     var A = cp.anim, L = cpLeg(), need = cpNeed(), why = "";
     if (A.hit) why = CP_HITS[A.hit.k] || "Rumms!";
-    else if (A.lvl > need) why = need === 0 ? "Hier hätten wir stoppen müssen!" : "Zu schnell für diese Stelle!";
+    else if (A.lvl > need) why = L.k === "abfahrt" && A.lvl === 2 ? "Viel zu schnell im Hafen! Die Bugwelle hat die Zuschauer am Kai nass gemacht." : L.k === "newyork" ? "Zu schnell! Die Mümmel kam uns gefährlich nah." : need === 0 ? "Hier hätten wir stoppen müssen!" : "Zu schnell für diese Stelle!";
     else if (A.lvl < need) why = need === 2 ? "Zu langsam auf freier See, wir verlieren Zeit." : "Gestoppt? Hier sollten wir langsam weiterfahren.";
     else if (L.wh && !cp.wh) why = "Die Pfeife fehlte.";
     cp.O.forEach(function (o) { if (o.leg === cp.leg) o.dEnd = A.S; });
