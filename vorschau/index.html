@@ -2804,7 +2804,7 @@ window.__EXTRAS = true;
 
   // walking with a four-frame cycle; speed in grid units per second
   async function walkTo(x, y, speed) {
-    speed = speed || (s.energy < 30 ? 16 : 28);
+    speed = speed || (s.energy < 30 ? 26 : 38);   /* a little slower when he is tired, but not crawling */
     var dx = x - H.x, dy = y - H.y, d = Math.hypot(dx, dy);
     if (d < 1.5) return;
     if (Math.abs(dx) > 1) H.dir = dx < 0 ? -1 : 1;
