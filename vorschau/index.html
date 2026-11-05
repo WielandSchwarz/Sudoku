@@ -17466,7 +17466,7 @@ window.__EXTRAS = true;
     var hit = p2Hit(0, 30, 180, 90, 149); G.hitEl = hit; var last = null; pzTip("Die Triebspitzen an den Markierungen abschneiden.");
     p2Drag(hit, { down: function (p) { last = p; }, move: function (p) { pzPos(sh, p[0] - 2, p[1] - 9, 26, 19);   /* the blade tip sits under the finger */
       G.marks.forEach(function (o) { if (o.done) return; var sx = p[0] - last[0], sy = p[1] - last[1], L2 = sx * sx + sy * sy || 1, u = Math.max(0, Math.min(1, ((o.x - last[0]) * sx + (o.y - last[1]) * sy) / L2));
-        if (Math.hypot(last[0] + sx * u - o.x, last[1] + sy * u - o.y) < 5 && Math.hypot(sx, sy) > 1) { o.done = true; o.el.remove(); beep([[1300, .03], [700, .04]]); p2Burst(o.x, o.y, 6);
+        if (Math.hypot(last[0] + sx * u - o.x, last[1] + sy * u - o.y) < 5 && Math.hypot(sx, sy) > 1) { o.done = true; o.el.remove(); beep([[1300, .03], [700, .04]]);
           if (G.plantEl) { G.clipT += 8; G.plantEl.style.clipPath = "inset(" + G.clipT + "% 0 " + (G.clipB || 0).toFixed(1) + "% 0)"; }   /* the tip really is gone */
           var tip = lEl("div", "p2-tip p2-toss", pzLay, p2Pix(["..KK..", ".KgGK.", "KgGGgK", ".KGgK.", "..KK.."], { K: "#1e4a1e", g: "#8ad86a", G: "#4a9a3a" })); pzPos(tip, o.x - 3, o.y - 5, 6, 5); tip.style.zIndex = 151; setTimeout(function () { tip.remove(); }, 800); } });
       last = p; }, up: function () { pzPos(sh, 100, 58, 10, 11); } });
@@ -17666,7 +17666,7 @@ window.__EXTRAS = true;
           // while soil goes in, the root ball of a set plant disappears under it, bit by bit, up to the crown
           if (G.plantEl && G.crown) { var pe = G.plantEl, ptop = G.crown - P2SD.co, hideMax = Math.max(0, (P2SD.h - P2SD.co - 1) / P2SD.h * 100);
             G.rootT = setInterval(function () { var f = Math.min(1, (G.fill || 0) / 90); pe.style.clipPath = "inset(0 0 " + (hideMax * f).toFixed(1) + "% 0)"; }, 60); }
-          await pzUntil(function () { return G.cancel || G.covered; }); chk(); G.coverEl.remove(); if (G.rootT) { clearInterval(G.rootT); G.plantEl.style.clipPath = "inset(0 0 " + hideMax.toFixed(1) + "% 0)"; } await wait(300);
+          await pzUntil(function () { return G.cancel || G.covered; }); chk(); G.coverEl.remove(); if (G.rootT) { clearInterval(G.rootT); G.clipB = hideMax; G.plantEl.style.clipPath = "inset(0 0 " + hideMax.toFixed(1) + "% 0)"; }   /* remembered, so pruning later keeps the root ball under the soil */ await wait(300);
           if (G.fill > 125) { G.pen++; G.notes.push("Zu viel Erde"); } else if (G.fill < 95) { G.pen++; G.notes.push("Loch nicht ganz zu"); } else G.notes.push("Gut zugeschüttet");
         } else if (k === "tamp") {
           G.step = 45; pzTampSetup(G); await pzUntil(function () { return G.cancel || G.patted; }); chk(); if (G.tampEl) G.tampEl.remove(); await wait(500);
