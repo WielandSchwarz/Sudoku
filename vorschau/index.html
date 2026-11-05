@@ -2389,6 +2389,9 @@ body.dz-on .dz-panel { display: block; }
 #scene .l-pop.g2-info { width: max-content !important; min-width: 30% !important; max-width: 40% !important; }
 .bp-env.w-rain { background-color: rgba(50, 60, 85, .16); }
 .bp-env.w-rain.d-night { background-color: rgba(20, 22, 50, .3); }
+
+.mdw-pov .bp-ban { left: auto; right: 3%; top: auto; bottom: 4%; margin: 0; transform: none; }
+.mdw-pov .bp-ban.pop { animation: dw-ban .35s steps(4); } @keyframes dw-ban { from { transform: translateY(40%); opacity: 0; } }
 /* ===== frog tower (preview) ===== */
 .fg-pov .fg-bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; }
 .fg-pov .fg-svg { cursor: pointer; }
@@ -16701,7 +16704,7 @@ window.__EXTRAS = true;
   }
   function dwStart() {
     var pool = ["plate", "cup", "fork", "plate2", "pot"];
-    dwS = { stack: pool.slice().sort(function () { return Math.random() - .5; }), cur: null, step: "take", rack: DW_RACK.map(function () { return null; }), wrong: 0, fx: [], drag: null, rub: null, rinse: 0, squirt: 0, done: 0, over: false, raf: 0, shake: 0, bub: [], popped: 0, foam: 0, duck: Math.random() < .6 ? { a: 0, sq: 0 } : null };
+    dwS = { stack: pool.slice().sort(function (a, b) { var R = { plate: 0, plate2: 0, fork: 1, pot: 2, cup: 3 }; return (R[a] - R[b]) || (Math.random() - .5); }),   /* a sensible pile: plates at the bottom, the cup on top */ cur: null, step: "take", rack: DW_RACK.map(function () { return null; }), wrong: 0, fx: [], drag: null, rub: null, rinse: 0, squirt: 0, done: 0, over: false, raf: 0, shake: 0, bub: [], popped: 0, foam: 0, duck: Math.random() < .6 ? { a: 0, sq: 0 } : null };
     dwV.card.hidden = true; dwStep("take");
   }
   function dwStep(st) {
@@ -16711,6 +16714,27 @@ window.__EXTRAS = true;
   }
   function dwLeft(it) { var n = 0; for (var i = 0; i < it.dirt.length; i++) if (it.dirt[i] > 0) n++; return n; }
   // tiny side views for the tray and the rack
+  var DWSPR = {"plate":{"r":["................................","..........aaaaaaaaaaaa..........",".......aaaffffffffffffaaa.......",".....aaffbbiihhhhhhhhbbffaa.....","...aafbiihiiiiiiihhhhhhhhbfaa...","..affbihiiiiiiihhhhhhhhhhhbffa..",".affbihiiiddddhheehhhhhhhhhbffa.",".afiiiiiiddddddhhhhhhhhhhhhhhfa.",".afhhhiihhddddhhhhgggghhhhhhhfa.",".acfbhhhhhhhhhhhhhhgghhhhhhbfca.",".acffbhhhhhhhhhhhhhhhhhhhhbffca.","..accffbhhhhhhhhhhhhhhhhbffcca..","..accccfffbbhhhhhhhhbbfffcccca..","...aacccccccffffffffcccccccaa...",".....aaccccccccccccccccccaa.....",".......aaaaaccccccccaaaaa.......","............aaaaaaaa............"],"p":{"a":"#3a2414","b":"#6a9ad8","c":"#b8b0a4","d":"#c8283a","e":"#c8945a","f":"#d8d0c4","g":"#f8f0d0","h":"#f8f4ec","i":"#ffffff"}},"plate2":{"r":["................................","..........aaaaaaaaaaaa..........",".......aaaddddddddddddaaa.......",".....aaddeeggffffffffeeddaa.....","...aadeggfgggggggffffffffedaa...","..addegfggggccccffffffffffedda..",".addegfgggccccccccfffffffffedda.",".adggggggccccccccccffffffffffda.",".adfffggfccccccccccffccffffffda.",".abdefffffccccccccffccccfffedba.",".abddeffffffffffffffffffffeddba.","..abbddeffffffffffffffffeddbba..","..abbbbdddeeffffffffeedddbbbba..","...aabbbbbbbddddddddbbbbbbbaa...",".....aabbbbbbbbbbbbbbbbbbaa.....",".......aaaaabbbbbbbbaaaaa.......","............aaaaaaaa............"],"p":{"a":"#3a2414","b":"#b8b0a4","c":"#d8a030","d":"#d8d0c4","e":"#e8650c","f":"#f8f4ec","g":"#ffffff"}},"cup":{"r":["...................","....aaaaaa.........","..aaccccccaa.......",".accbbbbbbcca......",".acbbbbbbbbcda.....",".afcbbbbbbcdddaa...",".afffeeeeddddadda..",".afffeeeeddddadda..",".afffeeeeddddadda..",".afffeeeedddddaa...",".afffeeeedddda.....",".afffeeeedddda.....",".afffeeeedddda.....",".adddddddddda......","..adddddddda.......","...aaaaaaaa........","..................."],"p":{"a":"#3a2414","b":"#6a3a1a","c":"#b8b0a4","d":"#d8d0c4","e":"#f8f4ec","f":"#ffffff"}},"fork":{"r":["....................a...","...............aaaaada..","..aaaaaaaaaaaaaddddaada.",".adccccccccccccccccaca..",".abbbbbbbbbbbbbccccaaca.","..aaaaaaaaaaaaaaaaa..a.."],"p":{"a":"#3a2414","b":"#8a929c","c":"#c8d0d8","d":"#eef2f6"}},"pot":{"r":["..........................","..........................",".............a............","...........aaea...........",".........aaffefaa.........","........affffffffa........",".......afddddddddca.......","a.....affffddddeecca..a...","ea...afffffeeeeeecccaaca..","ceaa.affffeeeeeeecccaaca..","aceeaffffeeeeeeeeccccaaca.",".acceffffeeeeeeeeccccaaca.","..aacbbbbbbbbbbbbbbbbaaca.","....afeeeeeeeeeeeccccaca..",".....aeeeeeeeeeeecccaaca..",".....aeeeeeeeeeeeccca.a...","......aeeeeeeeeeecca......",".......aeeeeeeeeeca.......","........aaeeeeeeaa........","..........aaaaaa.........."],"p":{"a":"#3a2414","b":"#6fae5a","c":"#d8d0c4","d":"#e8e0d4","e":"#f8f4ec","f":"#ffffff"}},"pot_c":{"r":["..........................","..........................",".............a............","...........aaea...........",".........aaffefaa.........","........affffffffa........",".......afddddddddca.......","a.....affffddddeecca..a...","ea...afffffeeeeeecccaaca..","ceaa.affffeeeeeeecccaaca..","aceeaffffeeeeeeeeccccaaca.",".acceffffeeeeeeeeccccaaca.","..aacbbbbbbbbbbbbbbbbaaca.","....afeeeeeeeeeeeccccaca..",".....aeeeeeeeeeeecccaaca..",".....aeeeeeeeeeeeccca.a...","......aeeeeeeeeeecca......",".......aeeeeeeeeeca.......","........aaeeeeeeaa........","..........aaaaaa.........."],"p":{"a":"#3a2414","b":"#6fae5a","c":"#d8d0c4","d":"#e8e0d4","e":"#f8f4ec","f":"#ffffff"}},"plate_up":{"r":["...aa...","..acca..",".acccca.",".acbbca.",".abeeba.",".abeeba.","aceeeeca","aceeeeca","abeeeeba","abeeeeba","abeeeeba","abddddba","abddddba","abddddba","abddddba","abddddba","abddddba","abddddba","acddddca","acddddca",".abddba.",".abddba.",".acbbca.",".acccca.","..acca..","...aa..."],"p":{"a":"#3a2414","b":"#6a9ad8","c":"#d8d0c4","d":"#f8f4ec","e":"#ffffff"}},"plate2_up":{"r":["...aa...","..abba..",".abbbba.",".abccba.",".aceeca.",".aceeca.","abeeeeba","abeeeeba","aceeeeca","aceeeeca","aceeeeca","acddddca","acddddca","acddddca","acddddca","acddddca","acddddca","acddddca","abddddba","abddddba",".acddca.",".acddca.",".abccba.",".abbbba.","..abba..","...aa..."],"p":{"a":"#3a2414","b":"#d8d0c4","c":"#e8650c","d":"#f8f4ec","e":"#ffffff"}},"cup_c":{"r":["...................","....aaaaaa.........","..aabbbbbbaa.......",".abbddddddbba......",".abddddddddbca.....",".afbddddddbcccaa...",".afffeeeeccccacca..",".afffeeeeccccacca..",".afffeeeeccccacca..",".afffeeeecccccaa...",".afffeeeecccca.....",".afffeeeecccca.....",".afffeeeecccca.....",".acccccccccca......","..acccccccca.......","...aaaaaaaa........","..................."],"p":{"a":"#3a2414","b":"#b8b0a4","c":"#d8d0c4","d":"#d8dce4","e":"#f8f4ec","f":"#ffffff"}},"bottle":{"r":[".....aea....",".....aea....","....aaea....","...ahfffa...","...ahfffa...","...ahfffa...","...ahfffa...","...ahfffa...","..adcccbba..",".addccccbba.",".addccccbba.","adddccccbbba","addcccccbbba","addcccccbbba","addhhhhhhbba","addggggggbba","addggggggbba","addgeeeggbba","addggggggbba","addgeegggbba","addggggggbba","addggggggbba","addcccccbbba","addcccccbbba","addcccccbbba","addcccccbbba",".addccccbba.",".addccccbba."],"p":{"a":"#3a2414","b":"#3e8a3a","c":"#5ab04a","d":"#a8e890","e":"#e8650c","f":"#f4f0e6","g":"#fff8ec","h":"#ffffff"}}}, DWSC = {};   /* 2.5d pieces: the dirty stack, the clean rack, the washing-up liquid */
+  function dwSpr(c, n, x, y) { var cv = DWSC[n]; if (!cv) { var d = DWSPR[n]; cv = document.createElement("canvas"); cv.width = d.r[0].length; cv.height = d.r.length; var g = cv.getContext("2d");
+      d.r.forEach(function (row, yy) { for (var xx = 0; xx < row.length; xx++) { var col = d.p[row[xx]]; if (col) { g.fillStyle = col; g.fillRect(xx, yy, 1, 1); } } }); DWSC[n] = cv; }
+    c.drawImage(cv, Math.round(x), Math.round(y)); return cv; }
+  var DWLIFT = { plate: 3, plate2: 3, cup: 12, fork: 2, pot: 14 };
+  // the window above the sink looks onto the real garden (the same half-size pictures as the living-room bay window)
+  var DWWIN = { key: "", cv: null, imgs: {} };
+  function dwWindow(c) {
+    var X = 54, Y = 2, Wd = 48, Ht = 17;
+    mR(c, X - 2, Y - 1, Wd + 4, Ht + 3, "#3a2414"); mR(c, X - 1, Y, Wd + 2, Ht + 1, "#f4ead8");
+    var se = typeof season === "function" ? season() : "summer", ph = typeof daylight === "function" ? daylight() : "day", key = se + ph;
+    if (typeof WBH === "object" && WBH["far_" + se]) {
+      if (DWWIN.key !== key) { DWWIN.key = key; var cv = document.createElement("canvas"); cv.width = Wd; cv.height = Ht; DWWIN.cv = cv; var g = cv.getContext("2d"), grd = g.createLinearGradient(0, 0, 0, Ht);
+        grd.addColorStop(0, ph === "night" ? "#1e2a52" : ph === "twilight" ? "#f4a878" : "#8fd0f4"); grd.addColorStop(1, ph === "night" ? "#34407a" : ph === "twilight" ? "#f8d8a8" : "#d8f0fc"); g.fillStyle = grd; g.fillRect(0, 0, Wd, Ht);
+        ["far", "t0", "t1", "t2", "t3", "rest"].forEach(function (k) { var src = WBH[k + "_" + se], im = DWWIN.imgs[src]; if (!im) { im = new Image(); im.src = src; DWWIN.imgs[src] = im; im.onload = function () { DWWIN.key = ""; }; }
+          if (im.complete && im.naturalWidth) g.drawImage(im, -34, -14); });
+        if (ph === "night") { g.fillStyle = "rgba(12,16,48,.45)"; g.fillRect(0, 0, Wd, Ht); } }
+      c.drawImage(DWWIN.cv, X, Y);
+    } else mR(c, X, Y, Wd, Ht, "#8fd0f4");
+    mR(c, X + Wd / 2 - 1, Y, 2, Ht, "#f4ead8"); mR(c, X, Y + 8, Wd, 1, "#f4ead8"); mR(c, X - 3, Y + Ht + 1, Wd + 6, 2, "#c8b490"); mR(c, X - 3, Y + Ht + 3, Wd + 6, 1, "#3a2414");
+  }
   function dwMini(c, k, x, y, upright) {
     var O = "#3a2414", W = "#f8f4ec", S = "#d8d0c4";
     if (k === "plate" || k === "plate2") { if (upright) { mR(c, x, y, 5, 24, O); mR(c, x + 1, y + 1, 3, 22, W); mR(c, x + 3, y + 1, 1, 22, S); mR(c, x + 1, y + 3, 3, 1, k === "plate" ? "#6a9ad8" : "#e8650c"); mR(c, x + 1, y + 20, 3, 1, k === "plate" ? "#6a9ad8" : "#e8650c"); } else { mR(c, x, y, 26, 4, O); mR(c, x + 1, y + 1, 24, 2, W); mR(c, x + 1, y + 2, 24, 1, S); mR(c, x + 3, y + 1, 20, 1, k === "plate" ? "#6a9ad8" : "#e8650c"); } return; }
@@ -16761,18 +16785,19 @@ window.__EXTRAS = true;
     mR(c, 92, 20, 5, 3, "#3a2414"); mR(c, 93, 21, 3, 1, "#5a646e");
     mR(c, 124, 14 - lv, 12, 4, "#3a2414"); mR(c, 125, 15 - lv, 10, 2, "#d8463c"); mR(c, 125, 15 - lv, 10, 1, "#f06a5a"); mR(c, 133, 11 - lv, 4, 8, "#3a2414"); mR(c, 134, 12 - lv, 2, 6, "#f06a5a");
   }
-  function dwRackDraw(c, S, t) {                                     // a drying rack: a wooden tray, plate wires at the front, hooks and a cutlery cup at the back
-    mR(c, 134, 86, 45, 8, "#3a2414"); mR(c, 135, 87, 43, 3, "#c8945a"); mR(c, 135, 87, 43, 1, "#e0b07a"); mR(c, 135, 90, 43, 3, "#8a5a32");
-    mR(c, 136, 36, 2, 52, "#3a2414"); mR(c, 176, 36, 2, 52, "#3a2414"); mR(c, 136, 36, 42, 2, "#3a2414"); mR(c, 137, 36, 40, 1, "#a8b0b8"); mR(c, 136, 60, 42, 2, "#3a2414"); mR(c, 137, 60, 40, 1, "#a8b0b8");
+  function dwRackDraw(c, S, t) {                                     // a wooden plate rack: a tray, dowels between the plate slots, a rail with hooks for the cups, a cutlery cup
+    var Wd = ["#3a2414", "#8a5a32", "#c8945a", "#e0b07a"];
+    mR(c, 134, 86, 45, 8, Wd[0]); mR(c, 135, 87, 43, 3, Wd[2]); mR(c, 135, 87, 43, 1, Wd[3]); mR(c, 135, 90, 43, 3, Wd[1]);
+    mR(c, 135, 36, 3, 51, Wd[0]); mR(c, 136, 37, 1, 49, Wd[3]); mR(c, 175, 36, 3, 51, Wd[0]); mR(c, 176, 37, 1, 49, Wd[2]);
+    mR(c, 135, 36, 43, 3, Wd[0]); mR(c, 136, 37, 41, 1, Wd[3]); mR(c, 135, 58, 43, 3, Wd[0]); mR(c, 136, 59, 41, 1, Wd[2]);
     DW_RACK.forEach(function (r, i) {
       var it = S.rack[i], hl = S.drag && !it && S.step === "put";
-      if (r.t === "plate") { for (var b = 0; b < 2; b++) { mR(c, r.x - 1 + b * 8, 62, 2, 25, "#3a2414"); mR(c, r.x - 1 + b * 8, 62, 1, 25, "#c8d0d8"); } }
-      if (r.t === "cup") { mR(c, r.x + 4, 38, 2, 9, "#3a2414"); mR(c, r.x + 3, 46, 5, 2, "#3a2414"); mR(c, r.x + 4, 38, 1, 8, "#c8d0d8"); }
-      if (r.t === "fork") { mR(c, r.x + 1, 44, 9, 14, "#3a2414"); mR(c, r.x + 2, 45, 7, 12, "#a8b0b8"); mR(c, r.x + 2, 45, 2, 12, "#d8e0e8"); mR(c, r.x + 2, 45, 7, 1, "#5a646e"); }
-      if (r.t === "pot") { mR(c, r.x, 84, 13, 2, "#7a5030"); }
+      if (r.t === "plate") { for (var b = 0; b < 2; b++) { mR(c, r.x - 2 + b * 8, 66, 3, 21, Wd[0]); mR(c, r.x - 1 + b * 8, 67, 1, 19, Wd[3]); } }
+      if (r.t === "cup") { mR(c, r.x + 4, 39, 2, 6, Wd[0]); mR(c, r.x + 4, 44, 4, 2, Wd[0]); mR(c, r.x + 4, 39, 1, 5, "#c8d0d8"); }
+      if (r.t === "fork") { mR(c, r.x + 1, 44, 9, 14, "#3a2414"); mR(c, r.x + 2, 45, 7, 12, "#c8945a"); mR(c, r.x + 2, 45, 2, 12, "#e0b07a"); mR(c, r.x + 2, 45, 7, 1, "#8a5a32"); }
       if (hl) { c.globalAlpha = .35 + .2 * Math.sin(t / 200); mR(c, r.x - 1, r.y - 1, r.w + 2, r.h + 2, "#fff4b0"); c.globalAlpha = 1; }
       if (it) { var wob = S.wob && S.wob.i === i ? Math.round(Math.sin(S.wob.t * 30) * S.wob.t * 4) : 0;
-        if (r.t === "plate") dwMini(c, it, r.x + 1 + wob, 62, true); else if (r.t === "cup") dwMini(c, it, r.x + 1, 48 + Math.abs(wob), true); else if (r.t === "fork") { mR(c, r.x + 3, 38, 4, 10, "#3a2414"); mR(c, r.x + 4, 39, 2, 8, "#eef2f6"); mR(c, r.x + 4, 37, 1, 2, "#3a2414"); mR(c, r.x + 6, 37, 1, 2, "#3a2414"); } else dwMini(c, it, r.x + wob, 72, false); }
+        if (r.t === "plate") dwSpr(c, it === "plate2" ? "plate2_up" : "plate_up", r.x + wob, 62); else if (r.t === "cup") dwSpr(c, "cup_c", r.x - 1, 46 + Math.abs(wob)); else if (r.t === "fork") { mR(c, r.x + 3, 38, 4, 10, "#3a2414"); mR(c, r.x + 4, 39, 2, 8, "#eef2f6"); mR(c, r.x + 4, 37, 1, 2, "#3a2414"); mR(c, r.x + 6, 37, 1, 2, "#3a2414"); } else dwSpr(c, "pot_c", r.x - 7 + wob, 68); }
     });
     if (S.wob) { S.wob.t -= .016; if (S.wob.t <= 0) S.wob = null; }
   }
@@ -16793,19 +16818,17 @@ window.__EXTRAS = true;
   function dwDraw(t) {
     if (!dwS) return; var c = dwV.c, S = dwS; c.clearRect(0, 0, 180, 135);
     c.drawImage(dwKitchen(), 0, 0);   // the kitchen, drawn once: tiles, a shelf, the counter seen a little from above, the sink let into it
-    // the board with the dirty pieces, a little stack seen from above-front
-    mR(c, 2, 88, 36, 6, "#3a2414"); mR(c, 3, 89, 34, 3, "#c8945a"); mR(c, 3, 89, 34, 1, "#e0b07a"); mR(c, 3, 92, 34, 1, "#8a5a32");
-    var sy = 89; S.stack.forEach(function (k, i) { var h = k === "plate" || k === "plate2" ? 4 : k === "cup" ? 8 : k === "fork" ? 3 : 12; sy -= h; dwStackPiece(c, k, 20, sy, h, t);
-      if (i === S.stack.length - 1 && S.step === "take" && !S.drag && Math.floor(t / 300) % 2) mR(c, 4, sy - 2, 32, 1, "#ffd34a"); });
-    if (S.step === "take" && S.stack.length && !S.drag) dwArrow(c, 20, sy - 5, t, "d");
     // washing-up liquid: a round green bottle with a label, light on the left
     var sq = S.step === "soap", bz = S.squirt > .6 ? 1 : 0;
-    mR(c, 39, 69 + bz, 10, 23 - bz, "#3a2414"); mR(c, 40, 70 + bz, 8, 21 - bz, "#5ab04a"); mR(c, 40, 70 + bz, 2, 21 - bz, "#a8e890"); mR(c, 46, 70 + bz, 2, 21 - bz, "#3e8a3a");
-    mR(c, 40, 90, 8, 1, "#2e6a2a"); mR(c, 41, 76, 6, 8, "#fff8ec"); mR(c, 42, 78, 4, 1, "#e8650c"); mR(c, 42, 80, 3, 1, "#e8650c"); mR(c, 41, 76, 6, 1, "#ffffff");
-    mR(c, 41, 64 + bz, 6, 6, "#3a2414"); mR(c, 42, 65 + bz, 4, 4, "#f4f0e6"); mR(c, 42, 65 + bz, 1, 4, "#ffffff"); mR(c, 43, 61 + bz, 2, 4, "#3a2414"); mR(c, 43, 62 + bz, 1, 2, "#e8650c");
-    if (sq && !S.squirt) dwArrow(c, 44, 57, t, "d");
+    dwSpr(c, "bottle", 30, 24 + bz);   /* it stands at the back of the counter, a little above the stack */
+    if (sq && !S.squirt) dwArrow(c, 36, 20, t, "d");
+    // the board with the dirty pieces, a little stack seen from above-front
+    mR(c, 2, 88, 36, 6, "#3a2414"); mR(c, 3, 89, 34, 3, "#c8945a"); mR(c, 3, 89, 34, 1, "#e0b07a"); mR(c, 3, 92, 34, 1, "#8a5a32");
+    var sy = 92, topY = 92; S.stack.forEach(function (k, i) { var d = DWSPR[k], w = d.r[0].length, h = d.r.length; dwSpr(c, k, 20 - w / 2 + (i % 2 ? 1 : 0), sy - h + 2); topY = sy - h + 2; sy -= DWLIFT[k] || 3; });
+    sy = topY + 5;
+    if (S.step === "take" && S.stack.length && !S.drag) dwArrow(c, 20, sy - 5, t, "d");
     // the tap behind the sink: a round base, an arched spout over the middle, a red lever that tips while water runs
-    dwTap(c, S, t);
+    dwWindow(c); dwTap(c, S, t);
     if (S.step === "rinse" && !S.rinse) dwArrow(c, 128, 26, t, "d");
     // the drying rack on the right, wire and wood, seen from above-front
     dwRackDraw(c, S, t);
@@ -16841,7 +16864,7 @@ window.__EXTRAS = true;
         var pct = 1 - dwLeft(it) / Math.max(1, it.tot);                   // a ring of gold dots round the basin fills as it gets clean
         for (var a = 0; a < 40; a++) { if (a / 40 > pct) break; var an = -Math.PI / 2 + a / 40 * Math.PI * 2; mR(c, DW.cx + Math.cos(an) * (DW.R + 3) - 1, DW.cy + Math.sin(an) * (DW.R + 3) - 1, 2, 2, pct >= .97 ? "#6fd04a" : "#ffd34a"); }
       }
-      if (S.step === "soap" && S.squirt > 0) { S.squirt -= .016; for (var q = 0; q < 8; q++) { var u = 1 - S.squirt / .9 - q * .05; if (u > 0 && u < 1) mR(c, 44 + (DW.cx - 44) * u, 66 - Math.sin(u * Math.PI) * 18 + (DW.cy - 66) * u, 2, 2, "#8ae070"); } if (S.squirt <= 0) { S.squirt = 0; it.soaped = true; for (var f2 = 0; f2 < 10; f2++) it.foam.push([DW.cx + Math.random() * 30 - 15, DW.cy + Math.random() * 30 - 15]); dwStep("scrub"); } }
+      if (S.step === "soap" && S.squirt > 0) { S.squirt -= .016; for (var q = 0; q < 8; q++) { var u = 1 - S.squirt / .9 - q * .05; if (u > 0 && u < 1) mR(c, 36 + (DW.cx - 36) * u, 24 - Math.sin(u * Math.PI) * 14 + (DW.cy - 24) * u, 2, 2, "#8ae070"); } if (S.squirt <= 0) { S.squirt = 0; it.soaped = true; for (var f2 = 0; f2 < 10; f2++) it.foam.push([DW.cx + Math.random() * 30 - 15, DW.cy + Math.random() * 30 - 15]); dwStep("scrub"); } }
       if (S.rinse > 0) { S.rinse -= .016;
         // a clear stream from the spout down onto the piece, wobbling a little, splashes and rings where it lands
         var sx0 = 94, sy0 = 23, ex = DW.cx + Math.sin(t / 160) * 4, ey = DW.cy - 4;
@@ -16888,8 +16911,8 @@ window.__EXTRAS = true;
   function dwHit(p, r) { return p[0] >= r.x - 3 && p[0] <= r.x + r.w + 3 && p[1] >= r.y - 3 && p[1] <= r.y + r.h + 3; }
   dwV.cv.addEventListener("pointerdown", function (e) {
     if (!dwS || dwS.over) return; var hr = ham.getBoundingClientRect(); if (e.clientX >= hr.left && e.clientX <= hr.right && e.clientY >= hr.top && e.clientY <= hr.bottom) return; var S = dwS, p = mPt(dwV, e); try { dwV.cv.setPointerCapture(e.pointerId); } catch (x) {}
-    if (S.step === "take") { if (p[0] < 40 && p[1] > 50 && p[1] < 96 && S.stack.length) { S.drag = p; S.dragK = S.stack[S.stack.length - 1]; beep([[300, .04]]); } return; }
-    if (S.step === "soap") { if (p[0] > 34 && p[0] < 52 && p[1] > 60 && p[1] < 94 && !S.squirt) { S.squirt = .9; beep([[500, .05], [300, .08]]); } return; }
+    if (S.step === "take") { if (p[0] < 40 && p[1] > 34 && p[1] < 96 && S.stack.length) { S.drag = p; S.dragK = S.stack[S.stack.length - 1]; beep([[300, .04]]); } return; }
+    if (S.step === "soap") { if (p[0] > 26 && p[0] < 46 && p[1] > 18 && p[1] < 58 && !S.squirt) { S.squirt = .9; beep([[500, .05], [300, .08]]); } return; }
     S.paw = p;
     for (var bI = 0; bI < S.bub.length; bI++) { var bb = S.bub[bI]; if (Math.hypot(bb.x - p[0], bb.y - p[1]) < bb.r + 3) { S.bub.splice(bI, 1); S.popped++; beep([[1400 + rnd(0, 400), .03]]); for (var q = 0; q < 6; q++) S.fx.push({ x: bb.x, y: bb.y, vx: (Math.random() - .5) * 40, vy: (Math.random() - .5) * 40, life: .4, c: q % 2 ? "#ffffff" : "#bfe8ff" }); return; } }
     if (S.duck && Math.hypot(S.duck.x - p[0], S.duck.y - p[1]) < 7 && (S.step === "splash" || S.step === "scrub")) { S.duck.sq = 1; beep([[1200, .05], [900, .08]]); mBan(dwV, "Quietsch!"); S.face = "happy"; S.faceT = performance.now() + 700; return; }
