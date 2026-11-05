@@ -2248,6 +2248,8 @@ body.dz-on .dz-panel { display: block; }
 .cq-bg .cq-room { position: absolute; max-width: none; display: block; image-rendering: pixelated; filter: saturate(.85) brightness(.9); }
 .cq-bg .cq-haze { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(255, 220, 160, .18), rgba(255, 220, 160, 0) 70%), linear-gradient(rgba(60, 36, 20, .12), rgba(60, 36, 20, 0) 40%); pointer-events: none; }
 .cq-bg .cq-haze.cq-warm { background: radial-gradient(ellipse 45% 50% at 32% 60%, rgba(255, 170, 80, .16), rgba(255, 170, 80, 0) 70%), linear-gradient(rgba(60, 36, 20, .1), rgba(60, 36, 20, .18)); }
+
+.cq-bell.cq-dish { left: auto; right: 3%; }
 /* ===== new friend screen (preview) ===== */
 .ipf .ip-rays polygon { fill: rgba(255, 196, 200, .3); }
 .ipf-stage { position: absolute; left: 50%; top: 9%; width: 46%; transform: translateX(-50%); }
@@ -16986,13 +16988,16 @@ window.__EXTRAS = true;
   }
   dwV.card.addEventListener("click", function (e) { e.stopPropagation(); var b = e.target.closest("button"); if (!b) return; if (b.dataset.a === "again") { dwStart(); } else dwClose(); });
   var dwHamP = null;
-  function dwOpen() {
-    if (busy && cur !== "dish") interrupt();
+  var dwCafe = false;
+  function dwOpen(fromCafe) {
+    dwCafe = fromCafe === true;   /* from the sink icon in the café: the café keeps running underneath */
+    if (dwCafe) { if (typeof cfGameOn !== "undefined") cfGameOn = true; }
+    else if (busy && cur !== "dish") interrupt();
     dwV.el.hidden = false; dwStart();
     cancelAnimationFrame(dwS.raf); dwS.raf = requestAnimationFrame(dwDraw);
-    if (cur !== "dish") act("dish", async function () { while (dwS) await wait(250); });   /* no idle animations while washing up */
+    if (!dwCafe && cur !== "dish") act("dish", async function () { while (dwS) await wait(250); });   /* no idle animations while washing up */
     if (!dwHamP) { dwHamP = { par: ham.parentNode, nxt: ham.nextSibling, z: ham.style.zIndex, x: H.x, y: H.y, dir: H.dir }; scene.appendChild(ham); scene.classList.add("pz-on", "hv-on"); moveTo(24, 132, 0); H.dir = 1; } }
-  function dwClose() { if (dwS) cancelAnimationFrame(dwS.raf); dwS = null; dwV.el.hidden = true;
+  function dwClose() { if (dwS) cancelAnimationFrame(dwS.raf); dwS = null; dwV.el.hidden = true; if (dwCafe) { dwCafe = false; if (typeof cfGameOn !== "undefined") cfGameOn = false; }
     if (dwHamP) { var hp = dwHamP; dwHamP = null; hp.par.insertBefore(ham, hp.nxt && hp.nxt.parentNode === hp.par ? hp.nxt : null); ham.style.zIndex = hp.z; H.dir = hp.dir; moveTo(hp.x, hp.y, 0); scene.classList.remove("pz-on", "hv-on"); settle(); } }
   dwV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); dwClose(); });
   window.__dishRack = function (a) { if (dwS) dwS.rack = a.slice(); };   /* preview test hook */
@@ -18360,6 +18365,17 @@ window.__EXTRAS = true;
   function cqBellShow() { if (!cqBell.isConnected) cafeEl.appendChild(cqBell);   /* the café picture may have been rebuilt: put the bell back */
     var n = cqList().length; cqBell.hidden = !cafeOn || gClosing(); cqBell.classList.toggle("full", n >= CQ_MAX); cqBell.querySelector(".cq-n").textContent = n ? n : ""; }
   setInterval(cqBellShow, 600);
+  // ---- the sink: bottom right, like the bell on the left: washing up the café's dishes ----
+  var cqSink = document.createElement("button"); cqSink.type = "button"; cqSink.className = "cq-bell cq-dish"; cqSink.setAttribute("aria-label", "Abwaschen");
+  cqSink.innerHTML = '<svg viewBox="0 0 16 14" aria-hidden="true" shape-rendering="crispEdges">' +
+    '<path fill="#3a2414" d="M9 0h4v1h1v3h-1V2h-1v1H9V1h0zM0 6h16v2h-1v5H1V8H0z"/>' +                       /* tap outline, basin outline */
+    '<path fill="#a8b4c0" d="M10 1h2v1h-2zM12 2h1v1h-1z"/><path fill="#e0e8f0" d="M10 1h1v1h-1z"/>' +    /* the tap */
+    '<path fill="#e8eef4" d="M1 7h14v1H1z"/><path fill="#8ac8ec" d="M2 8h12v1H2z"/><path fill="#c8ccd4" d="M2 9h12v3H2z"/><path fill="#a8b0bc" d="M2 12h12v0z"/>' +
+    '<path fill="#3a2414" d="M3 3h5v1h1v2H2V4h1z"/><path fill="#ffffff" d="M3 4h5v1H3z"/><path fill="#6a9ad8" d="M3 5h6v1H3z"/>' +   /* a dirty plate on the edge */
+    '<path fill="#c8283a" d="M5 4h2v1H5z"/><path fill="#ffffff" d="M3 9h3v1H3z"/></svg>';
+  cafeEl.appendChild(cqSink);
+  setInterval(function () { if (!cqSink.isConnected) cafeEl.appendChild(cqSink); cqSink.hidden = !cafeOn || typeof dwOpen !== "function"; }, 600);
+  cqSink.addEventListener("click", function (e) { e.stopPropagation(); if (!cafeOn || (typeof cfGameOn !== "undefined" && cfGameOn)) return; beep([[523, .04], [659, .05]]); dwOpen(true); });
   cqBell.addEventListener("click", function (e) { e.stopPropagation(); cqRing(); });
   function cqRing() {
     if (!cafeOn || (typeof cfGameOn !== "undefined" && cfGameOn)) return;
