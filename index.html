@@ -2878,7 +2878,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 101 · 02.11.2026</p>
+    <p class="opt-version">Version 102 · 02.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -13924,8 +13924,8 @@ window.__EXTRAS = true;
     var ic = gIcon(g.order.kind, g.order.kind === "cake" ? g.cakeK : null), iw = g.order.kind === "cake" ? 13 : 8;
     cfHamJob(function () {
       var tb = TABLES[g.table], sx = tb.seats[g.seat], to = [tb.top[0] + (sx < tb.top[0] ? -7 : 7), 126];
-      var tr = cfTray(ic, iw, g.order.kind === "cake" ? 11 : 8); cfHold(tr.svg, tr.w, tr.h, true);
-      return cfHamGo(to).then(function () {
+      return (cfHamAway() ? cfHamHome() : Promise.resolve()).then(function () {   /* first to the counter to fetch it */
+        var tr = cfTray(ic, iw, g.order.kind === "cake" ? 11 : 8); cfHold(tr.svg, tr.w, tr.h, true); return cfHamGo(to); }).then(function () {
         if (!cafeOn || g.state !== "bring") return;
         cfHold("");
         if (gClosing()) { gToGo(g); return cfWait(900).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); }); }
@@ -14193,8 +14193,8 @@ window.__EXTRAS = true;
     var ic = gIcon(it.kind, it.kind === "cake" ? it.k : null), iw = it.kind === "cake" ? 13 : 8;
     cfHamJob(function () {
       var tb = TABLES[g.table], sx = tb.seats[g.seat], to = [tb.top[0] + (sx < tb.top[0] ? -7 : 7), 126];
-      var tr = cfTray(ic, iw, it.kind === "cake" ? 11 : 8); cfHold(tr.svg, tr.w, tr.h, true);
-      return cfHamGo(to).then(function () {
+      return (cfHamAway() ? cfHamHome() : Promise.resolve()).then(function () {   /* first to the counter to fetch it */
+        var tr = cfTray(ic, iw, it.kind === "cake" ? 11 : 8); cfHold(tr.svg, tr.w, tr.h, true); return cfHamGo(to); }).then(function () {
         if (!cafeOn || g.state !== "bring") return;
         cfHold("");
         if (gClosing()) { gToGo(g); return cfWait(900).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); }); }
@@ -16482,30 +16482,8 @@ window.__EXTRAS = true;
     await walkTo(-14, 120); fadeX(false); await wait(250);
     showPlace("room"); camSet(180); moveTo(372, 120, 0); fadeX(true); await walkTo(300, 120);
   };
-  // ---- tap anywhere on the floor: the hamster goes there; he only starts doing his own things after ten quiet seconds ----
-  var lastUser = Date.now();
-  scene.addEventListener("pointerdown", function () { lastUser = Date.now(); }, true);
-  var _w_idle = idle;
-  idle = function () { if (Date.now() - lastUser < 10000) { later(idle, 1500); return; } return _w_idle.apply(this, arguments); };
-  IDLE_ACTS.push("walkto");
+  // (tapping the floor to send the hamster somewhere is switched off again: it got in the way of other taps)
   var WALK_Y = { room: [110, 130], kitchen: [108, 128], garden: [112, 130], bedroom: [112, 128] };
-  scene.addEventListener("click", function (e) {
-    if (decor || s.asleep || wSwallow || !WALK_Y[place2] || (typeof uiBusy === "function" && uiBusy())) return;
-    if (document.getElementById("scr-hamster").hidden) return;
-    var bgHit = e.target.closest(".floor, .wallpaper, .baseboard, .k-bg, .g-sky, .bed-bg, .b-bg, .wide-rug, .wide-lay, #room, #garden, #kitchen");
-    var ex = e.target.closest("button, a, .slot, .hamster, [class*=visitor], .gpop, .l-pop, .f-card, .lf-paper, .gift-ask, .pz-ui, .sign, [role=button], .wide-hit, .g-hit, .gq-pop");
-    if (!bgHit || (ex && !ex.matches(".floor, .wallpaper, .baseboard, .k-bg, .bed-bg, .b-bg, .g-sky"))) return;
-    if (busy && !interruptible()) return;
-    var r = scene.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * GW, y = (e.clientY - r.top) / r.height * GH;
-    if (place2 === "room" && scene.classList.contains("cam-on")) x += camX;
-    var maxX = place2 === "room" ? 352 : 172, ry = WALK_Y[place2];
-    x = Math.max(8, Math.min(maxX, x)); y = Math.max(ry[0], Math.min(ry[1], y));
-    e.stopImmediatePropagation();
-    if (H.where === "chair") { if (busy) interrupt(); act("walkto", async function () { await hopOutOfChair(); await walkTo(x, y); front(mood()); }); return; }
-    if (busy) interrupt();
-    fx("spark", x, y - 2, "sparkle");
-    act("walkto", async function () { await walkTo(x, y); front(mood()); });
-  }, true);
   // ---- the ship model stands on the wall shelf above the piano instead of books, plant and record; picture and pinboard hang a little lower ----
   if (typeof pcModel !== "undefined") {
     place(pcModel, 190, 14, 42); pcModel.classList.add("on-shelf");
@@ -18339,7 +18317,8 @@ window.__EXTRAS = true;
     hvStep();
   }
   function hvStep() { var k = HV.steps[HV.n]; HV.k = k; mBan(hvV, (HV.n + 1) + " · " + P2_HTITLE[k]); HV.stepDone = false;
-    if (k === "knock") { HV.clumps = []; for (var q = 0; q < 6; q++) HV.clumps.push({ x: 50 + q * 15 + rnd(-2, 2), y: 74 + (q % 2 ? -11 : 9) + rnd(-2, 2), off: false }); }
+    if (k === "knock") { HV.clumps = []; if (HV.c === "onion") [195, 235, 305, 345, 60, 120].forEach(function (a) { var r = a * Math.PI / 180; HV.clumps.push({ x: Math.round(80 + Math.cos(r) * 15 + rnd(-1, 1)), y: Math.round(76 + Math.sin(r) * 13 + rnd(-1, 1)), off: false }); });   /* the soil sticks all round the onion bulb */
+      else for (var q = 0; q < 6; q++) HV.clumps.push({ x: 50 + q * 15 + rnd(-2, 2), y: 74 + (q % 2 ? -11 : 9) + rnd(-2, 2), off: false }); }
   }
   function hvNext() { HV.stepDone = true; hvFace("happy", 1400); beep([[660, .06], [880, .1]]); setTimeout(function () { if (!HV) return; HV.n++; if (HV.n < HV.steps.length) hvStep(); else HV.done = true; }, 700); }
   function hvSpark(x, y, n, col) { for (var i = 0; i < n; i++) HV.fx.push({ x: x, y: y, vx: (Math.random() - .5) * 60, vy: -20 - Math.random() * 40, life: .8, c: col || (i % 2 ? "#ffd34a" : "#ffffff") }); }
@@ -18351,7 +18330,7 @@ window.__EXTRAS = true;
         if (HV.c === "onion") { hvOnion(90, top + 22, 1); hvOnionLeaves(90, top + 4, HV.tilt, t); } else { hvCarrot(90, top, 64, false); hvFronds(90, top, HV.tilt, t); }
         c.globalAlpha = .55; hR(70, 62, 40, 3, "#3a2414"); c.globalAlpha = 1;
         if (!HV.drag && !HV.stepDone) { var b = Math.sin(t / 150) * 3; hR(118 + b, 30, 8, 2, "#ffd34a"); hR(54 - b, 30, 8, 2, "#ffd34a"); }
-      } else { hvBg(t, 100); if (HV.c === "onion") { hvOnion(80, 74, 1.4); hvSprC("onionleaves", 68, 74, -Math.PI / 2); } else { hvCarrot(30, 74, 120, true); hvFronds(26, 74, -18, t); }
+      } else { hvBg(t, 100); if (HV.c === "onion") { hvOnion(80, 74, 1.4); hvSprC("onionleaves", 80, 51); } else { hvCarrot(30, 74, 120, true); hvFronds(26, 74, -18, t); }
         HV.clumps.forEach(function (o) { if (o.off) return; hvSprC("clump", o.x, o.y); }); }
     }
     if (HV.c === "strawberry") { hvBg(t, 70);
@@ -18958,6 +18937,7 @@ window.__EXTRAS = true;
   var _cq_serveItem = gServeItem;
   gServeItem = function (g, it) {
     if (!g.q) return _cq_serveItem(g, it);
+    if (cfHamAway()) cfHamJob(function () { return cfHamHome(); });   /* back behind the counter to hand it over */
     g.wished = gMatch(g.order, it); g.wrong = it.kind !== g.order.kind; g.srv = it.kind; if (it.kind === "cake") g.cakeK = it.k;
     if (it.src === "kitchen") say(N() + " holt schnell einen Kuchen aus der Küche und schneidet ihn an.");
     gRemove(it); g.q = false; var b = g.el.querySelector(".gq-bub"); if (b) b.innerHTML = "";
@@ -19113,7 +19093,7 @@ window.__EXTRAS = true;
         if (!cafeOn || g.state !== "wait" || g.ordered) return;
         cfHamSet({ eyes: "happy", mouth: "smile" });
         return new Promise(function (res) { g._talkDone = res; cqTalkTo(g.id, g.order, false, g, true); var w = setInterval(function () { if (!cafeEl.querySelector(".cq-pov") || !cafeOn) { clearInterval(w); if (g._talkDone) { g._talkDone = null; res(); } } }, 400); });
-      }).then(function () { cfHamSet({}); if (!CFH.q.length) return cfHamHome(); });
+      }).then(function () { cfHamSet({}); });   /* he stays at the table until you bring something */
     });
   }
   var _cq_gAsk = gAsk; gAsk = function (g) { if (g.atTable && !g.ordered && g.state === "wait") return cqTableOrder(g); return _cq_gAsk(g); };
