@@ -606,6 +606,73 @@
     for (var q = 0; q < 160; q++) { var b = q / 160 * Math.PI * 2; for (var rr = 17; rr <= 20; rr++) { var qx = Math.round(cx + Math.cos(b) * rr), qy = Math.round(cy + Math.sin(b) * rr); if (qy < 135) mR(cpc, qx, qy, 1, 1, rr === 17 || rr === 20 ? "#5a3a22" : (q % 9 ? "#a87448" : "#8a5a32")); } }
     cpBlob(cx, cy, 4.5, 4.5, function (dx, dy) { return dx + dy < 0 ? "#f0d070" : "#c8a040"; });
   }
+  // ===== refined small craft, buoys, quays and sheds in the style of the liners =====
+  var CP_BOATC = [[["#3a6a9a", "#4a7aaa", "#2a5280", "#162a44"], "#f8f4ec"], [["#3a7a4a", "#4a8a5a", "#2a5a36", "#14301c"], "#f6e8c8"], [["#a8442a", "#b8543a", "#86321e", "#40160c"], "#f8f4ec"], [["#8a6a44", "#9a7a52", "#6a5034", "#342414"], "#e8d8b0"]];
+  function cpSail(T, pts, c, oc) { cpPolyW(pts.map(function (p) { return T.P(p[0], p[1], p[2]); }), c, oc); }
+  var _cpKind0 = cpKind;
+  cpKind = function (o, w, a, t, k) {
+    var T = cpLoc(w[0], w[1], a);
+    if (k === "boat") { var C = CP_BOATC[(Math.abs(Math.round(o.x * 7 + o.y * 3))) % 4];
+      cpHull(T, { ls: 1.6, lb: 1.9, hw: .58, zd: .45, sb: .32, ss: .12, zw: -.08, n: 10, col: C[0], band: [.08, [C[1], C[1], "#c8c0b0", "#8a8478"]], rail: "#5a3a22", deck: "#c8a07a", sh: "#2a5a88" }, t);
+      var cb = T.P(0, -.5, 0); cpBox3(cb[0], cb[1], a, .5, .7, .45, .8, ["#e8dcc8", "#f0e8d8", "#c8bca8", "#5a4a3a"]);
+      var mb = T.P(0, .35, .5), mt = T.P(0, .3, 3.2); cpLine3(mb, mt, "#5a3a22"); cpLine3(T.P(0, .3, .85), T.P(0, -1.5, .9), "#5a3a22");
+      var flap = Math.sin(t / 700 + o.x) * .06;
+      cpSail(T, [[flap, .28, .9], [flap * 2, .28, 3.0], [flap * 1.5, -1.0, 2.5], [flap, -1.45, .95]], C[1], "#a8987a");
+      cpSail(T, [[0, .4, 3.0], [0, 1.85, .62], [0, .42, .9]], "#f0e8d8", "#a8987a"); cpLine3(T.P(0, .3, 3.2), T.P(0, 1.9, .6), "#8a7a64");
+      var fp = cpProj.apply(null, mt); if (fp) mR(cpc, Math.round(fp.x), Math.round(fp.y) - 1, 2, 1, "#d8463c"); return; }
+    if (k === "schooner") {
+      cpHull(T, { ls: 2.6, lb: 3.0, hw: .8, zd: .55, sb: .4, ss: .15, zw: -.1, n: 14, col: ["#2a4a5a", "#3a5a6a", "#1e3644", "#0e1c24"], band: [.1, ["#f4ecdc", "#fff8ec", "#d8d0c0", "#a8a090"]], boot: .12, rail: "#8a6a44", deck: "#d8b08a" }, t);
+      var dh = T.P(0, -1.3, 0); cpBox3(dh[0], dh[1], a, .7, 1.0, .55, .95, ["#c8a07a", "#d8b08a", "#a8805a", "#4a3020"]);
+      [[-1.0, 4.4], [1.1, 4.9]].forEach(function (m, i) { var b0 = T.P(0, m[0], .6), b1 = T.P(0, m[0] - .15, m[1]); cpLine3(b0, b1, "#5a3a22");
+        var fl = Math.sin(t / 650 + i) * .05; cpSail(T, [[fl, m[0] - .1, 1.0], [fl * 2, m[0] - .15, m[1] - .4], [fl * 2, m[0] - 1.9, m[1] - 1.0], [fl, m[0] - 2.0, 1.05]], "#fff4e0", "#a8987a"); });
+      cpSail(T, [[0, 1.0, 4.5], [0, 3.0, .7], [0, 1.1, 1.0]], "#f4ecdc", "#a8987a"); cpLine3(T.P(0, .95, 4.9), T.P(0, 3.4, .8), "#8a7a64");
+      var ft = cpProj.apply(null, T.P(0, .95, 4.9)); if (ft) { var fw = Math.floor(t / 250) % 2; [["#d8463c", 0], ["#ffd34a", 2], ["#d8463c", 4]].forEach(function (f) { mR(cpc, Math.round(ft.x) - 4 - fw, Math.round(ft.y) + f[1], 3, 2, f[0]); }); }
+      return; }
+    if (k === "light") {
+      cpHull(T, { ls: 2.8, lb: 3.0, hw: .9, zd: 1.0, sb: .35, ss: .15, zw: -.12, n: 14, col: ["#c8342a", "#d8463c", "#a02a22", "#4a100c"], port: [.5, [.62]], portc: "#f8f4ec", rail: "#f0e8d8", deck: "#c8a07a" }, t);
+      cpHouse(T, a, -1.6, .2, .55, 1.0, 1.55, .35);
+      var mt2 = T.P(0, .7, 0); cpLine3([mt2[0], mt2[1], 1.0], [mt2[0], mt2[1], 4.2], "#5a3a22"); var on = cpBlink(t), oc = []; for (var i = 0; i < 10; i++) oc.push([Math.cos(i / 10 * 6.283) * .32, Math.sin(i / 10 * 6.283) * .32]);
+      cpPrism(mt2[0], mt2[1], a, oc, 3.9, 4.45, [on ? "#ffe08a" : "#8a7a4a", on ? "#fff4b0" : "#9a8a5a", on ? "#ffd34a" : "#6a5a3a", "#3a2414"]); cpPrism(mt2[0], mt2[1], a, oc.map(function (p) { return [p[0] * 1.3, p[1] * 1.3]; }), 4.45, 4.6, CP_IRON);
+      if (on) { var lp = cpProj(mt2[0], mt2[1], 4.2); if (lp) { mR(cpc, Math.round(lp.x) - 4, Math.round(lp.y), 3, 1, "#fff4b0"); mR(cpc, Math.round(lp.x) + 2, Math.round(lp.y), 3, 1, "#fff4b0"); } } return; }
+    if (k === "buoyR" || k === "buoyG") { var red = k === "buoyR", P = red ? ["#e8584a", "#f06a5a", "#b8362a", "#4a100c"] : ["#5ab04a", "#6ac05a", "#3a8a2e", "#123a0c"], ring = function (r) { var q = []; for (var i = 0; i < 12; i++) q.push([Math.cos(i / 12 * 6.283) * r, Math.sin(i / 12 * 6.283) * r]); return q; };
+      cpPolyW(ring(.62).map(function (p) { return [w[0] + p[0], w[1] + p[1] * .8, 0]; }), "#2a5a88");
+      cpPrism(w[0], w[1], 0, ring(.5), -.05, .22, CP_IRON);
+      if (red) { cpPrism(w[0], w[1], 0, ring(.34), .22, .95, P); cpPrism(w[0], w[1], 0, ring(.35), .62, .72, CP_WHITE); }
+      else { cpPrism(w[0], w[1], 0, ring(.4), .22, .45, P); cpPrism(w[0], w[1], 0, ring(.29), .45, .7, P); cpPrism(w[0], w[1], 0, ring(.17), .7, .95, P); cpPrism(w[0], w[1], 0, ring(.07), .95, 1.08, P); }
+      cpLine3([w[0] - .15, w[1], .95], [w[0] - .15, w[1], 1.35], "#3a3a3a"); cpLine3([w[0] + .15, w[1], .95], [w[0] + .15, w[1], 1.35], "#3a3a3a"); if (cpBlink(t, w[0])) cpBill([w[0], w[1], 1.42], 2, 2, "#ffe08a"); return; }
+    return _cpKind0(o, w, a, t, k);
+  };
+  // the quay: dressed stone courses, coping, iron ladders, hanging fenders, cobbles near by
+  var _cpQuay0 = cpQuay3;
+  cpQuay3 = function (o, t, pass) {
+    _cpQuay0(o, t, pass); if (pass) return;
+    var AN = cp.anc[o.leg], side = o.x > 0 ? 1 : -1, Z1 = 1.2, T = cpLoc(AN.x, AN.y, AN.h), xf = o.x - side * .04;
+    if (!cpSees([T.P(xf, o.y0, 0), T.P(xf, o.y1, Z1)], T.N(-side, 0))) return;
+    var near = function (y) { var c = cpC.apply(null, T.P(xf, y, 0)); return c[0] > -5 && c[0] < 34; };
+    [.38, .82].forEach(function (z) { cpLine3(T.P(xf, o.y0, z), T.P(xf, o.y1, z), "#7e746a"); });
+    var cop = T.P(o.x + side * .25, (o.y0 + o.y1) / 2, 0); cpBox3(cop[0], cop[1], AN.h, .5, o.y1 - o.y0, Z1, Z1 + .1, ["#d8ccb8", "#c8bca8", "#a89c88", "#5a524c"]);
+    for (var y = Math.ceil(o.y0 / 1.6) * 1.6; y < o.y1; y += 1.6) { if (!near(y)) continue; var off = (Math.round(y / 1.6) % 2) * .8;
+      cpLine3(T.P(xf, y + off, .38), T.P(xf, y + off, .82), "#7e746a"); cpLine3(T.P(xf, y + .4, .82), T.P(xf, y + .4, Z1), "#7e746a"); cpLine3(T.P(xf, y + 1.2 - off * .5, .2), T.P(xf, y + 1.2 - off * .5, .38), "#7e746a");
+      var tp = T.P(o.x + side * 1.6, y, Z1), tq = T.P(o.x + side * 9, y, Z1); if (Math.round(y / 1.6) % 3 === 0) cpLine3(tp, tq, "#968a78"); }
+    for (var ly = Math.ceil(o.y0 / 11) * 11 + 3; ly < o.y1; ly += 11) { if (!near(ly)) continue; [-.25, .25].forEach(function (d) { cpLine3(T.P(xf - side * .03, ly + d, .05), T.P(xf - side * .03, ly + d, Z1 + .25), "#2e2e34"); });
+      for (var rz = .2; rz < Z1; rz += .22) cpLine3(T.P(xf - side * .03, ly - .25, rz), T.P(xf - side * .03, ly + .25, rz), "#46464e"); }
+    for (var fy = Math.ceil(o.y0 / 4.3) * 4.3 + 1.5; fy < o.y1; fy += 4.3) { if (!near(fy)) continue; var fp = cpProj.apply(null, T.P(xf - side * .05, fy, .75)); if (!fp) continue; var r = Math.max(1, Math.round(fp.k * 3.5));
+      cpBlob(fp.x, fp.y, r, r * 1.2, function (dx, dy) { var d = dx * dx + dy * dy; return d > .75 ? "#141418" : d < .2 ? "#7e746a" : dx < 0 ? "#3a3a40" : "#26262c"; }); }
+  };
+  // the warehouse: brick courses, white-framed arched windows, a green name board, skylights and a chimney on the roof
+  var _cpModel0 = cpModel;
+  cpModel = function (o, w, t) {
+    _cpModel0(o, w, t);
+    if (o.m !== "shed") return; var a = cp.anc[o.leg].h + (o.a || 0), T = cpLoc(w[0], w[1], a), Wd = o.w, L = o.l;
+    [-1, 1].forEach(function (su) { var u = su * (Wd / 2 + .04), n = T.N(su, 0); if (!cpSees([T.P(u, -L / 2, 1.2), T.P(u, L / 2, 4.2)], n)) return;
+      for (var z = 1.5; z < 4.2; z += .32) cpLine3(T.P(u, -L / 2, z), T.P(u, L / 2, z), su * (n[0] * .55 - n[1] * .45) > 0 ? "#b0604a" : "#7a3e2e");
+      cpPolyW([T.P(u, -L / 2, 3.95), T.P(u, L / 2, 3.95), T.P(u, L / 2, 4.2), T.P(u, -L / 2, 4.2)], "#2e5a3a"); for (var gv = -L / 2 + .6; gv < L / 2; gv += .8) { var gp = cpProj.apply(null, T.P(u, gv, 4.07)); if (gp && Math.abs(gv) < L * .3) mR(cpc, Math.round(gp.x), Math.round(gp.y), 1, 1, "#e8c050"); }
+      for (var v = -L / 2 + 1.4; v < L / 2 - 1; v += 2.1) { if (Math.abs(v) < 1.6) continue; [[2, 2.8], [3.2, 3.9]].forEach(function (zz) { var c = cpProj.apply(null, T.P(u, v, zz[1])); if (!c) return; var r = c.k * 16 * .45;
+          if (r >= 2) cpBlob(c.x, c.y, r, r * .55, function (dx, dy) { return dy < 0 ? "#2a3a4a" : null; });
+          cpLine3(T.P(u, v - .45, zz[0]), T.P(u, v - .45, zz[1]), "#f0e8d8"); cpLine3(T.P(u, v + .45, zz[0]), T.P(u, v + .45, zz[1]), "#f0e8d8"); cpLine3(T.P(u, v, zz[0]), T.P(u, v, zz[1]), "#d8d0c0"); cpLine3(T.P(u, v - .45, (zz[0] + zz[1]) / 2), T.P(u, v + .45, (zz[0] + zz[1]) / 2), "#d8d0c0"); }); } });
+    [-L / 3, 0, L / 3].forEach(function (v, i) { var s = T.P(.9, v, 0); cpBox3(s[0], s[1], a, .7, 1.4, 4.75, 5.05, ["#a8c8dc", "#c8e0f0", "#7a98ac", "#2a3a4a"]); });
+    var ch = T.P(-Wd * .25, L / 2 - 2, 0); cpBox3(ch[0], ch[1], a, .5, .5, 4.6, 6.3, ["#a8543a", "#b8644a", "#7a3a26", "#3a1a10"]); cpSmoke(T.P(-Wd * .25, L / 2 - 2, 6.5), t, 3);
+  };
   // ===== wheelhouse variants (style study): 1 Teak & Messing, 2 Weiße Brücke, 3 Hamster-Kajüte, 4 Mahagoni =====
   var CP_BV = 4, cpFrames = {};
   var CP_BVP = {
