@@ -16372,6 +16372,82 @@ window.__EXTRAS = true;
   }
   function cpSwPos(o, a) { var S = o.sw; return [S.px - 7.4 * Math.sin(a), S.py - 7.4 * Math.cos(a)]; }
   function cpSwPts(o, a) { var c = cpSwPos(o, a); return [-7, -4.5, -2].map(function (v) { return [c[0] + v * Math.sin(a), c[1] + v * Math.cos(a)]; }); }
+  // ===== ship style v2: curved hulls with sheer and flare, portholes, gold stripe, raked funnels, lifeboats, rigging =====
+  var CPH = { blk: ["#1e1e26", "#34343e", "#26262e", "#14141a"], red: ["#b8342a", "#c8443a", "#9a2a22"], gold: "#e8b03a", wht: ["#fff8ec", "#f4ecdc", "#d8d0c0", "#b8b0a0"], out: "#2a1a10" };
+  function cpTone(n, P) { var d = n[0] * .55 - n[1] * .45 + n[2] * .35; return d > .45 ? P[1] : d > .05 ? P[0] : d > -.3 ? P[2] : P[3] || P[2]; }
+  // the outline of a hull at a station v: half width, from a rounded stern to a sharp bow
+  function cpHW(H, v) { var sr = H.ls * .22, bl = H.lb * .45, w = H.hw;
+    if (v < -H.ls + sr) { var q = (v - (-H.ls + sr)) / sr; return w * (.45 + .55 * Math.sqrt(Math.max(0, 1 - q * q))); }
+    if (v > H.lb - bl) { var p = (H.lb - v) / bl; return w * Math.pow(Math.max(0, p), .75); } return w; }
+  function cpZD(H, v) { var e = v > 0 ? v / H.lb : -v / H.ls; return H.zd + (v > 0 ? H.sb : H.ss) * e * e; }   // the deck edge sweeps up towards bow and stern
+  function cpHull(T, H, t) {
+    var N = H.n || 14, st = []; for (var i = 0; i <= N; i++) { var v = -H.ls + (H.ls + H.lb) * i / N; st.push(v); }
+    var fx = H.flare == null ? .82 : H.flare, quads = [];
+    [-1, 1].forEach(function (s) { for (var i = 0; i < N; i++) { var v0 = st[i], v1 = st[i + 1], w0 = cpHW(H, v0), w1 = cpHW(H, v1);
+      var A = T.P(s * w0 * fx, v0, H.zw), B = T.P(s * w1 * fx, v1, H.zw), C = T.P(s * w1, v1, cpZD(H, v1)), D = T.P(s * w0, v0, cpZD(H, v0));
+      var ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2], wx = D[0] - A[0], wy = D[1] - A[1], wz = D[2] - A[2], nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx, L = Math.hypot(nx, ny, nz) || 1;
+      var n = [s * nx / L, s * ny / L, s * nz / L]; if (s < 0) n = [-n[0], -n[1], -n[2]]; n = [n[0] * -1, n[1] * -1, n[2] * -1];
+      quads.push({ q: [A, B, C, D], n: n, s: s, v0: v0, v1: v1, w0: w0, w1: w1 }); } });
+    // pick the outward normal: it must point away from the hull's centre line
+    quads.forEach(function (Q) { if (Q.tr) return; var m = T.P(0, (Q.v0 + Q.v1) / 2, 0), c = [(Q.q[0][0] + Q.q[2][0]) / 2, (Q.q[0][1] + Q.q[2][1]) / 2]; if ((c[0] - m[0]) * Q.n[0] + (c[1] - m[1]) * Q.n[1] < 0) Q.n = [-Q.n[0], -Q.n[1], -Q.n[2]]; });
+    var ws = cpHW(H, -H.ls), zs = cpZD(H, -H.ls); quads.push({ q: [T.P(-ws * fx, -H.ls, H.zw), T.P(ws * fx, -H.ls, H.zw), T.P(ws, -H.ls, zs), T.P(-ws, -H.ls, zs)], n: T.N(0, -1), tr: 1 });   // the transom closes the stern
+    var E = cpEye(); quads = quads.filter(function (Q) { return cpSees(Q.q, Q.n); });
+    quads.sort(function (a, b) { var da = Math.hypot(a.q[0][0] - E[0], a.q[0][1] - E[1]), db = Math.hypot(b.q[0][0] - E[0], b.q[0][1] - E[1]); return db - da; });
+    var shadow = []; for (var j = 0; j <= N; j++) shadow.push(T.P(cpHW(H, st[j]) * 1.15 + .25, st[j] + (j === N ? .4 : 0), 0)); for (var j2 = N; j2 >= 0; j2--) shadow.push(T.P(-cpHW(H, st[j2]) * 1.15 - .25, st[j2], 0));
+    cpPolyW(shadow, H.sh || "#2a5a88");                                  // the dark water round the hull
+    quads.forEach(function (Q) { var s = Q.s, A = Q.q[0], B = Q.q[1];
+      cpPolyW(Q.q, cpTone(Q.n, H.col || CPH.blk)); if (Q.tr) { if (H.boot) cpPolyW([Q.q[0], Q.q[1], T.P(ws * (fx + (1 - fx) * .2), -H.ls, H.boot), T.P(-ws * (fx + (1 - fx) * .2), -H.ls, H.boot)], cpTone(Q.n, CPH.red)); return; }
+      if (H.boot) { var zb = H.boot, a0 = T.P(s * Q.w0 * (fx + (1 - fx) * .2), Q.v0, zb), b0 = T.P(s * Q.w1 * (fx + (1 - fx) * .2), Q.v1, zb); cpPolyW([A, B, b0, a0], cpTone(Q.n, CPH.red)); }
+      if (H.band) { var zz0 = cpZD(H, Q.v0), zz1 = cpZD(H, Q.v1), h = H.band[0]; cpPolyW([T.P(s * Q.w0, Q.v0, zz0 - h), T.P(s * Q.w1, Q.v1, zz1 - h), T.P(s * Q.w1, Q.v1, zz1), T.P(s * Q.w0, Q.v0, zz0)], cpTone(Q.n, H.band[1])); }
+      if (H.gold) cpLine3(T.P(s * Q.w0, Q.v0, cpZD(H, Q.v0) - H.gold), T.P(s * Q.w1, Q.v1, cpZD(H, Q.v1) - H.gold), CPH.gold);
+      cpLine3(T.P(s * Q.w0, Q.v0, cpZD(H, Q.v0)), T.P(s * Q.w1, Q.v1, cpZD(H, Q.v1)), H.rail || "#c8c0b0");
+      if (H.port) for (var pv = Math.ceil(Q.v0 / H.port[0]) * H.port[0]; pv < Q.v1; pv += H.port[0]) { var pw = cpHW(H, pv); if (pw < H.hw * .6) continue; H.port[1].forEach(function (pz) { var pp = T.P(s * (pw * (1 - (1 - fx) * (1 - pz / cpZD(H, pv)))), pv, pz), pr = cpProj(pp[0], pp[1], pp[2]); if (pr) mR(cpc, Math.round(pr.x), Math.round(pr.y), 1, 1, H.portc || "#e8d8a8"); }); }
+      if (H.fend) for (var fv = Math.ceil(Q.v0 / 1.1) * 1.1; fv < Q.v1; fv += 1.1) { var fw = cpHW(H, fv); if (fw < H.hw * .7) continue; var fp = cpProj.apply(null, T.P(s * fw * 1.02, fv, cpZD(H, fv) - .35)); if (fp) mR(cpc, Math.round(fp.x), Math.round(fp.y), Math.max(1, Math.round(fp.k * 3)), Math.max(1, Math.round(fp.k * 5)), "#3a2a20"); }
+    });
+    var deck = []; for (var d = 0; d <= N; d++) deck.push(T.P(cpHW(H, st[d]), st[d], cpZD(H, st[d]))); for (var d2 = N; d2 >= 0; d2--) deck.push(T.P(-cpHW(H, st[d2]), st[d2], cpZD(H, st[d2])));
+    if (cpSees(deck, [0, 0, 1])) cpPolyW(deck, H.deck || "#c8a07a");
+  }
+  // a superstructure deck with rounded front, windows and a dark promenade band
+  function cpHouse(T, a, v0, v1, hw, z0, z1, win, col) {
+    var r = Math.min(hw, (v1 - v0) * .25), poly = [[-hw, v0], [hw, v0], [hw, v1 - r], [hw * .7, v1 - r * .3], [0, v1], [-hw * .7, v1 - r * .3], [-hw, v1 - r]];
+    var c = T.P(0, 0, 0); cpPrism(c[0], c[1], a, poly, z0, z1, col || [CPH.wht[0], CPH.wht[1], CPH.wht[2], "#8a8478"]);
+    if (win) [-1, 1].forEach(function (s) { var n = T.N(s, 0); if (!cpSees([T.P(s * hw, v0, z0), T.P(s * hw, v1 - r, z1)], n)) return; var zm = z0 + (z1 - z0) * .55;
+      for (var v = v0 + .35; v < v1 - r; v += win) { var p = cpProj.apply(null, T.P(s * hw * 1.01, v, zm)); if (p) mR(cpc, Math.round(p.x), Math.round(p.y) - (p.k > 1.2 ? 1 : 0), p.k > 1.6 ? 2 : 1, p.k > 1.2 ? 2 : 1, "#3a4a5a"); } });
+  }
+  function cpFunnel(T, a, v, zb, zt, r, rake, col, top, t) {             // a raked oval funnel with a black top
+    var oc = []; for (var i = 0; i < 12; i++) oc.push([Math.cos(i / 12 * Math.PI * 2) * r * .8, Math.sin(i / 12 * Math.PI * 2) * r]);
+    var c0 = T.P(0, v, 0), c1 = T.P(0, v - rake * .8, 0), c2 = T.P(0, v - rake, 0), zm = zt - (zt - zb) * .22;
+    cpPrism(c0[0], c0[1], a, oc, zb, zb + (zm - zb) * .5, col); cpPrism(c1[0], c1[1], a, oc, zb + (zm - zb) * .5, zm, col); cpPrism(c2[0], c2[1], a, oc, zm, zt, top || CP_IRON);
+    if (t != null) cpSmoke(T.P(0, v - rake, zt + .2), t, 4);
+  }
+  function cpBoat(T, a, s, v, z) { var c = T.P(s, v, 0); cpPrism(c[0], c[1], a, [[-.22, -.55], [.22, -.55], [.22, .35], [0, .6], [-.22, .35]], z, z + .22, [CPH.wht[0], CPH.wht[1], CPH.wht[2], "#8a8478"]); cpLine3(T.P(s * 1.15, v - .4, z + .45), T.P(s, v - .4, z + .2), "#3a3a3a"); cpLine3(T.P(s * 1.15, v + .4, z + .45), T.P(s, v + .4, z + .2), "#3a3a3a"); }
+  // the liner type: the Mümmel (black funnels with a white band) or the Backentasche (four buff funnels)
+  cpShip3 = function (w, a, t, o) {
+    var T = cpLoc(w[0], w[1], a), big = !!o.big, s = big ? 1.5 : 1, H = { ls: 7 * s, lb: 7.4 * s, hw: big ? 1.7 : 1.35, zd: 1.5, sb: .55, ss: .25, zw: -.15, boot: .28, gold: .18, port: [.42, [.98, .68]], n: 30, rail: "#d8d0c0" };
+    cpHull(T, H, t);
+    cpHouse(T, a, -4.6 * s, 3.2 * s, H.hw * .78, 1.5, 2.2, .5); cpHouse(T, a, -3.8 * s, 2.0 * s, H.hw * .7, 2.2, 2.8, .45); cpHouse(T, a, 1.0 * s, 2.3 * s, H.hw * .45, 2.8, 3.25, .35);   // bridge house
+    [-1, 1].forEach(function (sd) { for (var bv = -3.4 * s; bv < 1.2 * s; bv += 1.25) cpBoat(T, a, sd * H.hw * .66, bv, 2.8); });
+    var fn = big ? [-3.6, -1.4, .8, 3.0] : [-2.2, .4], mum = !big;
+    fn.forEach(function (v, i) { cpFunnel(T, a, v * s * (big ? .75 : 1), 2.8, big ? 5.4 : 5.0, .42, .35, mum ? ["#26262e", "#3a3a44", "#1a1a20", "#0a0a0e"] : ["#e8a03a", "#f0b04a", "#c8862a", "#5a3a10"], mum ? ["#f8f4ec", "#ffffff", "#d8d0c0", "#6a6a6a"] : null, !big || i < 3 ? t : null);
+      if (mum) { var c = T.P(0, v - .35, 0); cpPrism(c[0], c[1], a, cpOct(1).map(function (p) { return [p[0] * .34, p[1] * .42]; }), 4.62, 5.0, ["#26262e", "#3a3a44", "#1a1a20", "#0a0a0e"]); } });
+    var m1 = T.P(0, 6.0 * s, 1.9), m1t = T.P(0, 5.6 * s, 7.6), m2 = T.P(0, -5.8 * s, 1.7), m2t = T.P(0, -6.2 * s, 7.2);
+    cpLine3(m1, m1t, "#5a3a22"); cpLine3(m2, m2t, "#5a3a22"); cpLine3(T.P(-.7, 5.65 * s, 6.6), T.P(.7, 5.65 * s, 6.6), "#5a3a22"); cpLine3(T.P(-.7, -6.15 * s, 6.2), T.P(.7, -6.15 * s, 6.2), "#5a3a22");
+    cpLine3(m1t, m2t, "#b8b0a0"); cpLine3(m1t, T.P(0, 7.4 * s, cpZD(H, 7.4 * s)), "#b8b0a0"); cpLine3(m2t, T.P(0, -7 * s, cpZD(H, -7 * s)), "#b8b0a0");
+    var fl = cpProj.apply(null, m2t); if (fl) { var fw = Math.floor(t / 300) % 2; mR(cpc, Math.round(fl.x) + 1, Math.round(fl.y), 4 - fw, 3, "#2a4a8a"); mR(cpc, Math.round(fl.x) + 1, Math.round(fl.y), 2, 1, "#d8463c"); }
+    if (o.ropes && !o.snapped) { var AN = cp.anc[o.leg], b1 = cpW(AN, -8.75, 31), b2 = cpW(AN, -8.75, 12); cpRope3(T.P(-H.hw, 6.2, 1.9), [b1[0], b1[1], 1.5], .3, "#e0d0a8"); cpRope3(T.P(-H.hw, -6.4, 1.7), [b2[0], b2[1], 1.5], .3, "#e0d0a8"); }
+  };
+  // tug, pilot cutter and tender in the shapes of the stoker's sprites
+  cpTugM = function (w, a, t, o, kind) {
+    var T = cpLoc(w[0], w[1], a), tend = kind === "tender", pil = kind === "pilot", s = tend ? 1.45 : 1;
+    var H = { ls: 2.0 * s, lb: 2.2 * s, hw: .8 * s, zd: .7, sb: .45, ss: .1, zw: -.1, n: 10, boot: .18, fend: !tend && !pil, rail: "#c8c0b0",
+      col: pil ? [CPH.wht[1], CPH.wht[0], CPH.wht[2], CPH.wht[3]] : CPH.blk, band: pil ? [.22, ["#2a3a6a", "#3a4a7a", "#1e2a4e", "#101830"]] : null, port: tend ? [.5, [.42]] : null };
+    cpHull(T, H, t);
+    if (tend) { cpHouse(T, a, -1.9, 1.6, .9, .7, 1.3, .4); cpHouse(T, a, -.6, .9, .55, 1.3, 1.75, .3); cpFunnel(T, a, -.1, 1.75, 2.9, .3, .25, ["#e8a03a", "#f0b04a", "#c8862a", "#5a3a10"], null, t); }
+    else { cpHouse(T, a, -.9, .6, .5, .7, 1.35, .3); cpHouse(T, a, .1, .75, .42, 1.35, 1.75, .28); cpFunnel(T, a, -.45, 1.35, 2.6, .27, .25, pil ? ["#e8a03a", "#f0b04a", "#c8862a", "#5a3a10"] : ["#c8342a", "#d8463c", "#9a2a20", "#3a1008"], null, t);
+      var mt = T.P(0, 1.2, .8); cpLine3(mt, T.P(0, 1.1, 2.9), "#5a3a22"); }
+    if (pil) { var fp = cpProj.apply(null, T.P(0, 1.1, 2.9)); if (fp) { var fw = Math.floor(t / 250) % 2; mR(cpc, Math.round(fp.x) + 1, Math.round(fp.y), 4 - fw, 2, "#d8463c"); mR(cpc, Math.round(fp.x) + 1, Math.round(fp.y) + 2, 4, 2, "#f8f4ec"); } }
+    if (o.tow && o.leg === cp.leg && !(cp.anim && cp.anim.u > .6)) cpRope3(T.P(0, -2.0, .7), shipW(o.x > 0 ? .4 : -.4, 2.1, 1.35), .5, "#d8c8a0");
+  };
   function cpModel(o, w, t) {
     var a = cp.anc[o.leg].h + (o.a || 0), T = cpLoc(w[0], w[1], a);
     if (o.k !== "m3") return cpKind(o, w, a, t, o.k);
@@ -16396,7 +16472,8 @@ window.__EXTRAS = true;
       var on = Math.floor(t / 600) % 2; cpPrism(w[0], w[1], a, cpOct(.42), 4.0, 4.5, [on ? "#ffe08a" : "#8a7a4a", on ? "#fff4b0" : "#9a8a5a", on ? "#ffd34a" : "#6a5a3a", "#3a2414"]); cpPrism(w[0], w[1], a, cpOct(.6), 4.5, 4.7, C2);
       return; }
     if (o.m === "ship3") return cpShip3(w, a, t, o);
-    if (o.m === "tug") {
+    if (o.m === "tug") return cpTugM(w, a, t, o, "tug");
+    if (o.m === "tug_old") {
       var th = [[-.8, -2.1], [.8, -2.1], [.8, 1.2], [0, 2.2], [-.8, 1.2]];
       cpPrism(w[0], w[1], a, th, -.1, .75, ["#c8a07a", "#8a3a2a", "#5a2418", "#2a1008"]); var tc = T.P(0, -.3, 0); cpBox3(tc[0], tc[1], a, 1, 1.4, .75, 1.45, CP_WHITE);
       var tf = T.P(0, .05, 0); cpBox3(tf[0], tf[1], a, .45, .45, 1.45, 2.4, ["#c8342a", "#d8463c", "#9a2a20", "#3a1008"]); cpBox3(tf[0], tf[1], a, .47, .47, 2.15, 2.4, CP_IRON);
@@ -16512,6 +16589,89 @@ window.__EXTRAS = true;
     for (var q = 0; q < 160; q++) { var b = q / 160 * Math.PI * 2; for (var rr = 17; rr <= 20; rr++) { var qx = Math.round(cx + Math.cos(b) * rr), qy = Math.round(cy + Math.sin(b) * rr); if (qy < 135) mR(cpc, qx, qy, 1, 1, rr === 17 || rr === 20 ? "#5a3a22" : (q % 9 ? "#a87448" : "#8a5a32")); } }
     cpBlob(cx, cy, 4.5, 4.5, function (dx, dy) { return dx + dy < 0 ? "#f0d070" : "#c8a040"; });
   }
+  // ===== wheelhouse variants (style study): 1 Teak & Messing, 2 Weiße Brücke, 3 Hamster-Kajüte, 4 Mahagoni =====
+  var CP_BV = 4, cpFrames = {};
+  var CP_BVP = {
+    1: { w: ["#b07a44", "#94643a", "#74482a", "#4a2e1a"], br: ["#f6dc84", "#d8aa48", "#a87a2a", "#5a3a12"], wh: ["#e0b07a", "#c8945a", "#8a5a32"], ol: "#2a1a10" },
+    2: { w: ["#c08a52", "#a87444", "#7a5030", "#4a2e1a"], br: ["#f6dc84", "#d8aa48", "#a87a2a", "#5a3a12"], wh: ["#d8a46a", "#b8844c", "#7a5030"], ol: "#2a1a10", paint: ["#fbf6ea", "#ece4d2", "#d4c8b0"] },
+    3: { w: ["#e0aa62", "#c88c4a", "#a06a34", "#6a4422"], br: ["#fbe08a", "#e0b450", "#b0822e", "#6a4416"], wh: ["#f0c080", "#d8a060", "#a06a34"], ol: "#3a2210" },
+    4: { w: ["#9a4a32", "#7a3424", "#5a2418", "#341208"], br: ["#f6dc84", "#d8aa48", "#a87a2a", "#5a3a12"], wh: ["#b0603e", "#8a4430", "#5a2418"], ol: "#1e0c06" } };
+  var CP_WIN = [[6, 52], [64, 52], [122, 52]];
+  function cpFrameV(v) {
+    if (cpFrames[v]) return cpFrames[v]; var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var g = cv.getContext("2d"), P = CP_BVP[v], W = P.w, B = P.br;
+    var R = function (x, y, w, h, c) { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    var panel = function (x, y, w, h, c) { R(x, y, w, h, c[2]); R(x + 1, y + 1, w - 2, h - 2, c[1]); R(x + 1, y + 1, w - 2, 1, c[0]); R(x + 1, y + 1, 1, h - 2, c[0]); R(x + 2, y + h - 2, w - 3, 1, c[3] || c[2]); R(x + w - 2, y + 2, 1, h - 3, c[3] || c[2]); };
+    var boards = function (x0, y0, x1, y1, bw, c) { for (var x = x0; x < x1; x++) { var k = Math.floor((x - x0) / bw), e = (x - x0) % bw; R(x, y0, 1, y1 - y0, e === 0 ? c[3] : e === 1 ? c[0] : (k % 3 === 1 ? c[2] : c[1])); } for (var y = y0 + 3; y < y1; y += 9) for (var xx = x0; xx < x1; xx += bw) if (((y + xx) / bw | 0) % 4 === 0) R(xx + 2, y, 1, 1, c[2]); };
+    var rivets = function (x0, x1, y) { for (var x = x0; x < x1; x += 5) { R(x, y, 1, 1, B[0]); R(x + 1, y + 1, 1, 1, B[3]); } };
+    var bell = function (x, y) { R(x + 3, y, 2, 2, P.ol); R(x + 2, y + 2, 4, 1, B[2]); R(x + 1, y + 3, 6, 4, B[1]); R(x + 1, y + 3, 2, 4, B[0]); R(x, y + 7, 8, 2, B[2]); R(x, y + 7, 8, 1, B[1]); R(x + 3, y + 9, 2, 1, P.ol); };
+    var cap = function (x, y) { R(x, y + 3, 14, 3, "#1e2440"); R(x + 2, y, 10, 4, "#262e52"); R(x + 2, y, 10, 1, "#3a4470"); R(x - 1, y + 5, 16, 2, "#141830"); R(x + 5, y + 2, 4, 2, B[0]); R(x + 6, y + 2, 2, 1, "#ffffff"); };
+    var seeds = function (x, y) { R(x, y + 2, 12, 6, P.ol); R(x + 1, y + 3, 10, 4, "#e8e0d0"); R(x + 1, y + 3, 10, 1, "#ffffff"); for (var i = 0; i < 6; i++) { R(x + 1 + i * 2, y + 1 + (i % 2), 2, 2, i % 2 ? "#4a3a2a" : "#6a5a44"); R(x + 1 + i * 2, y + 1 + (i % 2), 1, 1, "#d8c8a8"); } };
+    var flower = function (x, y) { R(x + 5, y + 10, 1, 9, "#4a8a3a"); R(x + 2, y + 13, 3, 2, "#5aa04a"); R(x + 6, y + 15, 3, 2, "#5aa04a"); for (var a = 0; a < 8; a++) { var dx = Math.round(Math.cos(a * .785) * 4), dy = Math.round(Math.sin(a * .785) * 4); R(x + 4 + dx, y + 4 + dy, 3, 3, a % 2 ? "#ffd34a" : "#f6b82a"); } R(x + 3, y + 3, 5, 5, "#6a3a1a"); R(x + 4, y + 4, 2, 2, "#8a5a2a"); R(x + 1, y + 19, 10, 6, "#b85a3a"); R(x + 1, y + 19, 10, 1, "#d8744a"); R(x + 2, y + 25, 8, 1, "#8a3a22"); };
+    // ---- the wall around the windows ----
+    if (v === 2) { R(0, 0, 180, 80, P.paint[0]); for (var x = 0; x < 180; x += 29) R(x, 0, 1, 80, P.paint[2]); R(0, 0, 180, 3, P.paint[2]); R(0, 3, 180, 1, P.paint[1]); }
+    else boards(0, 0, 180, 80, v === 3 ? 5 : 6, W);
+    R(0, 0, 180, 4, v === 2 ? P.paint[1] : W[3]); if (v !== 2) for (var bx = 2; bx < 180; bx += 30) { R(bx, 0, 6, 4, "#f0ece0"); R(bx, 3, 6, 1, "#c8c0b0"); }   // ceiling beams, painted white
+    CP_WIN.forEach(function (w, i) { var x = w[0], ww = w[1];
+      if (v === 3) { g.save(); g.beginPath(); g.rect(x, 12, ww, 64); g.rect(x + 6, 5, ww - 12, 8); g.rect(x + 2, 7, ww - 4, 6); g.clip(); g.clearRect(0, 0, 180, 135); g.restore();   // a softly rounded top
+        R(x - 2, 10, 2, 67, P.ol); R(x + ww, 10, 2, 67, P.ol); R(x, 4, ww, 1, P.ol); R(x + 2, 5, 4, 2, P.ol); R(x + ww - 6, 5, 4, 2, P.ol); R(x, 7, 2, 3, P.ol); R(x + ww - 2, 7, 2, 3, P.ol); R(x - 2, 75, ww + 4, 2, P.ol);
+        R(x - 1, 11, 1, 64, B[1]); R(x + 6, 5, ww - 12, 1, B[0]); R(x + 2, 7, 4, 1, B[0]); R(x + ww - 6, 7, 4, 1, B[0]);
+        R(x + ww / 2 - 1, 5, 2, 70, W[2]); R(x + ww / 2 - 1, 5, 1, 70, W[0]); R(x, 30, ww, 2, W[2]); R(x, 30, ww, 1, W[0]); return; }
+      g.clearRect(x, 5, ww, 70); R(x - 2, 3, ww + 4, 2, P.ol); R(x - 2, 75, ww + 4, 2, P.ol); R(x - 2, 3, 2, 74, P.ol); R(x + ww, 3, 2, 74, P.ol);
+      R(x - 1, 4, ww + 2, 1, B[1]); R(x - 1, 4, 1, 72, B[1]); R(x, 4, ww, 1, B[0]); R(x + ww, 4, 1, 72, B[2]);
+      if (v === 1) { R(x, 20, ww, 2, W[2]); R(x, 20, ww, 1, W[0]); for (var m = 1; m < 3; m++) { var mx = x + Math.round(ww * m / 3); R(mx - 1, 5, 2, 15, W[2]); R(mx - 1, 5, 1, 15, W[0]); } R(x + ww / 2 - 1, 22, 2, 53, W[2]); R(x + ww / 2 - 1, 22, 1, 53, W[0]); }
+      if (v === 2) { R(x + ww / 2 - 1, 5, 2, 70, P.paint[2]); R(x + ww / 2 - 1, 5, 1, 70, "#ffffff"); R(x, 40, ww, 1, P.paint[2]); }
+      if (v === 4) { R(x, 5, 2, 2, P.ol); R(x + ww - 2, 5, 2, 2, P.ol); R(x, 73, 2, 2, P.ol); R(x + ww - 2, 73, 2, 2, P.ol); rivets(x + 3, x + ww - 2, 2); rivets(x + 3, x + ww - 2, 78); }
+    });
+    // pillars between the windows: a brass plate or a lamp
+    [[58, 64], [116, 122]].forEach(function (p) { var x = p[0], w = p[1] - p[0];
+      if (v === 1) { R(x + 1, 24, w - 2, 30, W[2]); R(x + 2, 25, w - 4, 28, W[0]); R(x + 2, 36, w - 4, 4, B[1]); R(x + 2, 36, w - 4, 1, B[0]); }
+      if (v === 2) { R(x + 1, 30, w - 2, 10, B[2]); R(x + 2, 31, w - 4, 7, B[1]); R(x + 2, 31, w - 4, 2, "#fff4b0"); }
+      if (v === 3) { R(x + 1, 40, w - 2, 9, "#3a5a8a"); R(x + 2, 41, w - 4, 3, "#c8463c"); R(x + 2, 44, w - 4, 3, "#f8f4ec"); }
+      if (v === 4) { R(x, 20, w, 3, B[2]); R(x + 1, 23, w - 2, 7, "#3a6a3a"); R(x + 1, 23, w - 2, 2, "#6aa05a"); R(x + 2, 30, w - 4, 2, "#fff0a0"); } });
+    // the sill and the console below
+    R(0, 76, 180, 2, P.ol); R(0, 78, 180, 6, v === 2 ? W[1] : W[1]); R(0, 78, 180, 1, W[0]); R(0, 83, 180, 1, W[3]); if (v !== 3) { R(0, 79, 180, 1, B[1]); }
+    if (v === 2) { R(0, 84, 180, 51, P.paint[1]); for (var px2 = 2; px2 < 180; px2 += 30) panel(px2, 88, 26, 24, [P.paint[0], P.paint[1], P.paint[2], P.paint[2]]); R(0, 116, 180, 3, W[2]); R(0, 116, 180, 1, W[0]); for (var cy = 119; cy < 135; cy++) for (var cx = 0; cx < 180; cx += 4) R(cx + ((cy >> 2) % 2) * 2, cy, 2, 1, (cy >> 2) % 2 ? "#2a2a30" : "#e8e4dc"); }
+    else { R(0, 84, 180, 51, W[2]); for (var px3 = 1; px3 < 180; px3 += 30) panel(px3, 87, 28, 21, W); for (var px4 = 1; px4 < 180; px4 += 30) panel(px4, 111, 28, 24, W); }
+    // pedestals: telegraph column, binnacle
+    R(24, 112, 12, 23, P.ol); R(25, 112, 10, 23, B[1]); R(25, 112, 3, 23, B[0]); R(32, 112, 2, 23, B[2]); R(22, 131, 16, 4, B[2]); R(22, 131, 16, 1, B[1]);
+    R(138, 114, 18, 21, P.ol); R(139, 114, 16, 21, v === 4 ? W[1] : v === 2 ? P.paint[0] : W[1]); R(139, 114, 3, 21, W[0]); R(136, 131, 22, 4, B[2]); R(136, 131, 22, 1, B[1]);
+    [133, 158].forEach(function (bx2) { g.fillStyle = P.ol; g.beginPath(); g.arc(bx2, 108, 4, 0, 7); g.fill(); R(bx2 - 3, 106, 6, 5, v === 3 ? "#c8463c" : "#3a5a3a"); R(bx2 - 2, 106, 2, 2, v === 3 ? "#e8745a" : "#5a8a5a"); });   // the iron correcting balls
+    // decoration per style
+    if (v === 1) { bell(6, 5); cap(122, 70); seeds(44, 70); for (var vp = 0; vp < 2; vp++) { var vx = 6 + vp * 7; R(vx, 88, 3, 22, B[2]); R(vx, 88, 1, 22, B[0]); R(vx - 1, 86, 5, 3, B[1]); R(vx - 1, 86, 5, 1, B[0]); } }
+    if (v === 2) { bell(6, 5); cap(122, 70); R(155, 86, 22, 10, W[1]); R(155, 86, 22, 1, W[0]); R(157, 88, 18, 6, "#e8dcb8"); R(160, 90, 8, 1, "#6a8aa8"); R(162, 91, 1, 2, "#c8463c"); }
+    if (v === 3) { for (var fx = 0; fx < 180; fx += 8) { var fy = 6 + Math.round(Math.sin(fx / 180 * Math.PI) * 4); R(fx, fy, 8, 1, "#5a3a22"); R(fx + 2, fy + 1, 4, 4, ["#d8463c", "#ffd34a", "#3a7ac8", "#4a9a3a", "#f8f4ec"][(fx / 8) % 5]); R(fx + 3, fy + 5, 2, 1, ["#d8463c", "#ffd34a", "#3a7ac8", "#4a9a3a", "#f8f4ec"][(fx / 8) % 5]); }
+      flower(146, 52); seeds(40, 70); cap(120, 70); R(64, 86, 52, 1, B[2]); R(70, 88, 40, 7, B[1]); R(70, 88, 40, 1, B[0]); for (var lx = 0; lx < 9; lx++) R(73 + lx * 4, 90, 2, 3, B[3]); }
+    if (v === 4) { R(80, 0, 1, 7, P.ol); R(76, 7, 9, 2, B[2]); R(77, 9, 7, 5, "#fff0a0"); R(77, 9, 2, 5, "#ffffff"); R(76, 14, 9, 2, B[2]);   // the hanging oil lamp
+      R(150, 84, 28, 2, W[3]); R(151, 86, 26, 9, "#e8dcb8"); R(151, 86, 26, 1, "#fff4d8"); R(155, 88, 10, 1, "#6a8aa8"); R(158, 89, 1, 4, "#6a8aa8"); R(168, 90, 4, 1, "#c8463c"); cap(122, 70); bell(6, 5); }
+    cpFrames[v] = cv; return cv;
+  }
+  var _cpFrame0 = cpFrame; cpFrame = function () { return CP_BV ? cpFrameV(CP_BV) : _cpFrame0(); };
+  var _cpBridge0 = cpBridge;
+  cpBridge = function (t) {
+    if (!CP_BV) return _cpBridge0(t);
+    var P = CP_BVP[CP_BV], B = P.br, H = P.wh;
+    cpc.drawImage(cpFrame(), 0, 0);
+    // engine telegraph: a brass drum with the dial, Stopp red, Halbe yellow, Volle green, and the handle on top
+    var tx = 30, ty = 101;
+    cpBlob(tx, ty, 15, 15, function (dx, dy) { var d = dx * dx + dy * dy; return d > .86 ? P.ol : d > .7 ? (dx + dy < 0 ? B[0] : dx + dy < .6 ? B[1] : B[2]) : d > .64 ? B[3] : dy > .4 ? "#ece0c8" : "#fbf6ea"; });
+    [["#d8463c", 0], ["#e8b03a", 1], ["#4a9a3a", 2]].forEach(function (m) { var a = CP_TEL[m[1]] * Math.PI / 180, on = cp.lvl === m[1]; for (var r = 5; r <= 10; r++) mR(cpc, Math.round(tx + Math.cos(a) * r), Math.round(ty + Math.sin(a) * r), on ? 3 : 2, on ? 3 : 2, m[0]); });
+    var na = CP_TEL[cp.lvl] * Math.PI / 180; for (var k = 0; k < 9; k++) mR(cpc, Math.round(tx + Math.cos(na) * k), Math.round(ty + Math.sin(na) * k), 2, 2, P.ol);
+    for (var k2 = 9; k2 < 19; k2++) mR(cpc, Math.round(tx + Math.cos(na) * k2), Math.round(ty + Math.sin(na) * k2), 2, 2, B[1]); mR(cpc, Math.round(tx + Math.cos(na) * 19) - 1, Math.round(ty + Math.sin(na) * 19) - 1, 4, 4, B[0]);
+    cpBlob(tx, ty, 2.5, 2.5, function () { return B[0]; });
+    // binnacle: a brass hood with the compass card behind its window
+    cpBlob(147, 106, 12, 9, function (dx, dy) { var d = dx * dx + dy * dy; return d > .82 ? P.ol : dy < -.2 ? (dx < -.2 ? B[0] : B[1]) : d > .5 ? B[2] : null; });
+    cpBlob(147, 108, 7, 4, function () { return "#fbf6ea"; }); mR(cpc, Math.round(147 - Math.sin(cp.h) * 5), Math.round(108 - Math.cos(cp.h) * 2.5), 2, 2, "#c83a2a"); mR(cpc, 146, 97, 3, 2, B[0]);
+    // whistle cord
+    var pull = cp.wh ? 6 : 0; mR(cpc, 170, 0, 1, 94 + pull, "#e8d8b0"); cpBox(167, 94 + pull, 7, 10, H[1], H[0]); mR(cpc, 169, 96 + pull, 3, 6, H[2]); mR(cpc, 167, 94 + pull, 7, 1, B[0]);
+    if (cpLeg().wh && !cp.wh && !cp.anim) { var bl = Math.floor(t / 400) % 2; if (bl) { mR(cpc, 165, 92, 11, 1, "#ffd34a"); mR(cpc, 165, 105, 11, 1, "#ffd34a"); } }
+    // the wheel: turned spokes with handles, a rim of wood, a brass hub
+    var ang = (cp.wheelA != null ? cp.wheelA : cp.rud * .45) + (cp.anim ? Math.sin(t / 500) * .03 : 0), cx = 90, cy = 112;
+    for (var a = 0; a < 8; a++) { var aa = ang + a * Math.PI / 4, ca = Math.cos(aa), sa = Math.sin(aa); for (var r = 5; r < 28; r++) { var px = Math.round(cx + ca * r), py = Math.round(cy + sa * r); if (py >= 135) continue; var hd = r > 21;
+        mR(cpc, px, py, hd ? 2 : 1, hd ? 2 : 1, hd ? (r % 3 === 0 ? H[2] : H[0]) : (r < 10 ? H[1] : H[0])); if (!hd && r % 2) mR(cpc, px + 1, py, 1, 1, H[2]); } }
+    for (var q = 0; q < 180; q++) { var b = q / 180 * Math.PI * 2; for (var rr = 16; rr <= 20; rr++) { var qx = Math.round(cx + Math.cos(b) * rr), qy = Math.round(cy + Math.sin(b) * rr); if (qy >= 135) continue;
+        mR(cpc, qx, qy, 1, 1, rr === 16 || rr === 20 ? P.ol : rr === 17 ? H[0] : rr === 19 ? H[2] : (q % 12 < 2 ? B[1] : H[1])); } }
+    cpBlob(cx, cy, 6, 6, function (dx, dy) { var d = dx * dx + dy * dy; return d > .8 ? P.ol : dx + dy < -.3 ? B[0] : dx + dy < .4 ? B[1] : B[2]; }); cpBlob(cx, cy, 2, 2, function () { return B[3]; });
+  };
   function cpDraw(t) {
     cpRaf = cp && (cp.anim || cp.glass) ? requestAnimationFrame(cpDraw) : 0;
     if (!cp) return;
@@ -16679,6 +16839,8 @@ window.__EXTRAS = true;
   /* preview test hooks */
   window.__capRoute = function () { return cp && cp.route.map(function (L) { return L.k; }); };
   window.__cap = { open: function () { return capGame(); },
+    bv: function (v) { CP_BV = v; cpRedraw(); },
+    pose: function (x, y, h) { cp.px = x; cp.py = y; cp.h = h; cpRedraw(); },
     ani: function () { var r = null; cp.O.forEach(function (o) { if (r || !o.ani || o.seen || o.leg !== cp.leg) return; var q = cpWP(o), rr = cpRel(cp.px, cp.py, cp.h, q[0], q[1]); r = { yaw: Math.atan2(rr[1], rr[0]), f: rr[0], k: o.k }; }); return r; },
     glass: function (y, f) { cpGlass(true, y); cp.glass.foc = f; },
     set: function (o) { if (!cp || cp.anim) return; if (o.rud != null) cp.rud = o.rud; if (o.lvl != null) cp.lvl = o.lvl; if (o.wh != null) cp.wh = o.wh; cpPanelDraw(); cpRedraw(); },
