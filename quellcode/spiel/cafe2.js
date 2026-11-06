@@ -420,6 +420,9 @@
     cqAuto -= 1; if (cqAuto > 0) return;
     cqAutoSpawn(); cqAuto = cqFreeSeats().length > 3 ? 3 + Math.floor(Math.random() * 4) : 7 + Math.floor(Math.random() * 7);   /* an empty café fills quickly */
   }, 1000);
+  // when a guest has left, the next one comes within a minute (20 to 60 seconds)
+  var cqAfterLeave = false, _cq_go = gGo; gGo = function (g) { var r = _cq_go.apply(this, arguments); var d = 20 + Math.floor(Math.random() * 41); cqAuto = cqAfterLeave ? Math.min(cqAuto, d) : d; cqAfterLeave = true; return r; };
+  var _cq_auto0 = cqAutoSpawn; cqAutoSpawn = function () { var ok = _cq_auto0.apply(this, arguments); if (ok) cqAfterLeave = false; return ok; };
   var _cq_start2 = guestsStart; guestsStart = function () { _cq_start2.apply(this, arguments); cqAuto = 2; };
   // tapping a table where someone has not ordered yet: the hamster walks over, and the guest tells you what they would like
   function cqTableOrder(g) {
@@ -482,3 +485,4 @@
     var _c = coffeeGame; coffeeGame = function () { home(); return _c.apply(this, arguments); };
     var _b = cfStartBake; cfStartBake = function () { home(); return _b.apply(this, arguments); };
   })();
+  window.__cq.age = function (sec) { guests.forEach(function (g) { g.life = (g.life || 0) + sec; }); };   // preview test: let time pass for the guests

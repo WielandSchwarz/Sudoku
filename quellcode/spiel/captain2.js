@@ -573,12 +573,26 @@
     if (su < .95) for (var b = 0; b < 8; b++) { var bx = 70 + ((b * 37 + Math.floor(t / 60)) % 40), by = top - 1 - ((b * 13 + Math.floor(t / 40)) % 3); mR(cpc, bx, by, 1, 1, "#ffffff"); }   // the sea boils where the bow goes under
     var e = Math.max(0, (now0() - kp.sink.t0 - 2200) / 1000);
     var m = dzc; dzc = cpc;   // the lifeboats come out from both sides of the ship and row away, riding on the water
-    [[-1, 0, 7], [1, .8, 4], [-1, 2.2, 12]].forEach(function (q) { var u = e - q[1]; if (u <= 0) return; var dx = Math.min(80, u * 6), bob = Math.round(Math.sin(t / 380 + q[1] * 3));
-      kpBoatL(q[0] < 0 ? 48 - dx : 110 + dx, Math.min(76, top + q[2]) + bob, t, q[1]); });
+    [[-1, 0, 90], [1, .8, 90], [-1, 2.2, 36]].forEach(function (q) { var u = e - q[1]; if (u <= 0) return; var dx = Math.min(q[2], u * 6), bob = Math.round(Math.sin(t / 380 + q[1] * 3));
+      var bx = q[0] < 0 ? 40 - dx : 118 + dx, wy = top + Math.round(Math.sin((bx + 11) * .16 + t / 260) * 1.2 + Math.sin((bx + 11) * .05 - t / 500));
+      kpBoat3(cpc, bx, Math.min(76, wy) - 8 + bob, t, q[1], P); });
     dzc = m;
   }
   function now0() { return performance.now(); }
   // the big lifeboat of the side scene: hull with a 1px outline, three hamster faces, oars in turn
+  // a lifeboat seen a little from above: the inside with its benches, three round hamsters looking back, the white side, the waterline with foam
+  var KP_LB = ["...OOOOOOOOOOOOOOOO...", ".OOggggggggggggggggOO.", "OggiiiibiiiibiiiibiggO", "OgiiiiibiiiibiiiibiigO", "OgiiiiibiiiibiiiibiigO", ".OggggggggggggggggggO.", ".OwwwwwwwwwwwwwwwwwwO.", "..OwwwwwwwwwwwwwwwwO.."],
+    KP_LH = [".DD.DD.", "DpooopD", "DoooooD", "DoeoeoD", "DwwnwwD", ".DwwwD.", "..DDD.."],
+    KP_LC = { O: "#3a2414", D: "#3a2414", g: "#c8945a", i: "#8a5a32", b: "#a87448", w: "#f4f0e6", p: "#e8a0a0", o: "#e8a040", e: "#3a2414", n: "#d8463c" };
+  function kpSpr(c, rows, x, y, r0, r1) { for (var r = r0; r < r1; r++) { var row = rows[r]; for (var i = 0; i < row.length; i++) { var ch = row[i]; if (ch !== "." && ch !== " ") mR(c, x + i, y + r, 1, 1, KP_LC[ch]); } } }
+  function kpBoat3(c, x, y, t, ph, P) { x = Math.round(x); y = Math.round(y);
+    kpSpr(c, KP_LB, x, y, 0, 5);
+    for (var h = 0; h < 3; h++) kpSpr(c, KP_LH, x + 2 + h * 6, y - 4 + ((h + Math.floor((t + ph * 300) / 600)) % 3 === 0 ? -1 : 0), 0, 7);
+    kpSpr(c, KP_LB, x, y, 5, 8);
+    var row = Math.floor((t + ph * 500) / 420) % 2;   // the oars dip in turn
+    for (var k = 0; k < 3; k++) { mR(c, x + 1 - k - row, y + 6 + k, 1, 1, "#a87448"); mR(c, x + 20 + k + row, y + 6 + k, 1, 1, "#a87448"); }
+    for (var f = 0; f < 22; f++) { mR(c, x + f, y + 8, 1, 1, (f + Math.floor(t / 150)) % 4 ? P[4] : P[3]); if (f % 2 === 0) mR(c, x + f, y + 9, 1, 1, P[3]); }   // she floats: the hull goes into the water at the foam line
+    mR(c, x - 2, y + 9, 2, 1, P[4]); mR(c, x + 22, y + 9, 2, 1, P[4]); }
   function kpBoatL(x, y, t, ph) { x = Math.round(x); y = Math.round(y);
     DR(x, y, 22, 1, "#3a2414"); DR(x, y + 1, 22, 1, "#8a5a32"); DR(x + 1, y + 2, 20, 1, "#f4f0e6"); DR(x + 2, y + 3, 18, 1, "#f4f0e6"); DR(x + 3, y + 4, 16, 1, "#3a2414");
     DR(x, y + 2, 1, 1, "#3a2414"); DR(x + 1, y + 3, 1, 1, "#3a2414"); DR(x + 2, y + 4, 1, 1, "#3a2414"); DR(x + 21, y + 2, 1, 1, "#3a2414"); DR(x + 20, y + 3, 1, 1, "#3a2414"); DR(x + 19, y + 4, 1, 1, "#3a2414");
@@ -600,7 +614,7 @@
     kpc.restore(); dzWater(now, tt * 4, sky, storm, sky === "night");
     S.bub = S.bub.filter(function (b) { b.l -= .016; b.y -= .25; DR(b.x, b.y, 1, 1, "#ffffff"); if (b.l > .4) DR(b.x + 1, b.y + 1, 1, 1, "#e8f4fc"); return b.l > 0; });
     if (tt > 13 && tt < 16) for (var w = 0; w < 8; w++) DR(70 + ((w * 23 + Math.floor(now / 70)) % 70), 73 + (w % 2), 1, 1, "#ffffff");   // the last swirl where she went down
-    [[62, -2.4, 84, 0], [120, 2, 96, 1], [90, -1.2, 110, 2]].forEach(function (q) { var x = Math.max(-30, Math.min(180, q[0] + q[1] * tt)); kpBoatL(x, q[2] + Math.round(Math.sin(now / 420 + q[3] * 2)), now, q[3]); });
+    [[62, -2.4, 84, 0], [120, 2, 96, 1], [90, -1.2, 110, 2]].forEach(function (q) { var x = Math.max(-30, Math.min(180, q[0] + q[1] * tt)); kpBoat3(kpc, x, q[2] + Math.round(Math.sin(now / 420 + q[3] * 2)), now, q[3], DZ_WP[sky] || DZ_WP.day); });
     if (storm) { dzc.globalAlpha = .55; for (var rn = 0; rn < 40; rn++) { var rx = ((rn * 23 + now / 4) % 200) - 10, ry = ((rn * 37 + now / 3) % 140) - 5; DR(rx, ry, 1, 3, "#c8d4e0"); } dzc.globalAlpha = 1; }
     if (sky === "fog") { dzc.globalAlpha = .3; DR(0, 0, 180, 135, "#e4ecf2"); dzc.globalAlpha = 1; }
     dzc = m;

@@ -166,7 +166,7 @@
     }
     gLayerEl().appendChild(el); g.el = el; g.bh = bh; g.parts = [el.querySelector(".gq-tilt"), el.querySelector(".gq-fa"), el.querySelector(".gq-fb"), el.querySelector(".gq-up")]; g.shadow = el.querySelector(".gq-shadow"); gBubble(g);
   }
-  var G_EAT = 75000, G_STAY = 300000;      // eating takes a while, and a visit lasts about five minutes from being served
+  var G_EAT = 75000, G_STAY = 300000, G_MAX = 300;   // G_MAX: seconds from coming in to leaving, at most      // eating takes a while, and a visit lasts about five minutes from being served
   // a little speech bubble while they chat: a heart, a note, a star, three dots ...
   function gTalk(g) {
     var b = g.el && g.el.querySelector(".gq-bub"); if (!b) return;
@@ -350,7 +350,9 @@
     if (paused) guests.forEach(function (g) {                    // while baking or brewing, time stands still at the tables: no paying, no hearts until you are back
       var ms = dt * 1000; if (g.state === "fly" || g.state === "eat" || g.state === "chat") { g.t0 += ms; if (g.ts) g.ts += ms; if (g.talkAt) g.talkAt += ms; }
     });
-    guests.forEach(function (g) {
+    guests.forEach(function (g) {   // nobody stays longer than five minutes in all (the clock stands still while you bake or brew)
+      if (!paused && g.state !== "leave" && g.state !== "gone") { g.life = (g.life || 0) + dt;
+        if (g.life > G_MAX && /^(wait|eat|chat|fly)$/.test(g.state)) { if (g.state === "eat" || g.state === "fly") { g.sip = 0; gItemOnTable(g, false); gPay(g); } else if (g.state === "wait") say(ALLANI[g.id].name + " muss leider los. Vielleicht ein andermal."); gGo(g); return; } }
       if (g.state === "walk") { if (gStep(g, dt)) { g.mov = false; g.state = "wait"; g.wait = 0; gBubble(g); if (g === guests.filter(function (q) { return q.table === g.table; })[0]) say(ALLANI[g.id].name + (g.atTable && !g.ordered ? " setzt sich und schaut in die Karte." : " setzt sich und möchte " + gOrderText(g.order) + ".")); } }
       else if (g.state === "wait") { if (!paused && (!g.atTable || g.ordered)) g.wait += dt; if (g.wait > 170) { gGo(g); gBubble(g); say(ALLANI[g.id].name + " konnte nicht länger warten. Vielleicht ein andermal."); } }
       else if (g.state === "fly") { var u = Math.min(1, (t - g.t0) / 650); if (u >= 1) { g.state = "eat"; g.t0 = t; gItemOnTable(g, true); } }
