@@ -16082,7 +16082,7 @@ window.__EXTRAS = true;
     else if (k === "solent") { gates(-1); B.push({ k: "land", b0: .25, b1: 1.3 }, { k: "land", b0: -1.5, b1: -.7 }); }
     else if (k === "cherAus") { gates(1); B.push({ k: "land", b0: -1.4, b1: -.5 }, { k: "town", b: -.9 }); }
     else if (k === "queAus") { gates(-1); var lp0 = cpPath(-1, 21); ob("tower", lp0[0] - Math.cos(lp0[2]) * 12, lp0[1] + Math.sin(lp0[2]) * 12); B.push({ k: "land", b0: -1.6, b1: -.75 }); }
-    else if (k === "liberty") { gates(1); ob("statue", 30, 96); B.push({ k: "ny", b: -.25, w: 50 }); }
+    else if (k === "liberty") { gates(1); ob("statue", -24, 70); B.push({ k: "ny", b: .15, w: 50 }); }
     else if (k === "lotse") { ob("pilot", 1.8, 12, { hard: 1, sq: [[.55, 1.8, 12], [1, 10, 22]] }); ob("pax", .3, 9.4, { so: 1, c: 3, w: [0, .52], sq: [[.05, .3, 9.4], [.45, 1.7, 11.7], [1, 1.7, 11.7]] }); ob("light", -8, 34); B.push({ k: "land", b0: -1.6, b1: -1 }); }
     else if (k === "fischer") { [[-4.5, 18], [.5, 20], [-1.5, 27], [-8, 24]].forEach(function (p) { ob("boat", p[0] * side, p[1], { hard: 1, net: 1, a: (cpHash(p[0] * 10 | 0, 3) - .5) * 1.4 }); }); }
     else if (sc === "reede") { ob("tender", 2.2, 12, { x0: 8, mv: .5, hard: 1, sq: [[.55, 2.2, 12], [1, 11, 24]] }); ob("tender", -9, 22, { sq: [[.25, -2.4, 11.5], [.6, -2.4, 11.5], [1, -11, 24]] }); cpPax(ob, 2.2, 12, .5); cpPax(ob, -2.4, 11.5, .55); B.push({ k: "town", b: .05 }, { k: "land", b0: -.6, b1: .7 }); }
@@ -16095,14 +16095,15 @@ window.__EXTRAS = true;
     else if (k === "gruss") ob("ship", -13, 6, { y0: 70, mv: 1, big: 1 });
     else if (k === "ambrose") { ob("light", 6, 22, { hard: 1 }); B.push({ k: "ny", b: -.1, w: 14 }); }
     else if (k === "quar") { ob("tender", 2.2, 12, { x0: 8, mv: .5, hard: 1, sq: [[.55, 2.2, 12], [1, 11, 24]] }); cpPax(ob, 2.2, 12, .5); ob("qisle", -18, 28); B.push({ k: "ny", b: .1, w: 34 }); }
-    else if (k === "pier") { ob("pier", 0, 12.4, { r: 14, hard: 1, fz: 2.7 }); ob("tug", -5, 6, { sq: [[.5, -2.6, 9.2], [1, -2.6, 9.2]] }); ob("tug", 5, 7, { sq: [[.5, 2.6, 9.4], [1, 2.6, 9.4]] }); cpPax(ob, 0, 12, .6, 1); B.push({ k: "ny", b: 0, w: 120 }); }
+    else if (k === "pier") { ob("nyb", -16, 34, { sd: 1, wd: 16, hmax: 16 }); ob("nyb", 2, 40, { sd: 2, wd: 18, hmax: 22, n: 9 }); ob("nyb", 20, 33, { sd: 3, wd: 14, hmax: 14 }); ob("nyb", 6, 60, { sd: 4, wd: 30, hmax: 26, n: 10 });
+      ob("pier", 0, 12.4, { r: 14, hard: 1, fz: 2.7 }); ob("tug", -5, 6, { sq: [[.5, -2.6, 9.2], [1, -2.6, 9.2]] }); ob("tug", 5, 7, { sq: [[.5, 2.6, 9.4], [1, 2.6, 9.4]] }); cpPax(ob, 0, 12, .6, 1); B.push({ k: "ny", b: 0, w: 80 }); }
     else if (sc === "see" || sc === "morgen") {                          // the open sea: now and then something adrift, now and then an animal far out
       if (!IN.ev && R() < .45) { ob("wood", .5 * side, 24, { hard: 1 }); IN.extra = " Aber da treibt etwas voraus …"; }
       if (R() < .7) animal(k === "kanal" ? ["gull", "dolph", "bottle"] : ["whale", "dolph", "dolph", "bottle", R() < .25 ? "orca" : "whale"]);
       if (R() < .55) ob("ship", -side * (16 + R() * 6), 70, { y0: 115, mv: 1, big: R() < .3 });   // a steamer far off, going the other way
     }
     O.forEach(function (o) { o.seen = false; o.leg = li; if (!o.r) o.r = 2.6; cp.O.push(o); });
-    var A = cp.anc[li]; B.forEach(function (b) { b.leg = li; if (b.b != null) b.b += A.h; if (b.b0 != null) { b.b0 += A.h; b.b1 += A.h; } cp.B.push(b); });
+    B.forEach(function (b) { b.leg = li; cp.B.push(b); });
   }
   // little hamsters walking over a gangway during a sequence: from the boat (or the pier) to the bow and on board
   function cpPax(ob, x, y, v0, off) { for (var i = 0; i < 3; i++) { var a = v0 * .25 + i * .1;
@@ -16141,7 +16142,7 @@ window.__EXTRAS = true;
       px: 0, py: 0, h: 0, d: 0, anim: null, done: false, intro: true, look: null, shake: 0, pre: "" };
   }
   function cpStartLeg() {
-    if (!cp.info[cp.leg]) cpBuild(cp.leg);
+    if (!cp.info[cp.leg]) cpBuild(cp.leg); cpAhead();
     var IN = cp.info[cp.leg], A = cp.anc[cp.leg]; cp.ev = IN.ev; cp.extra = IN.extra;
     cp.O = cp.O.filter(function (o) { return o.leg >= cp.leg - 1; }); cp.B = cp.B.filter(function (b) { return b.leg >= cp.leg - 1; }); cp.swim = (cp.swim || []).filter(function (s) { return s.leg >= cp.leg - 1; });
     cp.rud = 0; cp.wh = false; cp.looks = 2; cp.px = A.x; cp.py = A.y; cp.h = A.h; cp.d = 0; cp.glass = null;
@@ -16187,6 +16188,37 @@ window.__EXTRAS = true;
       for (var x = cp.px - 34; x < cp.px + 34; x += .7) { var crest = Math.sin(x * .45 + j * 1.7 + t / (st ? 400 : 900)); if (crest < (st ? .3 : .7)) continue;
         var yy = y0 + Math.sin(x * .3 + j) * .7, p = cpProj(x, yy, 0); if (!p || p.y > 135 || p.x < -4 || p.x > 184) continue; var X = Math.round(p.x), Y = Math.round(p.y), wp = Math.max(1, Math.ceil(.7 * p.k * 16)), th = st && p.f < 14 ? 2 : 1;
         mR(cpc, X, Y - th, wp, th, crest > .8 && st ? "#ffffff" : col[0]); mR(cpc, X, Y, wp, 1, col[1]); if (st && p.f < 20) mR(cpc, X, Y + 1, wp, 1, col[1]); } }
+  }
+  // ===== the sea as in the stoker's scenes: five water tones, dithered, waves that belong to the world and drift with time =====
+  var cpWC = document.createElement("canvas"); cpWC.width = 180; cpWC.height = 135; var cpWX = cpWC.getContext("2d"), cpWD = cpWX.createImageData(180, 135);
+  function cpWater(t, sky, storm) {
+    var P = DZ_WRGB[sky] || DZ_WRGB.day, d = cpWD.data, hz = CAMV.hz, Z = CAMV.Z, H = cp.h + CAMV.yaw, cH = Math.cos(H), sH = Math.sin(H), amp = sky === "night" && cpLeg().s === "eis" ? .35 : 1 + storm * .8, tt = t * (storm > .3 ? 1.6 : 1);
+    d.fill(0);
+    for (var y = Math.max(0, Math.floor(hz)); y < 135; y++) {
+      var k = (y + .5 - hz) / (CP_EYE * 16), f = 10 * Z / Math.max(.02, k) - 6, kk = k / Z * Z, det = Math.max(0, Math.min(1, 1 - (f - 18) / 70)), det2 = Math.max(0, Math.min(1, 1 - (f - 8) / 30));
+      var X0 = cp.px + f * sH, Y0 = cp.py + f * cH, step = 1 / (k * 16), band = Math.sin((Y0 * cH + X0 * sH) * .55 - tt * .003) * .45;
+      for (var x = 0; x < 180; x++) { var sd = (x + .5 - 90) * step, X = X0 + sd * cH, Y = Y0 - sd * sH, o = (y * 180 + x) * 4;
+        var v = band + (Math.sin(X * .62 + Y * .21 - tt * .0016) * .45 + Math.sin(X * .23 - Y * .5 + tt * .0011) * .3) * det + Math.sin(Y * 1.3 + X * .37 - tt * .0023) * .22 * det2;
+        v = v * amp + ((x + y) % 2 ? .07 : -.07);
+        var ci = v < -.6 ? 0 : v < 0 ? 1 : v < .5 ? 2 : v < .95 ? 3 : (det2 > .2 || storm > .3 ? 4 : 3); if (y === Math.floor(hz)) ci = 3;
+        var c = P[ci]; d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255; } }
+    cpWX.putImageData(cpWD, 0, 0); cpc.drawImage(cpWC, 0, 0);
+  }
+  // ---- what lies ahead: the next two legs are laid out in advance on the course a good captain would sail, and move into place when the real course is set ----
+  function cpNeedOf(i) { return cp.info[i] && cp.info[i].ev ? 1 : DZ_ORD[cp.route[i].o].l; }
+  function cpCompose(A, E) { var W = cpW(A, E[0], E[1]); return { x: W[0], y: W[1], h: A.h + E[2] }; }
+  function cpPredict(i) { var keep = cp.leg, keepEv = cp.ev; cp.leg = i; cp.ev = cp.info[i] && cp.info[i].ev; var need = cpNeedOf(i), rud = 0;
+    for (var r of [0, -1, 1, -2, 2]) if (!cpSim(r, need)) { rud = r; break; } var S = CP_DIST[need] + (need === 0 && cp.route[i].k === "eis" ? 5 : 0); cp.leg = keep; cp.ev = keepEv; return cpPath(rud, S); }
+  function cpAhead() { cp.rel = cp.rel || [];
+    for (var j = cp.leg + 1; j <= cp.leg + 2 && j < cp.route.length; j++) { if (cp.info[j]) continue; cp.rel[j] = cpPredict(j - 1); cp.anc[j] = cpCompose(cp.anc[j - 1], cp.rel[j]); cpBuild(j); } }
+  function cpReanchor(from) { for (var j = from; j < cp.route.length && cp.rel && cp.rel[j]; j++) cp.anc[j] = cpCompose(cp.anc[j - 1], cp.rel[j]); }
+  function cpBW(o) { var h = cp.anc[o.leg] ? cp.anc[o.leg].h : 0, c = {}; for (var k in o) c[k] = o[k]; if (o.b != null) c.b = o.b + h; if (o.b0 != null) { c.b0 = o.b0 + h; c.b1 = o.b1 + h; } return c; }
+  // Manhattan in 3D behind the pier: clusters of towers with setbacks, lit windows at night
+  function cpNYB(o, w, a, t) { var T = cpLoc(w[0], w[1], a), dark = cpSky() === "night";
+    var C = dark ? [["#3a4060", "#4a5070", "#262c44", "#141828"]] : [["#e0d4bc", "#e8dcc4", "#b0a48c", "#5a5040"], ["#c8ccd4", "#d8dce4", "#9aa0ac", "#4a5058"], ["#d8c0a0", "#e8d0b0", "#a8906c", "#584830"]];
+    for (var i = 0; i < (o.n || 7); i++) { var bx = (cpHash(i, o.sd) - .5) * (o.wd || 14), by = (cpHash(i + 9, o.sd) - .5) * 6, bw = 1.6 + cpHash(i, 3 + o.sd) * 1.8, bh = 3 + Math.pow(cpHash(i + 4, o.sd), 1.5) * (o.hmax || 14), cc = C[i % C.length], c = T.P(bx, by, 0);
+      cpBox3(c[0], c[1], a, bw, bw, 0, bh, cc); if (bh > 8) { cpBox3(c[0], c[1], a, bw * .7, bw * .7, bh, bh + bh * .18, cc); if (i % 2) cpLine3([c[0], c[1], bh * 1.18], [c[0], c[1], bh * 1.18 + 1.5], "#3a3a40"); }
+      var n = T.N(0, -1); if (cpSees([T.P(bx - bw / 2, by - bw / 2, 0), T.P(bx + bw / 2, by - bw / 2, bh)], n)) for (var z = .6; z < bh - .3; z += .7) for (var u = -bw / 2 + .3; u < bw / 2 - .2; u += .5) { if (cpHash(Math.round(u * 10) + i * 7, Math.round(z * 10)) > (dark ? .55 : .8)) continue; var p = cpProj.apply(null, T.P(bx + u, by - bw / 2 - .02, z)); if (p) mR(cpc, Math.round(p.x), Math.round(p.y), 1, 1, dark ? "#ffd34a" : "#5a6a7a"); } }
   }
   function cpHzX(b) { return Math.round(90 + (b - cp.h - CAMV.yaw) * 160 * CAMV.Z); }
   function cpBack(o, sky) {                                              // things on the horizon: coasts, towns, the skyline, the statue
@@ -16545,7 +16577,7 @@ window.__EXTRAS = true;
     cp.O.forEach(function (o) { if (o.k === "shoal") { cpShoalDraw(o); return; } if (o.hid || o.scared && performance.now() - o.scared > 500) return; if (o.k === "quay") { G0.push(o); return; }
       if (o.so && !(o.leg === cp.leg && sv >= 0 && (!o.w || sv >= o.w[0] && sv <= o.w[1]))) return;   // sequence actors only while their scene plays
       var q = cpWP(o);
-      if (o.k === "m3" || CP_3K[o.k]) { var c = cpC(q[0], q[1], 0); if (c[0] < -9 || c[0] > 125) return;
+      if (o.k === "m3" || CP_3K[o.k]) { var c = cpC(q[0], q[1], 0); if (c[0] < -9 || c[0] > (o.k === "statue" || o.k === "nyb" ? 240 : 125)) return;
         if (o.k !== "m3" && !glass && cpHidden(o, c[0])) { var pu = cpProj(q[0], q[1]); if (pu) G3.push([o, pu]); return; }
         (CP_LAND[o.m] ? G1 : G3).push([o, { f: c[0], w: q, m: 1 }]); return; }
       var p = cpProj(q[0], q[1]); if (!p || p.f > 110 || p.x < -60 || p.x > 240) return; G3.push([o, p]); });
@@ -16563,7 +16595,7 @@ window.__EXTRAS = true;
     CAMV = { yaw: g.yaw, Z: 3, hz: 46 };
     try {
       for (var y = 0; y < 135; y++) { cpc.fillStyle = y < 46 ? skc[y < 18 ? 0 : y < 36 ? 1 : 2] : (cpHash(y, 7) < .6 ? sea[0] : sea[1]); cpc.fillRect(0, y, 180, 1); }
-      cpSkyDraw(sky, t); cp.B.forEach(function (o) { cpBack(o, sky); }); cpFoam(sea[2], t); cpWorldDraw(t, true);
+      cpSkyDraw(sky, t); cp.B.forEach(function (o) { if (o.leg <= cp.leg + 1) cpBack(cpBW(o), sky); }); cpWater(t, sky, sky === "storm" ? 1 : 0); cpWorldDraw(t, true);
       if (sky === "fog") { cpc.fillStyle = "rgba(226,232,236,.4)"; cpc.fillRect(0, 0, 180, 135); }
       var cand = null, cd = 99, nf = 40, nd = 99;
       cp.O.forEach(function (o) { if (o.hid || o.so || o.k === "quay" || o.k === "pier") return; var q = cpWP(o), p = cpProj(q[0], q[1], o.k === "m3" ? 2 : 0); if (!p || p.f > 70) return; if (o.ani && p.f < 18) return;
@@ -16797,6 +16829,8 @@ window.__EXTRAS = true;
       for (var cr = 0; cr < 4; cr++) { var an = cr * 1.4 + .3, p0 = T.P(Math.cos(an) * R0 * .95, Math.sin(an) * R0 * .95, R0 * .05), p1 = T.P(Math.cos(an) * R0 * .7, Math.sin(an) * R0 * .7, R0 * .85); if (cpSees([p0, p1, T.P(0, 0, R0 * .4)], [Math.cos(an), Math.sin(an), 0].map(function (v, j) { return j < 2 ? v : 0; }))) cpLine3(p0, p1, "#8ab0c8"); }
       return; }
     return _cpKind2(o, w, a, t, k); };
+  var _cpKind4 = cpKind; cpKind = function (o, w, a, t, k) { if (k === "nyb") return cpNYB(o, w, a, t); return _cpKind4(o, w, a, t, k); };
+  CP_3K.nyb = 1;
   // ===== wheelhouse variants (style study): 1 Teak & Messing, 2 Weiße Brücke, 3 Hamster-Kajüte, 4 Mahagoni =====
   var CP_BV = 4, cpFrames = {};
   var CP_BVP = {
@@ -16904,14 +16938,14 @@ window.__EXTRAS = true;
   function cpIceTone(n) { var d = n[0] * .5 - n[1] * .4 + n[2] * .75; return CP_ICE[Math.max(0, Math.min(5, Math.round((d + .3) / 1.4 * 5)))]; }
   function cpTriMesh(tris, toneFn) { var E = cpEye(); tris = tris.filter(function (q) { var a = q[0], b = q[1], c = q[2], ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2]; var n = [uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx], L = Math.hypot(n[0], n[1], n[2]) || 1; q.n = [n[0] / L, n[1] / L, n[2] / L]; q.d = Math.hypot((a[0] + b[0] + c[0]) / 3 - E[0], (a[1] + b[1] + c[1]) / 3 - E[1], (a[2] + b[2] + c[2]) / 3 - E[2]); return cpSees(q, q.n); });
     tris.sort(function (p, q) { return q.d - p.d; }).forEach(function (q) { cpPolyW(q, toneFn(q.n)); }); }
-  function cpIceberg(T, R0, H, sd, t) {                                  // a dome of facets with jagged peaks; triangles counter-clockwise seen from outside
+  function cpIceberg(T, R0, H, sd, t, rock) {                                  // a dome of facets with jagged peaks; triangles counter-clockwise seen from outside
     var NR = 4, NS = 15, V = [];
     for (var i = 0; i <= NR; i++) { V.push([]); for (var j = 0; j < NS; j++) { var th = j / NS * 6.283, fr = i / NR, nz = cpHash(i * 31 + sd, j * 17 + sd), rr = R0 * fr * (.82 + .32 * cpHash(j + sd, 4)), zz = i === NR ? -.05 : H * Math.pow(1 - fr, .7) * (.5 + .9 * nz) * ((j + sd) % 6 === 2 && i <= 2 ? 1.6 : (j + sd) % 7 === 4 && i === 2 ? 1.4 : 1) * (i === 0 ? .9 : 1);
         V[i].push(T.P(rr * Math.cos(th) + (i === 1 ? R0 * .12 * Math.cos(sd) : 0), rr * Math.sin(th), Math.max(-.05, zz))); } }
     var tris = [];
     for (var a = 0; a < NR; a++) for (var b = 0; b < NS; b++) { var b1 = (b + 1) % NS, p = V[a][b], q = V[a][b1], r = V[a + 1][b], s = V[a + 1][b1]; tris.push([p, s, q]); tris.push([p, r, s]); }
-    cpPolyW(V[NR].map(function (p) { return [p[0] + (p[0] - T.P(0, 0, 0)[0]) * .25, p[1] + (p[1] - T.P(0, 0, 0)[1]) * .25, .01]; }), "#6ab0c8");
-    cpTriMesh(tris, cpIceTone);
+    cpPolyW(V[NR].map(function (p) { return [p[0] + (p[0] - T.P(0, 0, 0)[0]) * .25, p[1] + (p[1] - T.P(0, 0, 0)[1]) * .25, .01]; }), rock ? "#4a8ab0" : "#6ab0c8");
+    cpTriMesh(tris, rock ? function (n) { var d = n[0] * .5 - n[1] * .4 + n[2] * .75, R = ["#3a3a36", "#5a5a52", "#7a786c", "#98968a", "#b0ae9e", "#c8c4b0"]; return R[Math.max(0, Math.min(5, Math.round((d + .3) / 1.4 * 5)))]; } : cpIceTone);
     var ring = V[NR].map(function (p) { return [p[0], p[1], .06]; }); for (var k = 0; k < NS; k++) if ((k + Math.floor(t / 600)) % 3) cpLine3(ring[k], ring[(k + 1) % NS], "#ffffff");
   }
   function cpLogM(T, len, r, t) {                                         // a round log lying in the water, bark and a pale cut end
@@ -16941,6 +16975,13 @@ window.__EXTRAS = true;
     if (k === "ice") return cpIceberg(T, o.big ? 3.9 : 2.0, o.big ? 7.5 : 3.2, Math.round(o.x * 13 + o.y * 7) & 255, t);
     if (k === "wood") return cpLogM(cpLoc(w[0], w[1], a + .8), 2.6, .22, t);
     if (k === "statue") return cpStatueH(o, w, a, t);
+    if (k === "tower") { cpIceberg(T, 2.6, 1.3, 11, t, 1); var W12 = function (r) { return cpRing(r, 12); }, RD = ["#e8584a", "#d8463c", "#a02e26", "#3a1008"], WH = ["#fffaf0", "#f8f0e0", "#c8c0b0", "#5a5040"];
+      var hs = T.P(-1.1, -.6, 0); cpBox3(hs[0], hs[1], a, 1.2, 1.6, .9, 1.7, WH); cpRoof(hs[0], hs[1], a, 1.4, 1.8, 1.7, .5, ["#a8442a", "#b8543a", "#86321e", "#40160c"], [0, WH[1], WH[2]]);
+      [[.62, .9, 1.7, WH], [.56, 1.7, 2.5, RD], [.5, 2.5, 3.3, WH], [.44, 3.3, 4.1, RD]].forEach(function (L) { cpPrism(w[0], w[1], a, W12(L[0]), L[1], L[2], L[3]); });
+      cpPrism(w[0], w[1], a, W12(.62), 4.1, 4.2, CP_IRON); for (var rl = 0; rl < 12; rl += 2) { var an = rl / 12 * 6.283; cpLine3(T.P(Math.cos(an) * .6, Math.sin(an) * .6, 4.2), T.P(Math.cos(an) * .6, Math.sin(an) * .6, 4.45), "#2e2e34"); }
+      var on = cpBlink(t); cpPrism(w[0], w[1], a, W12(.36), 4.2, 4.75, [on ? "#ffe08a" : "#a8b8c8", on ? "#fff4b0" : "#c8d8e8", on ? "#ffd34a" : "#7a8a9a", "#2e2e34"]);
+      cpPrism(w[0], w[1], a, W12(.42), 4.75, 4.85, CP_IRON); cpPrism(w[0], w[1], a, W12(.28), 4.85, 5.0, CP_IRON); cpPrism(w[0], w[1], a, W12(.12), 5.0, 5.15, CP_IRON);
+      if (on) { var lp = cpProj(w[0], w[1], 4.5); if (lp) { mR(cpc, Math.round(lp.x) - 6, Math.round(lp.y), 4, 1, "#fff4b0"); mR(cpc, Math.round(lp.x) + 3, Math.round(lp.y), 4, 1, "#fff4b0"); } } return; }
     return _cpKind3(o, w, a, t, k); };
   // ---- the skyline in 2.5D: each tower with a lit front, a shaded side, setbacks, spires, domes and water tanks ----
   var _cpBack1 = cpBack;
@@ -17013,11 +17054,11 @@ window.__EXTRAS = true;
       var A0 = cp.anim, mixU = A0 && !A0.look ? (A0.seq ? 1 : A0.u || 0) : 0, sky2 = cpSky(cp.leg + 1), sky = cpSky(), sea = cpSeaPic(sky), sh = cp.shake > 0 || cp.ev ? Math.round(Math.sin(t / (cp.ev ? 90 : 30)) * (cp.ev && cp.shake <= 0 ? 1 : 2)) : 0, off = (((-cp.h * 160) % 180) + 180) % 180;
       var storm = (sky === "storm" ? 1 - mixU : 0) + (sky2 === "storm" && cp.leg + 1 < cp.route.length ? mixU : 0), pitch = Math.round((Math.sin(t / 650) * 3 + Math.sin(t / 1700) * 2) * storm + Math.sin(t / 1400) * .6);   // the bow rises and falls
       cpc.setTransform(1, 0, 0, 1, 0, sh); cpc.fillStyle = CP_SEA[sky][0][0]; cpc.fillRect(0, 0, 180, 80); cpc.setTransform(1, 0, 0, 1, 0, sh + pitch);
-      cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0);
+      cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0); cpWater(t, mixU > .5 && cp.leg + 1 < cp.route.length ? sky2 : sky, storm);
       if (sky2 !== sky && mixU > 0 && cp.leg + 1 < cp.route.length) { var sea2 = cpSeaPic(sky2); cpc.globalAlpha = Math.min(1, mixU * 1.3); cpc.drawImage(sea2, Math.round(off) - 180, 0); cpc.drawImage(sea2, Math.round(off), 0); cpc.globalAlpha = 1; }
-      cp.B.forEach(function (o) { var fac = o.leg > cp.leg ? mixU : o.leg < cp.leg ? 1 - mixU : 1; if (fac <= 0) return;   // coasts rise over the horizon as they come, and sink behind
-        cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpc.translate(0, Math.round((1 - fac) * 18)); cpBack(o, sky); cpc.restore(); });
-      cpSkyDraw(mixU > .5 && cp.leg + 1 < cp.route.length ? sky2 : sky, t); cpFoam(CP_SEA[sky][1][2], t); cpWaves(t, storm, sky);
+      cp.B.forEach(function (o) { var fac = o.leg === cp.leg + 1 ? mixU : o.leg > cp.leg + 1 ? 0 : o.leg < cp.leg ? 1 - mixU : 1; if (fac <= 0) return;   // coasts rise over the horizon as they come, and sink behind
+        cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpc.translate(0, Math.round((1 - fac) * 18)); cpBack(cpBW(o), sky); cpc.restore(); });
+      cpSkyDraw(mixU > .5 && cp.leg + 1 < cp.route.length ? sky2 : sky, t); if (storm > .3) cpWaves(t, storm, sky);
       // the yellow line: the whole leg as it would be sailed now
       if (!cp.anim && !cp.intro) { var S = CP_DIST[cp.lvl], AN = cp.anc[cp.leg]; for (var i = 1; i <= 20; i++) { var a0 = cpPath(cp.rud, S * i / 20), a = cpW(AN, a0[0], a0[1]), p = cpProj(a[0], a[1]); if (p && p.y < 135) mR(cpc, Math.round(p.x) - (p.sz > 2 ? 2 : 1), Math.round(p.y), p.sz > 2 ? 4 : 2, 1, "#ffd34a"); }
         var e0 = cpPath(cp.rud, S), e = cpW(AN, e0[0], e0[1]), pe = cpProj(e[0], e[1]); if (pe) mR(cpc, Math.round(pe.x) - 2, Math.round(pe.y) - 1, 5, 3, cp.lvl ? "#ffd34a" : "#d8463c"); }
@@ -17042,7 +17083,7 @@ window.__EXTRAS = true;
     var halt = hit && CP_STRUCT[hit.k] && !!cpSim(safe, lvl) && CP_STRUCT[cpSim(safe, lvl).k];
     cp.anim = { lvl: lvl, rud: cp.rud, safe: safe, S: S, dur: lvl ? 5200 : 3800, hit: hit, u: 0, halt: halt, pre: cp.leg === 0 && !cp.castOff ? 1 : 0 };
     if (cpLeg().k === "wale" && lvl === 2) cp.O.forEach(function (o) { if (o.leg === cp.leg && o.ani) o.scared = performance.now() + 900; });
-    if (cp.leg + 1 < cp.route.length) { var A = cp.anc[cp.leg], E = halt ? cpPath(cp.rud, Math.max(0, cpDistU(lvl, S, hit.u) - .5)) : cpPath(safe, S), W = cpW(A, E[0], E[1]); cp.anc[cp.leg + 1] = { x: W[0], y: W[1], h: A.h + E[2] }; cp.info[cp.leg + 1] = null; cp.O = cp.O.filter(function (o) { return o.leg <= cp.leg; }); cp.B = cp.B.filter(function (b) { return b.leg <= cp.leg; }); cpBuild(cp.leg + 1); }
+    if (cp.leg + 1 < cp.route.length) { cp.rel = cp.rel || []; cp.rel[cp.leg + 1] = halt ? cpPath(cp.rud, Math.max(0, cpDistU(lvl, S, hit.u) - .5)) : cpPath(safe, S); cpReanchor(cp.leg + 1); if (!cp.info[cp.leg + 1]) cpBuild(cp.leg + 1); }
     if (cp.wh) { dzWhistle(cpLeg().k === "abfahrt" ? 2.2 : 1.4); }
     dzBell(lvl === 0 ? 1 : lvl === 1 ? 2 : 3); cpPanelDraw(); cpRaf = requestAnimationFrame(cpDraw);
   }
@@ -17195,6 +17236,8 @@ window.__EXTRAS = true;
   window.__capRoute = function () { return cp && cp.route.map(function (L) { return L.k; }); };
   window.__capFoc = function () { return cp && cp.glass ? cp.glass.foc : null; };
   window.__cap = { open: function () { return capGame(); },
+    gallery2: function (ks) { cp.O = cp.O.filter(function (o) { return !o.gal; }); var H = cp.h; ks.forEach(function (k, i) { var lx = (i - 1) * 6.5, ly = 15, W = [cp.px + lx * Math.cos(H) + ly * Math.sin(H), cp.py - lx * Math.sin(H) + ly * Math.cos(H)], A = cp.anc[cp.leg], r = cpRel(A.x, A.y, A.h, W[0], W[1]); cp.O.push({ k: k, x: r[1], y: r[0], leg: cp.leg, seen: true, r: 2.6, gal: 1, a: .9 }); }); cpRedraw(); },
+    gallery: function (ks, y0) { (ks || ["ship", "tug", "pilot", "tender", "boat", "schooner", "light", "dinghy", "wood", "floe", "tower", "buoyR", "buoyG"]).forEach(function (k, i) { var o = { k: k, x: (i - 6) * 4.2, y: (y0 || 20) + (i % 3) * 3, leg: cp.leg, seen: true, r: 2.6 }; if (k === "ship") o.big = 0; cp.O.push(o); }); cpRedraw(); },
     storm: function () { cp.info[cp.leg].ev = "sturm"; cp.ev = "sturm"; cpPanelDraw(); cpRedraw(); },
     bv: function (v) { CP_BV = v; cpRedraw(); },
     pose: function (x, y, h) { cp.px = x; cp.py = y; cp.h = h; cpRedraw(); },
