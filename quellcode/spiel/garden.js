@@ -742,12 +742,15 @@
   ROOM_CATS.push("door", "lamp", "rug");
   TOTAL_ITEMS = 0; for (var fc2 in FURN) TOTAL_ITEMS += FURN[fc2].length;
   function roomDefaults() {
-    var d = { door: "terrace", lamp: "classic", rug: "braid" };
+    var d = { door: "sage", lamp: "classic", rug: "braid" };
     for (var c in d) { if (!home.owned[c]) home.owned[c] = [d[c]]; if (home.placed[c] === undefined) home.placed[c] = d[c]; }
-    if (!home.pos) home.pos = { door: 104, lamp: 94, rug: { x: 77, y: 110 } };
+    if (!home.pos) home.pos = { door: -92, lamp: 47, rug: { x: 62, y: 110 }, v: 2 };
+    if (home.pos.v !== 2) { home.pos.door = -92; home.pos.lamp = 47; home.pos.rug = { x: 62, y: 110 }; home.pos.v = 2; if (home.owned.door && home.owned.door.indexOf("sage") < 0) home.owned.door.push("sage"); home.placed.door = "sage"; }   // the new living room with the hall: the door is the front door now, lamp and rug go to their new places once
+    home.pos.door = -92;
     // items that left the catalog (e.g. the dropped tile floors) fall back to a default
     for (var cat in home.owned) if (FURN[cat]) home.owned[cat] = home.owned[cat].filter(function (id) { return item(cat, id); });
-    if (!item("floor", home.placed.floor)) { home.placed.floor = "planks"; if (home.owned.floor.indexOf("planks") < 0) home.owned.floor.push("planks"); }
+    [["floor"], ["dfloor"], ["gram"]].forEach(function (q) { var c = q[0], d0 = FURN[c] && FURN[c][0] && FURN[c][0].id; if (!d0) return; if (!home.owned[c]) home.owned[c] = []; if (!item(c, home.placed[c])) home.placed[c] = d0; if (home.owned[c].indexOf(d0) < 0) home.owned[c].push(d0); });
+    if (!home.pos.wc) home.pos.wc = {};
   }
   roomDefaults();
   var _resetHome2 = resetHome; resetHome = function () { _resetHome2(); roomDefaults(); };
@@ -787,9 +790,9 @@
       el.addEventListener("pointermove", mv); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
     });
   }
-  dragify(document.getElementById("win"), "door", function (p0, dx) { home.pos.door = Math.round(cl(p0.door + dx, 40, 128)); });
-  dragify(document.getElementById("lamp"), "lamp", function (p0, dx) { home.pos.lamp = Math.round(cl(p0.lamp + dx, 44, 172)); });
-  dragify(document.getElementById("rug"), "rug", function (p0, dx, dy) { home.pos.rug = { x: Math.round(cl(p0.rug.x + dx, -12, 122)), y: Math.round(cl(p0.rug.y + dy, 100, 120)) }; });
+  dragify(document.getElementById("win"), "door", function () { home.pos.door = -92; });   /* the front door stays in the hall */
+  dragify(document.getElementById("lamp"), "lamp", function (p0, dx) { home.pos.lamp = Math.round(cl(p0.lamp + dx, -80, 238)); });
+  dragify(document.getElementById("rug"), "rug", function (p0, dx, dy) { home.pos.rug = { x: Math.round(cl(p0.rug.x + dx, -92, 175)), y: Math.round(cl(p0.rug.y + dy, 100, 120)) }; });
   var _renderRoom3 = renderRoom; renderRoom = function () { _renderRoom3(); renderMovables(); };
   var _renderCatalog3 = renderCatalog; renderCatalog = function () {
     _renderCatalog3();

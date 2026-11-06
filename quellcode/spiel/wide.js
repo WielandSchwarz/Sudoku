@@ -1,14 +1,28 @@
   // ===================== the wide living room: to the right of the old room, a music nook with a piano and a bay window seat =====================
   // The room is now 360 wide. A camera (camX, 0..180) slides the room, the hamster and his little effects together;
   // swipe the room to look around, and the camera follows the hamster when he walks out of view.
-  var WA = /*WIDEART*/;
+  // ===================== the living room with the hall (approved layout "tuer-sage") =====================
+  // The old room keeps its coordinates; the hall with the front door lies to the left of it (x -96..-4, a wooden post at -4),
+  // the wall ends at 246 behind the gramophone corner. The camera runs from -96 to 66.
+  var DI = /*DIELE*/;
+  var RX0 = -96, RX1 = 246, CAM0 = RX0, CAM1 = RX1 - 180;
   var wRoom = document.getElementById("room");
   scene.classList.add("wide-room");
-  var wRug = xEl("img", "wide-rug", wRoom); wRug.src = WA.rug; wRug.alt = ""; place(wRug, 180, 0, 180);
-  var wLay = xEl("div", "wide-lay", wRoom); place(wLay, 180, 0, 180); wLay.style.height = gy(135);
-  wLay.innerHTML = '<div class="wide-view"><div class="wb-garden" id="wb-sky"></div></div><img class="wide-art" alt="" src="' + WA.art + '">' +
-    '<button type="button" class="wide-hit" data-w="piano" aria-label="Klavier"></button><button type="button" class="wide-hit" data-w="seat" aria-label="Fensterbank"></button><button type="button" class="wide-hit" data-w="guitar" aria-label="Gitarre"></button>';
-  var wView = wLay.querySelector(".wide-view"); place(wView, 64, 29, 104); wView.style.height = gy(44);
+  var wWain = xEl("img", "wide-wain", wRoom); wWain.src = DI.wain; wWain.alt = ""; place(wWain, RX0, 0, RX1 - RX0); wWain.style.height = gy(135);
+  var wDFloor = xEl("div", "floor dfloor", wRoom); wDFloor.dataset.slot = "dfloor"; wDFloor.setAttribute("role", "button"); wDFloor.setAttribute("aria-label", "Dielenboden"); place(wDFloor, RX0, 100, 92); wDFloor.style.height = gy(35);
+  var wLay = xEl("div", "wide-lay", wRoom); place(wLay, 0, 0, 180); wLay.style.height = gy(135);
+  wLay.innerHTML = '<div class="wide-view"><div class="wb-garden" id="wb-sky"></div></div><img class="wide-art" alt="" src="' + DI.back + '">' +
+    '<button type="button" class="wide-hit" data-w="bench" aria-label="Bank"></button><button type="button" class="wide-hit" data-w="coat" aria-label="Mantel"></button><button type="button" class="wide-hit" data-w="hat" aria-label="Strohhut"></button>';
+  var wArt = wLay.querySelector(".wide-art"); place(wArt, RX0, 0, RX1 - RX0); wArt.style.height = "100%";
+  [["bench", -38, 87, 28, 17], ["coat", -38, 49, 13, 30], ["hat", -31, 46, 15, 9]].forEach(function (q) { var b = wLay.querySelector('[data-w="' + q[0] + '"]'); place(b, q[1], q[2], q[3]); b.style.height = gy(q[4]); });
+  var wView = wLay.querySelector(".wide-view"); place(wView, 161, 31, 38); wView.style.height = gy(32);
+  var wbSkyEl = wLay.querySelector("#wb-sky"); wbSkyEl.style.cssText = "left:-68.421%;width:236.842%;top:-21.875%;height:210.938%";   /* the garden frame 90x67.5 around the 38x32 glass */
+  // the gramophone on its record cabinet is a piece of furniture now (four colours)
+  var wGram = xEl("div", "slot slot-gram", wRoom); wGram.dataset.slot = "gram"; wGram.setAttribute("role", "button"); wGram.setAttribute("aria-label", "Grammophon"); place(wGram, 105, 38, 40);
+  [wDFloor, wGram].forEach(function (el) { el.addEventListener("click", function () { if (!decor) return; curCat = el.dataset.slot; renderCatalog(); }); });
+  wGram.addEventListener("click", function () { if (decor || s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt(); say(N() + " legt eine Platte auf."); act("gram", playGram); });
+  CATS.dfloor = "Dielenboden"; CATS.gram = "Grammophon"; ROOM_CATS.push("dfloor", "gram");
+  // the front door used to be the movable terrace door; whatever save we load, it stands in the hall now
   // the view out of the bay window is the real garden at half size, drawn with half as many pixels: the season's trees, hedge and meadow, the sky of the hour and every weather
   var WBH = /*WBHALF*/;   // the garden layers at half size: one pixel = one room pixel, like everything in front of the window
   var wbSky = wView.querySelector("#wb-sky"), wbKey = "";
@@ -74,14 +88,14 @@
     ["wallpaper", "floor", "wp-twinkle"].forEach(function (id) {
       var el = document.getElementById(id); if (!el) return; var bs = el.style.backgroundSize;
       if (!bs || el._wfix === bs) return; var m = /^([\d.]+)%(.*)$/.exec(bs); if (!m) return;
-      el.style.backgroundSize = (parseFloat(m[1]) / 2) + "%" + m[2]; el._wfix = el.style.backgroundSize;
+      el.style.backgroundSize = (parseFloat(m[1]) / ((RX1 - RX0) / 180)) + "%" + m[2]; el._wfix = el.style.backgroundSize;
     });
   }
   var _w_renderRoom = renderRoom; renderRoom = function () { var r = _w_renderRoom.apply(this, arguments); wTiles(); return r; };
   wTiles(); setInterval(wTiles, 1000);
   // ---- the camera ----
   var camX = 0, camAnim = 0, camUser = 0;
-  function camOn() { return place2 === "room" && !decor; }
+  function camOn() { return place2 === "room"; }   // also while furnishing: the camera then goes to the piece being chosen
   // the camera moves the room and the hamster with a compositor translate (no relayout, no restyling of the whole scene);
   // the CSS variable for the little effects is only refreshed now and then
   var camVarT = 0;
@@ -92,9 +106,9 @@
     if (ham.parentNode !== scene && ham.style.translate) ham.style.translate = "";
   }
   function camVar() { camVarT = 0; scene.style.setProperty("--camp", (camX / 180 * 100).toFixed(3) + "%"); }
-  function camSet(x) { camX = Math.max(0, Math.min(180, x)); camApply(); if (!camVarT) camVarT = setTimeout(camVar, 300); }
+  function camSet(x) { camX = Math.max(CAM0, Math.min(CAM1, x)); camApply(); if (!camVarT) camVarT = setTimeout(camVar, 300); }
   function camTo(x, ms) {
-    cancelAnimationFrame(camAnim); var x0 = camX, x1 = Math.max(0, Math.min(180, x)), t0 = performance.now(); ms = Math.max(350, ms || 500);
+    cancelAnimationFrame(camAnim); var x0 = camX, x1 = Math.max(CAM0, Math.min(CAM1, x)), t0 = performance.now(); ms = Math.max(350, ms || 500);
     (function step(t) { var u = Math.min(1, (t - t0) / ms); camSet(x0 + (x1 - x0) * u); if (u < 1) camAnim = requestAnimationFrame(step); })(t0);
   }
   function camState() { var on = camOn(); scene.classList.toggle("cam-on", on); if (!on && camX) { cancelAnimationFrame(camAnim); camSet(0); } camApply(); }
@@ -103,8 +117,9 @@
   // the hamster walks with the camera: positions stay in room units, the screen follows him when he leaves the view
   var _w_moveTo = moveTo;
   moveTo = function (x, y, ms) {
+    if (place2 === "room" && x === -14) { x = -112; arguments[0] = x; }   // the stairs and the bath lie on the far side of the hall now
     _w_moveTo.apply(this, arguments);
-    if (!camOn() || Date.now() - camUser < 2500) return;
+    if (!camOn() || decor || Date.now() - camUser < 2500) return;
     if (x < camX + 26 || x > camX + 154) camTo(x - 90, ms);
   };
   freeze = function () {
@@ -112,10 +127,11 @@
     var off = scene.classList.contains("cam-on") && ham.parentNode === scene ? camX : 0;
     _w_moveTo((r.left + r.width / 2 - sc.left) / sc.width * GW + off, (r.bottom - sc.top) / sc.height * GH, 0);
   };
+  var _w_walkTo = walkTo; walkTo = function (x, y, sp) { if (place2 === "room" && x === -14) x = -112; return _w_walkTo(x, y, sp); };
   // ---- swiping the room ----
   var wPan = null, wSwallow = false;
   scene.addEventListener("pointerdown", function (e) {
-    if (!camOn() || e.button > 0) return;
+    if (!camOn() || decor || e.button > 0) return;
     if (!wRoom.contains(e.target) || e.target.closest(".hamster")) return;
     wPan = { x: e.clientX, c: camX, w: scene.getBoundingClientRect().width, on: false, id: e.pointerId };
   }, true);
@@ -128,54 +144,54 @@
   scene.addEventListener("pointerup", wPanEnd, true); scene.addEventListener("pointercancel", wPanEnd, true);
   scene.addEventListener("click", function (e) { if (wSwallow) { wSwallow = false; e.stopPropagation(); e.preventDefault(); } }, true);
   // ---- what he does over here ----
-  IDLE_ACTS.push("piano", "seat", "nook");
-  var PIANO = [[523, .16], [587, .16], [659, .16], [523, .16], [659, .2], [784, .3], [698, .16], [659, .16], [587, .16], [523, .36]];
-  async function playPiano() {
-    await walkTo(214, 118); H.dir = 1;
-    front({ eyes: "happy", mouth: "smile" }); pulse("hop", 300); await wait(250);
-    _w_moveTo(214, 90, 260); await wait(300);
-    for (var i = 0; i < PIANO.length; i++) {
-      backFrame(i % 2); beep([PIANO[i]]);
-      if (i % 2 === 0) fx("note", 214 + rnd(-18, 18), 44 + rnd(-6, 4), "up", 1.1);
-      await wait(PIANO[i][1] * 1000 + 140);
+  IDLE_ACTS.push("gram", "bench", "nook");
+  var GRAM_TUNE = [[392, .2], [330, .2], [392, .2], [523, .4], [494, .2], [440, .2], [392, .4], [330, .2], [349, .2], [392, .2], [330, .5]];
+  async function playGram() {   // he winds the crank, puts the needle on, and the old record plays
+    if (!home.placed.gram) return;
+    await walkTo(124, 116); H.dir = 1;
+    backFrame(0); await wait(300);
+    for (var k = 0; k < 4; k++) { backFrame(k % 2); beep([[180 + k * 20, .05]]); await wait(220); }
+    front({ eyes: "happy", mouth: "smile" }); pulse("hop", 300); await wait(300);
+    for (var i = 0; i < GRAM_TUNE.length; i++) {
+      beep([GRAM_TUNE[i]]);
+      if (i % 2 === 0) fx("note", 132 + rnd(-6, 8), 40 + rnd(-6, 2), "up", 1.1);
+      if (i % 3 === 0) front({ eyes: "happy", mouth: i % 2 ? "smile" : "open" });
+      await wait(GRAM_TUNE[i][1] * 1000 + 120);
     }
-    backFrame(0); await wait(500);
-    front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); await wait(700);
-    _w_moveTo(214, 118, 260); await wait(320); settle();
+    front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); await wait(700); settle();
   }
-  async function sitInNook() {
-    var x = rnd(270, 320);
-    await walkTo(x, 118); H.dir = 1;
-    pulse("hop", 300); _w_moveTo(x, 82, 300); await wait(340);
-    backFrame(0); await wait(900);
-    for (var i = 0; i < 5; i++) { backFrame(i % 2); await wait(i % 2 ? 1100 : 700); }
-    front({ eyes: "happy", mouth: "smile", blush: true }); await nibbleNose(4); await wait(1400);
-    front({ eyes: "sleep", mouth: "flat" }); await wait(1600); front(mood()); await wait(500);
-    pulse("hop", 300); _w_moveTo(x, 118, 300); await wait(340); settle();
+  async function sitOnBench() {   // a rest on the bench in the hall, under the coat and the straw hat
+    await walkTo(-24, 118); H.dir = 1;
+    pulse("hop", 300); _w_moveTo(-24, 101, 300); await wait(340);
+    front({ eyes: "happy", mouth: "smile" }); await nibbleNose(4); await wait(1200);
+    front({ eyes: "half", mouth: "flat" }); await wait(1400); front(mood()); await wait(500);
+    pulse("hop", 300); _w_moveTo(-24, 118, 300); await wait(340); settle();
   }
-  async function strollRight() { await walkTo(rnd(200, 330), rnd(119, 128)); front(mood()); await nibbleNose(5); await wait(600); }
+  async function strollHall() { await walkTo(rnd(-80, -30), rnd(118, 128)); front(mood()); await nibbleNose(5); await wait(600); }
+  async function strollRight() { await walkTo(rnd(140, 236), rnd(119, 128)); front(mood()); await nibbleNose(5); await wait(600); }
   var _w_wander = wander;
   wander = async function () {
     if (place2 !== "room") return _w_wander();
     var r = Math.random();
-    if (r < .14) return playPiano();
-    if (r < .28) return sitInNook();
-    if (r < .55) return strollRight();
+    if (r < .12 && home.placed.gram) return playGram();
+    if (r < .22) return sitOnBench();
+    if (r < .36) return strollHall();
+    if (r < .5) return strollRight();
     return _w_wander();
   };
   wLay.addEventListener("click", function (e) {
     var b = e.target.closest(".wide-hit"); if (!b) return; e.stopPropagation();
     if (decor || s.asleep) return;
-    if (b.dataset.w === "guitar") { beep([[196, .12], [247, .12], [294, .12], [392, .3]]); say(N() + " zupft an der Gitarre."); return; }
+    if (b.dataset.w === "coat") { say("Der Mantel riecht ein bisschen nach Sonnenblumenkernen."); return; }
+    if (b.dataset.w === "hat") { say("Der Strohhut für sonnige Gartentage."); return; }
     if (busy && !interruptible()) return; if (busy) interrupt();
-    if (b.dataset.w === "piano") { say(N() + " setzt sich ans Klavier."); act("piano", playPiano); }
-    else { say(N() + " macht es sich auf der Fensterbank gemütlich."); act("seat", sitInNook); }
+    say(N() + " setzt sich auf die Bank."); act("bench", sitOnBench);
   });
   // ---- the way to the kitchen is now at the right end of the long room ----
   goKitchenSeq = async function () {
     if (H.where === "chair") await hopOutOfChair();
     if (place2 === "garden") await goInsideSeq();
-    await walkTo(372, 120); fadeX(false); await wait(250);
+    await walkTo(RX1 + 16, 120); fadeX(false); await wait(250);
     showPlace("kitchen"); moveTo(-14, 120, 0); fadeX(true);
     say(N() + " ist in der Küche."); await walkTo(KSPOT.home.x, KSPOT.home.y);
     front({ eyes: "happy", mouth: "grin", blush: true }); await nibbleNose(6);
@@ -183,19 +199,44 @@
   goRoomFromKitchen = async function () {
     if (place2 !== "kitchen") return;
     await walkTo(-14, 120); fadeX(false); await wait(250);
-    showPlace("room"); camSet(180); moveTo(372, 120, 0); fadeX(true); await walkTo(300, 120);
+    showPlace("room"); camSet(CAM1); moveTo(RX1 + 16, 120, 0); fadeX(true); await walkTo(200, 120);
   };
   // (tapping the floor to send the hamster somewhere is switched off again: it got in the way of other taps)
   var WALK_Y = { room: [110, 130], kitchen: [108, 128], garden: [112, 130], bedroom: [112, 128] };
   // ---- the ship model stands on the wall shelf above the piano instead of books, plant and record; picture and pinboard hang a little lower ----
   if (typeof pcModel !== "undefined") {
-    place(pcModel, 190, 14, 42); pcModel.classList.add("on-shelf");
-    if (typeof pcBoard !== "undefined") { pcBoardAt = "wide"; place(pcBoard, 128, 16, 36); }
-    if (typeof dzPic !== "undefined") place(dzPic, 92, 20, 24);
-    var wArtEl = wLay.querySelector(".wide-art");
-    setInterval(function () { var src = pcModel.hidden ? WA.art : (WA.art2 || WA.art); if (wArtEl.getAttribute("src") !== src) wArtEl.setAttribute("src", src); }, 600);
+    place(pcModel, 207, 12, 42); pcModel.classList.add("on-shelf");   // for now on top of the second bookshelf (Wieland still picks its place)
+    if (typeof pcBoard !== "undefined") { pcBoardAt = "wide"; place(pcBoard, 103, 10, 36); }
+    if (typeof dzPic !== "undefined") place(dzPic, 216, 24, 24);
   }
-  window.__wide = { cam: function (x) { if (x == null) return camX; camSet(x); }, piano: function () { act("piano", playPiano); }, seat: function () { act("seat", sitInNook); } };
+  // ---- the hall's own floor, the gramophone, and wallpapers in your own colours ----
+  /*WALLCOL*/
+  var WCG = (DI.farben.grundfarbe || []).map(function (c) { return c.farbe; }), WCM = (DI.farben.musterfarbe || []).map(function (c) { return c.farbe; });
+  function wWallTile(wp) { var q = home.pos && home.pos.wc && home.pos.wc[wp.id]; if (!q || (!q[0] && !q[1])) return wp.tile; try { return recolorWallSvg(wp.tile, WCG[q[0]] || null, WCM[q[1]] || null); } catch (e) { return wp.tile; } }
+  var _w_rr2 = renderRoom; renderRoom = function () {
+    _w_rr2.apply(this, arguments);
+    var wp = item("wall", home.placed.wall); if (wp) { document.getElementById("wallpaper").style.backgroundImage = tileURL(wWallTile(wp)); }
+    var df = item("dfloor", home.placed.dfloor) || FURN.dfloor[0]; wDFloor.style.backgroundImage = tileURL(df.tile); wDFloor.style.backgroundSize = (df.w / 2 / 92 * 100).toFixed(3) + "% auto";
+    var g = home.placed.gram && item("gram", home.placed.gram); wGram.innerHTML = g ? itemSVG("gram", g) : '<div class="empty">+</div>'; wGram.style.top = g ? gy(38) : gy(83); wGram.style.width = gx(g ? 40 : 34);
+  };
+  var _w_rc2 = renderCatalog; renderCatalog = function () {
+    _w_rc2.apply(this, arguments);
+    var items = document.getElementById("items"), box = document.getElementById("wcol");
+    if (curCat === "dfloor") { items.innerHTML = FURN.dfloor.map(function (it) { var has = home.owned.dfloor.indexOf(it.id) >= 0, on = home.placed.dfloor === it.id;
+        return '<button type="button" class="item' + (has ? "" : " locked") + '" data-id="' + it.id + '" aria-pressed="' + on + '"' + (has ? "" : ' aria-disabled="true"') + '><div class="sw" style="background-image:' + tileURL(it.tile).replace(/"/g, "'") + ';background-size:' + (it.w * 0.9) + 'px"></div><span lang="de">' + (has ? it.name : "???") + '</span></button>'; }).join("");
+      document.getElementById("cat-clear").hidden = true; }
+    if (curCat === "gram") document.getElementById("cat-clear").hidden = true;
+    if (!box) { box = document.createElement("div"); box.id = "wcol"; box.className = "wcol"; items.parentNode.insertBefore(box, items.nextSibling);
+      box.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; var wp = home.placed.wall, q = (home.pos.wc[wp] || [0, 0]).slice(); q[+b.dataset.r] = +b.dataset.i; home.pos.wc[wp] = q; renderRoom(); renderCatalog(); }); }
+    if (decor && place2 === "room") { var ct = { dfloor: CAM0, door: CAM0, gram: 46, plant: 46, chair: 0, clock: 0, shelf: 0 }[curCat]; if (ct != null) camTo(ct, 450); }
+    box.hidden = curCat !== "wall" || !decor; if (box.hidden) return;
+    var wp = item("wall", home.placed.wall), q = home.pos.wc[home.placed.wall] || [0, 0], orig = tileURL(wp.tile).replace(/"/g, "'"), cur = tileURL(wWallTile(wp)).replace(/"/g, "'");
+    var row = function (r, list, title) { return '<p class="wcol-h">' + title + '</p><div class="wcol-r">' + list.map(function (c, i) {
+        var st = !c ? "background-image:" + (r ? cur : orig) + ";background-size:18px" : r ? "background:" + (WCG[q[0]] || "#f4ead8") + ";--m:" + c : "background:" + c;
+        return '<button type="button" class="wcol-b' + (r && c ? " pat" : "") + (q[r] === i ? " on" : "") + '" data-r="' + r + '" data-i="' + i + '" style="' + st + '" aria-label="' + (DI.farben[r ? "musterfarbe" : "grundfarbe"][i].name) + '"></button>'; }).join("") + '</div>'; };
+    box.innerHTML = row(0, WCG, "Grundfarbe") + row(1, WCM, "Musterfarbe");
+  };
+  window.__wide = { cam: function (x) { if (x == null) return camX; camSet(x); }, gram: function () { act("gram", playGram); }, bench: function () { act("bench", sitOnBench); } };
 
   // ===================== festival decorations for the wide living room =====================
   // The old room got a new pinboard place and the music nook: things that hung on the pinboard move to free wall,
@@ -245,26 +286,26 @@
     if (pl && f === "herbst") { if (jk[1]) jk[1].style.left = gx(pl.x - 19); if (cd[1]) cd[1].style.left = gx(pl.x - 24); }
     if (f === "advent" || f === "weihnachten") { wMove(".star", wx + 14, L.win.y + 2); wMove(".mistle", wx + 8, L.win.y - 16); }
     if (f === "herbst") {
-      fp(festRoom, "f_hbunting", 175, 6, "garl");
-      wMove(".web.flip", 332, 7);
-      wMove(".ghost", 167, 22);
-      var a = fp(festRoom, night ? "f_jack0on" : "f_jack0off", 314, 61, "jack clk"), b = fp(festRoom, night ? "jack_on" : "jack_off", 258, 92, "jack clk");
-      fp(festRoom, "f_candle", 306, 65, "cand"); fp(festRoom, "f_candle", 214, 41, "cand");
+      fp(festRoom, "f_hbunting", 175, 6, "garl"); fp(festRoom, "f_hbunting", -165, 6, "garl");
+      wMove(".web.flip", 236, 7);
+      wMove(".ghost", -62, 20);
+      var a = fp(festRoom, night ? "f_jack0on" : "f_jack0off", 214, 41, "jack clk"), b = fp(festRoom, night ? "jack_on" : "jack_off", 193, 92, "jack clk");
+      fp(festRoom, "f_candle", 234, 45, "cand"); fp(festRoom, "f_candle", -14, 80, "cand");
       [a, b].forEach(function (j) { j.classList.toggle("lit", night); j.addEventListener("click", function () { j.classList.remove("wob"); void j.offsetWidth; j.classList.add("wob"); say("Fröhliches Kürbisfest!"); }); });
     } else if (f === "advent" || f === "weihnachten") {
-      fp(festRoom, "f_garland", 175, 6, "garl");
+      fp(festRoom, "f_garland", 175, 6, "garl"); fp(festRoom, "f_garland", -165, 6, "garl");
       wMove(".advent", 164, 18);
-      [].forEach.call(festRoom.querySelectorAll(".stock"), function (s, i) { s.style.left = gx(193 + i * 13); s.style.top = gy(37 + (i % 2) * 2); });
-      wLights(242, 350, 27, 5);
-      fp(festRoom, "f_candle", 322, 65, "cand");
-      if (f === "weihnachten") fp(festRoom, "f_candle", 278, 65, "cand");
+      [].forEach.call(festRoom.querySelectorAll(".stock"), function (s, i) { s.style.left = gx(-86 + i * 13); s.style.top = gy(24 + (i % 2) * 2); });
+      wLights(150, 244, 18, 5); wLights(-92, -22, 18, 5);
+      fp(festRoom, "f_candle", 234, 45, "cand");
+      if (f === "weihnachten") fp(festRoom, "f_candle", 214, 45, "cand");
       // the gingerbread house stands on top of the shelf, whatever shelf it is
-      var gi = festRoom.querySelector(".ginger"); if (gi) { if (sh && sh.top - 17 >= 20) { gi.style.left = gx(sh.x + sh.w / 2 - 10); gi.style.top = gy(sh.top - 17); } else { gi.style.left = gx(298); gi.style.top = gy(61); } }   // a tall shelf reaches the garland: then it stands on the window bench
+      var gi = festRoom.querySelector(".ginger"); if (gi) { if (sh && sh.top - 17 >= 20) { gi.style.left = gx(sh.x + sh.w / 2 - 10); gi.style.top = gy(sh.top - 17); } else { gi.style.left = gx(218); gi.style.top = gy(37); } }   // a tall shelf reaches the garland: then it stands on the window bench
       // the Advent wreath now lies on the window bench, between the pink and the blue cushion
       var ow = festRoom.querySelector(".wreath"); if (ow) ow.remove();
       if (f === "advent") {
         var wk = adventWeek(), wr = xEl("button", "fest wreath-lie", festRoom, '<svg viewBox="0 -5 34 18" aria-hidden="true">' + wAdventWreath(wk) + '</svg>');
-        wr.type = "button"; wr.setAttribute("aria-label", "Adventskranz"); wr.style.left = gx(264); wr.style.top = gy(62); wr.style.width = gx(34);
+        wr.type = "button"; wr.setAttribute("aria-label", "Adventskranz"); wr.style.left = gx(-35); wr.style.top = gy(84); wr.style.width = gx(34);
         wr.addEventListener("click", function () { say(wk + ". Advent: " + wk + (wk > 1 ? " Kerzen brennen." : " Kerze brennt.")); });
       }
       // in the garden the lights now hang on the new things: over the greenhouse roof, the beehive and the hedge
@@ -277,19 +318,19 @@
         gl = ""; for (var hx = 2; hx < 178; hx += 7, k++) gl += '<rect class="gl' + (k % 3) + '" x="' + hx + '" y="' + (66 + Math.round(2 * Math.sin(hx / 9))) + '" width="2" height="2" fill="' + ["#ffd84a", "#ff5a5a", "#6ab0ff", "#9ad070"][k % 4] + '"/>';
         var hg = xEl("div", "fest fest-glights", festGarden, '<svg viewBox="0 0 180 135" preserveAspectRatio="none">' + gl + '</svg>'); hg.style.zIndex = 60;
       }
-      var t = wMove(".xtree", 236, 37);
-      if (t) [[232, 94], [244, 92], [260, 96], [271, 97]].forEach(function (p, i) { var g = festRoom.querySelectorAll(".f-gift")[i]; if (g) { g.style.left = gx(p[0]); g.style.top = gy(p[1]); } });
+      var t = wMove(".xtree", 204, 37);
+      if (t) [[198, 94], [210, 92], [222, 96], [232, 97]].forEach(function (p, i) { var g = festRoom.querySelectorAll(".f-gift")[i]; if (g) { g.style.left = gx(p[0]); g.style.top = gy(p[1]); } });
     } else if (f === "silvester") {
-      fp(festRoom, "f_pbunting", 175, 6, "garl");
+      fp(festRoom, "f_pbunting", 175, 6, "garl"); fp(festRoom, "f_pbunting", -165, 6, "garl");
       var bl = festRoom.querySelectorAll(".balloon"); if (bl[2]) { bl[2].style.left = gx(165); bl[2].style.top = gy(26); } if (bl[3]) { bl[3].style.left = gx(176); bl[3].style.top = gy(32); }
-      [["f_balloon1", 336, 30], ["f_balloon3", 346, 36]].forEach(function (q, i) { var e = fp(festRoom, q[0], q[1], q[2], "balloon"); e.style.animationDelay = (-1.3 - i * 0.8) + "s"; });
-      wMove(".yearban", 277, 13);
+      [["f_balloon1", -70, 24], ["f_balloon3", -58, 30]].forEach(function (q, i) { var e = fp(festRoom, q[0], q[1], q[2], "balloon"); e.style.animationDelay = (-1.3 - i * 0.8) + "s"; });
+      wMove(".yearban", 152, 6);
     } else if (f === "ostern") {
       // pastel bunting over the whole wall and an Easter twig on the bookshelf
       var pb = A.f_pbunting ? A.f_pbunting.replace(/#ff5a5a/gi, "#f8c4a8").replace(/#ffd84a/gi, "#f6e49a").replace(/#6ab0ff/gi, "#a8d8f8").replace(/#9ad070/gi, "#bce4a4") : "";
-      [5, 175].forEach(function (x) { var e = xEl("div", "fest garl", festRoom, svgOf(pb, 170, 11)); e.style.left = gx(x); e.style.top = gy(6); e.style.width = gx(170); });
+      [-165, 5, 175].forEach(function (x) { var e = xEl("div", "fest garl", festRoom, svgOf(pb, 170, 11)); e.style.left = gx(x); e.style.top = gy(6); e.style.width = gx(170); });
       if (sh && sh.top - 29 >= 18) { var tw = xEl("div", "fest garl", festRoom, svgOf(EASTER_TWIG, 26, 30)); tw.style.left = gx(sh.x + sh.w / 2 - 13); tw.style.top = gy(sh.top - 29); tw.style.width = gx(26); }
-      var tw2 = xEl("div", "fest garl", festRoom, svgOf(EASTER_TWIG, 26, 30)); tw2.style.left = gx(272); tw2.style.top = gy(48); tw2.style.width = gx(26);
+      var tw2 = xEl("div", "fest garl", festRoom, svgOf(EASTER_TWIG, 26, 30)); tw2.style.left = gx(215); tw2.style.top = gy(24); tw2.style.width = gx(26);
     }
   };
   // swapping furniture or moving the door rearranges the decorations too

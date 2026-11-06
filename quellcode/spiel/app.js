@@ -34,21 +34,21 @@
   // ---------- room layout (grid units) ----------
   var L = {
     win: { x: 104, y: 52, w: 48, h: 48 },
-    clockCx: 62, clockTop: 12,
+    clockCx: 79, clockTop: 12,
     shelf: { x: 2, bottom: 106, w: 36 },
-    chair: { x: 38, bottom: 111, w: 48, h: 42 },
-    rug: { x: 77, y: 110 },
+    chair: { x: 55, bottom: 111, w: 48, h: 42 },
+    rug: { x: 62, y: 110 },
     bowl: { x: 132, y: 113 },
-    lamp: { x: 94, y: 58 },
-    plant: { x: 159, bottom: 109 }
+    lamp: { x: 47, y: 58 },
+    plant: { x: 176, bottom: 109 }
   };
   var SPOT = {
     home: { x: 112, y: 124 },
     bowl: { x: 146, y: 117 },
     shelf: { x: 26, y: 113 },
-    chairFront: { x: 62, y: 118 },
+    chairFront: { x: 79, y: 118 },
     window: { x: 128, y: 102 },
-    plant: { x: 134, y: 114 }
+    plant: { x: 150, y: 114 }
   };
   var HS = 0.85, CHAIR_S = 0.85;
   function place(el, x, y, w) { el.style.left = gx(x); el.style.top = gy(y); if (w) el.style.width = gx(w); }
