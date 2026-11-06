@@ -16573,17 +16573,26 @@ window.__EXTRAS = true;
       if (cand && cd < 18 && r === 0) { g.hold += dt; if (g.hold > .55) { cpFound(cand[0]); g.hold = 0; } } else g.hold = 0;
     } catch (e) { }
     CAMV = { yaw: 0, Z: 1, hz: CP_HZ };
-    var im = cpc.getImageData(0, 0, 180, 135), D = im.data;
+    var im = cpc.getImageData(0, 0, 180, 135), D = im.data, SH = new Uint8ClampedArray(D), err = typeof tgt === "number" ? (g.foc - tgt) / (tgt * .1 + 1.2) : 0;
     if (r > 0) [1, 180].forEach(function (st) { var src = new Uint8ClampedArray(D), lim = st === 1 ? 180 : 135;
       for (var yy = 0; yy < 135; yy++) for (var xx = 0; xx < 180; xx++) { var pos = st === 1 ? xx : yy, sr = 0, sg = 0, sb = 0, n = 0;
         for (var k = -r; k <= r; k++) { var pp = pos + k; if (pp < 0 || pp >= lim) continue; var ii = ((st === 1 ? yy * 180 + pp : pp * 180 + xx)) * 4; sr += src[ii]; sg += src[ii + 1]; sb += src[ii + 2]; n++; }
         var o2 = (yy * 180 + xx) * 4; D[o2] = sr / n; D[o2 + 1] = sg / n; D[o2 + 2] = sb / n; } });
-    var tick = g.hold > 0 ? [255, 211, 74] : [32, 32, 40];
+    // focus aid in the middle: a split-image circle, the upper half slides one way and the lower half the other until both line up
+    var shift = Math.max(-12, Math.min(12, Math.round(err * 3))), sharp = r === 0 && Math.abs(err) < 1;
+    for (var ys = 52; ys <= 76; ys++) for (var xs = 78; xs <= 102; xs++) { var dd = (xs + .5 - 90) * (xs + .5 - 90) + (ys + .5 - 64) * (ys + .5 - 64); if (dd > 121) continue; var sx = Math.max(0, Math.min(179, xs + (ys < 64 ? shift : -shift))), si = (ys * 180 + sx) * 4, di = (ys * 180 + xs) * 4;
+      if (dd > 100) { var rc = sharp ? [255, 211, 74] : [40, 36, 44]; D[di] = rc[0]; D[di + 1] = rc[1]; D[di + 2] = rc[2]; continue; } D[di] = SH[si]; D[di + 1] = SH[si + 1]; D[di + 2] = SH[si + 2]; if (ys === 64) { D[di] = D[di] * .55; D[di + 1] = D[di + 1] * .55; D[di + 2] = D[di + 2] * .55; } }
+    // the knurled focus ring round the right eyepiece turns with the focus
+    var phase = g.foc * .9, glow = g.ring ? 1 : 0;
     for (var y3 = 0; y3 < 135; y3++) for (var x3 = 0; x3 < 180; x3++) { var d1 = (x3 + .5 - 66) * (x3 + .5 - 66) + (y3 + .5 - 64) * (y3 + .5 - 64), d2 = (x3 + .5 - 114) * (x3 + .5 - 114) + (y3 + .5 - 64) * (y3 + .5 - 64), i3 = (y3 * 180 + x3) * 4, c3 = null;
-      if (d1 > 1936 && d2 > 1936) c3 = d1 < 2070 || d2 < 2070 ? [58, 58, 68] : [20, 16, 24];
-      else if ((y3 === 64 && (x3 === 83 || x3 === 84 || x3 === 96 || x3 === 97)) || (x3 === 90 && (y3 === 57 || y3 === 58 || y3 === 70 || y3 === 71))) c3 = tick;
+      if (d1 > 1936 && d2 > 1936) { if (d2 < 2601 && d1 > 1980) { var an = Math.atan2(y3 + .5 - 64, x3 + .5 - 114), rid = Math.floor(an * 18 / Math.PI + phase) & 1, edge = d2 < 2025 || d2 > 2500; c3 = edge ? [30, 26, 30] : rid ? (glow ? [200, 160, 64] : [168, 132, 52]) : (glow ? [120, 92, 40] : [92, 70, 34]); if (!edge && y3 < 64 && !rid) c3 = [c3[0] + 26, c3[1] + 22, c3[2] + 10]; }
+        else c3 = d1 < 2070 || d2 < 2070 ? [58, 58, 68] : [20, 16, 24]; }
       if (c3) { D[i3] = c3[0]; D[i3 + 1] = c3[1]; D[i3 + 2] = c3[2]; } }
     cpc.putImageData(im, 0, 0);
+    // which way to turn: a little arrow on the ring (clockwise = farther)
+    if (!sharp && typeof tgt === "number") { var cw = err < 0, a0 = -1.05, pts = []; for (var k3 = 0; k3 < 7; k3++) { var aa = a0 + (cw ? k3 : -k3) * .07; pts.push([114 + Math.cos(aa) * 53.5, 64 + Math.sin(aa) * 53.5]); }
+      var bl = Math.floor(t / 300) % 2; pts.forEach(function (p) { mR(cpc, Math.round(p[0]), Math.round(p[1]), 2, 2, bl ? "#ffd34a" : "#e8a03a"); }); var tip = pts[6], tp2 = pts[5], dx = tip[0] - tp2[0], dy = tip[1] - tp2[1];
+      for (var w = 1; w <= 3; w++) { mR(cpc, Math.round(tip[0] - dx * w * .6 - dy * w * .9), Math.round(tip[1] - dy * w * .6 + dx * w * .9), 2, 2, bl ? "#ffd34a" : "#e8a03a"); mR(cpc, Math.round(tip[0] - dx * w * .6 + dy * w * .9), Math.round(tip[1] - dy * w * .6 - dx * w * .9), 2, 2, bl ? "#ffd34a" : "#e8a03a"); } }
   }
   function cpFound(it) {
     it.seen = true; beep([[1046, .04], [1318, .06]]);
@@ -16591,7 +16600,7 @@ window.__EXTRAS = true;
     if (it.ani) { var LG = cpLog(), first = !LG[it.k]; LG[it.k] = (LG[it.k] || 0) + 1; if (cp.found.indexOf(it.k) < 0) cp.found.push(it.k); if (first) cp.newF.push(it.k); msg = first ? "Neu im Logbuch: " + CP_NAME[it.k] + "!" : CP_NAME[it.k] + "!"; if (window.SudokuSave) window.SudokuSave(); }
     cpSay(msg);
   }
-  function cpGlass(on, yaw) { if (!cp || cp.anim) return; cp.glass = on ? { yaw: yaw || 0, foc: 8, hold: 0 } : null; if (on && !cp.glassTold) { cp.glassTold = 1; cpSay("Ziehen zum Umsehen · Schärfe einstellen"); } cpPanelDraw(); if (on) { if (!cpRaf) cpRaf = requestAnimationFrame(cpDraw); } else cpRedraw(); }
+  function cpGlass(on, yaw) { if (!cp || cp.anim) return; cp.glass = on ? { yaw: yaw || 0, foc: 8, hold: 0 } : null; if (on && !cp.glassTold) { cp.glassTold = 1; cpSay("Ring am rechten Glas drehen"); } cpPanelDraw(); if (on) { if (!cpRaf) cpRaf = requestAnimationFrame(cpDraw); } else cpRedraw(); }
   var cpFrameCv = null;
   function cpFrame() {                                                  // the wheelhouse: wood all round three big windows with brass frames (drawn once)
     if (cpFrameCv) return cpFrameCv; var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var g = cv.getContext("2d");
@@ -17086,14 +17095,19 @@ window.__EXTRAS = true;
   function cpPt(e) { var r0 = cpCv.getBoundingClientRect(); return [(e.clientX - r0.left) / r0.width * 180, (e.clientY - r0.top) / r0.height * 135]; }
   var cpWheel = null;
   var cpPan = null;
-  cpCv.addEventListener("pointermove", function (e) { if (cpPan && cp && cp.glass) { var pq = cpPt(e); cp.glass.yaw = Math.max(-1.5, Math.min(1.5, cpPan.y0 - (pq[0] - cpPan.x) / 480)); return; } if (!cpWheel || !cp) return; var p = cpPt(e), a = Math.atan2(p[1] - 112, p[0] - 90), d = a - cpWheel.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+  var cpRingD = null;
+  cpCv.addEventListener("pointermove", function (e) { if (cpRingD && cp && cp.glass) { var pr = cpPt(e), an = Math.atan2(pr[1] - 64, pr[0] - 114), da = an - cpRingD.a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; cpRingD.a0 = an;
+      var nf = Math.max(3, Math.min(70, cp.glass.foc + da * 9)); if (Math.floor(nf / 2) !== Math.floor(cp.glass.foc / 2)) beep([[700 + nf * 4, .01]]); cp.glass.foc = nf; return; }
+    if (cpPan && cp && cp.glass) { var pq = cpPt(e); cp.glass.yaw = Math.max(-1.5, Math.min(1.5, cpPan.y0 - (pq[0] - cpPan.x) / 480)); return; } if (!cpWheel || !cp) return; var p = cpPt(e), a = Math.atan2(p[1] - 112, p[0] - 90), d = a - cpWheel.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
     cp.wheelA = Math.max(-1.1, Math.min(1.1, cpWheel.r0 * .45 + d)); var r = Math.max(-2, Math.min(2, Math.round(cp.wheelA / .45))); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); cpPanelDraw(); } cpRedraw(); });
-  function cpWheelUp() { cpPan = null; if (!cpWheel || !cp) return; cpWheel = null; cp.wheelA = null; cpRedraw(); }
+  function cpWheelUp() { cpPan = null; if (cpRingD && cp && cp.glass) cp.glass.ring = 0; cpRingD = null; if (!cpWheel || !cp) return; cpWheel = null; cp.wheelA = null; cpRedraw(); }
   cpCv.addEventListener("pointerup", cpWheelUp); cpCv.addEventListener("pointercancel", cpWheelUp);
   cpCv.addEventListener("pointerdown", function (e) {
     if (!cp || cp.anim || cp.intro || cp.done) return; e.preventDefault();
     var pp = cpPt(e);
-    if (cp.glass) { cpPan = { x: pp[0], y0: cp.glass.yaw }; try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
+    if (cp.glass) { var rd = Math.hypot(pp[0] - 114, pp[1] - 64);
+      if (rd > 38 && rd < 62 && Math.hypot(pp[0] - 66, pp[1] - 64) > 40) { cpRingD = { a0: Math.atan2(pp[1] - 64, pp[0] - 114), f0: cp.glass.foc }; cp.glass.ring = 1; } else cpPan = { x: pp[0], y0: cp.glass.yaw };
+      try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
     if (Math.hypot(pp[0] - 90, pp[1] - 112) < 28) { cpWheel = { a0: Math.atan2(pp[1] - 112, pp[0] - 90), r0: cp.rud }; try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
     if (Math.hypot(pp[0] - 30, pp[1] - 101) < 17) { var ta = Math.atan2(pp[1] - 101, pp[0] - 30) * 180 / Math.PI, best = 1, bd2 = 999; CP_TEL.forEach(function (a, i) { var dd = Math.abs(ta - a); if (dd < bd2) { bd2 = dd; best = i; } }); if (pp[1] > 104) best = pp[0] < 26 ? 0 : pp[0] > 34 ? 2 : 1; cpSetLvl(best); return; }
     if (pp[0] > 160 && pp[1] > 84 && pp[1] < 114) { cp.wh = !cp.wh; if (cp.wh) dzWhistle(.8); else beep([[300, .03]]); cpPanelDraw(); cpRedraw(); return; }
@@ -17118,7 +17132,7 @@ window.__EXTRAS = true;
       var okSp = cp.lvl === need, okR = !cpSim(cp.rud, cp.lvl), okW = !L.wh || cp.wh;
       ord = '<span class="cap-order"><button type="button" data-l="' + need + '" class="ch l' + need + (okSp ? " ok" : "") + '">' + ["Stopp", "Halbe", "Volle"][need] + '</button><span class="ch rd' + (okR ? " ok" : "") + '">' + rudTxt + '</span>' + (L.wh ? '<button type="button" class="ch wh' + (okW ? " ok" : "") + '">Pfeife</button>' : "") + '</span>'; }
     var h = '<div class="dz-plan">' + strip + '</div>';
-    if (cp.glass) h += '<div class="dz-row"><div class="dz-msg cap-glrow"><span>nah</span><input type="range" class="cap-foc" min="3" max="70" step="0.5" value="' + cp.glass.foc + '" aria-label="Schärfe"><span>fern</span></div><button type="button" class="dz-go cap-glx">Zurück</button></div>';
+    if (cp.glass) h += '<div class="dz-row"><div class="dz-msg">Zum Umsehen ziehen · am Ring des rechten Glases drehen, bis die beiden Hälften in der Mitte zusammenpassen</div><button type="button" class="dz-go cap-glx">Zurück</button></div>';
     else h += '<div class="dz-row"><div class="dz-msg cap-msg2">' + (cp.pre ? '<span class="dz-d">' + cp.pre + '</span> ' : "") + tx + ord + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
     cpPanel.innerHTML = h; cpGlBtn.hidden = !!(busy || cp.intro || cp.done); cpGlBtn.classList.toggle("on", !!cp.glass);
   }
@@ -17179,6 +17193,7 @@ window.__EXTRAS = true;
   }, true);
   /* preview test hooks */
   window.__capRoute = function () { return cp && cp.route.map(function (L) { return L.k; }); };
+  window.__capFoc = function () { return cp && cp.glass ? cp.glass.foc : null; };
   window.__cap = { open: function () { return capGame(); },
     storm: function () { cp.info[cp.leg].ev = "sturm"; cp.ev = "sturm"; cpPanelDraw(); cpRedraw(); },
     bv: function (v) { CP_BV = v; cpRedraw(); },
