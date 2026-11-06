@@ -1832,6 +1832,7 @@ body.dz-on .dz-panel { display: block; }
 .kp-grid button { border: 0; font: inherit; background: #fff1d4; color: #3a2414; padding: 3px 2px 5px; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0c89c; cursor: pointer; }
 .kp-grid b { display: block; font-size: .85rem; line-height: 1.1; } .kp-grid small { display: block; font-size: .55rem; letter-spacing: -.05em; }
 .kp-bot { margin-top: 6px; font-size: .72rem; }
+.kp-warn { display: block; color: #c8342a; font-weight: 800; font-size: .74rem; margin-top: 2px; }
 /* the wide living room: 360 wide, a camera slides it */
 #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #scene.wide-room #room > .wallpaper, #scene.wide-room #room > .floor, #scene.wide-room #room > .baseboard { right: -100%; }
@@ -17640,7 +17641,7 @@ window.__EXTRAS = true;
   }
   function kpStart(li) {
     kpRadio.hidden = true; var d = KP_LV[li];
-    kp = { li: li, row: 0, lane: d.start, tr: null, vis: null, v: 0, t: 0, turns: 0, hits: 0, inc: 0, cells: [], tasks: [], ti: 0, anim: null, pre: "", tips: 3, tip: null, got: [], gotN: 0, whFirst: false, card: true, moored: li === 0, told: {} };
+    kp = { li: li, row: 0, lane: d.start, tr: null, vis: null, v: 0, t: 0, turns: 0, hits: 0, inc: 0, cells: [], tasks: [], ti: 0, anim: null, pre: "", tips: 3, tip: null, got: [], log: [], gotN: 0, whFirst: false, card: true, moored: li === 0, told: {} };
     cp = kpRS(); cp.px = kp.lane * KP_LW; cp.lvl = 1;
     for (var tries = 0; tries < 40; tries++) { kpBuild(li); var sv = kpSolve(kpState()); if (sv) { kp.par = sv.d + 1; break; } }
     if (!kp.par) kp.par = 12;
@@ -17747,15 +17748,17 @@ window.__EXTRAS = true;
     kp.row = r.row; kp.lane = r.lane; kp.tr = r.tr; kp.turns += r.hit ? 2 : 1; kp.t++; kp.lastSpd = A.spd; kp.v = r.hit ? 0 : A.v1;
     if (kp.mum) { kp.mum.trig = Math.max(kp.mum.trig, r.trig); kp.mum.go = 0; }
     if (!kp.tr) kp.vis = { a: kp.lane * KP_LW, b: kp.lane * KP_LW, r0: kp.row, r1: kp.row + 1 };
-    if (r.hit) msg = "✘ " + (KP_HITS[r.hit.k] || CP_HITS[r.hit.k] || "Rumms!") + " Ein Zug verloren.";
-    else if (A.slow === "harbour") { kp.inc++; msg = "✘ Zu schnell im Hafen: Die Bugwelle hat die Zuschauer am Kai nass gemacht."; }
-    else if (A.slow === "storm") { kp.inc++; msg = "✘ Ein Brecher ging über das Vorschiff. Im Sturm war Volle Fahrt zu schnell."; }
-    if (r.incs.length) { kp.inc++; msg = "✘ Wir sind den Walen zu nah gekommen."; }
-    if (r.done && kp.ti === r.ti - 1) { var T = r.done, K = KP_TASK[T.kind]; kp.ti = r.ti; msg = "✔ " + K.done; if (T.cell) { T.cell.live = false; T.cell.o.tx = T.cell.o.x + (T.lane >= 0 ? 10 : -10); } beep([[660, .05], [880, .08]]); }
-    while (kp.tasks[kp.ti] && kp.row > kp.tasks[kp.ti].row) { var M = kp.tasks[kp.ti]; kp.inc++; kp.miss = (kp.miss || 0) + 1; msg = "✘ " + KP_TASK[M.kind].miss; kp.ti++; }
+    var acc = function (short, long) { kp.log.push(short); msgs.push("✘ Unfall: " + long); }, msgs = [];
+    if (r.hit) acc(KP_NAME[r.hit.k] ? KP_NAME[r.hit.k] + " gerammt" : "Zusammenstoß", (KP_HITS[r.hit.k] || CP_HITS[r.hit.k] || "Rumms!") + " Ein Zug verloren.");
+    if (A.slow === "harbour") { kp.inc++; acc("Volle Fahrt im Hafen", "Volle Fahrt im Hafen! Die Bugwelle hat die Zuschauer am Kai nass gemacht."); }
+    if (A.slow === "storm") { kp.inc++; acc("Volle Fahrt im Sturm", "Volle Fahrt im Sturm! Ein Brecher ging über das Vorschiff."); }
+    if (r.incs.length) { kp.inc++; acc("Wale aufgeschreckt", "Wir sind den Walen zu nah gekommen, sie sind erschrocken abgetaucht."); }
+    if (r.done && kp.ti === r.ti - 1) { var T = r.done, K = KP_TASK[T.kind]; kp.ti = r.ti; msgs.push("✔ " + K.done); if (T.cell) { T.cell.live = false; T.cell.o.tx = T.cell.o.x + (T.lane >= 0 ? 10 : -10); } beep([[660, .05], [880, .08]]); }
+    while (kp.tasks[kp.ti] && kp.row > kp.tasks[kp.ti].row) { var M = kp.tasks[kp.ti]; kp.inc++; kp.miss = (kp.miss || 0) + 1; acc("Haltepunkt verpasst", KP_TASK[M.kind].miss); kp.ti++; }
     // things that cross the fairway move on to where they will be during the next order
     kp.cells.forEach(function (c) { if (!c.seq || !c.o) return; var L = kpLaneAt(c, kp.t); if (L == null) { if (c.live) { c.live = false; c.o.tx = c.o.x + (c.o.x >= 0 ? 16 : -16); } return; } c.o.tx = L * KP_LW; });
-    kp.pre = msg; kp.anim = null; cp.wh = false; cp.rud = 0; var gb = kp.got.splice(0);
+    kp.pre = msgs.join(" "); if (msgs.some(function (m) { return m.indexOf("✘") === 0; })) setTimeout(function () { kpSay("Unfall: " + kp.log[kp.log.length - 1]); }, 100);
+    kp.anim = null; cp.wh = false; cp.rud = 0; var gb = kp.got.splice(0);
     if (kpGoal({ row: kp.row, ti: kp.ti })) return kpEnd();
     setTimeout(function () { if (!kp || kp.anim || kp.card) return; if (gb.length) kpBottle(gb[0]); else kpRadioMsg(); }, 350);
     kpPanelDraw(); kpKick();
@@ -17821,7 +17824,7 @@ window.__EXTRAS = true;
     var X = function (L) { return 1 + (L + 1) * 8; }, Y = function (r) { return 49 - (r - R0 - fr) * 4; }, F = function (x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
     F(0, 0, 25, 52, "#3a2414"); F(1, 1, 23, 50, "#4a8ac0");
     g.save(); g.beginPath(); g.rect(1, 1, 23, 50); g.clip();
-    for (var rr = R0 - 1; rr < R0 + 14; rr++) { var sk = kpSkyAt(rr); if (sk === "storm") F(1, Y(rr) - 3, 23, 4, "#3a5a7a"); var cd = kpCurAt(rr); if (cd) for (var q = 0; q < 3; q++) F(3 + q * 8 + (cd > 0 ? 2 : 0), Y(rr) - 2, 2, 1, "#c8e8f8"); }
+    for (var rr = R0 - 1; rr < R0 + 14; rr++) { var sk = kpSkyAt(rr); if (sk === "storm") F(1, Y(rr) - 3, 23, 4, "#3a5a7a"); if (rr < (d.harbour || 0)) { F(1, Y(rr) - 3, 1, 4, "#e8a03a"); F(23, Y(rr) - 3, 1, 4, "#e8a03a"); } var cd = kpCurAt(rr); if (cd) for (var q = 0; q < 3; q++) F(3 + q * 8 + (cd > 0 ? 2 : 0), Y(rr) - 2, 2, 1, "#c8e8f8"); }
     for (var y = 1; y < 51; y += 2) { F(8, y, 1, 1, "#8ac0e0"); F(16, y, 1, 1, "#8ac0e0"); }
     if (!d.endTask && d.rows - R0 < 14) { var fy = Y(d.rows) - 1; for (var xx = 1; xx < 24; xx++) F(xx, fy, 1, 2, (xx + (fy & 1)) % 2 ? "#ffffff" : "#3a2414"); }
     kp.cells.forEach(function (c) { if (!c.live) return; var a = c.row - kp.row, L = kpLaneAt(c, tt); if (a < -1 || a > 13 || L == null) return; var x0 = X(L), y0 = Y(c.row) - 3;
@@ -17839,6 +17842,14 @@ window.__EXTRAS = true;
     var sx = 1 + (cp.px / KP_LW + 1) * 8 + 1.5; F(sx, 47, 4, 3, "#fff8ec"); F(sx + 1, 46, 2, 1, "#fff8ec");
     g.restore();
   }
+  function kpWarn() {
+    if (kp.anim || kp.card || kp.done) return ""; var spd = cp.lvl, dl = kp.tr ? 0 : cp.rud, r = kpSim(kpState(), dl, spd), w = [], sl = spd === 2 ? kpSlow(kp.row) : "", T = kpTask();
+    if (sl === "harbour") w.push("Volle Fahrt im Hafen zählt als Unfall.");
+    if (sl === "storm") w.push("Volle Fahrt im Sturm zählt als Unfall.");
+    if (r.hit && kpKnown(r.hit, r.hitRow - kp.row)) w.push("So rammen wir " + (r.hit.k === "zone" ? "die Sandbank" : r.hit.k === "mum" ? "die Mümmel" : r.hit.k === "pier" ? "den Pier" : "ein Hindernis (" + (KP_NAME[r.hit.k] || "?") + ")") + " in " + (r.hitRow - kp.row === 1 ? "der nächsten Reihe" : r.hitRow - kp.row + " Reihen") + "!");
+    if (r.incs.length) w.push("So kommen wir den Walen zu nah.");
+    if (T && !r.hit && r.row > T.row && !r.done) w.push("So fahren wir am Haltepunkt vorbei.");
+    return w.length ? '<span class="kp-warn">⚠ ' + w.join(" ") + '</span>' : ""; }
   // what the lookout reports about the next rows, always true to what lies there now
   function kpReport() {
     var d = kpLvl(), out = [], sky = kpSkyAt(kp.row), seenZ = {};
@@ -17909,7 +17920,7 @@ window.__EXTRAS = true;
     else { var tr = kp.tr ? '<span class="kp-tr">Spurwechsel läuft noch ' + kp.tr.left + (kp.tr.left === 1 ? " Reihe" : " Reihen") + ', das Ruder liegt fest.</span>' : "",
         tip = kp.tip ? '<span class="cap-tipsay">Erster Offizier: „' + kp.tip + '“</span>' : "",
         foot = '<span class="cap-foot"><span class="cap-clock">⏱ Zug ' + kp.turns + ' · Plan ' + kp.par + '</span>' + (!busy && !kp.done && !kp.tip ? '<button type="button" class="ch cap-tip"' + (kp.tips > 0 ? "" : " disabled") + '>Offizier fragen ' + (kp.tips <= 3 ? "●".repeat(kp.tips) + "○".repeat(3 - kp.tips) : "●×" + kp.tips) + '</button>' : "") + '</span>';
-      h += '<div class="dz-row"><canvas class="kp-chart" width="25" height="52" aria-label="Seekarte"></canvas><div class="dz-msg cap-msg2">' + (kp.pre ? '<span class="dz-d">' + kp.pre + '</span> ' : "") + '<span class="kp-note">' + kpReport() + '</span>' + tr + tip + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>'; }
+      h += '<div class="dz-row"><canvas class="kp-chart" width="25" height="52" aria-label="Seekarte"></canvas><div class="dz-msg cap-msg2">' + (kp.pre ? '<span class="dz-d">' + kp.pre + '</span> ' : "") + '<span class="kp-note">' + kpReport() + '</span>' + kpWarn() + tr + tip + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>'; }
     if (cp.glass) kpRadio.hidden = true; kpPanel.innerHTML = h; kpChartCv = kpPanel.querySelector(".kp-chart"); kpChart(); kpGl.hidden = !!(busy || kp.card || kp.done); kpGl.classList.toggle("on", !!cp.glass);
   }
   function kpStars() { var d = kpLvl(), third = d.ok ? d.ok() : kp.tasks.length ? !kp.miss : kp.gotN > 0; return [kp.hits + kp.inc === 0, kp.turns <= kp.par, !!third]; }
@@ -17926,7 +17937,7 @@ window.__EXTRAS = true;
     kpCard.hidden = false; kpPanelDraw(); kpRedraw(); }
   function kpEnd() { kp.done = true; var st = kpStars(), n = st.filter(Boolean).length, d = kpLvl(), last = kp.li + 1 >= KP_LV.length; s.kpStars = s.kpStars || {}; s.kpStars[kp.li] = Math.max(s.kpStars[kp.li] || 0, n); if (window.SudokuSave) window.SudokuSave();
     kpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">' + (last ? "Angekommen in Nuss York!" : n === 3 ? "Meisterhaft!" : "Geschafft!") + '</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p>' +
-      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Keine Unfälle" + (kp.hits + kp.inc ? " (" + (kp.hits + kp.inc) + "×)" : "") + '<br>' + (st[1] ? "★" : "☆") + " " + kp.turns + " Züge, Plan " + kp.par + '<br>' + (st[2] ? "★" : "☆") + " " + d.star + '</p>' +
+      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Keine Unfälle" + (kp.log.length ? ": " + kp.log.join(", ") : "") + '<br>' + (st[1] ? "★" : "☆") + " " + kp.turns + " Züge, Plan " + kp.par + '<br>' + (st[2] ? "★" : "☆") + " " + d.star + '</p>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (!last ? '<button type="button" class="fi-b" data-a="next">Weiter</button>' : "") + '</div></div>';
     kpCard.hidden = false; kp.card = true; kpPanelDraw(); kpRedraw(); if (n >= 2 || last) dzWhistle(last ? 2.4 : 1.6); beep(n === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]); }
   kpCard.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !kp) return; e.stopPropagation();
