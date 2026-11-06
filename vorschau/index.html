@@ -1816,6 +1816,16 @@ body.dz-on .dz-panel { display: block; }
 .kp-pick { gap: 5px; } .kp-pick button { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px 9px; text-align: left; } .kp-pick b { font-size: .85rem; } .kp-pick small { margin: 0; }
 .kp-chart { flex: none; width: 50px; height: 104px; align-self: center; image-rendering: pixelated; }
 .kp-stop { color: #2e7a26; }
+.kp-note { display: block; }
+.kp-radio { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 64%; z-index: 4; cursor: pointer; background: #fbf3dc; color: #2a2030; padding: 5px 8px 6px; box-shadow: 0 0 0 2px #3a2414, 3px 3px 0 2px rgba(42,26,16,.35);
+  background-image: repeating-linear-gradient(#fbf3dc 0 13px, #d8e0ec 13px 14px); clip-path: var(--px-notch); }
+.kp-radio[hidden] { display: none; }
+.kp-radio.pop { animation: kp-rpop .35s steps(4); } @keyframes kp-rpop { from { transform: translate(-50%, -30%); opacity: 0; } }
+.kp-r-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #a8442a; margin-bottom: 3px; padding-bottom: 1px; }
+.kp-r-h b { color: #a8442a; font-size: .72rem; letter-spacing: .14em; } .kp-r-h span { font-size: .62rem; color: #6a5a4a; }
+.kp-r-f { font-size: .62rem; color: #6a5a4a; font-style: italic; }
+.kp-r-t { font-family: "Courier New", Courier, monospace; font-weight: 700; font-size: .76rem; line-height: 1.2; margin: 2px 0; }
+.kp-r-s { font-size: .58rem; color: #6a5a4a; text-align: right; font-style: italic; }
 /* the wide living room: 360 wide, a camera slides it */
 #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #scene.wide-room #room > .wallpaper, #scene.wide-room #room > .floor, #scene.wide-room #room > .baseboard { right: -100%; }
@@ -17493,6 +17503,7 @@ window.__EXTRAS = true;
     { key: "abfahrt", s: "hafen", sky: "day", name: "Ablegen in Southamsterton", rows: 14, start: 1, harbour: 10,
       tx: "Wir liegen rechts am Kai. Voraus warten zwei Schlepper in unserer Spur, links am Kai liegt die Mümmel. Im Hafen nicht zu schnell!",
       star: "Mit Pfiff abgelegt",
+      notes: [[0, "Wir liegen rechts am Kai. Voraus warten zwei Schlepper in unserer Spur."], [3, "Links am Kai liegt die Mümmel. Fahren wir schnell vorbei, reißt unser Sog sie los."], [8, "Die Hafenausfahrt. Draußen in der Mitte liegt ein Fischerboot."], [12, "Freies Wasser! Jetzt darf es schneller gehen."]],
       build: function (ob, cell, B) {
         ob("quay", 11, 0, { y0: -30, y1: 80, crowd: 1 }); ob("quay", -15.5, 0, { y0: -30, y1: 82, crowd: 1 });
         ob("m3", 17, 4, { m: "shed", w: 6, l: 20 }); ob("m3", 17.5, 40, { m: "shed", w: 7, l: 18 }); ob("m3", -21.5, 22, { m: "shed", w: 7, l: 16 }); ob("m3", -22, 62, { m: "shed", w: 6, l: 14 });
@@ -17506,13 +17517,14 @@ window.__EXTRAS = true;
     { key: "solent", s: "kanal", sky: "day", name: "Durch den Kernsund", rows: 28, start: 0, harbour: 0,
       tx: "Die Rinne zwischen den Tonnen ist voller Sandbänke und Fischerboote. Bei Volle Fahrt dauert der Spurwechsel lange. Vorn wartet das Lotsenboot.",
       star: "Lotse übergeben",
+      notes: [[0, "Links voraus eine Sandbank, dahinter Fischerboote in der Mitte und rechts. Links an ihnen vorbei!"], [7, "Die Fischerboote: nur die linke Spur ist frei."], [11, "Rechts eine lange Sandbank, links ein Fischerboot. In der Mitte bleibt frei."], [18, "Das Lotsenboot wartet rechts voraus."], [24, "Links noch eine Sandbank, dann ist die Rinne geschafft."]],
       build: function (ob, cell, B) {
         [-1, 1].forEach(function (sd) { var ins = [], outs = [], si = [], so = [];
           for (var y = -40; y <= 260; y += 8) { var wv = 1 + Math.sin(y * .09 + sd) * .6; ins.push([sd * (12.5 + wv * .6), y]); outs.push([sd * 26, y]); si.push([sd * (14.5 + wv), y]); so.push([sd * (17.5 + wv * 1.5), y]); }
           ob("shoal", 0, 0, { pts: ins.concat(outs.reverse()), sand: si.concat(so.reverse()) }); });
         for (var r = 1; r < 34; r += 3) { ob("buoyR", -10.6, r * KP_R + 4); ob("buoyG", 10.6, r * KP_R + 4); }
-        kp.bank(-1, 5, 7); cell(9, 0, "boat", { net: 1, a: .4 }); cell(9, 1, "boat", { net: 1, a: -.6 });
-        kp.bank(1, 13, 16); cell(16, -1, "boat", { net: 1, a: .2 });
+        kp.bank(-1, 3, 5); cell(10, 0, "boat", { net: 1, a: .4 }); cell(10, 1, "boat", { net: 1, a: -.6 });
+        kp.bank(1, 13, 16); cell(15, -1, "boat", { net: 1, a: .2 });
         cell(21, 1, "pilot", { task: 1, a: 0 });
         kp.bank(-1, 24, 26);
         ob("tower", -22, 150); B.push({ k: "land", b0: .25, b1: 1.3 }, { k: "land", b0: -1.5, b1: -.7 });
@@ -17520,6 +17532,7 @@ window.__EXTRAS = true;
     { key: "nebel", s: "nebel", sky: "fog", name: "Nebel im Pfotenkanal", rows: 30, start: 0, harbour: 0,
       tx: "Dichter Nebel. Was voraus treibt, zeigt nur das Fernglas. Die Pfeife warnt Fischerboote in unserer Spur, dann weichen sie aus.",
       star: "Zwei Dinge im Nebel erkannt",
+      notes: [[0, "Dichter Nebel. Was voraus treibt, zeigt nur das Fernglas: Treibholz oder etwas Harmloses?"], [6, "Irgendwo voraus tuckert ein Motor. Die Pfeife warnt die Fischer."], [11, "Weiter durch den Nebel. Lieber einmal mehr durchs Fernglas schauen."], [27, "Der Nebel wird dünner, gleich ist der Kanal geschafft."]],
       build: function (ob, cell, B) {
         cell(5, 0, "wood", { unk: 1 }); cell(7, 1, "bottle", { unk: 1, find: 1, soft: 1 });
         cell(10, -1, "fogb", { a: .4 }); cell(12, 0, "dolph", { unk: 1, ani: 1, find: 1, soft: 1 });
@@ -17533,7 +17546,7 @@ window.__EXTRAS = true;
   // ---- the render state the drawing code of the first game reads ----
   function kpRS() { var d = kpLvl(); return { route: [{ k: d.key, s: d.s }], leg: 0, info: [{}], anc: [{ x: 0, y: 0, h: 0 }], O: [], B: [], px: 0, py: 0, h: 0, lvl: 1, rud: 0, wh: false, glass: null, anim: null,
     shake: 0, fx: [], swim: [], deckIce: null, castOff: 1, intro: false, done: false, found: [], newF: [], d: 0, res: [], hits: 0, tips: 0, route0: 1 }; }
-  function kpStart(li) {
+  function kpStart(li) { if (typeof kpRadio !== "undefined") kpRadio.hidden = true;
     kp = { li: li, row: 0, lane: 0, tr: null, vis: null, v: 0, turns: 0, hits: 0, inc: 0, cells: [], anim: null, pre: "", tips: 3, tip: null, whFirst: false, found0: 0, task: false, taskMiss: false, card: true, moored: li === 0 };
     var d = kpLvl(); kp.lane = d.start; cp = kpRS(); cp.px = kp.lane * KP_LW; cp.lvl = li === 0 ? 1 : 2;
     var ob = function (k, x, y, o) { var r = Object.assign({ k: k, x: x, y: y, leg: 0, seen: false, r: 2.6 }, o || {}); cp.O.push(r); return r; };
@@ -17573,7 +17586,7 @@ window.__EXTRAS = true;
     var d = kpLvl(), T = kpTask(), key = function (s) { return s.row + "|" + s.lane + "|" + (s.tr ? s.tr.from + ":" + s.tr.to + ":" + s.tr.left + ":" + s.tr.tot : "-") + "|" + (s.task ? 1 : 0) + "|" + s.trig; }, Q = [{ s: from, f: null, d: 0 }], seen = {};
     seen[key(from)] = 1;
     for (var qi = 0; qi < Q.length && qi < 20000; qi++) { var cur = Q[qi], s = cur.s;
-      for (var spd = 2; spd >= 0; spd--) { var ds = s.tr ? [0] : [0, -1, 1, -2, 2];
+      for (var spd = 2; spd >= 0; spd--) { var ds = s.tr ? [0] : [0, -1, 1];
         for (var di = 0; di < ds.length; di++) { var dl = ds[di]; if (dl && kpCl(s.lane + dl) === kpCl(s.lane + dl - Math.sign(dl))) continue;
           var r = kpSim(s, dl, spd); if (r.hit || spd === 2 && s.row < d.harbour) continue;
           if (T && !r.task && !kp.taskMiss && r.row > T.row) continue;
@@ -17605,7 +17618,7 @@ window.__EXTRAS = true;
     if (kp.mum && res.trig > kp.mum.trig) { kp.mum.go = res.trig; kp.mum.from = kp.mum.trig; }
     var v0 = Math.min(kp.v, 3 * (res.hit ? Math.max(.5, res.hitRow - kp.row - .45) : KP_N[spd])), n = res.hit ? res.hitRow - kp.row - .45 : KP_N[spd], v1 = res.hit ? Math.max(.6, v0) * 1.2 : spd ? KP_N[spd] : 0;
     kp.anim = { t0: 0, dur: KP_DUR[spd], spd: spd, r0: kp.row, n: n, v0: v0, v1: v1, res: res, dl: dl, cast: kp.moored };
-    kp.vis = vis; kp.tip = null; kp.moored = false;
+    kp.vis = vis; kp.tip = null; kp.moored = false; kpRadio.hidden = true;
     if (kp.anim.cast) { var b1 = shipW(2.4, .7, 1); cpBurst([b1[0] + 1.8, b1[1], .2], 6, ["#ffffff", "#d8eef8"], 1.4, 3); }
     dzBell(spd === 0 ? 1 : spd === 1 ? 2 : 3); cpEngine(spd, kp.anim.dur / 1000, .3, kp.lastSpd == null ? 0 : kp.v > 0 ? kp.lastSpd : 0);
     kpPanelDraw(); kpKick();
@@ -17641,7 +17654,7 @@ window.__EXTRAS = true;
     else if (A.spd === 2 && A.r0 < d.harbour) { kp.inc++; msg = "✘ Zu schnell im Hafen: Die Bugwelle hat die Zuschauer am Kai nass gemacht."; }
     if (T && r.task && !kp.task) { kp.task = true; msg = "✔ Der Lotse klettert ins Boot. Gute Fahrt!"; T.live = false; T.o.tx = T.o.x + 9; beep([[660, .05], [880, .08]]); }
     if (T && !kp.task && !kp.taskMiss && kp.row > T.row) { kp.taskMiss = true; kp.inc++; msg = "✘ Vorbeigefahren! Der Lotse muss jetzt mit nach Frankreich."; }
-    kp.pre = msg; kp.anim = null; cp.wh = false; cp.rud = 0;
+    kp.pre = msg; kp.anim = null; cp.wh = false; cp.rud = 0; setTimeout(function () { if (kp && !kp.anim && !kp.card) kpRadioMsg(); }, 350);
     if (kp.row >= d.rows) return kpEnd();
     kpPanelDraw(); kpKick();
   }
@@ -17660,7 +17673,7 @@ window.__EXTRAS = true;
       cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0); cpWater(t, sky, 0);
       cp.B.forEach(function (o) { cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpBack(cpBW(o), sky); cpc.restore(); });
       cpSkyDraw(sky, t);
-      if (!kp.card && !kp.done) { kpMarks(sky); kpStopZone(t); if (!kp.anim) kpCourse(); }
+      if (!kp.card && !kp.done) { kpMarks(sky); if (!kp.anim) kpCourse(); }
       cp.O.forEach(function (o) { if (o.seen || !(o.unk || o.ani || sky === "fog") || o.k === "m3" || o.k === "quay" || o.k === "shoal") return; var f = o.y - cp.py; if (f > 0 && f < 15) { o.seen = true; if (o.cell && !o.cell.soft && o.unk) kpSay(o.k === "wood" ? "Ausguck: Treibholz direkt voraus!" : "Ausguck: Achtung, voraus!"); } });   // close by, the lookout sees it with the naked eye
       if (kp.anim) kpChart();
       cpWorldDraw(t, false); cpGulls(t, sky); cpc.setTransform(1, 0, 0, 1, 0, sh); cpDeck(t); cpDeckIce(); kpRopes();
@@ -17701,7 +17714,6 @@ window.__EXTRAS = true;
     g.save(); g.beginPath(); g.rect(1, 1, 23, 50); g.clip();
     for (var y = 1; y < 51; y += 2) { F(8, y, 1, 1, "#8ac0e0"); F(16, y, 1, 1, "#8ac0e0"); }
     if (d.rows - R0 < 14) { var fy = Y(d.rows) - 1; for (var xx = 1; xx < 24; xx++) F(xx, fy, 1, 2, (xx + (fy & 1)) % 2 ? "#ffffff" : "#3a2414"); }
-    if (T && !kp.task && !kp.taskMiss) [T.lane - 1, T.lane + 1].forEach(function (L) { if (L < -1 || L > 1) return; var y0 = Y(T.row) - 3, x0 = X(L); g.strokeStyle = "#7ae05a"; g.lineWidth = 1; g.strokeRect(x0 + .5, y0 + .5, 6, 7); });
     kp.cells.forEach(function (c) { if (!c.live && !(c.task && !kp.task)) return; var a = c.row - kp.row; if (a < -1 || a > 13) return; var x0 = X(c.lane), y0 = Y(c.row) - 3;
       if (!kpKnown(c.o, a)) { F(x0 + 2, y0, 3, 4, "#a8b4c0"); F(x0 + 3, y0 + 1, 1, 1, "#3a4a5a"); return; }
       if (c.k === "zone") return F(x0, y0, 7, 4, "#d8c898");
@@ -17714,6 +17726,21 @@ window.__EXTRAS = true;
     var sx = 1 + (cp.px / KP_LW + 1) * 8 + 1.5; F(sx, 47, 4, 3, "#fff8ec"); F(sx + 1, 46, 2, 1, "#fff8ec");
     g.restore();
   }
+  // ---- a radio message, written down by the radio operator on a little card, when something has to be done next ----
+  var kpRadio = document.createElement("div"); kpRadio.className = "kp-radio"; kpRadio.hidden = true; kpEl.appendChild(kpRadio);
+  kpRadio.addEventListener("click", function (e) { e.stopPropagation(); kpRadio.hidden = true; });
+  function kpRadioMsg() {
+    var T = kpTask(), d = kpLvl(), m = null;
+    if (T && !kp.task && !kp.taskMiss && T.row - kp.row <= 4 && T.row - kp.row >= 0) { var side = T.lane > 0 ? "links" : "rechts", la = ["linken", "mittleren", "rechten"][T.lane + (T.lane > 0 ? -1 : 1) + 1];
+      m = kp.row + 1 >= T.row - 1 ? { k: "pilot2", from: "Lotsenboot Kernsund", tx: "Lotse bereit zum Übersteigen. JETZT STOPP in der " + la + " Spur, längsseits von uns." }
+        : { k: "pilot1", from: "Lotsenboot Kernsund", tx: "Wir liegen " + (T.row - kp.row) + " Reihen voraus. Bitte langsam heran und in der " + la + " Spur neben uns STOPP." }; }
+    if (!m && d.sky === "fog") kp.cells.forEach(function (c) { if (m || !c.fogb || !c.live || c.told) return; var a = c.row - kp.row; if (a > 0 && a <= 7) { c.told = 1; m = { k: "fog" + c.row, from: "Fischkutter Möwe", tx: "Wir liegen im Nebel vor euch und sehen nichts! Bitte Nebelsignal geben, dann machen wir Platz." }; } });
+    if (!m && kp.mum && !kp.mum.trig && kp.row <= 3 && kp.turns > 0 && !kp.mumTold) { kp.mumTold = 1; m = { k: "mum", from: "Hafenmeister", tx: "Die Mümmel liegt nur lose vertäut. Langsam an ihr vorbei!" }; }
+    if (!m) { kpRadio.hidden = true; return; } if (kp.radioK === m.k && !kpRadio.hidden) return; kp.radioK = m.k;
+    var h = Math.floor(12 + (kp.li === 2 ? 9 : kp.li * 2) + kp.turns * .4), mm = (kp.turns * 17 + 7) % 60;
+    kpRadio.innerHTML = '<div class="kp-r-h"><b>FUNKSPRUCH</b><span>' + (h % 24) + ":" + (mm < 10 ? "0" : "") + mm + ' Uhr</span></div><div class="kp-r-f">von: ' + m.from + '</div><div class="kp-r-t">' + m.tx + '</div><div class="kp-r-s">notiert: Funker Pieps</div>';
+    kpRadio.hidden = false; kpRadio.classList.remove("pop"); void kpRadio.offsetWidth; kpRadio.classList.add("pop"); beep([[1200, .03], [0, .03], [1200, .03], [0, .06], [1200, .08]]);
+  }
   // ---- panel and cards ----
   function kpSay(t) { kpToast.textContent = t; kpToast.hidden = false; kpToast.classList.remove("pop"); void kpToast.offsetWidth; kpToast.classList.add("pop"); clearTimeout(kpSay.t); kpSay.t = setTimeout(function () { kpToast.hidden = true; }, 1800); }
   function kpTipTxt(f) { var to = kpCl(kp.lane + f.d), sp = ["Stopp", "Halbe Fahrt", "Volle Fahrt"][f.spd], ln = kp.tr ? "das Ruder liegen lassen" : to === kp.lane ? "die Spur halten" : "in die " + ["linke", "mittlere", "rechte"][to + 1] + " Spur"; return sp + " und " + ln + "."; }
@@ -17725,9 +17752,9 @@ window.__EXTRAS = true;
     else { var tr = kp.tr ? '<span class="kp-tr">Spurwechsel läuft noch ' + kp.tr.left + (kp.tr.left === 1 ? " Reihe" : " Reihen") + ', das Ruder liegt fest.</span>' : "",
         tip = kp.tip ? '<span class="cap-tipsay">Erster Offizier: „' + kp.tip + '“</span>' : "",
         foot = '<span class="cap-foot"><span class="cap-clock">⏱ Zug ' + kp.turns + ' · Plan ' + kp.par + '</span>' + (!busy && !kp.done && !kp.tip ? '<button type="button" class="ch cap-tip"' + (kp.tips > 0 ? "" : " disabled") + '>Offizier fragen ' + "●".repeat(kp.tips) + "○".repeat(3 - kp.tips) + '</button>' : "") + '</span>';
-      var T = kpTask(), near = T && !kp.task && !kp.taskMiss && T.row - kp.row <= 7 ? '<span class="kp-tr kp-stop">Lotsenboot voraus! Mit Stopp im grünen Feld daneben anhalten.</span>' : "";
-      h += '<div class="dz-row"><canvas class="kp-chart" width="25" height="52" aria-label="Seekarte"></canvas><div class="dz-msg cap-msg2">' + (kp.pre ? '<span class="dz-d">' + kp.pre + '</span> ' : "") + (kp.pre || near ? "" : d.tx) + near + tr + tip + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>'; }
-    kpPanel.innerHTML = h; kpChartCv = kpPanel.querySelector(".kp-chart"); kpChart(); kpGl.hidden = !!(busy || kp.card || kp.done); kpGl.classList.toggle("on", !!cp.glass);
+      var note = d.tx; (d.notes || []).forEach(function (n) { if (kp.row >= n[0]) note = n[1]; });
+      h += '<div class="dz-row"><canvas class="kp-chart" width="25" height="52" aria-label="Seekarte"></canvas><div class="dz-msg cap-msg2">' + (kp.pre ? '<span class="dz-d">' + kp.pre + '</span> ' : "") + '<span class="kp-note">' + note + '</span>' + tr + tip + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>'; }
+    if (cp.glass) kpRadio.hidden = true; kpPanel.innerHTML = h; kpChartCv = kpPanel.querySelector(".kp-chart"); kpChart(); kpGl.hidden = !!(busy || kp.card || kp.done); kpGl.classList.toggle("on", !!cp.glass);
   }
   function kpStars() { var d = kpLvl(), third = kp.li === 0 ? kp.whFirst : kp.li === 1 ? kp.task && !kp.taskMiss : cp.found.length - kp.found0 >= 2; return [kp.hits + kp.inc === 0, kp.turns <= kp.par, !!third]; }
   function kpMenu() {
@@ -17748,7 +17775,7 @@ window.__EXTRAS = true;
     kpCard.hidden = false; kp.card = true; kpPanelDraw(); kpRedraw(); if (n >= 2) dzWhistle(1.6); beep(n === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]); }
   kpCard.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !kp) return; e.stopPropagation();
     if (b.dataset.lv != null) { kpStart(+b.dataset.lv); return; }
-    var a = b.dataset.a; if (a === "go") { kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); return; }
+    var a = b.dataset.a; if (a === "go") { kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); setTimeout(kpRadioMsg, 500); return; }
     if (a === "again") return kpStart(kp.li); if (a === "next") return kpStart(kp.li + 1); if (a === "menu") { kpMenu(); return; } });
   kpPanel.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !kp || kp.anim || kp.card) return; e.stopPropagation();
     if (b.classList.contains("cap-glx")) { cpGlass(false); return; }
@@ -17759,7 +17786,7 @@ window.__EXTRAS = true;
   // ---- input on the bridge: telegraph, wheel (drag or tap a side), whistle handle, binoculars ----
   var kpWh = null, kpTel = 0, kpRing = null, kpPanG = null;
   function kpPt(e) { var r0 = kpCv.getBoundingClientRect(); return [(e.clientX - r0.left) / r0.width * 180, (e.clientY - r0.top) / r0.height * 135]; }
-  function kpSetRud(r) { var lim0 = -1 - kp.lane, lim1 = 1 - kp.lane; r = Math.max(lim0, Math.min(lim1, r)); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); kpPanelDraw(); } kpRedraw(); }
+  function kpSetRud(r) { var lim0 = Math.max(-1, -1 - kp.lane), lim1 = Math.min(1, 1 - kp.lane); r = Math.max(lim0, Math.min(lim1, r)); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); kpPanelDraw(); } kpRedraw(); }
   kpCv.addEventListener("pointerdown", function (e) {
     if (!kp || kp.anim || kp.card || kp.done) return; e.preventDefault(); var pp = kpPt(e);
     if (cp.glass) { var rd = Math.hypot(pp[0] - 114, pp[1] - 64);

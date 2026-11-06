@@ -71,3 +71,13 @@
 .kp-pick { gap: 5px; } .kp-pick button { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px 9px; text-align: left; } .kp-pick b { font-size: .85rem; } .kp-pick small { margin: 0; }
 .kp-chart { flex: none; width: 50px; height: 104px; align-self: center; image-rendering: pixelated; }
 .kp-stop { color: #2e7a26; }
+.kp-note { display: block; }
+.kp-radio { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 64%; z-index: 4; cursor: pointer; background: #fbf3dc; color: #2a2030; padding: 5px 8px 6px; box-shadow: 0 0 0 2px #3a2414, 3px 3px 0 2px rgba(42,26,16,.35);
+  background-image: repeating-linear-gradient(#fbf3dc 0 13px, #d8e0ec 13px 14px); clip-path: var(--px-notch); }
+.kp-radio[hidden] { display: none; }
+.kp-radio.pop { animation: kp-rpop .35s steps(4); } @keyframes kp-rpop { from { transform: translate(-50%, -30%); opacity: 0; } }
+.kp-r-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #a8442a; margin-bottom: 3px; padding-bottom: 1px; }
+.kp-r-h b { color: #a8442a; font-size: .72rem; letter-spacing: .14em; } .kp-r-h span { font-size: .62rem; color: #6a5a4a; }
+.kp-r-f { font-size: .62rem; color: #6a5a4a; font-style: italic; }
+.kp-r-t { font-family: "Courier New", Courier, monospace; font-weight: 700; font-size: .76rem; line-height: 1.2; margin: 2px 0; }
+.kp-r-s { font-size: .58rem; color: #6a5a4a; text-align: right; font-style: italic; }
