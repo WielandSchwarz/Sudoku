@@ -2,7 +2,21 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür sind freigegeben. Neue Tapeten mit eigenen Mustern liegen zur Auswahl. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür und die 10 neuen Tapeten sind freigegeben. Runde 9: eigene Farben für jede Tapete im Möbel-Menü (Entwurf) und die Bodenprüfung. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+
+## Runde 9: eigene Tapetenfarben im Möbel-Menü, Böden geprüft
+
+### Tapetenfarben selbst wählen
+- Wunsch: Für jede Tapete lassen sich die Farben selbst anpassen, alles unten im Möbel-Menü.
+- Entwurf: `vorschau/moebelmenue_tapetenfarben.png`. Unter „Tapete auswählen“ kommen zwei Titel mit je einer Reihe von 10 kleinen Feldern: **Grundfarbe** und **Musterfarbe**. Das erste Feld ist „Original“ und zeigt die Tapete selbst. Die übrigen Grundfarben-Felder sind voll gefüllt, die Musterfarben-Felder zeigen eine Pixel-Raute in der Farbe auf dem aktuellen Grund. Es gibt keine Erklärtexte. Die gewählte Farbe hat den orangen Rahmen wie eine gewählte Möbelkarte, das Zimmer färbt sich sofort um.
+- Die Farben stehen in `tapeten/farben.json` (Namen und Hexwerte, `null` = Original): Grund Creme, Weiß, Salbei, Altrosa, Himmelblau, Butter, Lavendel, Tannengrün, Nachtblau. Muster Haselnuss, Rosa, Kirschrot, Blattgrün, Taubenblau, Honig, Flieder, Weiß, Mokka.
+- Umfärben: `werkzeug/tapete_farben.js` → `recolorWallSvg(svg, grund, muster)`. Die Funktion arbeitet direkt auf jedem Tapeten-SVG, alt und neu, ohne Zusatzdaten. Grund ist die häufigste Farbe der Kachel. Alle anderen Farben gelten als Muster: Ihr Mittelwert wandert zur gewählten Musterfarbe, aber höchstens bis zum 1,4-Fachen des ursprünglichen Kontrasts. So bleiben ruhige Tapeten ruhig, helle Punkte und dunkle Linien bleiben als Abweichung erhalten. Geprüft: Bei allen 20 Tapeten wird der Grund richtig erkannt. In allen 2000 Kombinationen liefern JS und Python (`werkzeug/tapete_farben.py`) identische Farben.
+- Beispiele für alle 20 Tapeten in 5 Kombinationen: `tapeten/farben_beispiele.png`.
+- Speichern: je Tapete die gewählte Grund- und Musterfarbe (Index in den beiden Listen) neben der Tapeten-ID. Beim Wechsel der Tapete gilt deren gespeicherte Wahl.
+
+### Böden
+- Alle 12 Böden aus `mock2/room3.json` → `floor` passen in den neuen Raum: `boeden/uebersicht_x2.png`, einzeln `boeden/vorschau_*.png`. Die Diele behält ihren festen Schachbrettboden, der Boden-Slot gilt ab dem Holzpfosten. Gezeichnet mit `werkzeug/boeden.py`.
+- **Fehler gefunden:** Der Standardboden „Helle Dielen“ wird heute um ein Drittel gestreckt. `build.py` (Zeile 96) setzt `floor[0].tile` auf `interior2.json` → `floor_planks` (viewBox 36×12), lässt aber `w`=96/`h`=36 der alten Kachel stehen. Angezeigt wird `w/2` = 48 statt 36 Raumpixel. Fix: `w`=72, `h`=24 setzen. Alle anderen Böden und alle Tapeten werden 1:1 angezeigt. Die Vorschauen in `boeden/` zeigen die Dielen schon ungestreckt.
 
 ## Runde 8: neue Tapeten, Türen aus dem Tür-Slot als Haustür (freigegeben)
 
@@ -12,6 +26,7 @@ Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Tren
 - `tapeten/tapeten_neu.json` enthält je Tapete `id`, `name`, `w`, `h` und `tile`, ein nahtlos kachelndes SVG im Format von `furn2.json` → `wall` (Kachel 1:1, `w`/`h` wie bei den bisherigen Einträgen doppelt so groß wie die viewBox). Geprüft: pixelgleich zu den PNGs.
 - `tapeten/tapete_*.png` sind die Kacheln, `tapeten/vorschau_*.png` das ganze Zimmer (Diele mit Grüner Landhaustür) mit jeder Tapete, `tapeten/uebersicht_x2.png` alle zusammen.
 - Erzeugt mit `python3 werkzeug/tapeten2.py tapeten`.
+- Freigegeben (Runde 9). Bei den Waldpilzen sind die Stiele jetzt weiß mit Schattenkante, vorher waren sie kaum vom Grund zu unterscheiden.
 - Offen: Kommen sie zu den bisherigen Tapeten dazu, oder ersetzen sie einige?
 
 ### Türen

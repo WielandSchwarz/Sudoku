@@ -1,0 +1,87 @@
+{
+ "grundfarbe": [
+  {
+   "name": "Original",
+   "farbe": null
+  },
+  {
+   "name": "Creme",
+   "farbe": "#f7ead2"
+  },
+  {
+   "name": "Weiß",
+   "farbe": "#fbf8f2"
+  },
+  {
+   "name": "Salbei",
+   "farbe": "#dfe6cf"
+  },
+  {
+   "name": "Altrosa",
+   "farbe": "#f2d9d4"
+  },
+  {
+   "name": "Himmelblau",
+   "farbe": "#d9e6ee"
+  },
+  {
+   "name": "Butter",
+   "farbe": "#f7eabf"
+  },
+  {
+   "name": "Lavendel",
+   "farbe": "#e5def0"
+  },
+  {
+   "name": "Tannengrün",
+   "farbe": "#5b7860"
+  },
+  {
+   "name": "Nachtblau",
+   "farbe": "#46557a"
+  }
+ ],
+ "musterfarbe": [
+  {
+   "name": "Original",
+   "farbe": null
+  },
+  {
+   "name": "Haselnuss",
+   "farbe": "#b08a68"
+  },
+  {
+   "name": "Rosa",
+   "farbe": "#e2a0a8"
+  },
+  {
+   "name": "Kirschrot",
+   "farbe": "#d07068"
+  },
+  {
+   "name": "Blattgrün",
+   "farbe": "#9ab884"
+  },
+  {
+   "name": "Taubenblau",
+   "farbe": "#8aa8c8"
+  },
+  {
+   "name": "Honig",
+   "farbe": "#e0b860"
+  },
+  {
+   "name": "Flieder",
+   "farbe": "#b0a0cc"
+  },
+  {
+   "name": "Weiß",
+   "farbe": "#ffffff"
+  },
+  {
+   "name": "Mokka",
+   "farbe": "#6a5a50"
+  }
+ ],
+ "hinweis": "farbe null = Originalfarben der Tapete. Umfärben mit recolorWallSvg(svg, grund, muster) aus werkzeug/tapete_farben.js"
+}

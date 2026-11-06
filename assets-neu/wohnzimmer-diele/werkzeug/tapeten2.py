@@ -109,10 +109,10 @@ def faecher():
 def waldpilze():
     """little red toadstools, acorns and leaves scattered on warm beige"""
     t = Tile(32, 32, '#efe3cf')
-    pilz = ["..rrr..", ".rwrrr.", "rrrrwrr", "..ccc..", "..ccc.."]
+    pilz = ["..rrr..", ".rwrrr.", "rrrrwrr", "..cCs..", "..cCs.."]
     eichel = [".bb.", "bbbb", ".aa.", ".aa."]
     blatt = [".g", "gg", "g."]
-    P = {'r': '#d9897a', 'w': '#fbf3e8', 'c': '#f4e8d2', 'b': '#b89270', 'a': '#cfab82', 'g': '#b7c08c'}
+    P = {'r': '#d9897a', 'w': '#fffaf2', 'c': '#ffffff', 'C': '#fbf5ea', 's': '#d8c4a6', 'b': '#b89270', 'a': '#cfab82', 'g': '#b7c08c'}
     t.ascii(3, 4, pilz, P); t.ascii(19, 20, pilz, P)
     t.ascii(22, 5, eichel, P); t.ascii(6, 21, eichel, P)
     t.ascii(14, 13, blatt, P); t.ascii(29, 14, blatt, P); t.ascii(13, 28, blatt, P)
