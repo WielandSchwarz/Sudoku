@@ -10496,18 +10496,18 @@ window.__EXTRAS = true;
   window.__bx = { teddy: function () { return { shelf: !teddyShelf.hidden, bed: !teddyBed.hidden }; } };
   // ===================== the aquarium up close (v2): close to the glass, a big gravel floor to furnish, plants that grow out of the bowl,
   // the goldfish with friends (a snail on the glass, two shrimps, a little school of neons). Feed, play, love, furnish. =====================
-  var AQ_W = 180, AQ_H = 135, AQ_CX = 90, AQ_CY = 80, AQ_RX = 98, AQ_RY = 72, AQ_WL = 24, AQ_FB = 98;
+  var AQ_W = 180, AQ_H = 135, AQ_CX = 90, AQ_CY = 68, AQ_RX = 78, AQ_RY = 60, AQ_WL = 26, AQ_FB = 98;
   var AD = "#3a2414", AG = "#2e6a2e", Ag = "#4e9a44", Al = "#86cc62", AL = "#b4e48a";
   // the places: six at the back of the gravel, three at the front, one on the rim, one on the water
-  var AQ_SL = [{ x: 18, y: 108, k: "f" }, { x: 44, y: 106, k: "f" }, { x: 68, y: 105, k: "f" }, { x: 112, y: 105, k: "f" }, { x: 136, y: 106, k: "f" }, { x: 162, y: 108, k: "f" },
-    { x: 32, y: 127, k: "f" }, { x: 90, y: 129, k: "f" }, { x: 148, y: 127, k: "f" }, { x: 56, y: 6, k: "r" }, { x: 90, y: AQ_WL, k: "t" }];
+  var AQ_SL = [{ x: 30, y: 101, k: "f" }, { x: 50, y: 99, k: "f" }, { x: 70, y: 98, k: "f" }, { x: 110, y: 98, k: "f" }, { x: 130, y: 99, k: "f" }, { x: 150, y: 101, k: "f" },
+    { x: 44, y: 116, k: "f" }, { x: 90, y: 120, k: "f" }, { x: 136, y: 116, k: "f" }, { x: 60, y: 8, k: "r" }, { x: 90, y: AQ_WL, k: "t" }];
   var AQ_ITEMS = [
     ["seegras", "Seegras", "f"], ["pest", "Wasserpest", "f"], ["ludwig", "Ludwigie", "f"], ["farn", "Javafarn", "f"], ["bambus", "Bambus", "f"], ["moos", "Mooskugel", "f"],
     ["kiste", "Schatzkiste", "f"], ["burg", "Burg", "f"], ["muschel", "Muschel", "f"], ["helm", "Taucherhelm", "f"], ["krug", "Amphore", "f"], ["wurzel", "Wurzel", "f"],
     ["pilz", "Pilzhaus", "f"], ["steine", "Steine", "f"], ["anker", "Anker", "f"], ["figur", "Figur", "f"],
     ["efeu", "Efeutute", "r"], ["seerose", "Seerose", "t"], ["frosch", "Froschbiss", "t"]
   ];
-  var AQ_DEF = ["seegras", "pest", "burg", "bambus", "ludwig", "seegras", "moos", "kiste", "farn", "efeu", "seerose"];
+  var AQ_DEF = ["seegras", "", "burg", "bambus", "", "seegras", "moos", "kiste", "", "efeu", "seerose"];
   var aqEl = xEl("div", "bee-pov fi-pov aq-pov", scene); aqEl.hidden = true;
   aqEl.innerHTML = '<canvas width="180" height="135" class="fi-cv aq-cv"></canvas><div class="aq-toast" hidden></div><div class="fi-card" hidden></div><button type="button" class="bp-x" aria-label="Aquarium schließen">×</button>';
   var aqCv = aqEl.querySelector("canvas"), aqc = aqCv.getContext("2d"); aqc.imageSmoothingEnabled = false;
@@ -10515,40 +10515,58 @@ window.__EXTRAS = true;
   var aqBar = document.createElement("div"); aqBar.className = "aq-bar"; aqBar.style.display = "none"; scene.parentNode.insertBefore(aqBar, scene.nextSibling);   // the buttons sit under the picture, like the stoker's panel
   function aP(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); }
   function aqEll(x, y) { var a = (x + .5 - AQ_CX) / AQ_RX, b = (y + .5 - AQ_CY) / AQ_RY; return a * a + b * b <= 1; }
-  function aqIn(x, y) { return aqEll(x, y) || (y >= 2 && y < 26 && x >= 52 && x < 128); }
+  function aqIn(x, y) { return aqEll(x, y) || (y >= 7 && y < 24 && Math.abs(x + .5 - AQ_CX) <= 37 - Math.max(0, y - 18) * 0); }
   function aqSt() { var L = life(); if (!L.aq || L.aq.v !== 2) L.aq = { v: 2, s: AQ_DEF.slice() }; return L.aq; }
-  // ---- the still picture, drawn once: wall, glass, water, gravel ----
+  // ---- the still picture, drawn once (2.5D): the wall, the chest top with the bowl's shadow and a bright spot of focused light,
+  // the glass sphere shaded like a ball of water, the water surface and the gravel seen as discs from slightly above ----
   var aqBg = document.createElement("canvas"); aqBg.width = AQ_W; aqBg.height = AQ_H; var aqWater = new Uint8Array(AQ_W * AQ_H), aqGrav = new Uint8Array(AQ_W * AQ_H);
-  var AQ_DEEP = ["#b0e2f2", "#96d4ee", "#80c8e8", "#6cbae0", "#5aacd6", "#4e9ecc"];
-  function aqFloorY(x) { return AQ_FB + Math.round(Math.sin(x * .05) * 1.5 + Math.sin(x * .13 + 1) * .8); }
+  var AQ_DEEP = ["#c4ecf8", "#a8e0f4", "#8ed2ee", "#78c4e6", "#64b4dc", "#52a2d0", "#4490c2", "#3a7eb2"];
+  function aqFloorY(x) { var u = (x - AQ_CX) / 66; return Math.round(AQ_FB - 5 * Math.sqrt(Math.max(0, 1 - u * u))); }   /* the far edge of the gravel disc */
+  function aqSurfW() { var b = (AQ_WL - AQ_CY) / AQ_RY; return AQ_RX * Math.sqrt(1 - b * b); }
   (function () {
-    var c = aqBg.getContext("2d");
-    aP(c, 0, 0, AQ_W, AQ_H, "#f3e7cf"); for (var y = 3; y < AQ_H; y += 9) for (var x = (y / 9 % 2) * 5; x < AQ_W; x += 10) aP(c, x, y, 1, 1, "#e4d0ac");
-    for (var y2 = 0; y2 < AQ_H; y2++) for (var x2 = 0; x2 < AQ_W; x2++) {
-      if (!aqIn(x2, y2)) continue;
-      var edge = !aqIn(x2 + 1, y2) || !aqIn(x2 - 1, y2) || !aqIn(x2, y2 - 1) || (y2 < AQ_H - 1 && !aqIn(x2, y2 + 1)), col;
-      if (edge || y2 === 2) col = AD;
-      else if (y2 <= 4) col = y2 === 3 ? "#ffffff" : "#b4d8e8";
-      else if (!aqIn(x2 + 3, y2) || !aqIn(x2 - 3, y2) || !aqIn(x2, y2 - 3)) col = (x2 + y2) % 2 ? "#bfe2f0" : "#a8d6ea";       /* the thick glass */
-      else if (y2 < AQ_WL) col = (x2 + y2) % 2 ? "#eaf6fb" : "#e0f2f9";
-      else if (y2 >= aqFloorY(x2)) { var cell = (x2 * 7 + y2 * 13 + x2 * y2) % 9;
-        col = ["#d8bc90", "#c8a878", "#e4ccA4", "#b8a080", "#e0c4a8", "#c8a878", "#bc9c74", "#ecd8b4", "#a89070"][cell];
-        if (y2 - aqFloorY(x2) < 2) col = (x2 % 2) ? "#7a6248" : "#9a7a58"; aqGrav[y2 * AQ_W + x2] = 1; }
-      else { var d = (y2 - AQ_WL) / (AQ_FB - AQ_WL) * 5, i = Math.floor(d), f = d - i; col = AQ_DEEP[Math.min(5, i + (f > .5 + ((x2 + y2) % 2) * .25 ? 1 : 0))]; aqWater[y2 * AQ_W + x2] = 1; }
-      aP(c, x2, y2, 1, 1, col);
+    var c = aqBg.getContext("2d"), y, x;
+    for (y = 0; y < 112; y++) for (x = 0; x < AQ_W; x++) aP(c, x, y, 1, 1, (x % 10 === 0 && y % 9 === 4) ? "#e4d0ac" : y > 100 ? "#ecdcbe" : "#f3e7cf");         /* calm wallpaper, a little shade near the chest */
+    aP(c, 0, 111, AQ_W, 1, AD); for (y = 112; y < AQ_H; y++) aP(c, 0, y, AQ_W, 1, y < 114 ? "#d8a070" : y < 122 ? "#b47448" : y < 130 ? "#a0683a" : "#8a5a32");
+    for (y = 116; y < AQ_H; y += 6) for (x = (y * 7) % 23; x < AQ_W; x += 31) aP(c, x, y, 9, 1, "#8a5a32");                                              /* wood grain */
+    c.globalAlpha = .35; aqDisc(c, 98, 125, 70, 6, function () { return "#3a2414"; }); c.globalAlpha = .55; aqDisc(c, 100, 125, 44, 4, function () { return "#3a2414"; }); c.globalAlpha = 1;   /* the shadow, a little to the right */
+    aqDisc(c, 82, 126, 16, 2, function (a, b, d) { return d > .6 ? "#e8b880" : "#fff0c8"; });                                                                 /* light focused through the ball of water */
+    for (y = 0; y < AQ_H; y++) for (x = 0; x < AQ_W; x++) {
+      if (!aqIn(x, y)) continue;
+      var nx = (x + .5 - AQ_CX) / AQ_RX, ny = (y + .5 - AQ_CY) / AQ_RY, r = Math.sqrt(nx * nx + ny * ny), inBall = aqEll(x, y), col;
+      var edge = !aqIn(x + 1, y) || !aqIn(x - 1, y) || !aqIn(x, y - 1) || !aqIn(x, y + 1);
+      if (edge) col = AD;
+      else if (!inBall || y < AQ_WL - 3) { col = r > .93 && inBall ? "#bfe0ee" : ((x + y) % 2 ? "#eef8fc" : "#e4f3f9"); if (!inBall && (!aqIn(x + 2, y) || !aqIn(x - 2, y))) col = "#c4e4f0"; }   /* air in the glass */
+      else if (r > .955) col = nx > .2 ? "#3a7ea8" : "#9ad0e8";                                                                                             /* the thick glass: dark where light passes through it sideways */
+      else if (y >= aqFloorY(x) && y >= AQ_FB - 6) {                                                                                                         /* gravel: darker at the back and at the round edge */
+        var dep = (y - aqFloorY(x)) / (AQ_H - AQ_FB), sh = Math.min(1, Math.max(0, (r - .7) / .25)), cell = (x * 7 + y * 13 + x * y) % 7, base = ["#d8bc90", "#c8a878", "#e4cca4", "#b8a080", "#e0c4a8", "#bc9c74", "#ecd8b4"][cell];
+        col = y - aqFloorY(x) < 2 ? "#6a5440" : sh > .5 + ((x + y) % 2) * .2 ? "#8a7058" : dep < .12 && (x + y) % 2 ? "#a88a68" : base; aqGrav[y * AQ_W + x] = 1; }
+      else if (Math.abs(y - AQ_WL) <= 3 && Math.abs((x + .5 - AQ_CX) / aqSurfW()) < 1 && ((x + .5 - AQ_CX) / aqSurfW()) * ((x + .5 - AQ_CX) / aqSurfW()) + ((y - AQ_WL) / 3.4) * ((y - AQ_WL) / 3.4) <= 1) {
+        col = y < AQ_WL ? ((x + y) % 2 ? "#e0f6fc" : "#d0eff9") : y === AQ_WL ? "#ffffff" : "#b8e6f6"; if (y >= AQ_WL) aqWater[y * AQ_W + x] = 1; }             /* the water surface, an ellipse seen from a little above */
+      else if (y < AQ_WL) col = (x + y) % 2 ? "#eef8fc" : "#e4f3f9";
+      else { var dv = (y - AQ_WL) / (AQ_FB - AQ_WL), lit = Math.max(0, -nx * .6 - ny * .3), v = dv * 4 + r * r * 3.2 - lit * 1.6, i = Math.floor(v), f = v - i;
+        col = AQ_DEEP[Math.max(0, Math.min(7, i + (f > .5 + ((x + y) % 2) * .25 - .125 ? 1 : 0)))]; aqWater[y * AQ_W + x] = 1; }
+      aP(c, x, y, 1, 1, col);
     }
+    // the opening at the top: a ring, the far inside of the neck darker
+    aqDisc(c, AQ_CX, 7, 37, 3.4, function (a, b, d) { return d > .8 ? AD : b < 0 ? "#a8d4e8" : "#d8f0f8"; }); aqDisc(c, AQ_CX, 7, 33, 2, function (a, b, d) { return b < 0 ? "#7ab8d4" : "#c8e8f4"; });
+    for (x = -36; x <= 36; x += 1) if (Math.abs(x) > 30) aP(c, AQ_CX + x, 8, 1, 1, "#ffffff");
   })();
-  (function () { var c = aqBg.getContext("2d"), seed = 7, R = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };   /* rounded pebbles, bigger towards the front */
-    var PB = [["#e8d8bc", "#c8b496", "#a8947a"], ["#c8c2b4", "#a8a294", "#7a756a"], ["#e8c0a0", "#c89878", "#9a6e54"], ["#d8d0c0", "#b0a898", "#8a8478"], ["#f0e4cc", "#d0c0a0", "#a89878"]];
-    for (var n = 0; n < 260; n++) { var y = AQ_FB + 3 + Math.pow(R(), .7) * (AQ_H - AQ_FB - 2), x = R() * AQ_W, dep = (y - AQ_FB) / (AQ_H - AQ_FB), rx = 1 + dep * 2.6 + R() * .8, ry = Math.max(.8, rx * .62), P = PB[Math.floor(R() * PB.length)];
-      if (!aqGrav[Math.round(y) * AQ_W + Math.round(x)]) continue;
-      aqDisc(c, Math.round(x), Math.round(y), rx, ry, function (a, b, d) { if (!aqGrav[(Math.round(y) + b) * AQ_W + Math.round(x) + a]) return null; return d > .72 ? P[2] : a + b < -1 ? P[0] : P[1]; }); } })();
-  var aqFront = document.createElement("canvas"); aqFront.width = AQ_W; aqFront.height = AQ_H;   // the shine on the glass, over everything
+  (function () { var c = aqBg.getContext("2d"), seed = 7, R = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };   /* rounded pebbles: bigger towards the front, each with its own light and shadow */
+    var PB = [["#f0e2c8", "#d0bc9c", "#9a8468"], ["#d8d2c4", "#aaa496", "#6e6a5e"], ["#f0c8a8", "#c89878", "#8a5e44"], ["#e4dccc", "#b4ac9c", "#7a7466"], ["#f8ecd4", "#d4c4a4", "#9a8a6c"]];
+    var pts = []; for (var n = 0; n < 240; n++) pts.push([R() * AQ_W, AQ_FB - 4 + Math.pow(R(), .8) * (AQ_H - AQ_FB + 4), R(), Math.floor(R() * PB.length)]); pts.sort(function (a, b) { return a[1] - b[1]; });
+    pts.forEach(function (q) { var x = Math.round(q[0]), y = Math.round(q[1]); if (!aqGrav[y * AQ_W + x]) return; var dep = (y - AQ_FB + 4) / (AQ_H - AQ_FB + 4), rx = .8 + dep * 2.8 + q[2], ry = Math.max(.7, rx * .6), P = PB[q[3]];
+      aqDisc(c, x + 1, y + 1, rx, ry * .7, function (a, b) { return aqGrav[(y + 1 + b) * AQ_W + x + 1 + a] ? "#7a6248" : null; });                               /* a little shadow under each */
+      aqDisc(c, x, y, rx, ry, function (a, b, d) { if (!aqGrav[(y + b) * AQ_W + x + a]) return null; return d > .7 ? P[2] : a + b * 1.5 < -1 ? P[0] : P[1]; }); }); })();
+  var aqFront = document.createElement("canvas"); aqFront.width = AQ_W; aqFront.height = AQ_H;   /* the shine on the curved glass, over everything */
   (function () { var c = aqFront.getContext("2d");
-    for (var k = 0; k < 70; k++) { var a = 2.25 + k * .012, x = Math.round(AQ_CX + Math.cos(a) * (AQ_RX - 9)), y = Math.round(AQ_CY - Math.sin(a) * (AQ_RY - 9)); if (aqIn(x, y)) aP(c, x, y, 2, 1, "rgba(255,255,255,.85)"); }
-    for (var k1 = 0; k1 < 40; k1++) { var a1 = 2.4 + k1 * .012, x1 = Math.round(AQ_CX + Math.cos(a1) * (AQ_RX - 14)), y1 = Math.round(AQ_CY - Math.sin(a1) * (AQ_RY - 14)); if (aqIn(x1, y1) && k1 % 3) aP(c, x1, y1, 1, 1, "rgba(255,255,255,.5)"); }
-    for (var k2 = 0; k2 < 18; k2++) { var a2 = .5 + k2 * .016, x3 = Math.round(AQ_CX + Math.cos(a2) * (AQ_RX - 8)), y3 = Math.round(AQ_CY - Math.sin(a2) * (AQ_RY - 8)); aP(c, x3, y3, 1, 2, "rgba(255,255,255,.7)"); }
-    aP(c, 58, 6, 26, 1, "rgba(255,255,255,.7)"); aP(c, 58, 7, 10, 1, "rgba(255,255,255,.4)"); })();
+    for (var k = 0; k < 80; k++) { var a = 2.05 + k * .011, x = Math.round(AQ_CX + Math.cos(a) * (AQ_RX - 6)), y = Math.round(AQ_CY - Math.sin(a) * (AQ_RY - 6)); if (aqEll(x, y)) aP(c, x, y, 2, 2, "rgba(255,255,255,.9)"); }
+    for (var k1 = 0; k1 < 50; k1++) { var a1 = 2.2 + k1 * .011, x1 = Math.round(AQ_CX + Math.cos(a1) * (AQ_RX - 11)), y1 = Math.round(AQ_CY - Math.sin(a1) * (AQ_RY - 11)); if (aqEll(x1, y1)) aP(c, x1, y1, 1, 1, "rgba(255,255,255,.55)"); }
+    aqDisc(c, 46, 40, 3, 2, function (a, b, d) { return d > .6 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.95)"; });
+    for (var k2 = 0; k2 < 26; k2++) { var a2 = -.35 + k2 * .02, x3 = Math.round(AQ_CX + Math.cos(a2) * (AQ_RX - 5)), y3 = Math.round(AQ_CY - Math.sin(a2) * (AQ_RY - 5)); aP(c, x3, y3, 1, 2, "rgba(255,255,255,.45)"); }
+    for (var k3 = 0; k3 < 60; k3++) { var a3 = 3.6 + k3 * .03, x4 = Math.round(AQ_CX + Math.cos(a3) * (AQ_RX - 4)), y4 = Math.round(AQ_CY - Math.sin(a3) * (AQ_RY - 4)); if (aqEll(x4, y4) && y4 > AQ_FB) aP(c, x4, y4, 1, 1, "rgba(255,255,255,.35)"); }   /* light caught in the bottom rim */
+  })();
+  function aqFog(c) { c.globalAlpha = .16; for (var y = AQ_WL + 3; y < AQ_H; y++) { var row = -1; for (var x = 0; x <= AQ_W; x++) { var w = x < AQ_W && (aqWater[y * AQ_W + x] || aqGrav[y * AQ_W + x]); if (w && row < 0) row = x; if (!w && row >= 0) { aP(c, row, y, x - row, 1, "#2a6a9a"); row = -1; } } } c.globalAlpha = 1; }   /* water between us and the back row */
+  function aqShadow(c, x, y, rx) { c.globalAlpha = .28; aqDisc(c, x + 2, y, rx, Math.max(1, rx * .28), function (a, b) { return aqGrav[(y + b) * AQ_W + x + 2 + a] ? "#2a1a10" : null; }); c.globalAlpha = 1; }
   // ---- small drawing helpers ----
   function aqDisc(c, x, y, rx, ry, fn) { for (var yy = -Math.ceil(ry); yy <= Math.ceil(ry); yy++) for (var xx = -Math.ceil(rx); xx <= Math.ceil(rx); xx++) { var d = (xx / (rx + .45)) * (xx / (rx + .45)) + (yy / (ry + .45)) * (yy / (ry + .45)); if (d > 1) continue; var col = fn(xx, yy, d); if (col) aP(c, x + xx, y + yy, 1, 1, col); } }
   function aqSw(t, k, h, ph, amp) { return Math.round(Math.sin(t / 900 + ph + k * .09) * Math.pow(k / Math.max(1, h), 1.3) * (amp || 3)); }
@@ -10666,7 +10684,7 @@ window.__EXTRAS = true;
     for (var i = -3; i <= 3; i++) { px(i, -1, i > -3 && i < 3 ? "#b8ccd8" : null || "#b8ccd8"); px(i, 0, "#30c8f0"); px(i, 1, i < 0 ? "#f0503a" : "#e8eef0"); } px(-4, 0, "#b8ccd8"); px(-5, -1, "#d8e4ea"); px(-5, 1, "#d8e4ea"); px(3, 0, AD); px(2, -1, "#b8ccd8"); }
   function aqNewState() { var nn = []; for (var i = 0; i < 5; i++) nn.push({ x: 40 + i * 5, y: 50 + (i % 2) * 4, dir: 1, ox: (i % 3) * 7 - 7, oy: (i % 2) * 6 - 3 });
     return { fish: { x: 96, y: 62, dir: -1, tx: 70, ty: 60, next: 0, happy: 0, blush: 0, gulp: 0, fast: 0, blink: 0 }, snail: { a: 2.6, dir: 1, hide: 0, x: 0, y: 0 },
-      shrimps: [{ x: 60, y: 118, dir: 1, tx: 70, pick: 0, next: 0 }, { x: 128, y: 122, dir: -1, tx: 110, pick: 0, next: 0 }], neons: nn, school: { x: 50, y: 52, tx: 120, ty: 46, next: 0 },
+      shrimps: [{ x: 60, y: 110, dir: 1, tx: 70, pick: 0, next: 0 }, { x: 120, y: 116, dir: -1, tx: 110, pick: 0, next: 0 }], neons: nn, school: { x: 50, y: 52, tx: 120, ty: 46, next: 0 },
       bub: [], flakes: [], hearts: [], mode: "", edit: false, ate: 0, plays: 0, pets: 0 }; }
   function aqDraw(t) {
     aqRaf = 0; if (!aq || aqEl.hidden) return; aqRaf = requestAnimationFrame(aqDraw);
@@ -10678,14 +10696,16 @@ window.__EXTRAS = true;
     for (var sx = 0; sx < AQ_W; sx++) if (aqEll(sx, AQ_WL) && aqEll(sx + 4, AQ_WL) && aqEll(sx - 4, AQ_WL)) { var wv = Math.sin(sx * .28 + t / 280) > .55 ? -1 : 0; aP(aqc, sx, AQ_WL + wv, 1, 1, (sx + Math.floor(t / 110)) % 6 ? "#d0f0fa" : "#ffffff"); aP(aqc, sx, AQ_WL + 1 + wv, 1, 1, "#a8dcf0"); }
     var sl = S.s;
     if (sl[9] === "efeu") AQ_DRAW.efeu(aqc, AQ_SL[9].x, AQ_SL[9].y, t, false);
-    for (var i = 0; i < 6; i++) if (sl[i] && AQ_DRAW[sl[i]]) AQ_DRAW[sl[i]](aqc, AQ_SL[i].x, AQ_SL[i].y, t + i * 700);
-    if (Math.random() < dt * 4) aqBub(168, 100, 1); aqDisc(aqc, 168, 104, 3, 2, function (a, b, d) { return d > .7 ? "#4a463c" : "#8a8478"; });   /* the air stone */
-    aq.shrimps.forEach(function (p) { if (p.y < 120) aqShrimp(aqc, p, t); });
+    for (var i = 0; i < 6; i++) if (sl[i] && AQ_DRAW[sl[i]]) { aqShadow(aqc, AQ_SL[i].x, AQ_SL[i].y, 10); AQ_DRAW[sl[i]](aqc, AQ_SL[i].x, AQ_SL[i].y, t + i * 700); }
+    aqFog(aqc);
+    if (Math.random() < dt * 4) aqBub(152, 104, 1); aqDisc(aqc, 152, 107, 3, 2, function (a, b, d) { return d > .7 ? "#4a463c" : "#8a8478"; });   /* the air stone */
+    aq.shrimps.forEach(function (p) { if (p.y < 112) aqShrimp(aqc, p, t); });
     aq.flakes.forEach(function (f) { aP(aqc, f.x, f.y, 2, 1, f.c); });
     aq.neons.forEach(function (n) { aqNeon(aqc, n); });
+    var fsy = Math.min(AQ_H - 6, AQ_FB + 8 + (aq.fish.y - AQ_WL) * .2); aqShadow(aqc, Math.round(aq.fish.x), Math.round(fsy), 9 - Math.round((AQ_FB - aq.fish.y) / 14));   /* the fish's shadow on the gravel */
     aqFish(aqc, aq.fish, t);
-    for (var j = 6; j < 9; j++) if (sl[j] && AQ_DRAW[sl[j]]) AQ_DRAW[sl[j]](aqc, AQ_SL[j].x, AQ_SL[j].y, t + j * 700);
-    aq.shrimps.forEach(function (p) { if (p.y >= 120) aqShrimp(aqc, p, t); });
+    for (var j = 6; j < 9; j++) if (sl[j] && AQ_DRAW[sl[j]]) { aqShadow(aqc, AQ_SL[j].x, AQ_SL[j].y, 11); AQ_DRAW[sl[j]](aqc, AQ_SL[j].x, AQ_SL[j].y, t + j * 700); }
+    aq.shrimps.forEach(function (p) { if (p.y >= 112) aqShrimp(aqc, p, t); });
     if (sl[10] && AQ_DRAW[sl[10]]) AQ_DRAW[sl[10]](aqc, AQ_SL[10].x, AQ_SL[10].y, t);
     aq.bub = aq.bub.filter(function (b) { b.y -= 15 * dt * (1 + b.r * .3); b.x += Math.sin(t / 200 + b.ph) * .15; if (b.y < AQ_WL + 1) return false; if (b.r > 1) { aP(aqc, b.x - 1, b.y, 3, 1, "#e8f8ff"); aP(aqc, b.x, b.y - 1, 1, 3, "#e8f8ff"); aP(aqc, b.x, b.y, 1, 1, "#a8d8f0"); aP(aqc, b.x - 1, b.y - 1, 1, 1, "#ffffff"); } else aP(aqc, b.x, b.y, 1, 1, "#e8f8ff"); return true; });
     aqSnail(aqc, aq.snail, t);
@@ -10712,7 +10732,7 @@ window.__EXTRAS = true;
     var Sn = aq.snail; if (Sn.hide > 0) Sn.hide -= dt; else { Sn.a += Sn.dir * dt * .012; if (Sn.a > 3.4 || Sn.a < 2.0) Sn.dir *= -1; }
     Sn.x = AQ_CX + Math.cos(Sn.a) * (AQ_RX - 8); Sn.y = AQ_CY - Math.sin(Sn.a) * (AQ_RY - 8); Sn.dir2 = Sn.dir;
     // the shrimps pick at the gravel, scuttle a bit, pick again
-    aq.shrimps.forEach(function (p) { if (p.pick > 0) { p.pick -= dt; return; } if (now > p.next) { p.next = now + 1500 + Math.random() * 3000; p.tx = Math.max(30, Math.min(150, p.x + (Math.random() - .5) * 50)); p.ty = 112 + Math.random() * 14; }
+    aq.shrimps.forEach(function (p) { if (p.pick > 0) { p.pick -= dt; return; } if (now > p.next) { p.next = now + 1500 + Math.random() * 3000; p.tx = Math.max(36, Math.min(144, p.x + (Math.random() - .5) * 50)); p.ty = 104 + Math.random() * 16; }
       var ex = p.tx - p.x, ey = (p.ty || p.y) - p.y; if (Math.abs(ex) > 1 || Math.abs(ey) > 1) { p.dir = ex < 0 ? -1 : 1; p.x += Math.sign(ex) * Math.min(Math.abs(ex), 12 * dt); p.y += Math.sign(ey) * Math.min(Math.abs(ey), 5 * dt); } else if (Math.random() < dt * .8) p.pick = 1 + Math.random() * 1.5; });
     // the neons keep together around a point that wanders, and shy away from the goldfish
     var Sc = aq.school; if (now > Sc.next) { Sc.next = now + 3000 + Math.random() * 3000; Sc.tx = 34 + Math.random() * 112; Sc.ty = 36 + Math.random() * 46; }
@@ -10722,7 +10742,7 @@ window.__EXTRAS = true;
     // flakes sink; the fish snaps up the ones at its mouth
     aq.flakes.forEach(function (f) { if (f.gone) return; f.y = Math.min(AQ_FB, f.y + 7 * dt); f.x += Math.sin(t / 300 + f.ph) * .08;
       var mx = F.x + F.dir * 12; if (!aq.full && Math.hypot(f.x - mx, f.y - (F.y + 1)) < 4) { f.gone = 1; F.gulp = 1; setTimeout(function () { if (aq) aq.fish.gulp = 0; }, 160); beep([[880, .02], [1180, .03]]); aq.ate++; } });
-    aq.flakes = aq.flakes.filter(function (f) { if (f.gone) return false; if (f.y >= AQ_FB) { f.rest = (f.rest || 0) + dt; aq.shrimps.forEach(function (p) { if (Math.abs(p.x - f.x) < 20) { p.tx = f.x; p.ty = AQ_FB + 14; } }); return f.rest < 5; } return true; });
+    aq.flakes = aq.flakes.filter(function (f) { if (f.gone) return false; if (f.y >= AQ_FB) { f.rest = (f.rest || 0) + dt; aq.shrimps.forEach(function (p) { if (Math.abs(p.x - f.x) < 20) { p.tx = f.x; p.ty = AQ_FB + 8; } }); return f.rest < 5; } return true; });
     if (aq.mode === "feed" && !aq.flakes.length) aqFeedDone();
     if (aq.mode === "play" && aq.ptr && d < 5 && now > (aq.caught || 0)) { aq.caught = now + 900; aq.plays++; beep([[620, .03], [820, .04]]); aqBub(F.x + F.dir * 13, F.y - 2, 2); F.happy = 1; setTimeout(function () { if (aq) aq.fish.happy = 0; }, 400); if (aq.plays === 5) { aqSay("Der Goldfisch hat Spaß!"); s.love = clamp(s.love + 1); renderNeeds(); } }
     if (aq.mode === "love") { F.blush = 1; if (d < 3) { F.dir = Math.sin(now / 900) > 0 ? 1 : -1; } }
