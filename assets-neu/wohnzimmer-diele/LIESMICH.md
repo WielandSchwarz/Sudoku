@@ -2,15 +2,17 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Neu in Runde 8: Tapetenfarben und die Türen aus dem Tür-Slot als Haustür. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür sind freigegeben. Neue Tapeten mit eigenen Mustern liegen zur Auswahl. Der Raum selbst ist noch nicht zum Einbau freigegeben.
 
-## Runde 8: neue Tapetenfarben, Türen aus dem Tür-Slot als Haustür
+## Runde 8: neue Tapeten, Türen aus dem Tür-Slot als Haustür (freigegeben)
 
-### Tapetenfarben
-- 10 neue Farben der bisherigen Tapete. Das Muster (Rauten mit Lichtpunkt, Kachel 16×16) bleibt gleich, nur die vier Farben wechseln: Salbeigrün, Altrosa, Himmelblau, Buttergelb, Lavendel, Pfirsich, Mint, Leinen sowie zwei dunkle Töne, Tannengrün und Nachtblau.
-- `tapeten/tapeten_neu.json` enthält je Farbe `id`, `name`, `w`, `h`, `farben` und `tile`, ein SVG im selben Format wie `interior2.json` → `wall_cream`. Damit lassen sie sich als weitere Einträge in den Tapeten-Slot aufnehmen.
-- `tapeten/tapete_*.png` sind die Kacheln, `tapeten/vorschau_*.png` das ganze Zimmer (1D mit Messing-Grammophon) in jeder Farbe, `tapeten/uebersicht_x2.png` alle zusammen.
-- Erzeugt mit `python3 werkzeug/tapeten.py tapeten`. Die Mustertöne werden aus der Grundfarbe abgeleitet, bei dunklen Tapeten ist das Muster heller als der Grund.
+### Tapeten
+- Wieland wollte deutlich verschiedene Tapeten, nicht nur neue Farben. Die reinen Farbvarianten der Rautentapete sind verworfen und entfernt.
+- 10 neue Tapeten mit eigenen Mustern, alle mit wenig Kontrast, damit die Wand ruhig bleibt: Grüne Ranken, Rosé-Damast, Bonbonstreifen, Fächermuster, Waldpilze, Rosenspalier, Kirschen, Strickmuster, Bienenwaben, Backstein. Sie unterscheiden sich auch von den bisherigen zehn (Creme, Mintstreifen, Rosa Punkte, Blaues Karo, Blümchen, Sonnenblumen, Sternennacht, Holzpaneele, Herzchen, Wolkenhimmel).
+- `tapeten/tapeten_neu.json` enthält je Tapete `id`, `name`, `w`, `h` und `tile`, ein nahtlos kachelndes SVG im Format von `furn2.json` → `wall` (Kachel 1:1, `w`/`h` wie bei den bisherigen Einträgen doppelt so groß wie die viewBox). Geprüft: pixelgleich zu den PNGs.
+- `tapeten/tapete_*.png` sind die Kacheln, `tapeten/vorschau_*.png` das ganze Zimmer (Diele mit Grüner Landhaustür) mit jeder Tapete, `tapeten/uebersicht_x2.png` alle zusammen.
+- Erzeugt mit `python3 werkzeug/tapeten2.py tapeten`.
+- Offen: Kommen sie zu den bisherigen Tapeten dazu, oder ersetzen sie einige?
 
 ### Türen
 - Ohne Terrassentür wird der Tür-Slot zur Haustür in der Diele. Die sechs Modelle aus `mock2/room3.json` → `door` passen unverändert: Weiße Terrassentür, Holztür mit Bullauge, Grüne Landhaustür, Bogentür, Blaue Sprossentür, Rote Scheunentür. Rahmen und Türblatt bleiben getrennt, das Aufgehen funktioniert also weiter.
