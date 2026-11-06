@@ -2,9 +2,9 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon ist noch offen, Wieland wählt aus den neuen Entwürfen in Runde 5. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon ist noch offen, Wieland wählt aus den Entwürfen der Runde 6. Der Raum selbst ist noch nicht zum Einbau freigegeben.
 
-## Runde 5: neue Sessel freigegeben, ganz neue Grammophone
+## Runde 5 und 6: neue Sessel freigegeben, neue Grammophone
 
 ### Sessel: zum Einbau freigegeben
 - Wieland hat alle 10 neuen Sessel freigegeben. Sie **ersetzen die bisherigen 10 Sessel vollständig**.
@@ -22,14 +22,16 @@ Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Tren
 - Hinweis für den Einbau: `build.py` überschreibt heute `chair[0]` (wing_red) mit `interior2.json` → `chair_wing_red` und mischt `chairs_new.json` ein (`club`, `egg`). Beide Überschreibungen müssen durch `chairs_neu.json` ersetzt werden.
 - Umwandeln aus den PNGs: `python3 werkzeug/sessel_svg.py sessel`.
 
-### Grammophone: neue Entwürfe zur Auswahl
-Die bisherigen Entwürfe zeigten den Trichter frontal. Die neuen sind in der klassischen Seitenansicht gezeichnet: Ein Schwanenhals-Trichter steigt hinten aus dem Kasten und öffnet sich zum Sessel hin. Die Schalldose liegt auf der Platte, rechts sitzt die Kurbel. Jedes Grammophon hat ein eigenes Möbel darunter. Übersicht: `vorschau/grammophon2_optionen_x4.png`, ganze Räume in `vorschau/grammophon2-*.png`, Teile in `teile/grammophon2-*` (`grammophon` und `grammophon_moebel`).
-1. **Kupfer:** Kupfertrichter mit Messingrand, Eichenkasten, runder Spitzentisch mit Platten auf der Ablage.
-2. **Rosen-Emaille:** cremefarbener Trichter mit aufgemalten Röschen und Goldrand, mintgrüner Kasten, weißes Kommödchen mit geschwungenen Beinen.
-3. **Walnuss:** Holztrichter mit Dauben und Messingrand, dunkler Kasten, zwei gestapelte Plattenkisten.
-4. **Nachtblau:** blauer Trichter mit Goldsternen und leicht gewelltem Goldrand, schwarzer Kasten, Walnusstruhe mit zwei Schubladen.
+### Grammophone
+Die Entwürfe aus Runde 4 (frontaler Trichter) und Runde 5 (Schwanenhals zum Sessel) sind verworfen, ihre Dateien entfernt.
 
-In diesen Ansichten hängt die Pinnwand bei alt y=10 (2 px höher als in 1D), damit zwischen Pinnwand und Trichter Luft bleibt. Das Möbel steht bei alt x=107 mit Unterkante y=106. Gezeichnet wurde alles mit `werkzeug/grammophon2.py`.
+**Runde 6, zur Auswahl:** vier verschiedene Grundformen. Übersicht: `vorschau/grammophon3_optionen_x4.png`, ganze Räume in `vorschau/grammophon3-*.png`, Teile in `teile/grammophon3-*` (`grammophon` und `grammophon_moebel`).
+1. **Tulpentrichter:** Der Messingtrichter steigt senkrecht auf und öffnet sich nach oben wie eine Tulpe. Darunter ein Spitzentisch mit Platten.
+2. **Großer Messingtrichter:** klassische Form, großer Trichter zum Fenster hin, dunkler Kasten auf einem Hocker mit gehäkeltem Bezug.
+3. **Mahagoni schräg nach vorn:** großer dunkelroter Trichter mit Goldrand, schräg zum Betrachter gedreht, auf einer Walnusstruhe.
+4. **Koffergrammophon:** ohne Trichter, aufgeklappter roter Koffer auf einem Kommödchen.
+
+Die Pinnwand hängt bei alt y=10, das Möbel steht bei alt x=107 mit Unterkante y=106. Gezeichnet wurde alles mit `werkzeug/grammophon2.py` (`DESIGNS3`, `gram3`).
 
 ## Runde 4: 1D, Pinnwand über dem Grammophon, Grammophon-Entwürfe, 10 neue Sessel
 - **1D** (`vorschau/variante-1d*`) unterscheidet sich von 1C so: Die Pinnwand (`pcBoard`) hängt über dem Grammophon (alt x=103, y=12), das Wandbrett ist entfernt. Über dem ersten Regal ist die Wand jetzt frei. Das Grammophon steht 4 px weiter vorn (Unterkante y=106 statt 102), also etwas von der Wand weg. Das Schiffsbild bleibt über dem zweiten Regal.

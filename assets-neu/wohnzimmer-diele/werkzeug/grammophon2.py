@@ -14,7 +14,7 @@ def bez(p0, p1, p2, t):
             (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1])
 
 
-def horn_profile(L, p0, p1, p2, r0, r1, pal, rim, inside, pattern=None, scallop=0):
+def horn_profile(L, p0, p1, p2, r0, r1, pal, rim, inside, pattern=None, scallop=0, depth=.5):
     """swan-neck horn along a quadratic curve; radius grows towards the bell; mouth seen at an angle"""
     pal = [tc(c) for c in pal]; rim = [tc(c) for c in rim]; inside = [tc(c) for c in inside]
     N = 120
@@ -47,7 +47,7 @@ def horn_profile(L, p0, p1, p2, r0, r1, pal, rim, inside, pattern=None, scallop=
     # mouth
     ex, ey = pts[-1]; tx, ty = pts[-1][0] - pts[-8][0], pts[-1][1] - pts[-8][1]
     tl = math.hypot(tx, ty); ux, uy = tx / tl, ty / tl; vx, vy = -uy, ux
-    a = max(2.6, r1 * .5); b = r1 + 1
+    a = max(2.6, r1 * depth); b = r1 + 1
     cx, cy = ex + ux * .6, ey + uy * .6
     for y in range(int(cy - b - 3), int(cy + b + 4)):
         for x in range(int(cx - b - 3), int(cx + b + 4)):
@@ -91,14 +91,15 @@ def record(L, x, y, w):
 
 def build_gram(horn, box, rec=True):
     """returns an outlined layer with box + record + sound box + horn"""
-    L = Layer(40, 50)
+    L = Layer(box.get('cw', 40), box.get('ch', 50))
     bx, by, bw, bh = box['x'], box['y'], box['w'], box['h']
     gbox(L, bx, by, bw, bh, box['wood'], box.get('trim', 'br3'), box.get('front'))
     record(L, bx + 1, by - 2, bw - 2)
-    p0 = (bx + bw - 6, by - 4)
-    soundbox(L, bx + bw - 8, by - 6)
+    p0 = horn.get('p0', (bx + bw - 6, by - 4))
+    sb = horn.get('sb', (bx + bw - 8, by - 6))
+    soundbox(L, *sb)
     horn_profile(L, p0, horn['p1'], horn['p2'], horn.get('r0', 1.3), horn.get('r1', 9), horn['pal'], horn['rim'], horn['inside'],
-                 horn.get('pattern'), horn.get('scallop', 0))
+                 horn.get('pattern'), horn.get('scallop', 0), horn.get('depth', .5))
     o = L.outline()
     bb = o.im.getbbox(); out = Layer(bb[2] - bb[0], bb[3] - bb[1]); out.paste(o.im.crop(bb), 0, 0)
     return out
@@ -219,4 +220,59 @@ DESIGNS = {
 
 def gram(key):
     d = DESIGNS[key]
+    return build_gram(d['horn'], d['box']), d['moebel'](), d['name']
+
+
+# ------------------------------------------------------------------ round 6: four different basic shapes
+def petals(x, y, t, s, c):
+    if t > .55 and abs((s * 3) % 1 - .5) < .1:
+        return mul(c, .85)
+    return None
+
+
+def hocker(w=26, h=20):
+    """low round wooden stool with a crocheted cover"""
+    L = Layer(w, h)
+    L.rect(0, 0, w, 4, 'pk2'); L.hl(0, 0, w, 'pk3')
+    for x in range(0, w, 2):
+        L.px(x, 4, 'pk2')
+    L.rect(1, 5, w - 2, 2, 'wd3'); L.hl(1, 5, w - 2, 'wd4')
+    for x in (3, w // 2 - 1, w - 5):
+        L.rect(x, 7, 2, h - 7, 'wd2'); L.vl(x, 7, h - 7, 'wd3')
+    L.hl(3, h - 5, w - 6, 'wd2')
+    return L.outline()
+
+
+def koffer_auf_schrank():
+    from objects import koffergrammophon
+    return koffergrammophon()
+
+
+DESIGNS3 = {
+    'tulpe': dict(
+        name='Tulpentrichter nach oben',
+        horn=dict(p0=(23, 38), p1=(26, 26), p2=(22, 16), r1=9, depth=.32, scallop=.07,
+                  pal=('8a6420', 'b8862a', 'd8a43a', 'e9b949', 'fbe2a0'), rim=('e9b949', 'fff6d8'), inside=('5a3c10', '8a6420'), pattern=petals),
+        box=dict(x=6, y=41, w=22, h=8, wood=('3e2410', '764a22', '9a6634', 'ba844a')),
+        moebel=lambda: lacetisch(28, 22)),
+    'rechts': dict(
+        name='Großer Messingtrichter zum Fenster',
+        horn=dict(p0=(10, 37), sb=(8, 35), p1=(2, 14), p2=(27, 13), r1=11, pal=('8a6420', 'b8862a', 'd8a43a', 'e9b949', 'fbe2a0'),
+                  rim=('e9b949', 'fff6d8'), inside=('5a3c10', '8a6420'), pattern=petals),
+        box=dict(x=4, y=41, w=22, h=9, wood=('2b1d12', '4e3018', '6a4020', '8a5a30'), cw=42, ch=51),
+        moebel=lambda: hocker(28, 20)),
+    'schraeg': dict(
+        name='Mahagoni-Trichter schräg nach vorn',
+        horn=dict(p1=(34, 14), p2=(17, 15), r1=11, depth=.8, pal=('3e1810', '5a2418', '7a3422', '9a4a30', 'b86448'),
+                  rim=('e9b949', 'fbe2a0'), inside=('2a0c08', '4a1a10'), pattern=petals, scallop=.06),
+        box=dict(x=6, y=41, w=20, h=8, wood=('3e2410', '764a22', '9a6634', 'ba844a')),
+        moebel=lambda: nachttruhe(28, 22)),
+}
+
+
+def gram3(key):
+    if key == 'koffer':
+        from objects import koffergrammophon
+        return koffergrammophon(), kommoedchen(28, 24, ('bw1', 'bw2', 'bw3', 'bw4')), 'Koffergrammophon (ohne Trichter)'
+    d = DESIGNS3[key]
     return build_gram(d['horn'], d['box']), d['moebel'](), d['name']

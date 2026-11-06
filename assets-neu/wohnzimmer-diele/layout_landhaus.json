@@ -1020,8 +1020,8 @@
     }
    ]
   },
-  "grammophon2-kupfer": {
-   "titel": "Landhaus 1D mit neuem Grammophon: Kupfer-Schwanenhals auf Spitzentisch",
+  "grammophon3-tulpe": {
+   "titel": "Landhaus 1D mit neuem Grammophon: Tulpentrichter nach oben",
    "breite": 330,
    "diele_breite": 76,
    "trenner_breite": 8,
@@ -1035,7 +1035,7 @@
      "w": 32,
      "h": 55,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/haustuer.png"
+     "datei": "teile/grammophon3-tulpe/haustuer.png"
     },
     {
      "name": "fussmatte",
@@ -1044,7 +1044,7 @@
      "w": 30,
      "h": 6,
      "ebene": "liegt",
-     "datei": "teile/grammophon2-kupfer/fussmatte.png"
+     "datei": "teile/grammophon3-tulpe/fussmatte.png"
     },
     {
      "name": "hakenleiste",
@@ -1053,7 +1053,7 @@
      "w": 28,
      "h": 8,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/hakenleiste.png"
+     "datei": "teile/grammophon3-tulpe/hakenleiste.png"
     },
     {
      "name": "mantel",
@@ -1062,7 +1062,7 @@
      "w": 13,
      "h": 30,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/mantel.png"
+     "datei": "teile/grammophon3-tulpe/mantel.png"
     },
     {
      "name": "strohhut",
@@ -1071,7 +1071,7 @@
      "w": 15,
      "h": 8,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/strohhut.png"
+     "datei": "teile/grammophon3-tulpe/strohhut.png"
     },
     {
      "name": "schal",
@@ -1080,7 +1080,7 @@
      "w": 8,
      "h": 24,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/schal.png"
+     "datei": "teile/grammophon3-tulpe/schal.png"
     },
     {
      "name": "bank",
@@ -1091,7 +1091,7 @@
      "ebene": "boden",
      "unten": 103,
      "schatten": true,
-     "datei": "teile/grammophon2-kupfer/bank.png"
+     "datei": "teile/grammophon3-tulpe/bank.png"
     },
     {
      "name": "trenner_holzpfosten",
@@ -1100,7 +1100,7 @@
      "w": 28,
      "h": 102,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/trenner_holzpfosten.png"
+     "datei": "teile/grammophon3-tulpe/trenner_holzpfosten.png"
     },
     {
      "name": "teppich",
@@ -1111,7 +1111,7 @@
      "ebene": "alt",
      "alt_x": 74,
      "alt_y": 108,
-     "datei": "teile/grammophon2-kupfer/teppich.png"
+     "datei": "teile/grammophon3-tulpe/teppich.png"
     },
     {
      "name": "uhr",
@@ -1122,7 +1122,7 @@
      "ebene": "alt",
      "alt_x": 46,
      "alt_y": 12,
-     "datei": "teile/grammophon2-kupfer/uhr.png"
+     "datei": "teile/grammophon3-tulpe/uhr.png"
     },
     {
      "name": "pinnwand",
@@ -1133,7 +1133,7 @@
      "ebene": "alt",
      "alt_x": 128,
      "alt_y": 16,
-     "datei": "teile/grammophon2-kupfer/pinnwand.png"
+     "datei": "teile/grammophon3-tulpe/pinnwand.png"
     },
     {
      "name": "fenster",
@@ -1142,7 +1142,7 @@
      "w": 50,
      "h": 44,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/fenster.png"
+     "datei": "teile/grammophon3-tulpe/fenster.png"
     },
     {
      "name": "fenster_vorhang_links",
@@ -1151,7 +1151,7 @@
      "w": 11,
      "h": 42,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/fenster_vorhang_links.png"
+     "datei": "teile/grammophon3-tulpe/fenster_vorhang_links.png"
     },
     {
      "name": "fenster_vorhang_rechts",
@@ -1160,7 +1160,7 @@
      "w": 11,
      "h": 42,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/fenster_vorhang_rechts.png"
+     "datei": "teile/grammophon3-tulpe/fenster_vorhang_rechts.png"
     },
     {
      "name": "fenster_stange",
@@ -1169,7 +1169,7 @@
      "w": 62,
      "h": 4,
      "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/fenster_stange.png"
+     "datei": "teile/grammophon3-tulpe/fenster_stange.png"
     },
     {
      "name": "schiffsbild",
@@ -1180,7 +1180,7 @@
      "ebene": "alt",
      "alt_x": 92,
      "alt_y": 20,
-     "datei": "teile/grammophon2-kupfer/schiffsbild.png"
+     "datei": "teile/grammophon3-tulpe/schiffsbild.png"
     },
     {
      "name": "regal",
@@ -1191,7 +1191,7 @@
      "ebene": "alt",
      "alt_x": 1,
      "alt_y": 54,
-     "datei": "teile/grammophon2-kupfer/regal.png"
+     "datei": "teile/grammophon3-tulpe/regal.png"
     },
     {
      "name": "lampe",
@@ -1202,7 +1202,7 @@
      "ebene": "alt",
      "alt_x": 87,
      "alt_y": 58,
-     "datei": "teile/grammophon2-kupfer/lampe.png"
+     "datei": "teile/grammophon3-tulpe/lampe.png"
     },
     {
      "name": "sessel",
@@ -1213,7 +1213,7 @@
      "ebene": "alt",
      "alt_x": 38,
      "alt_y": 69,
-     "datei": "teile/grammophon2-kupfer/sessel.png"
+     "datei": "teile/grammophon3-tulpe/sessel.png"
     },
     {
      "name": "grammophon_moebel",
@@ -1224,253 +1224,16 @@
      "ebene": "boden",
      "unten": 106,
      "schatten": true,
-     "datei": "teile/grammophon2-kupfer/grammophon_moebel.png"
-    },
-    {
-     "name": "grammophon",
-     "x": 193,
-     "y": 39,
-     "w": 28,
-     "h": 46,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-kupfer/grammophon.png"
-    },
-    {
-     "name": "geranie",
-     "x": 244,
-     "y": 55,
-     "w": 31,
-     "h": 53,
-     "ebene": "alt",
-     "alt_x": 144,
-     "alt_y": 55,
-     "datei": "teile/grammophon2-kupfer/geranie.png"
-    },
-    {
-     "name": "regal_zwei",
-     "x": 294,
-     "y": 54,
-     "w": 37,
-     "h": 54,
-     "ebene": "boden",
-     "datei": "teile/grammophon2-kupfer/regal_zwei.png"
-    }
-   ]
-  },
-  "grammophon2-rosen": {
-   "titel": "Landhaus 1D mit neuem Grammophon: Rosen-Emaille auf cremefarbenem Kommödchen",
-   "breite": 330,
-   "diele_breite": 76,
-   "trenner_breite": 8,
-   "altes_zimmer_versatz": 84,
-   "altes_zimmer_bis": 246,
-   "teile": [
-    {
-     "name": "haustuer",
-     "x": 8,
-     "y": 46,
-     "w": 32,
-     "h": 55,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/haustuer.png"
-    },
-    {
-     "name": "fussmatte",
-     "x": 9,
-     "y": 101,
-     "w": 30,
-     "h": 6,
-     "ebene": "liegt",
-     "datei": "teile/grammophon2-rosen/fussmatte.png"
-    },
-    {
-     "name": "hakenleiste",
-     "x": 46,
-     "y": 44,
-     "w": 28,
-     "h": 8,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/hakenleiste.png"
-    },
-    {
-     "name": "mantel",
-     "x": 46,
-     "y": 49,
-     "w": 13,
-     "h": 30,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/mantel.png"
-    },
-    {
-     "name": "strohhut",
-     "x": 53,
-     "y": 48,
-     "w": 15,
-     "h": 8,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/strohhut.png"
-    },
-    {
-     "name": "schal",
-     "x": 67,
-     "y": 49,
-     "w": 8,
-     "h": 24,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/schal.png"
-    },
-    {
-     "name": "bank",
-     "x": 46,
-     "y": 87,
-     "w": 28,
-     "h": 17,
-     "ebene": "boden",
-     "unten": 103,
-     "schatten": true,
-     "datei": "teile/grammophon2-rosen/bank.png"
-    },
-    {
-     "name": "trenner_holzpfosten",
-     "x": 66,
-     "y": 0,
-     "w": 28,
-     "h": 102,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/trenner_holzpfosten.png"
-    },
-    {
-     "name": "teppich",
-     "x": 146,
-     "y": 108,
-     "w": 71,
-     "h": 22,
-     "ebene": "alt",
-     "alt_x": 74,
-     "alt_y": 108,
-     "datei": "teile/grammophon2-rosen/teppich.png"
-    },
-    {
-     "name": "uhr",
-     "x": 147,
-     "y": 12,
-     "w": 32,
-     "h": 32,
-     "ebene": "alt",
-     "alt_x": 46,
-     "alt_y": 12,
-     "datei": "teile/grammophon2-rosen/uhr.png"
-    },
-    {
-     "name": "pinnwand",
-     "x": 187,
-     "y": 10,
-     "w": 36,
-     "h": 26,
-     "ebene": "alt",
-     "alt_x": 128,
-     "alt_y": 16,
-     "datei": "teile/grammophon2-rosen/pinnwand.png"
-    },
-    {
-     "name": "fenster",
-     "x": 239,
-     "y": 26,
-     "w": 50,
-     "h": 44,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/fenster.png"
-    },
-    {
-     "name": "fenster_vorhang_links",
-     "x": 235,
-     "y": 25,
-     "w": 11,
-     "h": 42,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/fenster_vorhang_links.png"
-    },
-    {
-     "name": "fenster_vorhang_rechts",
-     "x": 282,
-     "y": 25,
-     "w": 11,
-     "h": 42,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/fenster_vorhang_rechts.png"
-    },
-    {
-     "name": "fenster_stange",
-     "x": 234,
-     "y": 22,
-     "w": 62,
-     "h": 4,
-     "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/fenster_stange.png"
-    },
-    {
-     "name": "schiffsbild",
-     "x": 300,
-     "y": 24,
-     "w": 24,
-     "h": 20,
-     "ebene": "alt",
-     "alt_x": 92,
-     "alt_y": 20,
-     "datei": "teile/grammophon2-rosen/schiffsbild.png"
-    },
-    {
-     "name": "regal",
-     "x": 85,
-     "y": 54,
-     "w": 37,
-     "h": 54,
-     "ebene": "alt",
-     "alt_x": 1,
-     "alt_y": 54,
-     "datei": "teile/grammophon2-rosen/regal.png"
-    },
-    {
-     "name": "lampe",
-     "x": 123,
-     "y": 58,
-     "w": 15,
-     "h": 46,
-     "ebene": "alt",
-     "alt_x": 87,
-     "alt_y": 58,
-     "datei": "teile/grammophon2-rosen/lampe.png"
-    },
-    {
-     "name": "sessel",
-     "x": 139,
-     "y": 69,
-     "w": 48,
-     "h": 44,
-     "ebene": "alt",
-     "alt_x": 38,
-     "alt_y": 69,
-     "datei": "teile/grammophon2-rosen/sessel.png"
-    },
-    {
-     "name": "grammophon_moebel",
-     "x": 191,
-     "y": 83,
-     "w": 30,
-     "h": 24,
-     "ebene": "boden",
-     "unten": 106,
-     "schatten": true,
-     "datei": "teile/grammophon2-rosen/grammophon_moebel.png"
+     "datei": "teile/grammophon3-tulpe/grammophon_moebel.png"
     },
     {
      "name": "grammophon",
      "x": 193,
      "y": 41,
-     "w": 28,
+     "w": 27,
      "h": 44,
      "ebene": "wand",
-     "datei": "teile/grammophon2-rosen/grammophon.png"
+     "datei": "teile/grammophon3-tulpe/grammophon.png"
     },
     {
      "name": "geranie",
@@ -1481,7 +1244,7 @@
      "ebene": "alt",
      "alt_x": 144,
      "alt_y": 55,
-     "datei": "teile/grammophon2-rosen/geranie.png"
+     "datei": "teile/grammophon3-tulpe/geranie.png"
     },
     {
      "name": "regal_zwei",
@@ -1490,12 +1253,12 @@
      "w": 37,
      "h": 54,
      "ebene": "boden",
-     "datei": "teile/grammophon2-rosen/regal_zwei.png"
+     "datei": "teile/grammophon3-tulpe/regal_zwei.png"
     }
    ]
   },
-  "grammophon2-walnuss": {
-   "titel": "Landhaus 1D mit neuem Grammophon: Walnuss-Trichter auf Plattenkisten",
+  "grammophon3-rechts": {
+   "titel": "Landhaus 1D mit neuem Grammophon: Großer Messingtrichter zum Fenster",
    "breite": 330,
    "diele_breite": 76,
    "trenner_breite": 8,
@@ -1509,7 +1272,7 @@
      "w": 32,
      "h": 55,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/haustuer.png"
+     "datei": "teile/grammophon3-rechts/haustuer.png"
     },
     {
      "name": "fussmatte",
@@ -1518,7 +1281,7 @@
      "w": 30,
      "h": 6,
      "ebene": "liegt",
-     "datei": "teile/grammophon2-walnuss/fussmatte.png"
+     "datei": "teile/grammophon3-rechts/fussmatte.png"
     },
     {
      "name": "hakenleiste",
@@ -1527,7 +1290,7 @@
      "w": 28,
      "h": 8,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/hakenleiste.png"
+     "datei": "teile/grammophon3-rechts/hakenleiste.png"
     },
     {
      "name": "mantel",
@@ -1536,7 +1299,7 @@
      "w": 13,
      "h": 30,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/mantel.png"
+     "datei": "teile/grammophon3-rechts/mantel.png"
     },
     {
      "name": "strohhut",
@@ -1545,7 +1308,7 @@
      "w": 15,
      "h": 8,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/strohhut.png"
+     "datei": "teile/grammophon3-rechts/strohhut.png"
     },
     {
      "name": "schal",
@@ -1554,7 +1317,7 @@
      "w": 8,
      "h": 24,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/schal.png"
+     "datei": "teile/grammophon3-rechts/schal.png"
     },
     {
      "name": "bank",
@@ -1565,7 +1328,7 @@
      "ebene": "boden",
      "unten": 103,
      "schatten": true,
-     "datei": "teile/grammophon2-walnuss/bank.png"
+     "datei": "teile/grammophon3-rechts/bank.png"
     },
     {
      "name": "trenner_holzpfosten",
@@ -1574,7 +1337,7 @@
      "w": 28,
      "h": 102,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/trenner_holzpfosten.png"
+     "datei": "teile/grammophon3-rechts/trenner_holzpfosten.png"
     },
     {
      "name": "teppich",
@@ -1585,7 +1348,7 @@
      "ebene": "alt",
      "alt_x": 74,
      "alt_y": 108,
-     "datei": "teile/grammophon2-walnuss/teppich.png"
+     "datei": "teile/grammophon3-rechts/teppich.png"
     },
     {
      "name": "uhr",
@@ -1596,7 +1359,7 @@
      "ebene": "alt",
      "alt_x": 46,
      "alt_y": 12,
-     "datei": "teile/grammophon2-walnuss/uhr.png"
+     "datei": "teile/grammophon3-rechts/uhr.png"
     },
     {
      "name": "pinnwand",
@@ -1607,7 +1370,7 @@
      "ebene": "alt",
      "alt_x": 128,
      "alt_y": 16,
-     "datei": "teile/grammophon2-walnuss/pinnwand.png"
+     "datei": "teile/grammophon3-rechts/pinnwand.png"
     },
     {
      "name": "fenster",
@@ -1616,7 +1379,7 @@
      "w": 50,
      "h": 44,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/fenster.png"
+     "datei": "teile/grammophon3-rechts/fenster.png"
     },
     {
      "name": "fenster_vorhang_links",
@@ -1625,7 +1388,7 @@
      "w": 11,
      "h": 42,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/fenster_vorhang_links.png"
+     "datei": "teile/grammophon3-rechts/fenster_vorhang_links.png"
     },
     {
      "name": "fenster_vorhang_rechts",
@@ -1634,7 +1397,7 @@
      "w": 11,
      "h": 42,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/fenster_vorhang_rechts.png"
+     "datei": "teile/grammophon3-rechts/fenster_vorhang_rechts.png"
     },
     {
      "name": "fenster_stange",
@@ -1643,7 +1406,7 @@
      "w": 62,
      "h": 4,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/fenster_stange.png"
+     "datei": "teile/grammophon3-rechts/fenster_stange.png"
     },
     {
      "name": "schiffsbild",
@@ -1654,7 +1417,7 @@
      "ebene": "alt",
      "alt_x": 92,
      "alt_y": 20,
-     "datei": "teile/grammophon2-walnuss/schiffsbild.png"
+     "datei": "teile/grammophon3-rechts/schiffsbild.png"
     },
     {
      "name": "regal",
@@ -1665,7 +1428,7 @@
      "ebene": "alt",
      "alt_x": 1,
      "alt_y": 54,
-     "datei": "teile/grammophon2-walnuss/regal.png"
+     "datei": "teile/grammophon3-rechts/regal.png"
     },
     {
      "name": "lampe",
@@ -1676,7 +1439,7 @@
      "ebene": "alt",
      "alt_x": 87,
      "alt_y": 58,
-     "datei": "teile/grammophon2-walnuss/lampe.png"
+     "datei": "teile/grammophon3-rechts/lampe.png"
     },
     {
      "name": "sessel",
@@ -1687,27 +1450,27 @@
      "ebene": "alt",
      "alt_x": 38,
      "alt_y": 69,
-     "datei": "teile/grammophon2-walnuss/sessel.png"
+     "datei": "teile/grammophon3-rechts/sessel.png"
     },
     {
      "name": "grammophon_moebel",
      "x": 191,
-     "y": 82,
+     "y": 85,
      "w": 30,
-     "h": 25,
+     "h": 22,
      "ebene": "boden",
      "unten": 106,
      "schatten": true,
-     "datei": "teile/grammophon2-walnuss/grammophon_moebel.png"
+     "datei": "teile/grammophon3-rechts/grammophon_moebel.png"
     },
     {
      "name": "grammophon",
-     "x": 192,
-     "y": 37,
-     "w": 30,
-     "h": 47,
+     "x": 189,
+     "y": 36,
+     "w": 36,
+     "h": 51,
      "ebene": "wand",
-     "datei": "teile/grammophon2-walnuss/grammophon.png"
+     "datei": "teile/grammophon3-rechts/grammophon.png"
     },
     {
      "name": "geranie",
@@ -1718,7 +1481,7 @@
      "ebene": "alt",
      "alt_x": 144,
      "alt_y": 55,
-     "datei": "teile/grammophon2-walnuss/geranie.png"
+     "datei": "teile/grammophon3-rechts/geranie.png"
     },
     {
      "name": "regal_zwei",
@@ -1727,12 +1490,12 @@
      "w": 37,
      "h": 54,
      "ebene": "boden",
-     "datei": "teile/grammophon2-walnuss/regal_zwei.png"
+     "datei": "teile/grammophon3-rechts/regal_zwei.png"
     }
    ]
   },
-  "grammophon2-sterne": {
-   "titel": "Landhaus 1D mit neuem Grammophon: Nachtblau mit Goldsternen auf Walnusstruhe",
+  "grammophon3-schraeg": {
+   "titel": "Landhaus 1D mit neuem Grammophon: Mahagoni-Trichter schräg nach vorn",
    "breite": 330,
    "diele_breite": 76,
    "trenner_breite": 8,
@@ -1746,7 +1509,7 @@
      "w": 32,
      "h": 55,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/haustuer.png"
+     "datei": "teile/grammophon3-schraeg/haustuer.png"
     },
     {
      "name": "fussmatte",
@@ -1755,7 +1518,7 @@
      "w": 30,
      "h": 6,
      "ebene": "liegt",
-     "datei": "teile/grammophon2-sterne/fussmatte.png"
+     "datei": "teile/grammophon3-schraeg/fussmatte.png"
     },
     {
      "name": "hakenleiste",
@@ -1764,7 +1527,7 @@
      "w": 28,
      "h": 8,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/hakenleiste.png"
+     "datei": "teile/grammophon3-schraeg/hakenleiste.png"
     },
     {
      "name": "mantel",
@@ -1773,7 +1536,7 @@
      "w": 13,
      "h": 30,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/mantel.png"
+     "datei": "teile/grammophon3-schraeg/mantel.png"
     },
     {
      "name": "strohhut",
@@ -1782,7 +1545,7 @@
      "w": 15,
      "h": 8,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/strohhut.png"
+     "datei": "teile/grammophon3-schraeg/strohhut.png"
     },
     {
      "name": "schal",
@@ -1791,7 +1554,7 @@
      "w": 8,
      "h": 24,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/schal.png"
+     "datei": "teile/grammophon3-schraeg/schal.png"
     },
     {
      "name": "bank",
@@ -1802,7 +1565,7 @@
      "ebene": "boden",
      "unten": 103,
      "schatten": true,
-     "datei": "teile/grammophon2-sterne/bank.png"
+     "datei": "teile/grammophon3-schraeg/bank.png"
     },
     {
      "name": "trenner_holzpfosten",
@@ -1811,7 +1574,7 @@
      "w": 28,
      "h": 102,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/trenner_holzpfosten.png"
+     "datei": "teile/grammophon3-schraeg/trenner_holzpfosten.png"
     },
     {
      "name": "teppich",
@@ -1822,7 +1585,7 @@
      "ebene": "alt",
      "alt_x": 74,
      "alt_y": 108,
-     "datei": "teile/grammophon2-sterne/teppich.png"
+     "datei": "teile/grammophon3-schraeg/teppich.png"
     },
     {
      "name": "uhr",
@@ -1833,7 +1596,7 @@
      "ebene": "alt",
      "alt_x": 46,
      "alt_y": 12,
-     "datei": "teile/grammophon2-sterne/uhr.png"
+     "datei": "teile/grammophon3-schraeg/uhr.png"
     },
     {
      "name": "pinnwand",
@@ -1844,7 +1607,7 @@
      "ebene": "alt",
      "alt_x": 128,
      "alt_y": 16,
-     "datei": "teile/grammophon2-sterne/pinnwand.png"
+     "datei": "teile/grammophon3-schraeg/pinnwand.png"
     },
     {
      "name": "fenster",
@@ -1853,7 +1616,7 @@
      "w": 50,
      "h": 44,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/fenster.png"
+     "datei": "teile/grammophon3-schraeg/fenster.png"
     },
     {
      "name": "fenster_vorhang_links",
@@ -1862,7 +1625,7 @@
      "w": 11,
      "h": 42,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/fenster_vorhang_links.png"
+     "datei": "teile/grammophon3-schraeg/fenster_vorhang_links.png"
     },
     {
      "name": "fenster_vorhang_rechts",
@@ -1871,7 +1634,7 @@
      "w": 11,
      "h": 42,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/fenster_vorhang_rechts.png"
+     "datei": "teile/grammophon3-schraeg/fenster_vorhang_rechts.png"
     },
     {
      "name": "fenster_stange",
@@ -1880,7 +1643,7 @@
      "w": 62,
      "h": 4,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/fenster_stange.png"
+     "datei": "teile/grammophon3-schraeg/fenster_stange.png"
     },
     {
      "name": "schiffsbild",
@@ -1891,7 +1654,7 @@
      "ebene": "alt",
      "alt_x": 92,
      "alt_y": 20,
-     "datei": "teile/grammophon2-sterne/schiffsbild.png"
+     "datei": "teile/grammophon3-schraeg/schiffsbild.png"
     },
     {
      "name": "regal",
@@ -1902,7 +1665,7 @@
      "ebene": "alt",
      "alt_x": 1,
      "alt_y": 54,
-     "datei": "teile/grammophon2-sterne/regal.png"
+     "datei": "teile/grammophon3-schraeg/regal.png"
     },
     {
      "name": "lampe",
@@ -1913,7 +1676,7 @@
      "ebene": "alt",
      "alt_x": 87,
      "alt_y": 58,
-     "datei": "teile/grammophon2-sterne/lampe.png"
+     "datei": "teile/grammophon3-schraeg/lampe.png"
     },
     {
      "name": "sessel",
@@ -1924,7 +1687,7 @@
      "ebene": "alt",
      "alt_x": 38,
      "alt_y": 69,
-     "datei": "teile/grammophon2-sterne/sessel.png"
+     "datei": "teile/grammophon3-schraeg/sessel.png"
     },
     {
      "name": "grammophon_moebel",
@@ -1935,16 +1698,16 @@
      "ebene": "boden",
      "unten": 106,
      "schatten": true,
-     "datei": "teile/grammophon2-sterne/grammophon_moebel.png"
+     "datei": "teile/grammophon3-schraeg/grammophon_moebel.png"
     },
     {
      "name": "grammophon",
-     "x": 193,
-     "y": 40,
-     "w": 28,
-     "h": 45,
+     "x": 194,
+     "y": 38,
+     "w": 26,
+     "h": 47,
      "ebene": "wand",
-     "datei": "teile/grammophon2-sterne/grammophon.png"
+     "datei": "teile/grammophon3-schraeg/grammophon.png"
     },
     {
      "name": "geranie",
@@ -1955,7 +1718,7 @@
      "ebene": "alt",
      "alt_x": 144,
      "alt_y": 55,
-     "datei": "teile/grammophon2-sterne/geranie.png"
+     "datei": "teile/grammophon3-schraeg/geranie.png"
     },
     {
      "name": "regal_zwei",
@@ -1964,7 +1727,244 @@
      "w": 37,
      "h": 54,
      "ebene": "boden",
-     "datei": "teile/grammophon2-sterne/regal_zwei.png"
+     "datei": "teile/grammophon3-schraeg/regal_zwei.png"
+    }
+   ]
+  },
+  "grammophon3-koffer": {
+   "titel": "Landhaus 1D mit neuem Grammophon: Koffergrammophon (ohne Trichter)",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/grammophon3-koffer/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/grammophon3-koffer/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 146,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/grammophon3-koffer/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 147,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/grammophon3-koffer/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 187,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/grammophon3-koffer/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 239,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 235,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 282,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 234,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 300,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/grammophon3-koffer/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/grammophon3-koffer/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 123,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/grammophon3-koffer/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 139,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/grammophon3-koffer/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 191,
+     "y": 81,
+     "w": 30,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/grammophon3-koffer/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 194,
+     "y": 59,
+     "w": 26,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/grammophon3-koffer/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 244,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/grammophon3-koffer/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 294,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/grammophon3-koffer/regal_zwei.png"
     }
    ]
   }

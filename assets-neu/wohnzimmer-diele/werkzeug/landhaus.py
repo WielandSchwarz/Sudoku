@@ -321,9 +321,9 @@ def v1d(gram='messing'):
 import grammophon2 as G2
 
 
-def v1e(key):
-    g, moebel, name = G2.gram(key)
-    v = Land('grammophon2-' + key, 'Landhaus 1D mit neuem Grammophon: ' + name)
+def v1e(key, r=2):
+    g, moebel, name = (G2.gram if r == 2 else G2.gram3)(key)
+    v = Land('grammophon%d-' % r + key, 'Landhaus 1D mit neuem Grammophon: ' + name)
     hall(v)
     S = v.R.S
     v.old('teppich', x=62)
@@ -349,7 +349,7 @@ if __name__ == '__main__':
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else 'out2'
     lay = {}
-    for f in (v1a, v1b, v1c, v1d, lambda: v1e('kupfer'), lambda: v1e('rosen'), lambda: v1e('walnuss'), lambda: v1e('sterne')):
+    for f in (v1a, v1b, v1c, v1d, lambda: v1e('tulpe', 3), lambda: v1e('rechts', 3), lambda: v1e('schraeg', 3), lambda: v1e('koffer', 3)):
         v = f(); lay[v.key] = v.export(out); print(v.key, v.R.W, len(v.items))
     json.dump(dict(einheit='1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100',
                    reihenfolge='Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene "alt" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position',
