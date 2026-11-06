@@ -2,7 +2,17 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür und die 10 neuen Tapeten sind freigegeben. Runde 9: eigene Farben für jede Tapete im Möbel-Menü und die Bodenprüfung, freigegeben. Runde 10: neue Böden für Wohnraum und Diele zur Auswahl. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür und die 10 neuen Tapeten sind freigegeben. Runde 9: eigene Farben für jede Tapete im Möbel-Menü und die Bodenprüfung, freigegeben. Runde 10 bis 12: Böden für Wohnraum und Diele ausgewählt (siehe Runde 12). Der Raum selbst ist noch nicht zum Einbau freigegeben.
+
+## Runde 12: Bodenauswahl festgelegt
+
+Wieland hat auf der Auswahlseite (Artifact „Bodenauswahl fürs Hamsterhaus“) gewählt:
+- **Wohnraum, 7 Böden:** W1 Honig-Eiche, W2 Walnuss breit, W6 Chevron-Eiche, W7 Tafelparkett, W16 Kork, W18 Kelim-Streifen, W20 Blauer Sternenteppich.
+- **Diele, 6 Böden:** D1 Schachbrett Marmor, D5 Schieferplatten, D7 Rauten rot-creme, D9 Sandsteinplatten, D11 Holzpflaster, D12 Klinker im Fischgrät.
+- Von den bisherigen 12 Böden (A1 bis A12) hat er keinen ausgewählt. Die neuen Böden **ersetzen** die bisherige Bodenauswahl. Damit entfällt auch der Fix für die gestreckten „Hellen Dielen“.
+- `boeden2/boeden_auswahl.json` enthält genau diese 13 Böden, getrennt nach `wohnraum` und `diele`, im selben Format wie `boeden_neu.json`. Übersicht: `boeden2/auswahl_uebersicht.png`.
+- Vorschlag für die Standardwerte: Wohnraum Honig-Eiche, Diele Schachbrett Marmor.
+- Gespeicherte Spielstände mit einer alten Boden-ID sollten auf den Standard fallen. Die Diele bekommt ihre eigene Auswahl im Möbel-Menü (siehe Runde 10).
 
 ## Runde 10 und 11: neue Böden für Wohnraum und Diele (20 + 14)
 
