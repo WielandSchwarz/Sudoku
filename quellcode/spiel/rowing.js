@@ -2,7 +2,7 @@
   // We sit at the stern. In front of us two friends in orange life jackets face us and row, one oar each; the bow with its lantern points at the
   // horizon where the rescue ship waits. Our own paws hold the stroke oar at the bottom: pull it towards you (swipe down) = all blades through the water,
   // push it back (swipe up) = the blades come forward over the water. Swipe a little to the side while pulling to steer.
-  // Calm, even strokes carry far; frantic jerks only splash. On the way: ice floes to steer around, a hamster in a life ring to fish out, a big wave.
+  // Calm, even strokes carry far; frantic jerks only splash. On the way: shipwrecked hamsters in life rings, left and right, to steer to and fish out. At the end the rescue ship steams in from the side.
   var rwEl = xEl("div", "bee-pov fi-pov rw-pov", scene); rwEl.hidden = true;
   rwEl.innerHTML = '<canvas width="180" height="135" class="fi-cv"></canvas><div class="cap-toast" hidden></div><div class="fi-card" hidden></div><button type="button" class="bp-x" aria-label="Rudern beenden">×</button>';
   var rwCv = rwEl.querySelector("canvas"), rwc = rwCv.getContext("2d"); rwc.imageSmoothingEnabled = false;
@@ -33,27 +33,31 @@
   function rwStart(sky) {
     if (!rwHI) rwHamLoad();
     rw = { sky: sky || "night", d: 0, v: 0, h: 0, bx: 0, turn: 0, drive: false, strokeT0: 0, good: 0, bad: 0, strokes: 0, beat: performance.now(), shake: 0, splash: [], drops: [], last: 0, done: false,
-      ev: [{ k: "floe", d: 130, lx: 0 }, { k: "floe", d: 215, lx: .55 }, { k: "swim", d: 300, lx: -.5 }, { k: "wave", d: 400, lx: 0 }, { k: "floe", d: 480, lx: -.15 }, { k: "floe", d: 540, lx: .5 }],
-      hit: 0, gentle: true, picked: false, wet: 0, wetT: 0, pull: 0, cheerT: 0 };
-    rwEl.hidden = false; rwCard.hidden = true; rwSay("Zieh das Ruder zu dir!"); if (!rwRaf) rwRaf = requestAnimationFrame(rwDraw);
+      ev: [{ k: "swim", d: 110, lx: -.7 }, { k: "swim", d: 200, lx: .65 }, { k: "swim", d: 290, lx: -.15 }, { k: "swim", d: 380, lx: .95 }, { k: "swim", d: 470, lx: -.75 }],
+      saved: 0, missed: 0, rough: false, wet: 0, wetT: 0, pull: 0, cheerT: 0 };
+    rwEl.hidden = false; rwCard.hidden = true; rwSay("Wisch nach unten zum Rudern!"); if (!rwRaf) rwRaf = requestAnimationFrame(rwDraw);
   }
   function rwEnd() { rwEl.hidden = true; if (rwRaf) cancelAnimationFrame(rwRaf); rwRaf = 0; rw = null; }
   rwEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); rwEnd(); if (typeof kpClose === "function") kpClose(); });
   // ---- the oar: drag up and down anywhere; drifting sideways while pulling steers ----
   var rwDrag = null;
   function rwPt(e) { var r = rwCv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 180, (e.clientY - r.top) / r.height * 135]; }
-  rwCv.addEventListener("pointerdown", function (e) { if (!rw || rw.done) return; e.preventDefault(); var p = rwPt(e); rwDrag = { x0: p[0], y0: p[1], h0: rw.h }; try { rwCv.setPointerCapture(e.pointerId); } catch (er) { } });
-  rwCv.addEventListener("pointermove", function (e) { if (!rw || !rwDrag) return; var p = rwPt(e); rwSetH(Math.max(0, Math.min(1, rwDrag.h0 + (p[1] - rwDrag.y0) / 42))); rw.steer = rw.drive ? Math.max(-1, Math.min(1, (p[0] - rwDrag.x0) / 40)) : 0; });
-  function rwUp() { rwDrag = null; if (rw) rw.steer = 0; } rwCv.addEventListener("pointerup", rwUp); rwCv.addEventListener("pointercancel", rwUp);
+  var RW_BTN = { l: [4, 104, 30, 27], r: [146, 104, 30, 27] };
+  function rwInBtn(p, b) { return p[0] >= b[0] && p[0] < b[0] + b[2] && p[1] >= b[1] && p[1] < b[1] + b[3]; }
+  rwCv.addEventListener("pointerdown", function (e) { if (!rw || rw.done) return; e.preventDefault(); var p = rwPt(e); try { rwCv.setPointerCapture(e.pointerId); } catch (er) { }
+    if (rwInBtn(p, RW_BTN.l)) { rw.steer = -1; rwDrag = { btn: 1 }; beep([[600, .02]]); return; } if (rwInBtn(p, RW_BTN.r)) { rw.steer = 1; rwDrag = { btn: 1 }; beep([[600, .02]]); return; }   /* hold the arrow: the boat turns that way */
+    rwDrag = { x0: p[0], y0: p[1], h0: rw.h }; });
+  rwCv.addEventListener("pointermove", function (e) { if (!rw || !rwDrag || rwDrag.btn) return; var p = rwPt(e); rwSetH(Math.max(0, Math.min(1, rwDrag.h0 + (p[1] - rwDrag.y0) / 42))); });
+  function rwUp() { if (rw && rwDrag && rwDrag.btn) rw.steer = 0; rwDrag = null; } rwCv.addEventListener("pointerup", rwUp); rwCv.addEventListener("pointercancel", rwUp);
   function rwSetH(h) {
     var now = performance.now(), dh = h - rw.h;
     if (dh > 0 && rw.h < .25 && !rw.drive) { rw.drive = true; rw.strokeT0 = now; rw.catchBeat = Math.abs(((now - rw.beat) % 1600) - 800) > 540; dzNoise(.12, 900, 1, .12, .005, .08); }   /* the blades catch the water */
-    if (rw.drive && dh > 0) { var sp = dh / Math.max(.008, (now - (rw.hT || now)) / 1000 || .016); rw.pull = Math.max(rw.pull, sp); rw.v += dh * (rw.catchBeat ? 30 : 24); rw.turn += (rw.steer || 0) * dh * 1.6; }
+    if (rw.drive && dh > 0) { var sp = dh / Math.max(.008, (now - (rw.hT || now)) / 1000 || .016); rw.pull = Math.max(rw.pull, sp); rw.v += dh * (rw.catchBeat ? 30 : 24); }
     if (rw.drive && h > .85) {                                                                                                                             /* the stroke is through: how was it? */
       rw.drive = false; rw.strokes++; var dur = (now - rw.strokeT0) / 1000, ok = dur > .28 && dur < 1.1;
       if (ok) { rw.good++; rw.v += rw.catchBeat ? 6 : 3; beep(rw.catchBeat ? [[523, .04], [659, .05]] : [[440, .04]]); dzNoise(.25, 700, .8, .1, .01, .2); }
       else { rw.bad++; rw.v *= .75; for (var i = 0; i < 10; i++) rw.splash.push({ x: Math.random() < .5 ? 14 + Math.random() * 20 : 146 + Math.random() * 20, y: 96, vx: (Math.random() - .5) * 30, vy: -25 - Math.random() * 25, l: .7 }); dzNoise(.3, 1600, .7, .16, .01, .2); rwSay("Zu hektisch! Ruhig und gleichmäßig."); }
-      if (rw.waveOn && rw.pull > 2.2) rw.waveOk = true; rw.pull = 0;
+      rw.pull = 0;
     }
     if (dh < 0 && h < .2) rw.drive = false;
     rw.hT = now; rw.h = h;
@@ -62,23 +66,22 @@
   function rwStep(t, dt) {
     var now = performance.now();
     rw.v = Math.max(0, rw.v - rw.v * .5 * dt - 1.1 * dt); rw.d += rw.v * dt; if (rw.shake > 0) rw.shake -= dt; if (rw.wetT > 0) rw.wetT -= dt; if (rw.cheerT > 0) rw.cheerT -= dt;
-    rw.turn *= Math.pow(.25, dt); rw.bx = Math.max(-1.2, Math.min(1.2, rw.bx + rw.turn * dt * Math.min(1, .3 + rw.v / 25)));
+    rw.turn += ((rw.steer || 0) * .9 - rw.turn) * Math.min(1, dt * 4); rw.bx = Math.max(-1.4, Math.min(1.4, rw.bx + rw.turn * dt * (.35 + Math.min(1, rw.v / 30))));   /* the oars on one side pull harder: we turn even when slow */
     if (now - rw.beat > 1600) { rw.beat += 1600; if (!rw.done) { dzTone(330, .12, .08, "triangle"); setTimeout(function () { dzTone(262, .16, .08, "triangle"); }, 220); } }   /* "Hau-ruck!" */
     rw.ev.forEach(function (e) {
       var z = e.d - rw.d, off = Math.abs(e.lx - rw.bx);
-      if (e.k === "floe" && !e.done && z < 90 && !e.warn) { e.warn = 1; rwSay(off < .4 ? "Eisscholle voraus! Ausweichen!" : "Eisscholle!"); }
-      if (e.k === "floe" && !e.done && z < RW_BOW) { e.done = 1; if (off < .38) { if (rw.v > 16) { rw.hit++; rw.v = 0; rw.shake = .5; beep([[110, .12], [80, .18]]); dzBuzz([60, 30, 120]); rwSay("Rumms! Mitten in die Scholle."); } else { rw.v *= .4; rwSay("Sachte weggeschoben. Puh!"); } } else beep([[660, .03]]); }
-      if (e.k === "swim" && !e.done && z < 100 && !e.warn) { e.warn = 1; rwSay("Ein Hamster im Wasser! Hinsteuern!"); }
-      if (e.k === "swim" && !e.done && z < RW_BOW) { e.done = 1; rw.picked = true; if (off > .45) { rw.gentle = false; rwSay("Vorbei! Er klettert selbst rein."); } else if (rw.v > 18) { rw.gentle = false; rwSay("Zu schnell! Er bekommt gerade noch das Seil."); } else { rwSay("Hochgezogen! Willkommen an Bord."); rw.cheerT = 1.4; } beep([[523, .05], [659, .05], [784, .08]]); rw.v *= .5; }
-      if (e.k === "wave" && !e.done && z < 70 && !e.warn) { e.warn = 1; rw.waveOn = true; rw.waveOk = false; rwSay("Eine große Welle! Kräftig durchziehen!"); }
-      if (e.k === "wave" && !e.done && z < RW_BOW) { e.done = 1; rw.waveOn = false; if (!rw.waveOk) { rw.wet++; rw.wetT = 2.5; rw.v *= .4; rw.shake = .5; for (var i = 0; i < 40; i++) rw.drops.push({ x: Math.random() * 180, y: 40 + Math.random() * 30, vx: (Math.random() - .5) * 30, vy: 20 + Math.random() * 40, l: 1.2 }); dzNoise(.8, 500, .6, .3, .02, .6); rwSay("Platsch! Alle klatschnass."); } else { rw.v += 10; rw.cheerT = 1; rwSay("Drüber weg!"); } }
+      if (!e.done && z < 110 && !e.warn) { e.warn = 1; rwSay(e.lx < rw.bx - .3 ? "Hilfe! Links im Wasser!" : e.lx > rw.bx + .3 ? "Hilfe! Rechts im Wasser!" : "Hilfe! Da vorne!"); dzTone(880, .1, .05, "triangle"); setTimeout(function () { dzTone(990, .14, .05, "triangle"); }, 160); }
+      if (!e.done && z < RW_BOW) { e.done = 1;
+        if (off > .42) { e.miss = 1; rw.missed++; rwSay("Verpasst! Das Rettungsschiff holt ihn später."); beep([[330, .08], [262, .1]]); }
+        else { rw.saved++; if (rw.v > 18) { rw.rough = true; rwSay("Etwas zu schnell, aber geschafft!"); } else rwSay("Hochgezogen! Willkommen an Bord."); rw.cheerT = 1.4; beep([[523, .05], [659, .05], [784, .08]]); rw.v *= .5; } }
     });
-    if (rw.d >= RW_GOAL && !rw.done) { rw.done = true; rw.v = 0; rw.cheerT = 99; dzWhistle(1.6); setTimeout(rwFinish, 2200); }
+    if (rw.d >= RW_GOAL - 80 && !rw.shipIn) { rw.shipIn = performance.now(); rwSay("Das Rettungsschiff kommt!"); dzWhistle(1.2); }
+    if (rw.shipIn && !rw.done && performance.now() - rw.shipIn > 7000) { rw.done = true; rw.cheerT = 99; dzWhistle(1.6); setTimeout(rwFinish, 2200); }
     rw.splash = rw.splash.filter(function (s2) { s2.l -= dt; s2.vy += 90 * dt; s2.x += s2.vx * dt; s2.y += s2.vy * dt; return s2.l > 0; });
     rw.drops = rw.drops.filter(function (s2) { s2.l -= dt; s2.vy += 60 * dt; s2.x += s2.vx * dt; s2.y += s2.vy * dt; return s2.l > 0 && s2.y < 135; });
   }
-  function rwFinish() { if (!rw) return; var st = [rw.strokes > 0 && rw.good / rw.strokes >= .7, rw.picked && rw.gentle, rw.hit === 0], n = st.filter(Boolean).length;
-    rwCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Gerettet!</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p><p class="fi-s">' + (st[0] ? "★" : "☆") + ' Gleichmäßig gerudert<br>' + (st[1] ? "★" : "☆") + ' Schiffbrüchigen sanft geholt<br>' + (st[2] ? "★" : "☆") + ' Keine Scholle gerammt</p>' +
+  function rwFinish() { if (!rw) return; var st = [rw.strokes > 0 && rw.good / rw.strokes >= .7, rw.missed === 0, rw.saved > 0 && !rw.rough], n = st.filter(Boolean).length;
+    rwCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Gerettet!</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p><p class="fi-s">' + (st[0] ? "★" : "☆") + ' Gleichmäßig gerudert<br>' + (st[1] ? "★" : "☆") + ' Alle eingesammelt (' + rw.saved + '/' + rw.ev.length + ')<br>' + (st[2] ? "★" : "☆") + ' Sanft an Bord geholt</p>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b" data-a="again">Nochmal</button></div></div>';
     rwCard.hidden = false; KP_S.cheer(true); }
   rwCard.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; e.stopPropagation(); var a = b.dataset.a; rwEnd(); if (!kp) return; if (a === "menu") { kpSinkReset(); kpMenu(); } else kpStart(kp.li); });
@@ -97,9 +100,9 @@
     // sky and the far horizon with the rescue ship
     for (var y = 0; y < RW_HZ; y++) { var bnd = y < 9 ? 0 : y < 18 ? 1 : 2; for (var x0 = 0; x0 < 180; x0 += 2) rP(x0 + (y % 2), y, 2, 1, (y % 9) < 2 && y > 2 && (x0 / 2 + y) % 2 ? sc[Math.max(0, bnd - 1)] : sc[bnd]); }
     if (rw.sky === "night") for (var s2 = 0; s2 < 50; s2++) rP((s2 * 53 + s2 * s2) % 180, (s2 * 29) % (RW_HZ - 3), 1, 1, (s2 + Math.floor(t / 500)) % 7 ? "#c8d0f0" : "#ffffff");
-    var rem = RW_GOAL - rw.d, shx = 90 - rw.bx * 60;
-    if (rem > 160) { rP(shx - 9, RW_HZ - 3, 18, 2, "#2a3040"); rP(shx - 4, RW_HZ - 6, 2, 3, "#2a3040"); rP(shx + 1, RW_HZ - 6, 2, 3, "#2a3040"); if (night && Math.floor(t / 600) % 2) rP(shx - 7, RW_HZ - 3, 1, 1, "#ffe08a"); }   /* the rescue ship, tiny at first */
-    else { var u = Math.min(1, (160 - rem) / 160), sx = shx - 70; dzImg("sv_ship", sx, RW_HZ - 33 + Math.round((1 - u) * 6)); if (night) for (var pw = 0; pw < 26; pw++) rP(sx + 8 + pw * 4.5, RW_HZ - 33 + Math.round((1 - u) * 6) + 25, 1, 1, "#ffe08a"); }
+    if (rw.shipIn) { var u = Math.min(1, (performance.now() - rw.shipIn) / 6000), e2 = 1 - (1 - u) * (1 - u), sx = 182 - e2 * 162 - rw.bx * 30, sy = RW_HZ - 31;   /* the rescue ship steams in from the side and stops */
+      dzImg("sv_ship", sx, sy); if (night) for (var pw = 0; pw < 26; pw++) rP(sx + 8 + pw * 4.5, sy + 25, 1, 1, "#ffe08a"); if (u < 1 && Math.random() < .3) rw.puffs = (rw.puffs || []).concat([{ x: sx + 55 + Math.floor(Math.random() * 3) * 15, y: sy + 2, l: 1.5 }]); }
+    (rw.puffs = (rw.puffs || []).filter(function (q) { q.l -= .016; q.y -= .15; q.x += .3; return q.l > 0; })).forEach(function (q) { rwc.globalAlpha = Math.min(1, q.l) * .8; dzImg("puff", q.x - 4, q.y - 4); rwc.globalAlpha = 1; });
     // the sea in perspective: bands that come towards us with the speed, shifted by our course
     for (var wy = RW_HZ; wy < 135; wy++) { var z = 780 / (wy - RW_HZ + .5) - 10, s = 10 / (z + 10), shiftX = rw.bx * 230 * s;
       for (var wx = 0; wx < 180; wx += 2) { var v = Math.sin((wx + shiftX) * .09 / (s + .15) + (z + rw.d) * .35 + t / 700) + Math.sin((wx + shiftX) * .045 / (s + .15) - (z + rw.d) * .2) * .6 + ((wx + wy) % 4 ? 0 : .3);
@@ -107,14 +110,11 @@
     if (night) { rwc.globalAlpha = .25; rwDisc(90, 72, 26, 8, function () { return "#ffe8a0"; }); rwc.globalAlpha = 1; }    /* the lantern's light on the water */
     // what floats ahead, far ones first
     rw.ev.slice().sort(function (a, b) { return b.d - a.d; }).forEach(function (e) { var z = e.d - rw.d; if (z < -4 || z > 260) return; var p = rwProj(z, e.lx), s = p.s;
-      if (e.k === "floe") { var rx = Math.max(2, 26 * s), ry = Math.max(1, 6 * s), hgt = Math.max(1, Math.round(4 * s));
-        rwDisc(p.x, p.y + hgt, rx, ry, function (a, b, d) { return d > .7 ? "#5a8ab0" : "#a8d0e4"; }); rwDisc(p.x, p.y, rx, ry, function (a, b, d) { return d > .8 ? "#3a2414" : b < 0 ? "#ffffff" : "#e0f0f8"; }); if (rx > 8) { rP(p.x - rx * .4, p.y - ry * .3, rx * .5, 1, "#ffffff"); rP(p.x + rx * .2, p.y + 1, rx * .3, 1, "#c8e0ec"); } }
-      if (e.k === "swim" && !e.done) { var r2 = Math.max(2, 9 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * s);
+      if (!e.done) { var r2 = Math.max(2, 9 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * s);
         rwDisc(p.x, p.y + bob, r2, r2 * .4, function (a, b, d) { var ang = Math.atan2(b, a); return d < .45 ? null : d > .85 ? "#3a2414" : Math.floor((ang + 3.2) / .8) % 2 ? "#ffffff" : "#e8463c"; });
         rwDisc(p.x, p.y - r2 * .5 + bob, r2 * .55, r2 * .55, function (a, b, d) { return d > .75 ? "#3a2414" : b > r2 * .2 ? "#fff6e4" : "#e9a44c"; });
         if (r2 > 4) { rP(p.x - r2 * .35, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x + r2 * .25, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x - r2 * .55, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); rP(p.x + r2 * .35, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); }
-        if (Math.floor(t / 350) % 2 && r2 > 3) rP(p.x + r2 * .7, p.y - r2 * 1.4 + bob, 1, Math.max(2, r2 * .5), "#e9a44c"); }        /* he waves */
-      if (e.k === "wave" && !e.done) { var hh = Math.max(2, Math.round(16 * s)); for (var xw = 0; xw < 180; xw++) { var cr = Math.round(Math.sin(xw * .08 + t / 300) * hh * .15); rP(xw, p.y - hh + cr, 1, hh, xw % 3 ? P[3] : P[2]); rP(xw, p.y - hh + cr, 1, 1, "#ffffff"); if ((xw + Math.floor(t / 90)) % 5 === 0) rP(xw, p.y - hh - 1 + cr, 1, 1, "#e8f8ff"); } } });
+        if (Math.floor(t / 350) % 2 && r2 > 3) rP(p.x + r2 * .7, p.y - r2 * 1.4 + bob, 1, Math.max(2, r2 * .5), "#e9a44c"); } });        /* he waves */
     // the boat from the stern, in depth: the rounded gunwale, the white outside of the hull, the inner walls with strakes and ribs going down to the floor
     var bowY = 62, G = function (y) { var u = Math.max(0, (y - bowY) / (135 - bowY)); return 90 * Math.pow(u, .62); }, F = function (y) { var u = Math.max(0, (y - bowY - 14) / (135 - bowY - 14)); return 60 * Math.pow(u, .7); };
     var L = function (y) { return Math.round(90 - G(y)); }, R = function (y) { return Math.round(90 + G(y)); };
@@ -134,7 +134,7 @@
       rP(l, ty - 1, r - l, 1, "#3a2414"); rP(l, ty, r - l, 2, "#d8a070"); rP(l, ty + 2, r - l, th - 2, "#b47a46"); rP(l, ty + th, r - l, 1, "#3a2414"); rP(l, ty, r - l, 1, "#e8b880"); }
     rwThwart(84, 4);
     // the rescued one, wrapped in a blanket on the bow seat, between the rowers
-    if (rw.picked) rwHam("snow", "wrap", 66, 50 + Math.round(Math.sin(t / 500)));
+    ["snow", "gold", "choc"].slice(0, Math.min(3, rw.saved)).forEach(function (fk, i) { rwHam(fk, "wrap", [66, 50, 82][i], 50 - (i ? 4 : 0) + Math.round(Math.sin(t / 500 + i))); });
     // the two rowers on the middle thwart, facing us: they lean back on the stroke and come forward on the recovery
     var lean = rw.drive ? -Math.round(rw.h * 3) : Math.round((1 - rw.h) * 1), wet = rw.wetT > 0, cheer = rw.cheerT > 0, beatOn = ((performance.now() - rw.beat) % 1600) < 380;
     rwThwart(106, 6);
@@ -146,23 +146,18 @@
         rP(bxE - 3, byE - 1, 7, 4, "#3a2414"); rP(bxE - 2, byE, 5, 2, "#c8945a"); if (rw.drive && Math.random() < .5) rw.splash.push({ x: bxE, y: byE + 2, vx: -side * 10, vy: -14, l: .45 }); }
       rwHam(cr[0], pose(cr[3]), hx, hy); });
     // our own paws on the stroke oar at the bottom: pull it to you, push it away
-    // our own oar: one round shaft from the oarlock on the right gunwale to the grip in front of us; both our paws hold it, seen from above
-    var hy2 = 117 + Math.round(rw.h * 12), olx = R(100) - 1, oly = 99, ex = 62 - Math.round(rw.h * 3), ey = hy2;
-    rwPole(olx + (olx - ex) * .35, oly + (oly - ey) * .35, ex, ey, 6, function (k, u) { return u > .86 ? (k < 1 ? "#3a2414" : k < 2 ? "#8a5a3a" : k < 4 ? "#6a3e22" : k < 5 ? "#4a2a16" : "#3a2414") : (k < 1 ? "#3a2414" : k < 2 ? "#ecc08a" : k < 3 ? "#d09a62" : k < 4 ? "#b47a46" : k < 5 ? "#8a5a32" : "#3a2414"); });   /* the shaft, a leather grip at the end */
-    rP(olx - 2, oly - 2, 6, 5, "#3a2414"); rP(olx - 1, oly - 1, 4, 3, "#9aa0a8"); rP(olx - 1, oly - 1, 2, 1, "#d8dce0");                                         /* the oarlock */
-    [[.1, -3], [.3, 4]].forEach(function (pw) { var px = ex + (olx - ex) * pw[0], py = ey + (oly - ey) * pw[0];
-      rwPole(px + pw[1], 137, px, py + 3, 13, function (k) { return k < 1 || k >= 12 ? "#3a2414" : k < 4 ? "#f7c47e" : k < 9 ? "#e9a44c" : "#c98232"; });                 /* the furry forearm from below */
-      rwDisc(Math.round(px), Math.round(py), 7, 5, function (a, b, d) { return d > .8 ? "#3a2414" : b < -2 ? "#f7c47e" : a > 3 ? "#c98232" : "#e9a44c"; });          /* the back of the paw over the shaft */
-      for (var tq = 0; tq < 4; tq++) { var tx = Math.round(px - 5 + tq * 3.2), ty = Math.round(py - 4 - (tq === 1 || tq === 2 ? 1 : 0)); rP(tx, ty, 3, 3, "#3a2414"); rP(tx + 1, ty + 1, 1, 1, "#f7c47e"); rP(tx, ty + 3, 3, 1, "#e9a44c"); }   /* four little fingers curled round it */
-      rP(Math.round(px - 4), Math.round(py + 4), 9, 1, "#3a2414"); });
     rw.splash.forEach(function (s3) { rP(s3.x, s3.y, 1, 1, "#e8f8ff"); });
     rw.drops.forEach(function (s3) { rP(s3.x, s3.y, 1, 2, "#c8ecfa"); });
     // the cue, the speed and the way to go
     var cue = rw.done ? "" : !rw.drive && rw.h < .5 ? "down" : rw.drive ? "" : "up", pul = ((performance.now() - rw.beat) % 1600) < 400;
     if (cue) { var col = pul ? "#ffe08a" : "#fff8ec", cy = cue === "down" ? 124 : 104; for (var ar = 0; ar < 5; ar++) rP(150 - ar, cue === "down" ? cy + ar : cy - ar, ar * 2 + 1, 1, col); rP(149, cue === "down" ? cy - 6 : cy + 1, 3, 6, col); }
+    [["l", -1], ["r", 1]].forEach(function (q) { var b = RW_BTN[q[0]], on = rw.steer === q[1], cx = b[0] + b[2] / 2, cy = b[1] + b[3] / 2;
+      rP(b[0], b[1], b[2], b[3], "#3a2414"); rP(b[0] + 1, b[1] + 1, b[2] - 2, b[3] - 2, on ? "#ffe08a" : "#fff8ec"); rP(b[0] + 1, b[1] + b[3] - 3, b[2] - 2, 2, on ? "#e8b84a" : "#e0d0b4");
+      for (var k = 0; k < 7; k++) rP(cx + q[1] * (3 - k) - (q[1] > 0 ? 1 : 0), cy - k, 1, k * 2 + 1, "#3a2414"); rP(q[1] < 0 ? cx + 4 : cx - 8, cy - 2, 5, 5, "#3a2414"); });   /* an arrow pointing the way we turn */
+    for (var sv = 0; sv < rw.ev.length; sv++) { var fx = 6 + sv * 7, ok = sv < rw.saved, ms = sv >= rw.ev.length - rw.missed; rwDisc(fx + 2, 13, 2.5, 2.5, function (a, b, d) { return d > .7 ? "#3a2414" : ok ? "#e9a44c" : ms ? "#8a7a6a" : "#5a6a7a"; }); }
     var spd = Math.min(1, rw.v / 40); rP(172, 40, 5, 50, "#3a2414"); rP(173, 41 + Math.round((1 - spd) * 48), 3, Math.round(spd * 48), spd > .55 ? "#e8a040" : "#7ae05a");
     rP(24, 3, 132, 4, "#3a2414"); rP(25, 4, 130, 2, "#5a6a7a"); rP(25, 4, Math.round(130 * Math.min(1, rw.d / RW_GOAL)), 2, "#7ae05a"); rw.ev.forEach(function (e) { rP(25 + Math.round(130 * e.d / RW_GOAL), 2, 1, 6, e.k === "swim" ? "#ffd34a" : e.k === "wave" ? "#ffffff" : "#a8d0e4"); });
     rwc.setTransform(1, 0, 0, 1, 0, 0); dzc = dz0;
   }
-  window.__rw = { start: rwStart, st: function () { return rw && { d: Math.round(rw.d), v: Math.round(rw.v), h: rw.h, bx: +rw.bx.toFixed(2), good: rw.good, bad: rw.bad, hit: rw.hit, picked: rw.picked, done: rw.done }; }, steer: function (s) { rw.turn += s; },
+  window.__rw = { start: rwStart, st: function () { return rw && { d: Math.round(rw.d), v: Math.round(rw.v), h: rw.h, bx: +rw.bx.toFixed(2), good: rw.good, bad: rw.bad, hit: rw.hit, picked: rw.picked, done: rw.done, saved: rw.saved, missed: rw.missed }; }, steer: function (s) { rw.steer = s; }, next: function () { var e = rw.ev.filter(function (q) { return !q.done; })[0]; return e ? e.lx - rw.bx : null; },
     pull: function () { rwSetH(0); var i = 0, iv = setInterval(function () { i++; rwSetH(Math.min(1, i / 8)); if (i >= 8) { clearInterval(iv); setTimeout(function () { rwSetH(0); }, 150); } }, 60); } };

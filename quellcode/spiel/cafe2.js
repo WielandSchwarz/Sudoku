@@ -108,15 +108,15 @@
   }
   function cqWindow(cx, cy, brass) {   // a round window with a little garden view: wood frame and sill, or a brass porthole with rivets
     var o = [], R = function (x, y, w, h, c) { cqR(o, x, y, w, h, c); }, night = typeof daylight === "function" && daylight() !== "day";
-    var Ro = brass ? 15 : 17, Ri = brass ? 9 : 12;
-    if (!brass) { R(cx - 19, cy + Ro - 1, 38, 4, "#3a2414"); R(cx - 18, cy + Ro - 1, 36, 2, "#c8945a"); R(cx - 18, cy + Ro - 1, 36, 1, "#e0b07a"); }
+    var Ro = brass ? 11 : 14, Ri = brass ? 8 : 11;   /* smaller, with a slimmer frame */
+    if (!brass) { R(cx - 16, cy + Ro - 1, 32, 4, "#3a2414"); R(cx - 15, cy + Ro - 1, 30, 2, "#c8945a"); R(cx - 15, cy + Ro - 1, 30, 1, "#e0b07a"); }
     for (var y = -Ro; y <= Ro; y++) for (var x = -Ro; x <= Ro; x++) { var d = Math.hypot(x, y); if (d > Ro + .3) continue; var c;
       if (d > Ro - .7) c = "#3a2414";
       else if (d > Ri + 1) c = brass ? (x + y < -Ro * .5 ? "#f6d878" : x + y > Ro * .5 ? "#a8782a" : "#d8a83a") : (x + y < -Ro * .4 ? "#c8945a" : x + y > Ro * .4 ? "#6a4424" : "#8a5a30");
       else if (d > Ri) c = "#3a2414";
       else { var u = (y + Ri) / (2 * Ri); c = night ? (u < .62 ? ((x * 7 + y * 13) % 23 === 0 ? "#fff8d0" : "#1e2a54") : u < .78 ? "#24461a" : "#2e5a22") : (u < .55 ? (u < .3 ? "#a8d8f0" : "#c4e6f6") : u < .72 ? ((x + y) % 3 ? "#4e8a32" : "#6fae4a") : "#7ac860"); }
       R(cx + x, cy + y, 1, 1, c); }
-    if (brass) { for (var k = 0; k < 8; k++) { var an = k / 8 * Math.PI * 2; R(Math.round(cx + Math.cos(an) * (Ro - 2.5)), Math.round(cy + Math.sin(an) * (Ro - 2.5)), 1, 1, "#7a5418"); } }
+    if (brass) { for (var k = 0; k < 8; k++) { var an = k / 8 * Math.PI * 2; R(Math.round(cx + Math.cos(an) * (Ro - 1.5)), Math.round(cy + Math.sin(an) * (Ro - 1.5)), 1, 1, "#7a5418"); } }
     else { R(cx - Ri, cy - 1, 2 * Ri + 1, 2, "#8a5a30"); R(cx - 1, cy - Ri, 2, 2 * Ri + 1, "#8a5a30"); R(cx - Ri, cy - 1, 2 * Ri + 1, 1, "#c8945a"); }
     if (!night) { R(cx - Ri + 3, cy - Ri + 4, 2, 1, "#ffffff"); R(cx - Ri + 2, cy - Ri + 5, 1, 2, "#ffffff"); }
     return o.join("");

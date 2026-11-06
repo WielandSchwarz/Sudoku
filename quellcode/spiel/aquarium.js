@@ -165,23 +165,45 @@
   function aqBub(x, y, r) { if (aq && aq.bub.length < 80) aq.bub.push({ x: x, y: y, r: r || (Math.random() < .3 ? 2 : 1), ph: Math.random() * 6 }); }
   function aqHeart(x, y) { if (aq) aq.hearts.push({ x: x, y: y, l: 1.4, vx: (Math.random() - .5) * 8 }); }
   function aqSay(t) { aqToast.textContent = t; aqToast.hidden = false; aqToast.classList.remove("pop"); void aqToast.offsetWidth; aqToast.classList.add("pop"); clearTimeout(aqSay.t); aqSay.t = setTimeout(function () { aqToast.hidden = true; }, 2000); }
-  // the goldfish, a fantail: the head points where it swims (dir), round body, big shiny eye, a tail that flows
-  function aqFish(c, F, t) {
-    var dir = F.dir, X = Math.round(F.x), Y = Math.round(F.y + Math.sin(t / 700) * .6), sw = Math.sin(t / (F.fast ? 80 : 190)), px = function (dx, dy, col) { aP(c, X - dx * dir, Y + dy, 1, 1, col); };
-    for (var i = 0; i < 13; i++) { var h = Math.round(2 + i * .7), off = Math.round(sw * i * .35 + Math.sin(t / 300 + i * .4) * i * .08);   /* the double tail, lighter towards its frilly edge */
-      for (var dy = -h; dy <= h; dy++) { if (i > 7 && Math.abs(dy) < 2 && i < 12) continue; px(10 + i, dy + off, Math.abs(dy) === h || i === 12 ? "#c8501a" : i > 8 ? "#ffc890" : Math.abs(dy) > h - 2 ? "#ffb060" : "#f88a2a"); } }
-    for (var dy2 = -7; dy2 <= 7; dy2++) for (var dx = -11; dx <= 11; dx++) { var d = (dx / 11.4) * (dx / 11.4) + (dy2 / 7.4) * (dy2 / 7.4); if (d > 1) continue;
-      px(dx, dy2, d > .84 ? "#b8401a" : dy2 < -4 ? "#ffc070" : dy2 > 3 ? "#ffe0b0" : (dx * 2 + dy2 * 3 + 99) % 7 === 0 && dx > -6 ? "#e8701a" : "#f88a2a"); }
-    for (var k = 0; k < 7; k++) { var fh = k < 4 ? 2 + k : 8 - k; for (var q = 0; q < fh; q++) px(-2 + k, -8 - q + Math.round(sw * q * .3), q === fh - 1 ? "#c8501a" : "#ffa850"); }   /* the dorsal fin */
-    var fl = Math.sin(t / 130) > 0 ? 1 : 0; px(-3, 6 + fl, "#ffc890"); px(-2, 7 + fl, "#ffa850"); px(-1, 7 + fl, "#c8501a"); px(-3, 7 + fl, "#c8501a");
-    if (F.happy || F.blink) { px(-7, -2, "#3a2414"); px(-6, -3, "#3a2414"); px(-5, -3, "#3a2414"); px(-4, -2, "#3a2414"); }
-    else { for (var ey = -4; ey <= -1; ey++) for (var ex = -8; ex <= -5; ex++) px(ex, ey, (ey === -4 || ey === -1) && (ex === -8 || ex === -5) ? "#f88a2a" : "#ffffff"); px(-7, -3, "#1e1410"); px(-6, -3, "#1e1410"); px(-7, -2, "#1e1410"); px(-6, -2, "#1e1410"); px(-7, -3, "#ffffff"); }
-    if (F.blush || F.happy) { px(-6, 1, "#ff8a9a"); px(-5, 1, "#ff8a9a"); px(-4, 1, "#ffb0b8"); }
-    if (F.gulp || F.blub) { px(-11, 0, "#8a2a14"); px(-12, 0, "#8a2a14"); px(-11, 1, "#8a2a14"); px(-12, 1, "#8a2a14"); } else px(-11, 1, "#b8401a");
+  // the goldfish in five breeds to choose from: fantail, pearlscale, comet, shubunkin (calico), oranda (with its red cap)
+  var AQ_KINDS = {
+    schleier: { n: "Schleierschwanz", rx: 11, ry: 7, tail: "fan", tl: 13, df: 7, P: ["#f88a2a", "#ffc070", "#ffe0b0", "#b8401a", "#ffa850", "#ffc890", "#e8701a"] },
+    perl: { n: "Perlschupper", rx: 9, ry: 8, tail: "fan", tl: 8, df: 5, pearl: 1, P: ["#f8a040", "#ffd090", "#fff0d8", "#b8501a", "#ffc070", "#ffe0b0", "#fff6e6"] },
+    komet: { n: "Komet", rx: 12, ry: 5, tail: "fork", tl: 17, df: 6, P: ["#f05a2a", "#ff8a50", "#ffd0b0", "#a0301a", "#ff9a6a", "#ffe8dc", "#d8401a"] },
+    shubu: { n: "Shubunkin", rx: 11, ry: 6, tail: "fan", tl: 14, df: 7, spots: 1, P: ["#e4ecf4", "#ffffff", "#ffffff", "#4a5a70", "#c8d8e8", "#e8f0f8", "#b8c8dc"] },
+    oranda: { n: "Oranda", rx: 10, ry: 7, tail: "fan", tl: 12, df: 6, cap: 1, P: ["#f6eee2", "#ffffff", "#ffffff", "#8a7a6a", "#fff4e8", "#ffffff", "#e8dcc8"] }
+  };
+  function aqKind() { var L = life(); return AQ_KINDS[(L.aq && L.aq.kind) || "schleier"] || AQ_KINDS.schleier; }
+  function aqFish(c, F, t, K) {
+    K = K || aqKind(); var P = K.P, rx = K.rx, ry = K.ry, dir = F.dir, X = Math.round(F.x), Y = Math.round(F.y + Math.sin(t / 700) * .6), sw = Math.sin(t / (F.fast ? 80 : 190)), px = function (dx, dy, col) { aP(c, X - dx * dir, Y + dy, 1, 1, col); };
+    var hash = function (a, b) { return ((a * 73856093) ^ (b * 19349663)) >>> 0; };
+    for (var i = 0; i < K.tl; i++) { var h = Math.round(2 + i * (K.tail === "fork" ? .55 : .7)), off = Math.round(sw * i * .35 + Math.sin(t / 300 + i * .4) * i * .08);   /* the tail */
+      for (var dy = -h; dy <= h; dy++) { if (K.tail === "fan" && i > K.tl * .6 && Math.abs(dy) < 2 && i < K.tl - 1) continue; if (K.tail === "fork" && i > 5 && Math.abs(dy) < h - 3) continue;
+        var edge = Math.abs(dy) === h || i === K.tl - 1, col = edge ? P[3] : i > K.tl * .65 ? P[5] : Math.abs(dy) > h - 2 ? P[4] : P[0];
+        if (K.spots && !edge && hash(i, dy) % 5 === 0) col = hash(i, dy) % 2 ? "#f08a2a" : "#2a2a3a"; px(rx - 1 + i, dy + off, col); } }
+    for (var dy2 = -ry; dy2 <= ry; dy2++) for (var dx = -rx; dx <= rx; dx++) { var d = (dx / (rx + .4)) * (dx / (rx + .4)) + (dy2 / (ry + .4)) * (dy2 / (ry + .4)); if (d > 1) continue;
+      var col2 = d > .84 ? P[3] : dy2 < -ry * .55 ? P[1] : dy2 > ry * .45 ? P[2] : (dx * 2 + dy2 * 3 + 99) % 7 === 0 && dx > -rx * .5 ? P[6] : P[0];
+      if (K.pearl && d <= .84 && (dx + dy2 * 2 + 99) % 3 === 0 && dy2 % 2 === 0) col2 = P[6];
+      if (K.spots && d <= .84) { var hh = hash(Math.floor((dx + 20) / 3), Math.floor((dy2 + 20) / 3)) % 7; if (hh === 0) col2 = "#f08a2a"; else if (hh === 1) col2 = "#2a2a3a"; else if (hh === 2) col2 = "#7a9ac8"; }
+      px(dx, dy2, col2); }
+    if (K.cap) for (var cy = -ry - 2; cy <= -ry + 4; cy++) for (var cx = -rx - 1; cx <= -2; cx++) { var cd = ((cx + rx * .55) / (rx * .55)) * ((cx + rx * .55) / (rx * .55)) + ((cy + ry - 1) / 3.6) * ((cy + ry - 1) / 3.6); if (cd > 1) continue; px(cx, cy, cd > .7 ? "#a8281e" : (cx + cy * 2 + 99) % 3 ? "#e8463c" : "#ff7a6a"); }   /* the oranda's red cap */
+    for (var k = 0; k < K.df; k++) { var fh = k < K.df / 2 ? 2 + k : K.df + 1 - k; for (var q = 0; q < fh; q++) px(-2 + k, -ry - 1 - q + Math.round(sw * q * .3), q === fh - 1 ? P[3] : P[4]); }   /* the dorsal fin */
+    var fl = Math.sin(t / 130) > 0 ? 1 : 0; px(-3, ry - 1 + fl, P[5]); px(-2, ry + fl, P[4]); px(-1, ry + fl, P[3]); px(-3, ry + fl, P[3]);
+    var ex = -rx + 3, eyY = K.cap ? -1 : -2;
+    if (F.happy || F.blink) { px(ex - 1, eyY + 1, AD); px(ex, eyY, AD); px(ex + 1, eyY, AD); px(ex + 2, eyY + 1, AD); }
+    else { for (var ey = eyY - 2; ey <= eyY + 1; ey++) for (var exx = ex - 1; exx <= ex + 2; exx++) px(exx, ey, (ey === eyY - 2 || ey === eyY + 1) && (exx === ex - 1 || exx === ex + 2) ? P[0] : "#ffffff"); px(ex, eyY - 1, "#1e1410"); px(ex + 1, eyY - 1, "#1e1410"); px(ex, eyY, "#1e1410"); px(ex + 1, eyY, "#1e1410"); px(ex, eyY - 1, "#ffffff"); }
+    if (F.blush || F.happy) { px(ex + 1, eyY + 3, "#ff8a9a"); px(ex + 2, eyY + 3, "#ff8a9a"); }
+    if (F.gulp || F.blub) { px(-rx, 0, "#8a2a14"); px(-rx - 1, 0, "#8a2a14"); px(-rx, 1, "#8a2a14"); px(-rx - 1, 1, "#8a2a14"); } else px(-rx, 1, P[3]);
   }
-  function aqSnail(c, S2, t) { var x = Math.round(S2.x), y = Math.round(S2.y), hid = S2.hide > 0, dir = S2.dir;
-    if (!hid) { aP(c, x - 5 * dir, y + 2, 10, 2, "#e8c8a0"); aP(c, x + (dir > 0 ? 4 : -6), y, 2, 2, "#e8c8a0"); aP(c, x + (dir > 0 ? 5 : -6), y - 2, 1, 2, "#c8a880"); aP(c, x + (dir > 0 ? 5 : -6), y - 3, 1, 1, AD); }
-    aqDisc(c, x - dir, y - 1, 4, 4, function (a, b, d) { var ang = Math.atan2(b, a) + d * 9; return d > .8 ? "#5a2a1a" : Math.sin(ang) > .3 ? "#c8643a" : "#8a3a24"; }); aP(c, x - dir - 1, y - 3, 1, 1, "#f0a070"); }
+  // the snail: a round striped shell with a shine, a soft body, eyes on stalks; it pulls in when tapped and peeks out again
+  function aqSnail(c, S2, t) { var x = Math.round(S2.x), y = Math.round(S2.y), dir = S2.dir, out = S2.hide > 0 ? Math.max(0, 1 - S2.hide / .4) * (S2.hide < .9 ? 1 : 0) : 1, px = function (dx, dy, col) { aP(c, x + dx * dir, y + dy, 1, 1, col); };
+    if (S2.hide > 0 && S2.hide < .9) out = 1 - S2.hide / .9;
+    if (out > .05) { var len = Math.round(5 * out);
+      for (var bx = -6; bx <= len + 2; bx++) { px(bx, 3, "#c8a878"); px(bx, 2, bx > len ? "#f0dcb4" : "#e8d0a0"); } px(-7, 3, "#c8a878"); px(len + 3, 2, "#c8a878");
+      for (var hy = 0; hy < 2; hy++) for (var hx = 0; hx < 3; hx++) px(len + hx, 1 - hy, "#f0dcb4"); px(len + 3, 1, "#c8a878"); px(len + 1, 2, "#a8885a");
+      if (out > .6) { var wob = Math.round(Math.sin(t / 400) * .6); px(len, -1, "#e8d0a0"); px(len, -2 + wob, "#e8d0a0"); px(len, -3 + wob, AD); px(len + 2, -1, "#e8d0a0"); px(len + 2, -2 - wob, "#e8d0a0"); px(len + 2, -3 - wob, AD); px(len + 3, 1, "#d8a080"); } }
+    aqDisc(c, x - dir, y - 2, 5, 5, function (a, b, d) { var ang = Math.atan2(b, a * dir), sp = (ang + Math.PI) / (2 * Math.PI) + (1 - Math.sqrt(d)) * 1.6; return d > .82 ? "#5a2a14" : (Math.floor(sp * 3) % 2 ? "#c8643a" : "#e8a060"); });
+    px(-2, -5, "#ffe0b0"); px(-3, -4, "#ffe0b0"); px(-1, -2, "#7a3a1a"); }
   function aqShrimp(c, P, t) { var x = Math.round(P.x), y = Math.round(P.y), d = P.dir, pk = P.pick > 0 && Math.floor(t / 120) % 2;
     var px = function (dx, dy, col) { aP(c, x + dx * d, y + dy, 1, 1, col); };
     [[-3, -2], [-2, -2], [-1, -3], [0, -3], [1, -3], [2, -2], [3, -2], [-2, -1], [-1, -1], [0, -2], [1, -2], [2, -1], [-4, -1], [-3, -1], [0, -1], [1, -1], [3, -1]].forEach(function (q) { px(q[0], q[1], q[1] === -3 ? "#ff7a6a" : "#e0402a"); });
@@ -194,7 +216,7 @@
       shrimps: [{ x: 60, y: 110, dir: 1, tx: 70, pick: 0, next: 0 }, { x: 120, y: 116, dir: -1, tx: 110, pick: 0, next: 0 }], neons: nn, school: { x: 50, y: 52, tx: 120, ty: 46, next: 0 },
       bub: [], flakes: [], hearts: [], mode: "", edit: false, ate: 0, plays: 0, pets: 0 }; }
   function aqDraw(t) {
-    aqRaf = 0; if (!aq || aqEl.hidden) return; aqRaf = requestAnimationFrame(aqDraw);
+    aqRaf = 0; if (!aq || aqEl.hidden) return; aqRaf = requestAnimationFrame(aqDraw); if (aq.preview) return;
     var dt = Math.min(.05, (t - (aq.last || t)) / 1000); aq.last = t; var S = aqSt();
     aqStep(t, dt);
     aqc.drawImage(aqBg, 0, 0);
@@ -203,21 +225,25 @@
     for (var sx = 0; sx < AQ_W; sx++) if (aqEll(sx, AQ_WL) && aqEll(sx + 4, AQ_WL) && aqEll(sx - 4, AQ_WL)) { var wv = Math.sin(sx * .28 + t / 280) > .55 ? -1 : 0; aP(aqc, sx, AQ_WL + wv, 1, 1, (sx + Math.floor(t / 110)) % 6 ? "#d0f0fa" : "#ffffff"); aP(aqc, sx, AQ_WL + 1 + wv, 1, 1, "#a8dcf0"); }
     var sl = S.s, M0 = aqc; aqc = aqLc; aqc.clearRect(0, 0, AQ_W, AQ_H);   /* everything inside goes on its own layer, cut to the glass */
     if (sl[9] === "efeu") AQ_DRAW.efeu(aqc, AQ_SL[9].x, AQ_SL[9].y, t, false);
-    for (var i = 0; i < 6; i++) if (sl[i] && AQ_DRAW[sl[i]]) { aqShadow(aqc, AQ_SL[i].x, AQ_SL[i].y, 10); AQ_DRAW[sl[i]](aqc, AQ_SL[i].x, AQ_SL[i].y, t + i * 700); }
+    var pk = aq.poke && performance.now() - aq.poke.t0 < 1500 ? aq.poke : null, tp = function (i) { return pk && pk.i === i ? t + i * 700 + Math.sin((performance.now() - pk.t0) / 60) * 900 * (1 - (performance.now() - pk.t0) / 1500) + (sl[i] === "kiste" ? 6000 - (t + i * 700) % 8000 : 0) : t + i * 700; };
+    for (var i = 0; i < 6; i++) if (sl[i] && AQ_DRAW[sl[i]]) { aqShadow(aqc, AQ_SL[i].x, AQ_SL[i].y, 10); AQ_DRAW[sl[i]](aqc, AQ_SL[i].x, AQ_SL[i].y, tp(i)); }
     aqFog(aqc);
     if (Math.random() < dt * 4) aqBub(152, 104, 1); aqDisc(aqc, 152, 107, 3, 2, function (a, b, d) { return d > .7 ? "#4a463c" : "#8a8478"; });   /* the air stone */
     aq.shrimps.forEach(function (p) { if (p.y < 112) aqShrimp(aqc, p, t); });
     aq.flakes.forEach(function (f) { aP(aqc, f.x, f.y, 2, 1, f.c); });
     aq.neons.forEach(function (n) { aqNeon(aqc, n); });
     var fsy = Math.min(AQ_H - 6, AQ_FB + 8 + (aq.fish.y - AQ_WL) * .2); aqShadow(aqc, Math.round(aq.fish.x), Math.round(fsy), 9 - Math.round((AQ_FB - aq.fish.y) / 14));   /* the fish's shadow on the gravel */
+    var Ho = aq.mode === "play" && aq.hoop; if (Ho) aqDisc(aqc, Ho.x, Ho.y, 3, 9, function (a, b, d) { return a > 0 || d < .45 ? null : d > .8 ? "#a8285a" : "#ff6aa0"; });   /* the back half of the ring */
     aqFish(aqc, aq.fish, t);
-    for (var j = 6; j < 9; j++) if (sl[j] && AQ_DRAW[sl[j]]) { aqShadow(aqc, AQ_SL[j].x, AQ_SL[j].y, 11); AQ_DRAW[sl[j]](aqc, AQ_SL[j].x, AQ_SL[j].y, t + j * 700); }
+    if (Ho) aqDisc(aqc, Ho.x, Ho.y, 3, 9, function (a, b, d) { return a <= 0 || d < .45 ? null : d > .8 ? "#a8285a" : b < 0 ? "#ffb0d0" : "#ff6aa0"; });
+    for (var j = 6; j < 9; j++) if (sl[j] && AQ_DRAW[sl[j]]) { aqShadow(aqc, AQ_SL[j].x, AQ_SL[j].y, 11); AQ_DRAW[sl[j]](aqc, AQ_SL[j].x, AQ_SL[j].y, tp(j)); }
     aq.shrimps.forEach(function (p) { if (p.y >= 112) aqShrimp(aqc, p, t); });
     if (sl[10] && AQ_DRAW[sl[10]]) AQ_DRAW[sl[10]](aqc, AQ_SL[10].x, AQ_SL[10].y, t);
     aq.bub = aq.bub.filter(function (b) { b.y -= 15 * dt * (1 + b.r * .3); b.x += Math.sin(t / 200 + b.ph) * .15; if (b.y < AQ_WL + 1) return false; if (b.r > 1) { aP(aqc, b.x - 1, b.y, 3, 1, "#e8f8ff"); aP(aqc, b.x, b.y - 1, 1, 3, "#e8f8ff"); aP(aqc, b.x, b.y, 1, 1, "#a8d8f0"); aP(aqc, b.x - 1, b.y - 1, 1, 1, "#ffffff"); } else aP(aqc, b.x, b.y, 1, 1, "#e8f8ff"); return true; });
     aqSnail(aqc, aq.snail, t);
     aqc.globalCompositeOperation = "destination-in"; aqc.drawImage(aqMask, 0, 0); aqc.globalCompositeOperation = "source-over"; aqc = M0; aqc.drawImage(aqL, 0, 0);
     aqc.drawImage(aqFront, 0, 0);
+    if (aq.ripple) { var ru = (performance.now() - aq.ripple.t0) / 700; if (ru > 1) aq.ripple = null; else for (var ra = 0; ra < 24; ra++) { var an2 = ra / 24 * Math.PI * 2; aP(aqc, aq.ripple.x + Math.cos(an2) * (2 + ru * 9), aq.ripple.y + Math.sin(an2) * (1 + ru * 5), 1, 1, "rgba(255,255,255," + (1 - ru).toFixed(2) + ")"); } }
     if (sl[9] === "efeu") AQ_DRAW.efeu(aqc, AQ_SL[9].x, AQ_SL[9].y, t, true);
     aq.hearts = aq.hearts.filter(function (h) { h.l -= dt; h.y -= 14 * dt; h.x += h.vx * dt; var x = Math.round(h.x), y = Math.round(h.y); aP(aqc, x - 3, y - 1, 3, 1, AD); aP(aqc, x + 1, y - 1, 3, 1, AD);
       aP(aqc, x - 3, y, 7, 2, "#e8465a"); aP(aqc, x - 2, y + 2, 5, 1, "#e8465a"); aP(aqc, x - 1, y + 3, 3, 1, "#e8465a"); aP(aqc, x, y + 4, 1, 1, "#e8465a"); aP(aqc, x - 2, y, 1, 1, "#ffb0b8"); return h.l > 0; });
@@ -229,7 +255,6 @@
     var F = aq.fish, now = performance.now();
     if (aq.mode === "feed") { var fl = aq.flakes.filter(function (f) { return !f.gone; }); if (fl.length && !aq.full) { var n = fl.reduce(function (a, f) { return Math.hypot(f.x - F.x, f.y - F.y) < Math.hypot(a.x - F.x, a.y - F.y) ? f : a; }); F.tx = n.x - F.dir * 11; F.ty = n.y - 1; F.fast = 1; } }
     else if (aq.mode === "play") { if (aq.ptr) { F.tx = aq.ptr[0] - F.dir * 6; F.ty = aq.ptr[1]; F.fast = 1; } }
-    else if (aq.mode === "love") { F.tx = 90; F.ty = 62; F.fast = 0; }
     else if (now > F.next) { F.next = now + 2200 + Math.random() * 3200; F.tx = 30 + Math.random() * 120; F.ty = 40 + Math.random() * 50; F.fast = 0; if (Math.random() < .3) { F.blub = 1; setTimeout(function () { if (aq) { aq.fish.blub = 0; aqBub(aq.fish.x + aq.fish.dir * 13, aq.fish.y, 2); } }, 300); } }
     aqClampT(F);
     var dx = F.tx - F.x, dy = F.ty - F.y, d = Math.hypot(dx, dy), sp = (F.fast ? 50 : 18) * dt;
@@ -237,8 +262,8 @@
     if (d > .8) { F.x += dx / d * Math.min(d, sp); F.y += dy / d * Math.min(d, sp * .8); }
     if (!F.blink && Math.random() < dt * .35) { F.blink = 1; setTimeout(function () { if (aq) aq.fish.blink = 0; }, 130); }
     // the snail creeps along the inside of the glass, now and then turning back
-    var Sn = aq.snail; if (Sn.hide > 0) Sn.hide -= dt; else { Sn.a += Sn.dir * dt * .012; if (Sn.a > 3.4 || Sn.a < 2.0) Sn.dir *= -1; }
-    Sn.x = AQ_CX + Math.cos(Sn.a) * (AQ_RX - 8); Sn.y = AQ_CY - Math.sin(Sn.a) * (AQ_RY - 8); Sn.dir2 = Sn.dir;
+    var Sn = aq.snail; if (Sn.hide > 0) Sn.hide -= dt; else if (Math.random() > dt * .05) { Sn.a += Sn.dir * dt * .01; if (Sn.a > 3.6 || Sn.a < 1.9) Sn.dir *= -1; }
+    Sn.x = AQ_CX + Math.cos(Sn.a) * (AQ_RX - 9); Sn.y = AQ_CY - Math.sin(Sn.a) * (AQ_RY - 9); Sn.dir2 = Sn.dir;
     // the shrimps pick at the gravel, scuttle a bit, pick again
     aq.shrimps.forEach(function (p) { if (p.pick > 0) { p.pick -= dt; return; } if (now > p.next) { p.next = now + 1500 + Math.random() * 3000; p.tx = Math.max(36, Math.min(144, p.x + (Math.random() - .5) * 50)); p.ty = 104 + Math.random() * 16; }
       var ex = p.tx - p.x, ey = (p.ty || p.y) - p.y; if (Math.abs(ex) > 1 || Math.abs(ey) > 1) { p.dir = ex < 0 ? -1 : 1; p.x += Math.sign(ex) * Math.min(Math.abs(ex), 12 * dt); p.y += Math.sign(ey) * Math.min(Math.abs(ey), 5 * dt); } else if (Math.random() < dt * .8) p.pick = 1 + Math.random() * 1.5; });
@@ -252,8 +277,13 @@
       var mx = F.x + F.dir * 12; if (!aq.full && Math.hypot(f.x - mx, f.y - (F.y + 1)) < 4) { f.gone = 1; F.gulp = 1; setTimeout(function () { if (aq) aq.fish.gulp = 0; }, 160); beep([[880, .02], [1180, .03]]); aq.ate++; } });
     aq.flakes = aq.flakes.filter(function (f) { if (f.gone) return false; if (f.y >= AQ_FB) { f.rest = (f.rest || 0) + dt; aq.shrimps.forEach(function (p) { if (Math.abs(p.x - f.x) < 20) { p.tx = f.x; p.ty = AQ_FB + 8; } }); return f.rest < 5; } return true; });
     if (aq.mode === "feed" && !aq.flakes.length) aqFeedDone();
-    if (aq.mode === "play" && aq.ptr && d < 5 && now > (aq.caught || 0)) { aq.caught = now + 900; aq.plays++; beep([[620, .03], [820, .04]]); aqBub(F.x + F.dir * 13, F.y - 2, 2); F.happy = 1; setTimeout(function () { if (aq) aq.fish.happy = 0; }, 400); if (aq.plays === 5) { aqSay("Der Goldfisch hat Spaß!"); s.love = clamp(s.love + 1); renderNeeds(); } }
-    if (aq.mode === "love") { F.blush = 1; if (d < 3) { F.dir = Math.sin(now / 900) > 0 ? 1 : -1; } }
+    if (F.trick) { var tu = (now - F.trick.t0) / F.trick.dur;   /* a trick: a loop, a wiggle or a little jump */
+      if (tu >= 1) { F.trick = null; F.happy = 0; } else { F.happy = 1; if (F.trick.k === "loop") { var an = tu * Math.PI * 2; F.x = F.trick.x + Math.sin(an) * 10 * F.trick.dir; F.y = F.trick.y - (1 - Math.cos(an)) * 8; F.dir = Math.cos(an) > 0 ? F.trick.dir : -F.trick.dir; F.tx = F.x; F.ty = F.y; }
+        else if (F.trick.k === "wiggle") { F.x = F.trick.x + Math.round(Math.sin(tu * 40) * 1.5); F.tx = F.x; F.ty = F.y; if (Math.random() < .08) aqHeart(F.x, F.y - 10); }
+        else if (F.trick.k === "jump") { var jy = Math.sin(tu * Math.PI); F.y = F.trick.y - jy * (F.trick.y - AQ_WL + 8); F.tx = F.x; F.ty = F.y; if (!F.trick.sp && F.y < AQ_WL + 2) { F.trick.sp = 1; for (var sp2 = 0; sp2 < 10; sp2++) aqBub(F.x - 8 + sp2 * 2, AQ_WL + 3, 1); beep([[520, .05], [780, .06]]); } } } }
+    if (aq.mode === "play" && aq.hoop) { var H2 = aq.hoop; if (Math.abs(F.x - H2.x) < 3 && Math.abs(F.y - H2.y) < 6 && now > (H2.cool || 0)) { H2.cool = now + 800; aq.plays++; beep([[660, .04], [880, .04], [1175, .06]]); for (var hb = 0; hb < 6; hb++) aqBub(H2.x, H2.y - 6 + hb * 2, 1); F.happy = 1; setTimeout(function () { if (aq) aq.fish.happy = 0; }, 500);
+        if (aq.plays >= 4) { aq.hoop = null; aq.mode = ""; aq.ptr = null; aqSay("Super! Vier Mal durch den Ring!"); F.trick = { k: "loop", t0: now, dur: 900, x: F.x, y: F.y, dir: F.dir }; s.love = clamp(s.love + 2); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); aqBarDraw(); }
+        else { aqSay(aq.plays + " von 4"); H2.x = 40 + Math.random() * 100; H2.y = 42 + Math.random() * 44; } } }
   }
   function aqFeedDone() { aq.mode = ""; aq.fish.fast = 0; var L = life();
     if (aq.full) aqSay("Der Goldfisch ist noch satt.");
@@ -264,30 +294,30 @@
     if (!aq) return;
     if (aq.edit) { aqBar.innerHTML = '<span class="aq-hint">Tippe auf ein Feld</span><button type="button" class="fi-b" data-a="done">Fertig</button>'; return; }
     var busy = !!aq.mode;
-    aqBar.innerHTML = [["feed", "Füttern"], ["play", "Spielen"], ["love", "Gern haben"], ["edit", "Einrichten"]].map(function (b) { var on = aq.mode === b[0]; return '<button type="button" class="fi-b2' + (on ? " on" : "") + '" data-a="' + b[0] + '"' + (busy && !on ? " disabled" : "") + '>' + ((b[0] === "play" || b[0] === "love") && on ? "Fertig" : b[1]) + '</button>'; }).join("");
+    aqBar.innerHTML = [["feed", "Füttern"], ["play", "Spielen"], ["edit", "Einrichten"]].map(function (b) { var on = aq.mode === b[0]; return '<button type="button" class="fi-b2' + (on ? " on" : "") + '" data-a="' + b[0] + '"' + (busy && !on ? " disabled" : "") + '>' + (b[0] === "play" && on ? "Fertig" : b[1]) + '</button>'; }).join("");
   }
   aqBar.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !aq) return; e.stopPropagation(); var a = b.dataset.a;
     if (a === "done") { aq.edit = false; aqBarDraw(); beep([[660, .04], [880, .05]]); if (window.SudokuSave) window.SudokuSave(); return; }
     if (a === "edit") { aq.edit = true; aqBarDraw(); beep([[520, .04]]); return; }
     if (a === "feed") { aq.mode = "feed"; aq.ate = 0; aq.full = Date.now() - (life().fishFed || 0) < 3 * 3600e3; var x0 = 60 + Math.random() * 60; for (var k = 0; k < 8; k++) aq.flakes.push({ x: x0 + (k * 7) % 26 - 13, y: AQ_WL + 1 + (k % 3), ph: k, c: k % 2 ? "#e8c060" : "#d8703a" }); beep([[1047, .03], [1175, .03], [1319, .04]]); aqBarDraw(); return; }
-    if (a === "play") { if (aq.mode === "play") { aq.mode = ""; aq.ptr = null; aqBarDraw(); return; } aq.mode = "play"; aq.plays = 0; aqSay("Tippe ins Wasser!"); aqBarDraw(); return; }
-    if (a === "love") { if (aq.mode === "love") { aq.mode = ""; aq.fish.blush = 0; aqBarDraw(); return; } aq.mode = "love"; aq.pets = 0; aqSay("Streichle den Goldfisch!"); aqBarDraw(); return; } });
+    if (a === "play") { if (aq.mode === "play") { aq.mode = ""; aq.ptr = null; aq.hoop = null; aqBarDraw(); return; } aq.mode = "play"; aq.plays = 0; aq.hoop = { x: 50 + Math.random() * 80, y: 50 + Math.random() * 30 }; aqSay("Lotse den Goldfisch durch den Ring!"); aqBarDraw(); return; } });
   function aqPt(e) { var r = aqCv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * AQ_W, (e.clientY - r.top) / r.height * AQ_H]; }
-  function aqPet(p) { var F = aq.fish; if (Math.hypot(p[0] - F.x, (p[1] - F.y) * 1.4) > 16) return; var now = performance.now(); if (now < (aq.petT || 0)) return; aq.petT = now + 260;
-    aq.pets++; aqHeart(p[0], p[1] - 6); F.happy = 1; clearTimeout(aqPet.t); aqPet.t = setTimeout(function () { if (aq) aq.fish.happy = 0; }, 500); beep([[1047 + (aq.pets % 4) * 110, .04]]);
-    if (aq.pets === 8) { aqSay("Ihr habt euch gern!"); for (var h = 0; h < 5; h++) (function (h) { setTimeout(function () { aqHeart(F.x - 10 + h * 5, F.y - 12); }, h * 140); })(h); s.love = clamp(s.love + 2); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); } }
   aqCv.addEventListener("pointerdown", function (e) { if (!aq) return; e.preventDefault(); var p = aqPt(e);
     if (aq.edit) { var best = -1, bd = 16; AQ_SL.forEach(function (sp, i) { var d = Math.hypot(p[0] - sp.x, (p[1] - (sp.k === "f" ? sp.y - 7 : sp.y)) * .7); if (d < bd) { bd = d; best = i; } }); if (best >= 0) aqPick(best); return; }
     aq.drag = true; try { aqCv.setPointerCapture(e.pointerId); } catch (er) { }
     if (aq.mode === "play") { aq.ptr = p; return; }
-    if (aq.mode === "love") { aqPet(p); return; }
     var F = aq.fish, Sn = aq.snail;
-    if (Math.hypot(p[0] - Sn.x, p[1] - Sn.y) < 8) { Sn.hide = 2.5; beep([[300, .04]]); return; }                                                       /* the snail pulls in */
+    if (Math.hypot(p[0] - Sn.x, p[1] - Sn.y) < 9) { Sn.hide = 3; beep([[300, .04], [240, .05]]); return; }                                                       /* the snail pulls in */
     for (var i = 0; i < aq.shrimps.length; i++) { var q = aq.shrimps[i]; if (Math.hypot(p[0] - q.x, p[1] - q.y) < 7) { q.tx = q.x - q.dir * 18; q.y -= 3; q.pick = 0; beep([[1200, .02]]); return; } }   /* a shrimp hops back */
-    if (Math.hypot(p[0] - F.x, p[1] - F.y) < 14) { F.tx = F.x + (F.x < 90 ? 40 : -40); F.ty = F.y - 10; F.fast = 1; F.next = performance.now() + 1500; aqBub(F.x + F.dir * 13, F.y, 2); beep([[740, .03]]); return; }
-    beep([[1400, .015]]); F.tx = p[0]; F.ty = p[1]; F.next = performance.now() + 2500;
+    var now2 = performance.now();
+    if (Math.hypot(p[0] - F.x, p[1] - F.y) < 14 && !F.trick) { aq.taps = (aq.tapT && now2 - aq.tapT < 1500 ? aq.taps : 0) + 1; aq.tapT = now2;   /* tap the fish: it shows a trick; three quick taps and it jumps */
+      var kk = aq.taps >= 3 ? "jump" : ["loop", "wiggle", "loop"][Math.floor(Math.random() * 3)]; F.trick = { k: kk, t0: now2, dur: kk === "jump" ? 1100 : kk === "loop" ? 900 : 1000, x: F.x, y: F.y, dir: F.dir }; if (kk === "jump") aq.taps = 0;
+      aqBub(F.x + F.dir * 13, F.y, 2); beep(kk === "wiggle" ? [[1047, .04], [1319, .05]] : [[740, .04], [988, .05]]); if (kk !== "loop") aqHeart(F.x, F.y - 12); F.next = now2 + 2500; return; }
+    var sl2 = aqSt().s; for (var k2 = 0; k2 < 9; k2++) { var sp3 = AQ_SL[k2]; if (sl2[k2] && Math.abs(p[0] - sp3.x) < 10 && p[1] < sp3.y + 2 && p[1] > sp3.y - (/seegras|pest|bambus|ludwig/.test(sl2[k2]) ? 60 : 24)) {   /* tap a thing: plants wave and bubble, the chest opens */
+      aq.poke = { i: k2, t0: now2 }; for (var b3 = 0; b3 < 5; b3++) aqBub(sp3.x - 4 + Math.random() * 8, sp3.y - 10 - Math.random() * 20, Math.random() < .4 ? 2 : 1); beep([[880, .03], [660, .03]]); return; } }
+    aq.ripple = { x: p[0], y: p[1], t0: now2 }; beep([[1400, .015]]); F.tx = p[0] - F.dir * 14; F.ty = p[1]; F.next = now2 + 3000; F.look = now2;   /* a tap on the glass: a ripple, and the fish comes to look */
   });
-  aqCv.addEventListener("pointermove", function (e) { if (!aq || !aq.drag) return; var p = aqPt(e); if (aq.mode === "play") aq.ptr = p; else if (aq.mode === "love") aqPet(p); });
+  aqCv.addEventListener("pointermove", function (e) { if (!aq || !aq.drag) return; var p = aqPt(e); if (aq.mode === "play") aq.ptr = p; });
   aqCv.addEventListener("pointerup", function () { if (aq) aq.drag = false; });
   // ---- one card with little pictures to choose what goes in a place ----
   function aqPick(i) {
@@ -313,4 +343,4 @@
     if (S.s[10]) { P(8, 6, 4, 1, "#5aa04e"); if (S.s[10] === "seerose") P(9, 5, 1, 1, "#ff9ab8"); }
     g.innerHTML = '<svg viewBox="0 0 24 21" shape-rendering="crispEdges">' + px + '</svg>'; }
   renderBowl();
-  window.__aq = { open: aqOpen, close: aqClose, st: function () { return aq && { mode: aq.mode, edit: aq.edit, fish: [Math.round(aq.fish.x), Math.round(aq.fish.y), aq.fish.dir], flakes: aq.flakes.length, slots: aqSt().s.slice() }; }, set: function (i, k) { aqSt().s[i] = k; }, pet: function (x, y) { if (aq) aqPet([x, y]); } };
+  window.__aq = { open: aqOpen, close: aqClose, st: function () { return aq && { mode: aq.mode, edit: aq.edit, fish: [Math.round(aq.fish.x), Math.round(aq.fish.y), aq.fish.dir], flakes: aq.flakes.length, slots: aqSt().s.slice() }; }, set: function (i, k) { aqSt().s[i] = k; }, kind: function (k) { life().aq.kind = k; }, variants: function () { aq.preview = true; aqc.drawImage(aqBg, 0, 0); var ks = Object.keys(AQ_KINDS), pos = [[45, 44], [118, 44], [45, 76], [118, 76], [82, 100]]; ks.forEach(function (k, i) { aqFish(aqc, { x: pos[i][0], y: pos[i][1], dir: -1 }, 400, AQ_KINDS[k]); }); return ks.map(function (k) { return AQ_KINDS[k].n; }); }, tap: function (x, y) { aqCv.dispatchEvent(new PointerEvent("pointerdown", { clientX: 0, clientY: 0 })); } };
