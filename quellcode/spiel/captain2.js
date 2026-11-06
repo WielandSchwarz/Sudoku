@@ -549,7 +549,7 @@
   // ---- the disaster: rammed the iceberg. The bow goes down slowly, the lifeboats row away; then from the side, the whole ship sinks ----
   var kpCat = document.createElement("button"); kpCat.type = "button"; kpCat.className = "kp-cat"; kpCat.textContent = "Katastrophe"; kpCat.hidden = true; kpEl.appendChild(kpCat);
   kpCat.addEventListener("click", function (e) { e.stopPropagation(); if (!kp || !kp.sink) return; kpCat.hidden = true;
-    if (kp.sink.side) { if (!kp.done) kpGameOver(); return; }   // the second time it says "Weiter": the lifeboat scene stays until you go on
+    if (kp.sink.side) { if (!kp.done) { if (typeof rwStart === "function") { kp.done = true; rwStart(cpSky()); } else kpGameOver(); } return; }   /* "Weiter": into the lifeboat and row */   // the second time it says "Weiter": the lifeboat scene stays until you go on
     kp.sink.side = { t0: performance.now(), bub: [] }; kpBk.style.visibility = "hidden"; kpToast.hidden = true;
     dzTone(52, 4, .22, "sawtooth", 0, 30); dzTone(78, 3, .1, "triangle", 1.5, 40); dzNoise(9, 380, .5, .22, 1, 3); setTimeout(function () { if (kp && kp.sink) dzWhistle(1.8); }, 1200); kpKick(); });
   function kpSinkReset() { kpCat.hidden = true; kpCat.textContent = "Katastrophe"; kpBk.style.visibility = ""; kpBk.style.transform = ""; }
