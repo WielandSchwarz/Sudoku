@@ -83,3 +83,7 @@
 .kp-r-s { font-size: .75rem; color: #6a5a4a; text-align: right; font-style: italic; }
 .kp-r-bottle b { color: #2e7a26; } .kp-r-bottle { border-bottom-color: #2e7a26; }
 .kp-r-g { margin-top: 4px; font-weight: 800; font-size: .95rem; color: #2e7a26; }
+.kp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; }
+.kp-grid button { border: 0; font: inherit; background: #fff1d4; color: #3a2414; padding: 3px 2px 5px; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0c89c; cursor: pointer; }
+.kp-grid b { display: block; font-size: .85rem; line-height: 1.1; } .kp-grid small { display: block; font-size: .55rem; letter-spacing: -.05em; }
+.kp-bot { margin-top: 6px; font-size: .72rem; }
