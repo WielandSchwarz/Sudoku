@@ -345,11 +345,40 @@ def v1e(key, r=2):
     return v
 
 
+# ---------------------------------------------------------------- round 7: constructed gramophone, seen slightly from above
+import grammophon4 as G4
+
+
+def v1f(key):
+    var = G4.VARIANTS[key]
+    g = G4.grammophon4(**var['kw']); moebel = G4.plattenschrank4()
+    v = Land('grammophon4-' + key, 'Landhaus 1D mit Grammophon (Runde 7): ' + var['name'])
+    hall(v)
+    S = v.R.S
+    v.old('teppich', x=62)
+    v.old('uhr', x=63)
+    v.old('pinnwand', x=103, y=10)
+    v.window('fenster', 180, 26, 46, 42)
+    v.old('schiffsbild', x=216, y=24)
+    v.old('regal')
+    v.old('lampe', x=39)
+    v.old('sessel', x=55)
+    mx = v.R.o(106)
+    top = v.stand('grammophon_moebel', moebel, mx, 106)
+    v.on_top('grammophon', top, g, mx - 1)
+    v.old('geranie', x=160)
+    r2 = regal2()
+    v.R.L.paste(r2, v.R.o(210), 54)
+    v.items.append(dict(name='regal_zwei', x=v.R.o(210), y=54, w=r2.w, h=r2.h, ebene='boden', img=r2))
+    v.notes['hamster'] = (S + 140, 124)
+    return v
+
+
 if __name__ == '__main__':
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else 'out2'
     lay = {}
-    for f in (v1a, v1b, v1c, v1d, lambda: v1e('tulpe', 3), lambda: v1e('rechts', 3), lambda: v1e('schraeg', 3), lambda: v1e('koffer', 3)):
+    for f in (v1a, v1b, v1c, v1d, lambda: v1f('messing'), lambda: v1f('kupfer'), lambda: v1f('gruen'), lambda: v1f('kirsch')):
         v = f(); lay[v.key] = v.export(out); print(v.key, v.R.W, len(v.items))
     json.dump(dict(einheit='1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100',
                    reihenfolge='Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene "alt" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position',
