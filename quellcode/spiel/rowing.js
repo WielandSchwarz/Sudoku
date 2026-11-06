@@ -28,6 +28,13 @@
       var pose = RW_POSE[pk], base = new Image(), top = new Image(), c = document.createElement("canvas"); c.width = 48; c.height = 46; var g = c.getContext("2d"), n = 0; g.imageSmoothingEnabled = false;
       var done = function () { if (++n < 2) return; g.drawImage(base, 0, 0); if (pk !== "wrap") rwVest(g); g.drawImage(top, 0, 0); rwHI[fk + "_" + pk] = c; };
       base.onload = done; top.onload = done; base.src = svg(["body"], RW_FUR[fk]); top.src = svg(["ears_up", pose[0], "nose", pose[1], "whisk0", pose[2]], RW_FUR[fk]); }); }); }
+  var rwSm = {};
+  function rwSmall(key, st) {   // the same sprite drawn again with fewer pixels (st/16 of its size): one pixel stays one pixel, no blurry scaling
+    var big = rwHI && rwHI[key]; if (!big) return null; if (st >= 16) return big; var k = key + "@" + st; if (rwSm[k]) return rwSm[k];
+    var w = Math.max(3, Math.round(48 * st / 16)), h = Math.max(3, Math.round(46 * st / 16)), c = document.createElement("canvas"); c.width = w; c.height = h; var g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+    var src = big.getContext("2d").getImageData(0, 0, 48, 46).data, out = g.createImageData(w, h), od = out.data;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) { var sx = Math.min(47, Math.floor((x + .5) * 48 / w)), sy = Math.min(45, Math.floor((y + .5) * 46 / h)), si = (sy * 48 + sx) * 4, oi = (y * w + x) * 4; od[oi] = src[si]; od[oi + 1] = src[si + 1]; od[oi + 2] = src[si + 2]; od[oi + 3] = src[si + 3]; }
+    g.putImageData(out, 0, 0); rwSm[k] = c; return c; }
   function rwHam(fur, pose, x, y) { var im = rwHI && rwHI[fur + "_" + pose]; if (im) rwc.drawImage(im, Math.round(x), Math.round(y)); }
   // ---- start and end ----
   function rwStart(sky) {
@@ -109,11 +116,10 @@
     if (night) { rwc.globalAlpha = .25; rwDisc(90, 72, 26, 8, function () { return "#ffe8a0"; }); rwc.globalAlpha = 1; }    /* the lantern's light on the water */
     // what floats ahead, far ones first
     rw.ev.slice().sort(function (a, b) { return b.d - a.d; }).forEach(function (e) { var z = e.d - rw.d; if (z < -4 || z > 260) return; var p = rwProj(z, e.lx), s = p.s;
-      if (!e.done) { var near = true, r2 = near ? 15 + 22 * s : Math.max(4, 44 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * Math.max(.5, s * 2)), fur = ["gold", "grey", "choc", "snow", "gold"][rw.ev.indexOf(e) % 5], ring = function (front) {   /* a big life ring; up close the real hamster sits in it and waves */
-          rwDisc(p.x, p.y + bob, r2, r2 * .38, function (a, b, d) { if (front ? b < 0 : b >= 0) return null; var ang = Math.atan2(b, a); return d < .5 ? null : d > .86 ? "#3a2414" : Math.floor((ang + 3.2) / .8) % 2 ? "#ffffff" : "#e8463c"; }); };
+      if (!e.done) { var st = Math.max(2, Math.min(12, Math.round(s * 1.15 * 16))), sc = st / 16, r2 = 24 * sc + 2, bob = Math.round(Math.sin(t / 300) * Math.max(1, 2 * sc)), fur = ["gold", "grey", "choc", "snow", "gold"][rw.ev.indexOf(e) % 5], ring = function (front) {   /* the real hamster at its real size for the distance, in a life ring */
+          rwDisc(p.x, p.y + bob, r2, Math.max(1, r2 * .38), function (a, b, d) { if (front ? b < 0 : b >= 0) return null; var ang = Math.atan2(b, a); return d < .5 ? null : d > .86 ? "#3a2414" : Math.floor((ang + 3.2) / .8) % 2 ? "#ffffff" : "#e8463c"; }); };
         ring(false);
-        if (near && rwHI && rwHI[fur + "_shout"]) { var im = rwHI[fur + (Math.floor(t / 500) % 2 ? "_shout" : "_cheer")], hh = 32; rwc.drawImage(im, 0, 0, 48, hh, Math.round(p.x - 24), Math.round(p.y + bob - hh + 2), 48, hh); }
-        else { rwDisc(p.x, p.y - r2 * .35 + bob, r2 * .5, r2 * .5, function (a, b, d) { return d > .75 ? "#3a2414" : b > r2 * .15 ? "#fff6e4" : "#e9a44c"; }); if (r2 > 5) { rP(p.x - r2 * .2, p.y - r2 * .45 + bob, 1, 1, "#24160c"); rP(p.x + r2 * .15, p.y - r2 * .45 + bob, 1, 1, "#24160c"); } }
+        var im = rwSmall(fur + (Math.floor(t / 500) % 2 ? "_shout" : "_cheer"), st); if (im) { var hh = Math.round(im.height * .72); rwc.drawImage(im, 0, 0, im.width, hh, Math.round(p.x - im.width / 2), Math.round(p.y + bob - hh + 1), im.width, hh); }
         rP(p.x - r2 * .62, p.y + bob, Math.round(r2 * 1.24), 1, "#e8f8ff"); ring(true); } });
     // the boat from the stern, in depth: the rounded gunwale, the white outside of the hull, the inner walls with strakes and ribs going down to the floor
     var bowY = 62, G = function (y) { var u = Math.max(0, (y - bowY) / (135 - bowY)); return 90 * Math.pow(u, .62); }, F = function (y) { var u = Math.max(0, (y - bowY - 14) / (135 - bowY - 14)); return 60 * Math.pow(u, .7); };
