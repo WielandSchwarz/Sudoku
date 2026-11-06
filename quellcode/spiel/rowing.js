@@ -68,8 +68,8 @@
       var z = e.d - rw.d, off = Math.abs(e.lx - rw.bx);
       if (e.k === "floe" && !e.done && z < 90 && !e.warn) { e.warn = 1; rwSay(off < .4 ? "Eisscholle voraus! Ausweichen!" : "Eisscholle!"); }
       if (e.k === "floe" && !e.done && z < RW_BOW) { e.done = 1; if (off < .38) { if (rw.v > 16) { rw.hit++; rw.v = 0; rw.shake = .5; beep([[110, .12], [80, .18]]); dzBuzz([60, 30, 120]); rwSay("Rumms! Mitten in die Scholle."); } else { rw.v *= .4; rwSay("Sachte weggeschoben. Puh!"); } } else beep([[660, .03]]); }
-      if (e.k === "swim" && !e.done && z < 100 && !e.warn) { e.warn = 1; rwSay("Da treibt ein Hamster! Hinsteuern, langsam ran."); }
-      if (e.k === "swim" && !e.done && z < RW_BOW) { e.done = 1; rw.picked = true; if (off > .45) { rw.gentle = false; rwSay("Vorbei! Er paddelt hinterher und klettert selbst rein."); } else if (rw.v > 18) { rw.gentle = false; rwSay("Zu schnell! Er bekommt gerade noch das Seil."); } else { rwSay("Hochgezogen! Willkommen an Bord."); rw.cheerT = 1.4; } beep([[523, .05], [659, .05], [784, .08]]); rw.v *= .5; }
+      if (e.k === "swim" && !e.done && z < 100 && !e.warn) { e.warn = 1; rwSay("Ein Hamster im Wasser! Hinsteuern!"); }
+      if (e.k === "swim" && !e.done && z < RW_BOW) { e.done = 1; rw.picked = true; if (off > .45) { rw.gentle = false; rwSay("Vorbei! Er klettert selbst rein."); } else if (rw.v > 18) { rw.gentle = false; rwSay("Zu schnell! Er bekommt gerade noch das Seil."); } else { rwSay("Hochgezogen! Willkommen an Bord."); rw.cheerT = 1.4; } beep([[523, .05], [659, .05], [784, .08]]); rw.v *= .5; }
       if (e.k === "wave" && !e.done && z < 70 && !e.warn) { e.warn = 1; rw.waveOn = true; rw.waveOk = false; rwSay("Eine große Welle! Kräftig durchziehen!"); }
       if (e.k === "wave" && !e.done && z < RW_BOW) { e.done = 1; rw.waveOn = false; if (!rw.waveOk) { rw.wet++; rw.wetT = 2.5; rw.v *= .4; rw.shake = .5; for (var i = 0; i < 40; i++) rw.drops.push({ x: Math.random() * 180, y: 40 + Math.random() * 30, vx: (Math.random() - .5) * 30, vy: 20 + Math.random() * 40, l: 1.2 }); dzNoise(.8, 500, .6, .3, .02, .6); rwSay("Platsch! Alle klatschnass."); } else { rw.v += 10; rw.cheerT = 1; rwSay("Drüber weg!"); } }
     });
@@ -112,24 +112,33 @@
         if (r2 > 4) { rP(p.x - r2 * .35, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x + r2 * .25, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x - r2 * .55, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); rP(p.x + r2 * .35, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); }
         if (Math.floor(t / 350) % 2 && r2 > 3) rP(p.x + r2 * .7, p.y - r2 * 1.4 + bob, 1, Math.max(2, r2 * .5), "#e9a44c"); }        /* he waves */
       if (e.k === "wave" && !e.done) { var hh = Math.max(2, Math.round(16 * s)); for (var xw = 0; xw < 180; xw++) { var cr = Math.round(Math.sin(xw * .08 + t / 300) * hh * .15); rP(xw, p.y - hh + cr, 1, hh, xw % 3 ? P[3] : P[2]); rP(xw, p.y - hh + cr, 1, 1, "#ffffff"); if ((xw + Math.floor(t / 90)) % 5 === 0) rP(xw, p.y - hh - 1 + cr, 1, 1, "#e8f8ff"); } } });
-    // the boat from the stern: the sides narrow towards the bow with its lantern
-    var bowY = 64, L = function (y) { return Math.round(90 - (y - bowY) * 1.03); }, R = function (y) { return Math.round(90 + (y - bowY) * 1.03); };
-    for (var by = bowY; by < 135; by++) { var l = L(by), r = R(by);
-      rP(l - 3, by, 3, 1, "#3a2414"); rP(r + 1, by, 3, 1, "#3a2414"); if ((by + Math.floor(t / 90)) % 3 === 0) { rP(l - 5, by, 2, 1, P[4]); rP(r + 4, by, 2, 1, P[4]); }      /* foam along the hull */
-      rP(l, by, r - l + 1, 1, "#9a6038"); for (var pl = -3; pl <= 3; pl++) rP(90 + pl * (by - bowY) * .3, by, 1, 1, "#7a4a28");                                    /* planks running to the bow */
-      rP(l, by, 3, 1, "#c8945a"); rP(l + 3, by, 1, 1, "#e0b078"); rP(r - 2, by, 3, 1, "#8a5a32"); rP(r - 3, by, 1, 1, "#b47a46"); }
-    rP(88, bowY - 1, 5, 2, "#3a2414"); rP(89, bowY - 10, 2, 10, "#5a3a1e"); rP(86, bowY - 15, 8, 6, "#3a2414"); rP(87, bowY - 14, 6, 4, night ? (Math.floor(t / 200) % 5 ? "#ffe08a" : "#fff6c8") : "#f4ecd8"); rP(87, bowY - 16, 6, 1, "#3a2414");   /* the lantern on the bow */
-    if (night) { rwc.globalAlpha = .18; rwDisc(90, bowY - 12, 9, 7, function () { return "#ffe8a0"; }); rwc.globalAlpha = 1; }
-    rP(L(84) + 2, 82, R(84) - L(84) - 3, 4, "#3a2414"); rP(L(84) + 3, 82, R(84) - L(84) - 5, 2, "#c8945a");                                                        /* the bow seat */
+    // the boat from the stern, in depth: the rounded gunwale, the white outside of the hull, the inner walls with strakes and ribs going down to the floor
+    var bowY = 62, G = function (y) { var u = Math.max(0, (y - bowY) / (135 - bowY)); return 90 * Math.pow(u, .62); }, F = function (y) { var u = Math.max(0, (y - bowY - 14) / (135 - bowY - 14)); return 60 * Math.pow(u, .7); };
+    var L = function (y) { return Math.round(90 - G(y)); }, R = function (y) { return Math.round(90 + G(y)); };
+    for (var by = bowY; by < 135; by++) { var g = G(by), f = F(by), u3 = (by - bowY) / (135 - bowY), ow = 1 + Math.round(u3 * 6), gl = Math.round(90 - g), gr = Math.round(90 + g), fl = Math.round(90 - f), fr = Math.round(90 + f);
+      if ((by + Math.floor(t / 90)) % 3 === 0) { rP(gl - ow - 4, by, 2, 1, P[4]); rP(gr + ow + 3, by, 2, 1, P[4]); }                                               /* foam where the hull meets the sea */
+      rP(gl - ow - 1, by, ow + 1, 1, "#3a2414"); rP(gl - ow, by, ow, 1, "#f4f0e6"); if (ow > 2) rP(gl - ow, by, 1, 1, "#c8c0b4"); if (ow > 4) rP(gl - ow + 1, by, 1, 1, "#d8463c");   /* the white hull outside, a red stripe */
+      rP(gr + 1, by, ow + 1, 1, "#3a2414"); rP(gr + 1, by, ow, 1, "#d8d0c4"); if (ow > 2) rP(gr + ow, by, 1, 1, "#a8a094"); if (ow > 4) rP(gr + ow - 1, by, 1, 1, "#b8382e");
+      var wallL = Math.max(0, fl - gl), wallR = Math.max(0, gr - fr);
+      for (var wx2 = 0; wx2 < wallL; wx2++) { var q = wx2 / Math.max(1, wallL); rP(gl + wx2, by, 1, 1, Math.abs(q - .33) < .5 / wallL || Math.abs(q - .66) < .5 / wallL ? "#6a3e22" : q < .2 ? "#c88a50" : q < .6 ? "#b07040" : "#8a5430"); }   /* the lit left wall */
+      for (var wx3 = 0; wx3 < wallR; wx3++) { var q2 = wx3 / Math.max(1, wallR); rP(fr + 1 + wx3, by, 1, 1, Math.abs(q2 - .33) < .5 / wallR || Math.abs(q2 - .66) < .5 / wallR ? "#4a2a16" : q2 > .8 ? "#9a6038" : q2 > .4 ? "#7a4a28" : "#6a3e22"); }   /* the right wall in shade */
+      if (f > 0) { rP(fl, by, fr - fl + 1, 1, "#8a5430"); for (var pl = -3; pl <= 3; pl++) rP(90 + pl * f / 3.6, by, 1, 1, "#6a3e22"); }                                  /* the floor boards, lower down */
+      rP(gl - 1, by, 4, 1, "#3a2414"); rP(gl, by, 2, 1, "#d8a070"); rP(gl + 2, by, 1, 1, "#a06a3a"); rP(gr - 2, by, 4, 1, "#3a2414"); rP(gr - 1, by, 2, 1, "#b47a46"); rP(gr - 2, by, 1, 1, "#7a4a28"); }   /* the gunwale rail */
+    [76, 88, 100, 112, 124].forEach(function (ry) { var g1 = G(ry), f1 = F(ry + 5); for (var k = 0; k <= 6; k++) { var yy = ry + Math.round(k * 5 / 6); rP(90 - g1 + (g1 - f1) * k / 6 + 1, yy, 2, 1, "#5a3420"); rP(90 + g1 - (g1 - f1) * k / 6 - 2, yy, 2, 1, "#3a2010"); } });   /* the ribs */
+    rP(88, bowY - 2, 5, 4, "#3a2414"); rP(89, bowY - 1, 3, 2, "#a06a3a"); rP(89, bowY - 12, 2, 10, "#5a3a1e"); rP(86, bowY - 17, 8, 6, "#3a2414"); rP(87, bowY - 16, 6, 4, night ? (Math.floor(t / 200) % 5 ? "#ffe08a" : "#fff6c8") : "#f4ecd8"); rP(87, bowY - 18, 6, 1, "#3a2414");   /* the stem and its lantern */
+    if (night) { rwc.globalAlpha = .18; rwDisc(90, bowY - 14, 9, 7, function () { return "#ffe8a0"; }); rwc.globalAlpha = 1; }
+    function rwThwart(ty, th) { var l = L(ty) + 2, r = R(ty) - 2; rwc.globalAlpha = .35; rP(Math.round(90 - F(ty + th + 3)), ty + th + 1, Math.round(F(ty + th + 3) * 2), 3, "#2a1608"); rwc.globalAlpha = 1;   /* its shadow on the floor */
+      rP(l, ty - 1, r - l, 1, "#3a2414"); rP(l, ty, r - l, 2, "#d8a070"); rP(l, ty + 2, r - l, th - 2, "#b47a46"); rP(l, ty + th, r - l, 1, "#3a2414"); rP(l, ty, r - l, 1, "#e8b880"); }
+    rwThwart(84, 4);
     // the rescued one, wrapped in a blanket on the bow seat, between the rowers
     if (rw.picked) rwHam("snow", "wrap", 66, 50 + Math.round(Math.sin(t / 500)));
     // the two rowers on the middle thwart, facing us: they lean back on the stroke and come forward on the recovery
     var lean = rw.drive ? -Math.round(rw.h * 3) : Math.round((1 - rw.h) * 1), wet = rw.wetT > 0, cheer = rw.cheerT > 0, beatOn = ((performance.now() - rw.beat) % 1600) < 380;
-    rP(L(108) + 2, 106, R(108) - L(108) - 3, 5, "#3a2414"); rP(L(108) + 3, 106, R(108) - L(108) - 5, 2, "#c8945a"); rP(L(108) + 3, 108, R(108) - L(108) - 5, 2, "#a8703e");   /* the thwart */
+    rwThwart(106, 6);
     var pose = function (lead) { return cheer ? "cheer" : wet ? "wet" : rw.drive && rw.h > .2 ? "pull" : lead && beatOn ? "shout" : rw.v > 12 ? "back" : "idle"; };
     [["grey", 34, -1, true], ["choc", 98, 1, false]].forEach(function (cr) { var hx = cr[1], hy = 62 + lean, side = cr[2];
       // the oar: from the paws out over the gunwale, the blade in the water at the side, sweeping as they row
-      var pvx = side < 0 ? L(96) - 1 : R(96) + 1, pvy = 96, gx = hx + 24, gy = hy + 30, sw = rw.drive ? (rw.h * 2 - 1) : (1 - rw.h * 2), bxE = pvx + side * 30, byE = pvy + sw * 12 + (rw.drive ? 3 : -2);
+      var pvx = side < 0 ? L(96) - 1 : R(96) + 1, pvy = 96, gx = hx + 24, gy = hy + 30, sw = rw.drive ? (rw.h * 2 - 1) : (1 - rw.h * 2), bxE = pvx + side * 13, byE = pvy + sw * 10 + (rw.drive ? 3 : -2);
       if (!cheer) { var n = 40; for (var i = 0; i <= n; i++) { var u2 = i / n, ox = gx + (bxE - gx) * u2, oy = gy + (byE - gy) * u2; rP(ox, oy, 1, 2, i % 9 ? "#a87448" : "#8a5a32"); rP(ox, oy - 1, 1, 1, "#3a2414"); }
         rP(bxE - 3, byE - 1, 7, 4, "#3a2414"); rP(bxE - 2, byE, 5, 2, "#c8945a"); if (rw.drive && Math.random() < .5) rw.splash.push({ x: bxE, y: byE + 2, vx: -side * 10, vy: -14, l: .45 }); }
       rwHam(cr[0], pose(cr[3]), hx, hy); });
