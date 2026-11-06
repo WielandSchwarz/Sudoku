@@ -4,6 +4,9 @@ Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Tren
 
 **Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür und die 10 neuen Tapeten sind freigegeben. Runde 9: eigene Farben für jede Tapete im Möbel-Menü und die Bodenprüfung, freigegeben. Runde 10 bis 12: Böden für Wohnraum und Diele ausgewählt (siehe Runde 12). Der Raum selbst ist noch nicht zum Einbau freigegeben.
 
+## Hinweis: Pflanzen werden verkleinert gezeichnet
+Beim Zusammenstellen des Möbelkatalogs aufgefallen: Alle 10 Pflanzen in `plants.json` stecken in `<g transform="scale(0.8333)">`, Blätter eingeschlossen. Ihre Pixel sind damit kleiner als die Raumpixel, das widerspricht der Regel „Pixelgröße überall gleich“. Alle anderen Möbel (Sessel, Uhren, Regale, Lampen, Teppiche, Türen) werden 1:1 gezeichnet.
+
 ## Runde 12: Bodenauswahl festgelegt
 
 Wieland hat auf der Auswahlseite (Artifact „Bodenauswahl fürs Hamsterhaus“) gewählt:
