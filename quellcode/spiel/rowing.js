@@ -71,7 +71,7 @@
       var z = e.d - rw.d, off = Math.abs(e.lx - rw.bx);
       if (!e.done && z < 110 && !e.warn) { e.warn = 1; rwSay(e.lx < rw.bx - .3 ? "Hilfe! Links im Wasser!" : e.lx > rw.bx + .3 ? "Hilfe! Rechts im Wasser!" : "Hilfe! Da vorne!"); dzTone(880, .1, .05, "triangle"); setTimeout(function () { dzTone(990, .14, .05, "triangle"); }, 160); }
       if (!e.done && z < RW_BOW) { e.done = 1;
-        if (off > .42) { e.miss = 1; rw.missed++; rwSay("Verpasst! Das Rettungsschiff holt ihn später."); beep([[330, .08], [262, .1]]); }
+        if (off > .42) { e.miss = 1; rw.missed++; rwSay("Verpasst!"); beep([[330, .08], [262, .1]]); }
         else { rw.saved++; if (rw.v > 18) { rw.rough = true; rwSay("Etwas zu schnell, aber geschafft!"); } else rwSay("Hochgezogen! Willkommen an Bord."); rw.cheerT = 1.4; beep([[523, .05], [659, .05], [784, .08]]); rw.v *= .5; } }
     });
     if (rw.d >= RW_GOAL - 80 && !rw.shipIn) { rw.shipIn = performance.now(); rwSay("Das Rettungsschiff kommt!"); dzWhistle(1.2); }
@@ -109,11 +109,12 @@
     if (night) { rwc.globalAlpha = .25; rwDisc(90, 72, 26, 8, function () { return "#ffe8a0"; }); rwc.globalAlpha = 1; }    /* the lantern's light on the water */
     // what floats ahead, far ones first
     rw.ev.slice().sort(function (a, b) { return b.d - a.d; }).forEach(function (e) { var z = e.d - rw.d; if (z < -4 || z > 260) return; var p = rwProj(z, e.lx), s = p.s;
-      if (!e.done) { var r2 = Math.max(3, 17 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * s);
-        rwDisc(p.x, p.y + bob, r2, r2 * .4, function (a, b, d) { var ang = Math.atan2(b, a); return d < .45 ? null : d > .85 ? "#3a2414" : Math.floor((ang + 3.2) / .8) % 2 ? "#ffffff" : "#e8463c"; });
-        rwDisc(p.x, p.y - r2 * .5 + bob, r2 * .55, r2 * .55, function (a, b, d) { return d > .75 ? "#3a2414" : b > r2 * .2 ? "#fff6e4" : "#e9a44c"; });
-        if (r2 > 4) { rP(p.x - r2 * .35, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x + r2 * .25, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x - r2 * .55, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); rP(p.x + r2 * .35, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); }
-        if (Math.floor(t / 350) % 2 && r2 > 3) rP(p.x + r2 * .7, p.y - r2 * 1.4 + bob, 1, Math.max(2, r2 * .5), "#e9a44c"); } });        /* he waves */
+      if (!e.done) { var near = true, r2 = near ? 15 + 22 * s : Math.max(4, 44 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * Math.max(.5, s * 2)), fur = ["gold", "grey", "choc", "snow", "gold"][rw.ev.indexOf(e) % 5], ring = function (front) {   /* a big life ring; up close the real hamster sits in it and waves */
+          rwDisc(p.x, p.y + bob, r2, r2 * .38, function (a, b, d) { if (front ? b < 0 : b >= 0) return null; var ang = Math.atan2(b, a); return d < .5 ? null : d > .86 ? "#3a2414" : Math.floor((ang + 3.2) / .8) % 2 ? "#ffffff" : "#e8463c"; }); };
+        ring(false);
+        if (near && rwHI && rwHI[fur + "_shout"]) { var im = rwHI[fur + (Math.floor(t / 500) % 2 ? "_shout" : "_cheer")], hh = 32; rwc.drawImage(im, 0, 0, 48, hh, Math.round(p.x - 24), Math.round(p.y + bob - hh + 2), 48, hh); }
+        else { rwDisc(p.x, p.y - r2 * .35 + bob, r2 * .5, r2 * .5, function (a, b, d) { return d > .75 ? "#3a2414" : b > r2 * .15 ? "#fff6e4" : "#e9a44c"; }); if (r2 > 5) { rP(p.x - r2 * .2, p.y - r2 * .45 + bob, 1, 1, "#24160c"); rP(p.x + r2 * .15, p.y - r2 * .45 + bob, 1, 1, "#24160c"); } }
+        rP(p.x - r2 * .62, p.y + bob, Math.round(r2 * 1.24), 1, "#e8f8ff"); ring(true); } });
     // the boat from the stern, in depth: the rounded gunwale, the white outside of the hull, the inner walls with strakes and ribs going down to the floor
     var bowY = 62, G = function (y) { var u = Math.max(0, (y - bowY) / (135 - bowY)); return 90 * Math.pow(u, .62); }, F = function (y) { var u = Math.max(0, (y - bowY - 14) / (135 - bowY - 14)); return 60 * Math.pow(u, .7); };
     var L = function (y) { return Math.round(90 - G(y)); }, R = function (y) { return Math.round(90 + G(y)); };

@@ -28,3 +28,16 @@
 .aq-grid button.on { box-shadow: inset 0 0 0 2px #e8650c; background: #fff1d0; }
 .aq-grid canvas { width: 100%; max-width: 42px; image-rendering: pixelated; aspect-ratio: 28 / 30; }
 .aq-grid small { font-size: 0.5rem; white-space: nowrap; overflow: hidden; max-width: 100%; line-height: 1.1; }
+/* ===== little interactions ===== */
+.ix-hit { position: absolute; z-index: 3; border: 0; padding: 0; background: none; cursor: pointer; }
+.ix-over { position: absolute; z-index: 4; pointer-events: none; image-rendering: pixelated; }
+.ix-smoke { animation: ix-up 1.3s steps(6) forwards; }
+.ix-fog { animation: ix-in .6s steps(4) both; }
+.ix-fog.ix-fade { animation: ix-out .9s steps(5) forwards; }
+.ix-stream svg { animation: ix-flow .25s steps(2) infinite; }
+@keyframes ix-up { to { transform: translateY(-60%); opacity: 0; } }
+@keyframes ix-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ix-out { to { opacity: 0; } }
+@keyframes ix-flow { 50% { transform: translateY(12%); } }
+.ix-cffx rect { animation: ix-cf 1.2s steps(6) forwards; }
+@keyframes ix-cf { to { transform: translateY(-8px); opacity: 0; } }
