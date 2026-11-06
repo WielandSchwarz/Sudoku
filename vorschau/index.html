@@ -17475,7 +17475,7 @@ window.__EXTRAS = true;
   // Every turn the ship sails 1 (Stopp), 2 (Halbe) or 3 (Volle) rows. A lane change takes 0 rows at Stopp, 1 at Halbe and 4 at Volle,
   // so at Volle it only ends in the next turn. While the ship changes lanes it sweeps both lanes.
   // The 3D models, bridge, water, sky, binoculars and sounds of the first captain game are drawn as they are; only the game is new.
-  var KP_LW = 7, KP_R = 8, KP_N = [1, 2, 3], KP_CH = [0, 1, 4], KP_DUR = [2600, 3000, 3300];
+  var KP_LW = 7, KP_R = 8, KP_N = [1, 3, 5], KP_CH = [0, 1, 6], KP_DUR = [2600, 3200, 3600];
   var kp = null, kpRaf = 0, kpOpen = false, kpC0 = cpc;
   var kpEl = xEl("div", "bee-pov fi-pov cap-pov kp-pov", scene); kpEl.hidden = true;
   kpEl.innerHTML = '<canvas width="180" height="135" class="fi-cv cap-cv"></canvas><div class="fi-card" hidden></div><div class="cap-toast" hidden></div><button type="button" class="bp-x" aria-label="Brücke verlassen">×</button><button type="button" class="cap-glbtn" aria-label="Fernglas"></button>';
@@ -17546,19 +17546,20 @@ window.__EXTRAS = true;
     kp.par = (kpSolve(kpState()) || { d: 12 }).d + 1;
     kpPose(0); kpIntro();
   }
-  function kpState() { return { row: kp.row, lane: kp.lane, tr: kp.tr ? { to: kp.tr.to, left: kp.tr.left } : null, task: kp.task, trig: kp.mum ? kp.mum.trig : 0 }; }
+  function kpState() { return { row: kp.row, lane: kp.lane, tr: kp.tr ? { from: kp.tr.from, to: kp.tr.to, left: kp.tr.left, tot: kp.tr.tot } : null, task: kp.task, trig: kp.mum ? kp.mum.trig : 0 }; }
 
   // ---- the rules, as a pure function: what happens if this turn is sailed like this ----
   function kpHaz(row, L, spd, trig) {
     for (var i = 0; i < kp.cells.length; i++) { var c = kp.cells[i]; if (!c.live || c.soft || c.row !== row || c.lane !== L) continue;
       if (c.k === "mum" && !(spd >= c.need || trig >= c.need)) continue; return c; } return null; }
   function kpSim(st, delta, spd) {
-    var row = st.row, lane = st.lane, tr = st.tr ? { to: st.tr.to, left: Math.min(st.tr.left, KP_CH[spd]) } : null, n = KP_N[spd], trig = st.trig || 0;
-    if (!tr && delta) { var to = kpCl(lane + delta); if (to !== lane) tr = { to: to, left: KP_CH[spd] }; }
+    var row = st.row, lane = st.lane, tr = null, n = KP_N[spd], trig = st.trig || 0;
+    if (st.tr) { var nl = Math.min(st.tr.left, KP_CH[spd]); tr = { from: st.tr.from, to: st.tr.to, left: nl, tot: st.tr.tot - st.tr.left + nl }; }   // a faster bell cannot make it slower, a slower one finishes it sooner
+    if (!tr && delta) { var to = kpCl(lane + delta); if (to !== lane) tr = { from: lane, to: to, left: KP_CH[spd], tot: KP_CH[spd] }; }
     if (tr && tr.left <= 0) { lane = tr.to; tr = null; }
     if (kp.mum && spd >= 1 && row <= 5 && row + n >= 4) trig = Math.max(trig, spd);   // passing the Mümmel at speed: our suction pulls her stern out
-    for (var k = 1; k <= n; k++) { var r = row + k, occ = tr ? kpSpan(lane, tr.to) : [lane];
-      for (var j = 0; j < occ.length; j++) { var h = kpHaz(r, occ[j], spd, trig); if (h) return { row: r - 1, lane: tr && occ[j] === lane ? tr.to : lane, tr: null, hit: h, hitRow: r, k: k, trig: trig, task: st.task }; }
+    for (var k = 1; k <= n; k++) { var r = row + k, occ = tr ? [tr.from + Math.round(Math.min(1, (tr.tot - tr.left + .5) / tr.tot) * (tr.to - tr.from))] : [lane];   // while gliding across, the ship counts in the lane it is mostly in
+      for (var j = 0; j < occ.length; j++) { var h = kpHaz(r, occ[j], spd, trig); if (h) return { row: r - 1, lane: tr ? (occ[j] === tr.from ? tr.to : tr.from) : lane, tr: null, hit: h, hitRow: r, k: k, trig: trig, task: st.task }; }
       if (tr) { tr.left--; if (tr.left <= 0) { lane = tr.to; tr = null; } } }
     var res = { row: row + n, lane: lane, tr: tr, hit: null, trig: trig, task: st.task }, T = kpTask();
     if (T && !st.task && spd === 0 && !tr && (res.row === T.row || res.row === T.row - 1) && Math.abs(lane - T.lane) === 1) res.task = true;
@@ -17567,7 +17568,7 @@ window.__EXTRAS = true;
   function kpTask() { for (var i = 0; i < kp.cells.length; i++) if (kp.cells[i].task) return kp.cells[i]; return null; }
   // the shortest clean way to the end of the level (the first officer's advice, and the timetable)
   function kpSolve(from) {
-    var d = kpLvl(), T = kpTask(), key = function (s) { return s.row + "|" + s.lane + "|" + (s.tr ? s.tr.to + ":" + s.tr.left : "-") + "|" + (s.task ? 1 : 0) + "|" + s.trig; }, Q = [{ s: from, f: null, d: 0 }], seen = {};
+    var d = kpLvl(), T = kpTask(), key = function (s) { return s.row + "|" + s.lane + "|" + (s.tr ? s.tr.from + ":" + s.tr.to + ":" + s.tr.left + ":" + s.tr.tot : "-") + "|" + (s.task ? 1 : 0) + "|" + s.trig; }, Q = [{ s: from, f: null, d: 0 }], seen = {};
     seen[key(from)] = 1;
     for (var qi = 0; qi < Q.length && qi < 20000; qi++) { var cur = Q[qi], s = cur.s;
       for (var spd = 2; spd >= 0; spd--) { var ds = s.tr ? [0] : [0, -1, 1, -2, 2];
@@ -17582,7 +17583,7 @@ window.__EXTRAS = true;
 
   // ---- where the ship is: the row it has reached and how far across it has moved ----
   function kpLat(rho) { var v = kp.vis; if (!v) return kp.lane * KP_LW; return v.a + (v.b - v.a) * cpSm1((rho - v.r0) / (v.r1 - v.r0)); }
-  function kpPose(rho) { var l = kpLat(rho), sl = (kpLat(rho + .05) - kpLat(rho - .05)) / .1 / KP_R; cp.px = l; cp.py = rho * KP_R; cp.h = Math.atan(sl) * .9; cp.d = rho; if (isNaN(l + rho + sl) && window.__kpErr) window.__kpErr('NaN pose ' + JSON.stringify([rho, kp.vis, kp.anim && kp.anim.res && kp.anim.res.hitRow])); }
+  function kpPose(rho) { var l = kpLat(rho), sl = (kpLat(rho + .05) - kpLat(rho - .05)) / .1 / KP_R; cp.px = l; cp.py = rho * KP_R; cp.h = 0; cp.d = rho; if (isNaN(l + rho + sl) && window.__kpErr) window.__kpErr('NaN pose ' + JSON.stringify([rho, kp.vis, kp.anim && kp.anim.res && kp.anim.res.hitRow])); }
   function kpPrep(spd, delta) {   // the lane change that this order would start, for the course line and the sailing
     var tr = kp.tr ? { to: kp.tr.to, left: Math.min(kp.tr.left, KP_CH[spd]) } : null, lat = kpLat(kp.row);
     if (!tr && delta) { var to = kpCl(kp.lane + delta); if (to !== kp.lane) tr = { to: to, left: KP_CH[spd] }; }
@@ -17595,12 +17596,12 @@ window.__EXTRAS = true;
     var spd = cp.lvl, dl = kp.tr ? 0 : cp.rud, d = kpLvl(), fog = d.sky === "fog";
     if (cp.wh) { dzWhistle(kp.turns === 0 && kp.li === 0 ? 2.2 : 1.2); if (kp.turns === 0) kp.whFirst = true;
       if (fog) { var occ = kpSpan(kp.lane, kp.tr ? kp.tr.to : kpCl(kp.lane + dl)), moved = 0;
-        kp.cells.forEach(function (c) { if (!c.fogb || !c.live || c.row <= kp.row || c.row > kp.row + 6 || occ.indexOf(c.lane) < 0) return;
+        kp.cells.forEach(function (c) { if (!c.fogb || !c.live || c.row <= kp.row || c.row > kp.row + 8 || occ.indexOf(c.lane) < 0) return;
           var fr = [-1, 0, 1].filter(function (L) { return occ.indexOf(L) < 0 && !kpHaz(c.row, L, 0, 0); })[0]; if (fr == null) return; c.lane = fr; c.o.tx = fr * KP_LW; moved++; });
         if (moved) setTimeout(function () { kpSay("Ein Fischerboot hat uns gehört und weicht aus!"); }, 700); } }
     var res = kpSim(kpState(), dl, spd), vis = kpPrep(spd, dl);
     if (kp.mum && res.trig > kp.mum.trig) { kp.mum.go = res.trig; kp.mum.from = kp.mum.trig; }
-    var v0 = kp.v, n = res.hit ? res.hitRow - kp.row - .45 : KP_N[spd], v1 = res.hit ? Math.max(.6, v0) * 1.2 : spd ? KP_N[spd] : 0;
+    var v0 = Math.min(kp.v, 3 * (res.hit ? Math.max(.5, res.hitRow - kp.row - .45) : KP_N[spd])), n = res.hit ? res.hitRow - kp.row - .45 : KP_N[spd], v1 = res.hit ? Math.max(.6, v0) * 1.2 : spd ? KP_N[spd] : 0;
     kp.anim = { t0: 0, dur: KP_DUR[spd], spd: spd, r0: kp.row, n: n, v0: v0, v1: v1, res: res, dl: dl, cast: kp.moored };
     kp.vis = vis; kp.tip = null; kp.moored = false;
     if (kp.anim.cast) { var b1 = shipW(2.4, .7, 1); cpBurst([b1[0] + 1.8, b1[1], .2], 6, ["#ffffff", "#d8eef8"], 1.4, 3); }
