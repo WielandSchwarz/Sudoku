@@ -103,7 +103,7 @@
       for (var spd = 2; spd >= 0; spd--) { var ds = s.tr ? [0] : [0, -1, 1, -2, 2];
         for (var di = 0; di < ds.length; di++) { var dl = ds[di]; if (dl && kpCl(s.lane + dl) === kpCl(s.lane + dl - Math.sign(dl))) continue;
           var r = kpSim(s, dl, spd); if (r.hit || spd === 2 && s.row < d.harbour) continue;
-          if (T && !r.task && r.row > T.row) continue;
+          if (T && !r.task && !kp.taskMiss && r.row > T.row) continue;
           var ns = { row: r.row, lane: r.lane, tr: r.tr, task: r.task, trig: r.trig }, f = cur.f || { spd: spd, d: dl };
           if (ns.row >= d.rows) return { d: cur.d + 1, f: f };
           var kk = key(ns); if (seen[kk]) continue; seen[kk] = 1; Q.push({ s: ns, f: f, d: cur.d + 1 }); } } }
