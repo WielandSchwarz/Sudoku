@@ -17975,7 +17975,7 @@ window.__EXTRAS = true;
   // ---- the captain himself: our own hamster (the game's sprites, one art pixel = one pixel) with a captain's cap;
   //      seen from behind at the wheel, walking on two legs to the telegraph and to the whistle ----
   var kpHm = { x: 90, tx: 90, act: "home", arr: 0, lt: 0, dir: 1 }, kpHI = null;
-  function kpHamTo(where) { kpHm.tx = where === "tel" ? 74 : where === "wh" ? 142 : 90; kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
+  function kpHamTo(where) { kpHm.tx = where === "tel" ? Math.round(CP_TELC[0] + 22 * Math.cos(CP_TEL[cp ? cp.lvl : 1] * Math.PI / 180)) + 21 : where === "wh" ? 150 : 90;   /* he stands right beside the lever's knob */ kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
   function kpHamBusy() { return kpHm.x !== 90 || kpHm.tx !== 90 || kpHm.arr || performance.now() - (kpHm.turnT || -9999) < 800; }
   function kpCap(g, side) {   // the cap drawn on top of a sprite canvas (the sprite sits 3 rows down)
     var O = "#2a1a10", W = "#f6f2ea", L = "#ffffff", Sh = "#d6d0c4", B = "#1e1a24", Bh = "#3e3848", Gd = "#e8c040", P = function (x, y, w, c) { g.fillStyle = c; g.fillRect(x, y + 3, w, 1); };
@@ -17997,6 +17997,7 @@ window.__EXTRAS = true;
           if (dir < 0) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(c0, 0, 0); kpHI[k + (dir < 0 ? "L" : "")] = c; }); if (kp) kpRedraw(); };
       im.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">' + A0[k] + '</svg>'); }); }
   function kpArms(arms) {   // each arm a round furry stroke with a pink paw at the end, 1px outline, drawn outline first so they join cleanly
+    arms = arms.map(function (A) { var dx = A[1][0] - A[0][0], dy = A[1][1] - A[0][1], l = Math.hypot(dx, dy), m = 13; return l > m ? [A[0], [A[0][0] + dx / l * m, A[0][1] + dy / l * m]] : A; });   // short hamster arms
     var pts = arms.map(function (A) { var n = Math.max(2, Math.ceil(Math.hypot(A[1][0] - A[0][0], A[1][1] - A[0][1]) / 1.5)), q = []; for (var i = 0; i <= n; i++) q.push([A[0][0] + (A[1][0] - A[0][0]) * i / n, A[0][1] + (A[1][1] - A[0][1]) * i / n]); return q; });
     pts.forEach(function (q) { q.forEach(function (p) { cpBlob(p[0], p[1], 3.1, 3.1, function () { return "#3a2414"; }); }); var e = q[q.length - 1]; cpBlob(e[0], e[1], 3.3, 3.1, function () { return "#3a2414"; }); });
     pts.forEach(function (q) { q.forEach(function (p, i) { cpBlob(p[0], p[1], 2.3, 2.3, function (dx, dy) { return dy < -.3 ? "#f6c88a" : dy > .5 ? "#c88a44" : "#e9a44c"; }); }); var e = q[q.length - 1]; cpBlob(e[0], e[1], 2.4, 2.2, function (dx, dy) { return dy < -.2 ? "#f8c0cc" : "#f4a3b4"; }); });
@@ -18007,14 +18008,14 @@ window.__EXTRAS = true;
     else { kpHm.x = kpHm.tx; if (kpHm.act !== "home" && !kpHm.arr) kpHm.arr = t; if (kpHm.arr && t - kpHm.arr > 800) { kpHm.arr = 0; kpHm.act = "home"; kpHm.tx = 90; } }
     var home = kpHm.act === "home" && !walk, hop = kpHm.arr && t - kpHm.arr < 400 ? Math.round(Math.sin((t - kpHm.arr) / 400 * Math.PI) * 3) : 0, key;
     var bob = walk ? Math.floor(t / 130) % 2 : 0; key = walk && bob ? "back1" : "back0";   // always seen from behind, a little waddle when he walks
-    var im = kpHI[key]; if (im) { var lean = home ? Math.round(cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0, x = Math.round(kpHm.x - im.width / 2) + lean, y = 140 - im.height - hop - bob; cpc.drawImage(im, x, y);
+    var im = kpHI[key]; if (im) { var lean = home ? Math.round(cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0, x = Math.round(kpHm.x - im.width / 2) + lean, y = 140 - im.height - hop - bob;
       // arms only when he works something: both hands on the rim while the wheel turns, one hand out to the lever or the cord
-      var sL = [x + 10, y + 30], sR = [x + 38, y + 30], arms = [];
+      var hi = home ? 0 : 6, sL = [x + 9, y + 29 - hi], sR = [x + 39, y + 29 - hi], arms = [];
       if (home && (cp.wheelA != null || t - (kpHm.turnT || -9999) < 700)) { var a = cp.wheelA != null ? cp.wheelA : cp.rud * .45, rr = 25;
         arms.push([sL, [CP_WHC[0] + rr * Math.cos(Math.PI - .5 - a), CP_WHC[1] - rr * Math.sin(Math.PI - .5 - a)]], [sR, [CP_WHC[0] + rr * Math.cos(.5 - a), CP_WHC[1] - rr * Math.sin(.5 - a)]]); }   // the hands turn with the rim
       if (!walk && kpHm.arr && kpHm.act === "tel") { var ta = CP_TEL[cp.lvl] * Math.PI / 180; arms.push([sL, [CP_TELC[0] + 22 * Math.cos(ta), CP_TELC[1] + 22 * Math.sin(ta) + (hop ? 1 : 0)]]); }   // to the lever's knob
       if (!walk && kpHm.arr && kpHm.act === "wh") arms.push([sR, [168, 98 + (hop ? 3 : 0)]]);
-      if (arms.length) kpArms(arms); }
+      if (arms.length) kpArms(arms); cpc.drawImage(im, x, y); }   // the arms first, the body in front of them
     if (kpHamBusy()) kpKick();
   }
   // ---- panel and cards ----
