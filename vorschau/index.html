@@ -17748,16 +17748,17 @@ window.__EXTRAS = true;
     kp.row = r.row; kp.lane = r.lane; kp.tr = r.tr; kp.turns += r.hit ? 2 : 1; kp.t++; kp.lastSpd = A.spd; kp.v = r.hit ? 0 : A.v1;
     if (kp.mum) { kp.mum.trig = Math.max(kp.mum.trig, r.trig); kp.mum.go = 0; }
     if (!kp.tr) kp.vis = { a: kp.lane * KP_LW, b: kp.lane * KP_LW, r0: kp.row, r1: kp.row + 1 };
-    var acc = function (short, long) { kp.log.push(short); msgs.push("✘ Unfall: " + long); }, msgs = [];
-    if (r.hit) acc(KP_NAME[r.hit.k] ? KP_NAME[r.hit.k] + " gerammt" : "Zusammenstoß", (KP_HITS[r.hit.k] || CP_HITS[r.hit.k] || "Rumms!") + " Ein Zug verloren.");
-    if (A.slow === "harbour") { kp.inc++; acc("Volle Fahrt im Hafen", "Volle Fahrt im Hafen! Die Bugwelle hat die Zuschauer am Kai nass gemacht."); }
-    if (A.slow === "storm") { kp.inc++; acc("Volle Fahrt im Sturm", "Volle Fahrt im Sturm! Ein Brecher ging über das Vorschiff."); }
-    if (r.incs.length) { kp.inc++; acc("Wale aufgeschreckt", "Wir sind den Walen zu nah gekommen, sie sind erschrocken abgetaucht."); }
+    var toast = "", acc = function (short, long, say) { kp.log.push(short); msgs.push("✘ " + long); toast = toast || say; }, msgs = [];
+    var hn = r.hit && ({ zone: "Auf eine Sandbank gelaufen", rock: "Auf die Felsen gelaufen", ice: "Den Eisberg gestreift", mum: "Die Mümmel gestreift", pier: "Gegen den Pier gerumst" }[r.hit.k] || (KP_NAME[r.hit.k] || "Etwas") + " gerammt");
+    if (r.hit) acc(hn, "Unfall: " + (KP_HITS[r.hit.k] || CP_HITS[r.hit.k] || "Rumms!") + " Ein Zug verloren.", "Unfall: " + hn + "!");
+    if (A.slow === "harbour") { kp.inc++; acc("Zuschauer nass gespritzt", "Im Hafen zu schnell: Die Bugwelle hat alle Zuschauer am Kai nass gespritzt!", "Platsch! Alle Zuschauer nass gespritzt!"); }
+    if (A.slow === "storm") { kp.inc++; acc("Brecher im Sturm", "Im Sturm zu schnell: Ein Brecher ging über das Vorschiff, die Passagiere an Deck sind klatschnass.", "Brecher! Die Passagiere sind klatschnass."); }
+    if (r.incs.length) { kp.inc++; acc("Wale verscheucht", "Zu nah an den Walen: Sie sind erschrocken abgetaucht, die Passagiere an der Reling sind enttäuscht.", "Die Wale sind verscheucht!"); }
     if (r.done && kp.ti === r.ti - 1) { var T = r.done, K = KP_TASK[T.kind]; kp.ti = r.ti; msgs.push("✔ " + K.done); if (T.cell) { T.cell.live = false; T.cell.o.tx = T.cell.o.x + (T.lane >= 0 ? 10 : -10); } beep([[660, .05], [880, .08]]); }
-    while (kp.tasks[kp.ti] && kp.row > kp.tasks[kp.ti].row) { var M = kp.tasks[kp.ti]; kp.inc++; kp.miss = (kp.miss || 0) + 1; acc("Haltepunkt verpasst", KP_TASK[M.kind].miss); kp.ti++; }
+    while (kp.tasks[kp.ti] && kp.row > kp.tasks[kp.ti].row) { var M = kp.tasks[kp.ti]; kp.inc++; kp.miss = (kp.miss || 0) + 1; acc({ pilot: "Lotse verpasst", tender: "Gäste verpasst", post: "Post verpasst", schooner: "Schoner nicht gerettet", light: "Lotse verpasst" }[M.kind] || "Haltepunkt verpasst", KP_TASK[M.kind].miss, KP_TASK[M.kind].miss); kp.ti++; }
     // things that cross the fairway move on to where they will be during the next order
     kp.cells.forEach(function (c) { if (!c.seq || !c.o) return; var L = kpLaneAt(c, kp.t); if (L == null) { if (c.live) { c.live = false; c.o.tx = c.o.x + (c.o.x >= 0 ? 16 : -16); } return; } c.o.tx = L * KP_LW; });
-    kp.pre = msgs.join(" "); if (msgs.some(function (m) { return m.indexOf("✘") === 0; })) setTimeout(function () { kpSay("Unfall: " + kp.log[kp.log.length - 1]); }, 100);
+    kp.pre = msgs.join(" "); if (toast) setTimeout(function () { kpSay(toast); }, 100);
     kp.anim = null; cp.wh = false; cp.rud = 0; var gb = kp.got.splice(0);
     if (kpGoal({ row: kp.row, ti: kp.ti })) return kpEnd();
     setTimeout(function () { if (!kp || kp.anim || kp.card) return; if (gb.length) kpBottle(gb[0]); else kpRadioMsg(); }, 350);
@@ -17844,10 +17845,10 @@ window.__EXTRAS = true;
   }
   function kpWarn() {
     if (kp.anim || kp.card || kp.done) return ""; var spd = cp.lvl, dl = kp.tr ? 0 : cp.rud, r = kpSim(kpState(), dl, spd), w = [], sl = spd === 2 ? kpSlow(kp.row) : "", T = kpTask();
-    if (sl === "harbour") w.push("Volle Fahrt im Hafen zählt als Unfall.");
-    if (sl === "storm") w.push("Volle Fahrt im Sturm zählt als Unfall.");
-    if (r.hit && kpKnown(r.hit, r.hitRow - kp.row)) w.push("So rammen wir " + (r.hit.k === "zone" ? "die Sandbank" : r.hit.k === "mum" ? "die Mümmel" : r.hit.k === "pier" ? "den Pier" : "ein Hindernis (" + (KP_NAME[r.hit.k] || "?") + ")") + " in " + (r.hitRow - kp.row === 1 ? "der nächsten Reihe" : r.hitRow - kp.row + " Reihen") + "!");
-    if (r.incs.length) w.push("So kommen wir den Walen zu nah.");
+    if (sl === "harbour") w.push("Volle Fahrt im Hafen: Die Bugwelle spritzt alle Zuschauer nass.");
+    if (sl === "storm") w.push("Volle Fahrt im Sturm: Ein Brecher geht über das Vorschiff.");
+    if (r.hit && kpKnown(r.hit, r.hitRow - kp.row)) w.push("So rammen wir " + ({ zone: "die Sandbank", mum: "die Mümmel", pier: "den Pier", tug: "den Schlepper", boat: "das Fischerboot", fogb: "das Fischerboot", wood: "das Treibholz", ice: "den Eisberg", floe: "die Eisscholle", rock: "die Felsen", ferry: "die Fähre", launch: "die Barkasse", ship: "den Dampfer", tender: "den Tender", post: "das Postboot", pilot: "das Lotsenboot", schooner: "den Schoner", light: "das Feuerschiff" }[r.hit.k] || "ein Hindernis") + " in " + (r.hitRow - kp.row === 1 ? "der nächsten Reihe" : r.hitRow - kp.row + " Reihen") + "!");
+    if (r.incs.length) w.push("So kommen wir den Walen zu nah und verscheuchen sie.");
     if (T && !r.hit && r.row > T.row && !r.done) w.push("So fahren wir am Haltepunkt vorbei.");
     return w.length ? '<span class="kp-warn">⚠ ' + w.join(" ") + '</span>' : ""; }
   // what the lookout reports about the next rows, always true to what lies there now
@@ -17933,11 +17934,11 @@ window.__EXTRAS = true;
   }
   function kpIntro() { var d = kpLvl(); kp.card = true;
     kpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">' + d.name + '</p><p class="dz-route">Etappe ' + (kp.li + 1) + ' von 15 · Plan: ' + kp.par + ' Züge</p><p class="fi-s">' + d.tx + '</p>' +
-      '<p class="fi-s">★ Keine Unfälle<br>★ Im Plan (' + kp.par + ' Züge)<br>★ ' + d.star + '</p><div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b" data-a="go">' + (kp.li === 0 ? "Leinen los!" : "Los geht's") + '</button></div></div>';
+      '<p class="fi-s">★ Sauber gefahren<br>★ Im Plan (' + kp.par + ' Züge)<br>★ ' + d.star + '</p><div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b" data-a="go">' + (kp.li === 0 ? "Leinen los!" : "Los geht's") + '</button></div></div>';
     kpCard.hidden = false; kpPanelDraw(); kpRedraw(); }
   function kpEnd() { kp.done = true; var st = kpStars(), n = st.filter(Boolean).length, d = kpLvl(), last = kp.li + 1 >= KP_LV.length; s.kpStars = s.kpStars || {}; s.kpStars[kp.li] = Math.max(s.kpStars[kp.li] || 0, n); if (window.SudokuSave) window.SudokuSave();
     kpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">' + (last ? "Angekommen in Nuss York!" : n === 3 ? "Meisterhaft!" : "Geschafft!") + '</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p>' +
-      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Keine Unfälle" + (kp.log.length ? ": " + kp.log.join(", ") : "") + '<br>' + (st[1] ? "★" : "☆") + " " + kp.turns + " Züge, Plan " + kp.par + '<br>' + (st[2] ? "★" : "☆") + " " + d.star + '</p>' +
+      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Sauber gefahren" + (kp.log.length ? ": " + kp.log.join(", ") : "") + '<br>' + (st[1] ? "★" : "☆") + " " + kp.turns + " Züge, Plan " + kp.par + '<br>' + (st[2] ? "★" : "☆") + " " + d.star + '</p>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (!last ? '<button type="button" class="fi-b" data-a="next">Weiter</button>' : "") + '</div></div>';
     kpCard.hidden = false; kp.card = true; kpPanelDraw(); kpRedraw(); if (n >= 2 || last) dzWhistle(last ? 2.4 : 1.6); beep(n === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]); }
   kpCard.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !kp) return; e.stopPropagation();
