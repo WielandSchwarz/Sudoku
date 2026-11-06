@@ -298,7 +298,7 @@
       if (sky === "fog") for (var fy = 0; fy < 80; fy++) { var al = fy < CP_HZ ? .72 : Math.max(0, .78 - (fy - CP_HZ) / 70); if (al > 0) { cpc.fillStyle = "rgba(226,232,236," + al.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
       if (sky === "night") { cpc.fillStyle = "rgba(8,14,40,.28)"; cpc.fillRect(0, 0, 180, 80); }
       if (storm) { cpc.fillStyle = "rgba(40,50,64,.18)"; cpc.fillRect(0, 0, 180, 80); for (var rn = 0; rn < 40; rn++) { var rx = (rn * 47 + t / 4) % 180, ry = (rn * 31 + t / 2) % 78; mR(cpc, Math.round(rx), Math.round(ry), 1, 2, "#a8b8c8"); } }
-      cpBridge(t); kpLamp(t);
+      cpBridge(t); kpLamp(t); if (!kp.card) kpHamDraw(t);
       cpc.setTransform(1, 0, 0, 1, 0, 0);
     } catch (err) { if (window.__kpErr) window.__kpErr(err); }
   }
@@ -481,6 +481,33 @@
     if (window.SudokuSave) window.SudokuSave();
     kpRadioShow("FLASCHENPOST", L[0], L[1], '<div class="kp-r-g">' + gift + '</div>', "kp-r-bottle"); kp.radioK = "bottle"; KP_S.clink(); if (n10 === 0) KP_S.cheer(true);
   }
+
+  // ---- the captain himself: our hamster seen from behind at the wheel, with a captain's cap; he walks over to the telegraph and the whistle ----
+  var kpHm = { x: 90, tx: 90, act: "home", arr: 0, lt: 0 };
+  function kpHamTo(where) { kpHm.tx = where === "tel" ? 64 : where === "wh" ? 157 : 90; kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
+  function kpHamBusy() { return kpHm.x !== 90 || kpHm.tx !== 90 || kpHm.arr; }
+  function kpHamDraw(t) {
+    var dt = Math.min(50, t - (kpHm.lt || t)); kpHm.lt = t; var d = kpHm.tx - kpHm.x, walk = Math.abs(d) > .5;
+    if (walk) kpHm.x += Math.sign(d) * Math.min(Math.abs(d), dt * .13);
+    else { kpHm.x = kpHm.tx; if (kpHm.act !== "home" && !kpHm.arr) kpHm.arr = t; if (kpHm.arr && t - kpHm.arr > 750) { kpHm.arr = 0; kpHm.act = "home"; kpHm.tx = 90; } }
+    var F = ["#e8a85a", "#f6c88a", "#b87a3a"], O = "#2a1a10", lean = kpHm.act === "home" && !walk ? (cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0,
+      hop = kpHm.arr && t - kpHm.arr < 380 ? Math.round(Math.sin((t - kpHm.arr) / 380 * Math.PI) * 3) : 0, bob = walk ? (Math.floor(t / 110) % 2) : 0,
+      cx = Math.round(kpHm.x + lean), yb = 133 - hop - bob, atWheel = kpHm.act === "home" && !walk, reach = kpHm.arr && kpHm.act !== "home";
+    var blob = function (x, y, rx, ry, f) { cpBlob(x, y, rx + .8, ry + .8, function () { return O; }); cpBlob(x, y, rx, ry, f); };
+    // arms: on the spokes at the wheel, up to the lever or the cord when he works them
+    if (atWheel) { blob(cx - 11, yb - 15, 2.4, 2.1, function () { return F[0]; }); blob(cx + 11, yb - 15, 2.4, 2.1, function () { return F[0]; }); }
+    if (reach) { var sd = kpHm.act === "tel" ? -1 : 1; blob(cx + sd * 10, yb - 21, 2.2, 2.6, function () { return F[0]; }); }
+    // feet peeking out below, the round back with the light flanks, a stub of a tail
+    blob(cx - 5, yb - 1, 2.6, 1.4, function () { return "#e8b0a0"; }); blob(cx + 5, yb - 1, 2.6, 1.4, function () { return "#e8b0a0"; });
+    blob(cx - 8, yb - 21, 2.2, 2.2, function (dx) { return dx < 0 ? "#d88a7a" : F[2]; }); blob(cx + 8, yb - 21, 2.2, 2.2, function (dx) { return dx > 0 ? "#d88a7a" : F[2]; });   // the ears
+    blob(cx, yb - 12, 10, 11.5, function (dx, dy) { return dy > .3 && Math.abs(dx) > .55 ? "#fff1d8" : dx > .6 || dy > .75 ? F[2] : dx < -.55 && dy < .1 ? F[1] : F[0]; });
+    mR(cpc, cx - 3, yb - 18, 1, 6, F[2]); mR(cpc, cx + 2, yb - 17, 1, 5, F[2]);   // a darker stripe down the back
+    blob(cx, yb - 3, 1.6, 1.2, function () { return F[1]; });
+    // the captain's cap from behind: white crown, black band
+    blob(cx, yb - 25, 8.5, 3.2, function (dx, dy) { return dy < -.3 ? "#ffffff" : dx > .5 ? "#d8d4cc" : "#f4f0e8"; });
+    mR(cpc, cx - 8, yb - 23, 17, 2, "#1e1a24"); mR(cpc, cx - 9, yb - 23, 1, 2, O); mR(cpc, cx + 9, yb - 23, 1, 2, O); mR(cpc, cx - 7, yb - 23, 15, 1, "#3a3444");
+    if (kpHamBusy()) kpKick();
+  }
   // ---- panel and cards ----
   function kpSay(t) { kpToast.textContent = t; kpToast.hidden = false; kpToast.classList.remove("pop"); void kpToast.offsetWidth; kpToast.classList.add("pop"); clearTimeout(kpSay.t); kpSay.t = setTimeout(function () { kpToast.hidden = true; }, 1800); }
   function kpTipTxt(f) { var to = kpCl(kp.lane + f.d), sp = ["Stopp", "Halbe Fahrt", "Volle Fahrt"][f.spd], cd = kpCurAt(kp.row), ln = kp.tr ? "das Ruder liegen lassen" : cd && f.d === -cd && to === kp.lane ? "gegen die Strömung halten" : cd && !f.d ? "mit der Strömung treiben lassen" : to === kp.lane ? "die Spur halten" : "in die " + KP_LANEA[to + 1] + " Spur"; return sp + " und " + ln + "."; }
@@ -530,9 +557,9 @@
     if (cp.glass) { var rd = Math.hypot(pp[0] - 114, pp[1] - 64);
       if (rd > 38 && rd < 62 && Math.hypot(pp[0] - 66, pp[1] - 64) > 40) { kpRing = { a0: Math.atan2(pp[1] - 64, pp[0] - 114) }; cp.glass.ring = 1; } else kpPanG = { x: pp[0], y0: cp.glass.yaw };
       try { kpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
-    if (Math.hypot(pp[0] - CP_TELC[0], pp[1] - CP_TELC[1]) < CP_TELR + 8) { kpTel = 1; var lv0 = cp.lvl; cpTelSet(pp); if (cp.lvl !== lv0) KP_S.lever(); try { kpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
+    if (Math.hypot(pp[0] - CP_TELC[0], pp[1] - CP_TELC[1]) < CP_TELR + 8) { kpTel = 1; var lv0 = cp.lvl; cpTelSet(pp); if (cp.lvl !== lv0) { KP_S.lever(); kpHamTo("tel"); } try { kpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
     if (Math.hypot(pp[0] - CP_WHC[0], pp[1] - CP_WHC[1]) < 42) { if (kp.tr) { kpSay("Das Ruder liegt fest, bis der Spurwechsel fertig ist."); return; } kpWh = { a0: Math.atan2(pp[1] - CP_WHC[1], pp[0] - CP_WHC[0]), r0: cp.rud, x0: pp[0], mv: 0 }; try { kpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
-    if (pp[0] > 160 && pp[1] > 84 && pp[1] < 114) { cp.wh = !cp.wh; if (cp.wh) dzWhistle(.8); else beep([[300, .03]]); kpRedraw(); return; }
+    if (pp[0] > 160 && pp[1] > 84 && pp[1] < 114) { cp.wh = !cp.wh; kpHamTo("wh"); if (cp.wh) setTimeout(function () { dzWhistle(.8); }, 450); else beep([[300, .03]]); kpRedraw(); return; }
     var best = null, bd = 99;
     cp.O.forEach(function (o) { if (o.hid || o.seen || o.k === "quay" || o.k === "shoal" || o.k === "m3") return; var p = cpProj(o.x, o.y); if (!p || p.f > 70 || !cpHidden(o, p.f)) return; var dd = Math.hypot(p.x - pp[0], (p.y - 5 - pp[1]) * 1.4); if (dd < bd) { bd = dd; best = o; } });
     if (best && bd < 16) { var rr = cpRel(cp.px, cp.py, cp.h, best.x, best.y); cpGlass(true, Math.atan2(rr[1], rr[0])); }
@@ -540,7 +567,7 @@
   kpCv.addEventListener("pointermove", function (e) { if (!kp) return; var pp = kpPt(e);
     if (kpRing && cp.glass) { var an = Math.atan2(pp[1] - 64, pp[0] - 114), da = an - kpRing.a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; kpRing.a0 = an; var nf = Math.max(3, Math.min(70, cp.glass.foc + da * 9)); if (Math.floor(nf / 2) !== Math.floor(cp.glass.foc / 2)) beep([[700 + nf * 4, .01]]); cp.glass.foc = nf; return; }
     if (kpPanG && cp.glass) { cp.glass.yaw = Math.max(-1.5, Math.min(1.5, kpPanG.y0 - (pp[0] - kpPanG.x) / 480)); return; }
-    if (kpTel) { cpTelSet(pp); return; }
+    if (kpTel) { var lv1 = cp.lvl; cpTelSet(pp); if (cp.lvl !== lv1) kpHamTo("tel"); return; }
     if (kpWh) { var a = Math.atan2(pp[1] - CP_WHC[1], pp[0] - CP_WHC[0]), d = a - kpWh.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; if (Math.abs(d) > .12) kpWh.mv = 1;
       if (kpWh.mv) { cp.wheelA = Math.max(-1.1, Math.min(1.1, kpWh.r0 * .45 + d)); kpSetRud(Math.round(cp.wheelA / .5)); } } });
   function kpUp(e) { if (kpWh && !kpWh.mv && kp) kpSetRud(cp.rud + (kpWh.x0 < CP_WHC[0] ? -1 : 1));   // a tap on the left or right half of the wheel: one lane that way
@@ -562,6 +589,6 @@
   var _kp_int = interrupt; interrupt = function () { if (kpOpen && !window.__resume) kpClose(); return _kp_int.apply(this, arguments); };
   capGame = kpGame;
   window.__cap2 = { lv: function (i) { kpStart(i); kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); }, st: function () { return kp && { li: kp.li, row: kp.row, lane: kp.lane, tr: kp.tr, t: kp.t, turns: kp.turns, par: kp.par, hits: kp.hits, inc: kp.inc, ti: kp.ti, tasks: kp.tasks.length, done: !!kp.done, anim: !!kp.anim, card: !!kp.card, got: kp.gotN, sky: cpSky(), found: cp && cp.found.slice(), seen: cp && cp.O.filter(function (o) { return o.unk && o.seen; }).length, rep: kpReport() }; },
-    solve: function () { var r = kpSolve(kpState()); return r && r.f; }, set: function (o) { if (o.d != null) cp.rud = o.d; if (o.spd != null) cp.lvl = o.spd; if (o.wh != null) cp.wh = o.wh; kpPanelDraw(); kpRedraw(); }, go: function () { kpGo(); },
+    solve: function () { var r = kpSolve(kpState()); return r && r.f; }, ham: function (w) { kpHamTo(w); }, set: function (o) { if (o.d != null) cp.rud = o.d; if (o.spd != null) cp.lvl = o.spd; if (o.wh != null) cp.wh = o.wh; kpPanelDraw(); kpRedraw(); }, go: function () { kpGo(); },
     glass: function (yaw, foc) { cpGlass(true, yaw); if (foc != null) cp.glass.foc = foc; }, seeAll: function () { cp.O.forEach(function (o) { o.seen = true; }); kpRedraw(); },
     lvls: function () { return KP_LV.length; }, layout: function () { return kp.cells.map(function (c) { return [c.row, c.lane, c.k, c.seq ? 1 : 0]; }).concat([["sky", kp.skyR], ["cur", kp.cur]]); } };
