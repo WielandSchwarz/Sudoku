@@ -1,0 +1,554 @@
+{
+ "einheit": "1 Bildpixel = 1 Raumpixel (wie room 360x135); y=0 oben, Fußleiste y=97..99, Boden ab y=100",
+ "reihenfolge": "Teile in der Liste von oben nach unten zeichnen (später = weiter vorne)",
+ "varianten": {
+  "variante-1": {
+   "titel": "Landhaus: grüne Haustür, Hakenleiste mit Bank, Holzpfosten, Messing-Grammophon auf Musiktruhe",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "diele_tapete": "wie Wohnzimmer (Creme), unten Holzvertäfelung ab y=62",
+   "diele_boden": "Schachbrettfliesen (furn2 floor checker, 1:1)",
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-1/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-1/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/variante-1/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-1/trenner_holzpfosten.png"
+    },
+    {
+     "name": "wandbrett_alt",
+     "x": 272,
+     "y": 12,
+     "w": 48,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1/wandbrett_alt.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 272,
+     "y": 77,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-1/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_messing",
+     "x": 274,
+     "y": 34,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-1/grammophon_messing.png"
+    },
+    {
+     "name": "gummibaum",
+     "x": 306,
+     "y": 60,
+     "w": 26,
+     "h": 44,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1/gummibaum.png"
+    }
+   ]
+  },
+  "variante-2": {
+   "titel": "Fliesen und Halbwand: blaue Haustür, Garderobenständer, Spiegel, Schirmständer, Halbwand mit Efeu, Holztrichter-Grammophon auf Beistelltisch",
+   "breite": 332,
+   "diele_breite": 76,
+   "trenner_breite": 10,
+   "altes_zimmer_versatz": 86,
+   "altes_zimmer_bis": 246,
+   "diele_tapete": "Mintstreifen (furn2 wall stripes, 1:1)",
+   "diele_boden": "Ziegelboden (furn2 floor terracotta, 1:1)",
+   "teile": [
+    {
+     "name": "garderobenstaender",
+     "x": 3,
+     "y": 41,
+     "w": 23,
+     "h": 64,
+     "ebene": "boden",
+     "unten": 104,
+     "schatten": true,
+     "datei": "teile/variante-2/garderobenstaender.png"
+    },
+    {
+     "name": "haustuer",
+     "x": 28,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-2/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 29,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-2/fussmatte.png"
+    },
+    {
+     "name": "spiegel",
+     "x": 61,
+     "y": 27,
+     "w": 16,
+     "h": 22,
+     "ebene": "wand",
+     "datei": "teile/variante-2/spiegel.png"
+    },
+    {
+     "name": "schirmstaender",
+     "x": 63,
+     "y": 77,
+     "w": 12,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-2/schirmstaender.png"
+    },
+    {
+     "name": "trenner_halbwand",
+     "x": 71,
+     "y": 60,
+     "w": 20,
+     "h": 45,
+     "ebene": "boden",
+     "unten": 104,
+     "schatten": true,
+     "datei": "teile/variante-2/trenner_halbwand.png"
+    },
+    {
+     "name": "bild_berg",
+     "x": 280,
+     "y": 26,
+     "w": 18,
+     "h": 14,
+     "ebene": "wand",
+     "datei": "teile/variante-2/bild_berg.png"
+    },
+    {
+     "name": "bild_blume",
+     "x": 300,
+     "y": 30,
+     "w": 14,
+     "h": 12,
+     "ebene": "wand",
+     "datei": "teile/variante-2/bild_blume.png"
+    },
+    {
+     "name": "beistelltisch",
+     "x": 274,
+     "y": 78,
+     "w": 24,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-2/beistelltisch.png"
+    },
+    {
+     "name": "grammophon_holz",
+     "x": 273,
+     "y": 35,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-2/grammophon_holz.png"
+    },
+    {
+     "name": "plattenkiste",
+     "x": 298,
+     "y": 89,
+     "w": 18,
+     "h": 16,
+     "ebene": "boden",
+     "unten": 104,
+     "schatten": true,
+     "datei": "teile/variante-2/plattenkiste.png"
+    },
+    {
+     "name": "gummibaum",
+     "x": 308,
+     "y": 58,
+     "w": 26,
+     "h": 46,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-2/gummibaum.png"
+    }
+   ]
+  },
+  "variante-3": {
+   "titel": "Portiere: rote Haustür, Kommode mit Spiegel, Läufer, Wandvorsprung mit grünem Samtvorhang, blauer Blütentrichter auf Plattenschrank",
+   "breite": 328,
+   "diele_breite": 76,
+   "trenner_breite": 6,
+   "altes_zimmer_versatz": 82,
+   "altes_zimmer_bis": 246,
+   "diele_tapete": "wie Wohnzimmer",
+   "diele_boden": "wie Wohnzimmer",
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 5,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-3/haustuer.png"
+    },
+    {
+     "name": "schluesselbrett",
+     "x": 38,
+     "y": 46,
+     "w": 14,
+     "h": 10,
+     "ebene": "wand",
+     "datei": "teile/variante-3/schluesselbrett.png"
+    },
+    {
+     "name": "spiegel",
+     "x": 51,
+     "y": 40,
+     "w": 18,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-3/spiegel.png"
+    },
+    {
+     "name": "kommode",
+     "x": 43,
+     "y": 79,
+     "w": 32,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-3/kommode.png"
+    },
+    {
+     "name": "schale_schluessel",
+     "x": 46,
+     "y": 75,
+     "w": 11,
+     "h": 6,
+     "ebene": "wand",
+     "datei": "teile/variante-3/schale_schluessel.png"
+    },
+    {
+     "name": "vase_tulpen",
+     "x": 63,
+     "y": 65,
+     "w": 11,
+     "h": 16,
+     "ebene": "wand",
+     "datei": "teile/variante-3/vase_tulpen.png"
+    },
+    {
+     "name": "laeufer",
+     "x": 4,
+     "y": 104,
+     "w": 64,
+     "h": 8,
+     "ebene": "liegt",
+     "datei": "teile/variante-3/laeufer.png"
+    },
+    {
+     "name": "trenner_wandvorsprung",
+     "x": 75,
+     "y": 0,
+     "w": 8,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-3/trenner_wandvorsprung.png"
+    },
+    {
+     "name": "trenner_portiere",
+     "x": 58,
+     "y": 0,
+     "w": 20,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-3/trenner_portiere.png"
+    },
+    {
+     "name": "wandbrett_alt",
+     "x": 270,
+     "y": 12,
+     "w": 48,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-3/wandbrett_alt.png"
+    },
+    {
+     "name": "plattenschrank",
+     "x": 270,
+     "y": 79,
+     "w": 42,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-3/plattenschrank.png"
+    },
+    {
+     "name": "grammophon_bluete",
+     "x": 270,
+     "y": 36,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-3/grammophon_bluete.png"
+    },
+    {
+     "name": "efeutopf",
+     "x": 301,
+     "y": 62,
+     "w": 16,
+     "h": 20,
+     "ebene": "wand",
+     "datei": "teile/variante-3/efeutopf.png"
+    },
+    {
+     "name": "notenstaender",
+     "x": 314,
+     "y": 68,
+     "w": 14,
+     "h": 36,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-3/notenstaender.png"
+    }
+   ]
+  },
+  "variante-4": {
+   "titel": "Holzpaneele und Regal: Holz-Haustür, Hakenleiste mit Bank, schmales Regal als Trenner, Koffergrammophon auf Kommode",
+   "breite": 334,
+   "diele_breite": 72,
+   "trenner_breite": 16,
+   "altes_zimmer_versatz": 88,
+   "altes_zimmer_bis": 246,
+   "diele_tapete": "Holzpaneele (furn2 wall planks, 1:1)",
+   "diele_boden": "Rautenparkett (furn2 floor herring, 1:1)",
+   "teile": [
+    {
+     "name": "bild_berg",
+     "x": 10,
+     "y": 26,
+     "w": 16,
+     "h": 13,
+     "ebene": "wand",
+     "datei": "teile/variante-4/bild_berg.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 4,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-4/hakenleiste.png"
+    },
+    {
+     "name": "tasche",
+     "x": 5,
+     "y": 49,
+     "w": 11,
+     "h": 18,
+     "ebene": "wand",
+     "datei": "teile/variante-4/tasche.png"
+    },
+    {
+     "name": "filzhut",
+     "x": 12,
+     "y": 48,
+     "w": 14,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-4/filzhut.png"
+    },
+    {
+     "name": "mantel",
+     "x": 22,
+     "y": 49,
+     "w": 13,
+     "h": 28,
+     "ebene": "wand",
+     "datei": "teile/variante-4/mantel.png"
+    },
+    {
+     "name": "bank",
+     "x": 3,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-4/bank.png"
+    },
+    {
+     "name": "haustuer",
+     "x": 37,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-4/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 38,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-4/fussmatte.png"
+    },
+    {
+     "name": "trenner_regal",
+     "x": 72,
+     "y": 42,
+     "w": 16,
+     "h": 62,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-4/trenner_regal.png"
+    },
+    {
+     "name": "wandbrett_alt",
+     "x": 276,
+     "y": 12,
+     "w": 48,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-4/wandbrett_alt.png"
+    },
+    {
+     "name": "kommode",
+     "x": 278,
+     "y": 79,
+     "w": 30,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-4/kommode.png"
+    },
+    {
+     "name": "koffergrammophon",
+     "x": 281,
+     "y": 57,
+     "w": 26,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-4/koffergrammophon.png"
+    },
+    {
+     "name": "gummibaum",
+     "x": 310,
+     "y": 60,
+     "w": 26,
+     "h": 44,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-4/gummibaum.png"
+    },
+    {
+     "name": "plattenstapel",
+     "x": 302,
+     "y": 98,
+     "w": 18,
+     "h": 7,
+     "ebene": "liegt",
+     "datei": "teile/variante-4/plattenstapel.png"
+    }
+   ]
+  }
+ }
+}
