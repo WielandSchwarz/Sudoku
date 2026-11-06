@@ -350,8 +350,8 @@
     if (paused) guests.forEach(function (g) {                    // while baking or brewing, time stands still at the tables: no paying, no hearts until you are back
       var ms = dt * 1000; if (g.state === "fly" || g.state === "eat" || g.state === "chat") { g.t0 += ms; if (g.ts) g.ts += ms; if (g.talkAt) g.talkAt += ms; }
     });
-    guests.forEach(function (g) {   // nobody stays longer than five minutes in all (the clock stands still while you bake or brew)
-      if (!paused && g.state !== "leave" && g.state !== "gone") { g.life = (g.life || 0) + dt;
+    guests.forEach(function (g) {   // nobody stays longer than five minutes in all; this clock keeps running while you bake or brew
+      if (g.state !== "leave" && g.state !== "gone") { g.life = (g.life || 0) + dt;
         if (g.life > G_MAX && /^(wait|eat|chat|fly)$/.test(g.state)) { if (g.state === "eat" || g.state === "fly") { g.sip = 0; gItemOnTable(g, false); gPay(g); } else if (g.state === "wait") say(ALLANI[g.id].name + " muss leider los. Vielleicht ein andermal."); gGo(g); return; } }
       if (g.state === "walk") { if (gStep(g, dt)) { g.mov = false; g.state = "wait"; g.wait = 0; gBubble(g); if (g === guests.filter(function (q) { return q.table === g.table; })[0]) say(ALLANI[g.id].name + (g.atTable && !g.ordered ? " setzt sich und schaut in die Karte." : " setzt sich und möchte " + gOrderText(g.order) + ".")); } }
       else if (g.state === "wait") { if (!paused && (!g.atTable || g.ordered)) g.wait += dt; if (g.wait > 170) { gGo(g); gBubble(g); say(ALLANI[g.id].name + " konnte nicht länger warten. Vielleicht ein andermal."); } }
