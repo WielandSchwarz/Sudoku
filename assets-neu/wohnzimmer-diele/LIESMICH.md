@@ -2,7 +2,13 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Entwurf ist **1C** (Runde 3). Die Freigabe zum Einbau steht noch aus.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Entwurf ist **1D** (Runde 4). Offen sind noch die Wahl des Grammophons und die Auswahl der neuen Sessel. Die Freigabe zum Einbau steht noch aus.
+
+## Runde 4: 1D, Pinnwand über dem Grammophon, Grammophon-Entwürfe, 10 neue Sessel
+- **1D** (`vorschau/variante-1d*`) unterscheidet sich von 1C so: Die Pinnwand (`pcBoard`) hängt über dem Grammophon (alt x=103, y=12), das Wandbrett ist entfernt. Über dem ersten Regal ist die Wand jetzt frei. Das Grammophon steht 4 px weiter vorn (Unterkante y=106 statt 102), also etwas von der Wand weg. Das Schiffsbild bleibt über dem zweiten Regal.
+- Das Schiffsmodell (`pcModel`) stand bisher auf dem Wandbrett und braucht einen neuen Platz. Den legt Wieland noch fest.
+- **Grammophon-Entwürfe** (`vorschau/grammophon_optionen_x4.png`, ganze Räume in `vorschau/grammophon-*.png`, Teile in `teile/grammophon-*`): A Messingtrichter (bisher), B Holztrichter, C grüner Blütentrichter mit Goldrand, D Standgrammophon mit offenem Deckel, Stoffbespannung und Plattenfach. Wieland wählt noch.
+- **10 neue Sessel** (`sessel/`, Übersicht `sessel/uebersicht_x4.png`): gleiches Format wie die Einträge in `furn2.json` → `chair` (48×42, 1:1). `sessel.json` enthält je Sessel `name`, `beschreibung` und `seat` (y der Sitzfläche für `seatPos`). Sie sind als PNG gespeichert. Für `furn2.json` müssen sie in das dortige SVG-Pfadformat umgewandelt werden (1 Rechteck je Pixelzeile und Farbe). Gezeichnet wurden sie mit `werkzeug/sessel.py`.
 
 ## Runde 3: 1C, gemütlicher angeordnet
 Wünsche: Es bleibt bei einem Fenster. Die Möbel sollen gemütlicher stehen, das Grammophon neben dem Sessel, dazu ein zweites Bücherregal. Der Gummibaum ganz rechts fällt weg.

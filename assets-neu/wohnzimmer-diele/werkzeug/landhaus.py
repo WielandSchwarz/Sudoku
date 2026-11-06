@@ -280,11 +280,48 @@ def v1c():
     return v
 
 
+# ---------------------------------------------------------------- round 4: pinboard above the gramophone, gramophone a bit forward
+GRAMS = {
+    'messing': 'Messingtrichter auf Musiktruhe (bisher)',
+    'holz': 'Holztrichter auf Musiktruhe',
+    'bluete': 'Grüner Blütentrichter mit Goldrand auf Musiktruhe',
+    'stand': 'Standgrammophon mit Plattenfach',
+}
+
+
+def v1d(gram='messing'):
+    key = 'variante-1d' if gram == 'messing' else 'grammophon-' + gram
+    v = Land(key, 'Landhaus 1D: Pinnwand über dem Grammophon, Wandbrett entfernt, Grammophon 4 px weiter vorn. Grammophon: ' + GRAMS[gram])
+    hall(v)
+    S = v.R.S
+    v.old('teppich', x=62)
+    v.old('uhr', x=63)
+    v.old('pinnwand', x=103, y=12)
+    v.window('fenster', 180, 26, 46, 42)
+    v.old('schiffsbild', x=216, y=24)
+    v.old('regal')
+    v.old('lampe', x=39)
+    v.old('sessel', x=55)
+    bottom = 106                                  # 4 px in front of the wall line (before: 102)
+    if gram == 'stand':
+        v.stand('standgrammophon', standgrammophon(), v.R.o(107), bottom)
+    else:
+        top = v.stand('musiktruhe', musiktruhe(30, 24), v.R.o(106), bottom)
+        style = {'messing': 'messing', 'holz': 'holz', 'bluete': 'gruen'}[gram]
+        v.on_top('grammophon_' + gram, top, grammophon(style), v.R.o(106) + 2)
+    v.old('geranie', x=160)
+    r2 = regal2()
+    v.R.L.paste(r2, v.R.o(210), 54)
+    v.items.append(dict(name='regal_zwei', x=v.R.o(210), y=54, w=r2.w, h=r2.h, ebene='boden', img=r2))
+    v.notes['hamster'] = (S + 140, 124)
+    return v
+
+
 if __name__ == '__main__':
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else 'out2'
     lay = {}
-    for f in (v1a, v1b, v1c):
+    for f in (v1a, v1b, v1c, v1d, lambda: v1d('holz'), lambda: v1d('bluete'), lambda: v1d('stand')):
         v = f(); lay[v.key] = v.export(out); print(v.key, v.R.W, len(v.items))
     json.dump(dict(einheit='1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100',
                    reihenfolge='Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene "alt" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position',

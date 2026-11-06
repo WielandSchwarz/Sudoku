@@ -1,0 +1,92 @@
+[
+ {
+  "datei": "01_ohrensessel_decke.png",
+  "id": "ohrensessel_decke",
+  "name": "Ohrensessel mit Strickdecke",
+  "beschreibung": "roter Samt, Knopfheftung, Rollarmlehnen, dicke Strickdecke über der Lehne",
+  "w": 48,
+  "h": 42,
+  "seat": 28
+ },
+ {
+  "datei": "02_rundsessel_senf.png",
+  "id": "rundsessel_senf",
+  "name": "Gelber Rundsessel",
+  "beschreibung": "Senfgelb, tiefe Knopfheftung, rundes Zierkissen, schwarze Beine",
+  "w": 48,
+  "h": 42,
+  "seat": 28
+ },
+ {
+  "datei": "03_chesterfield.png",
+  "id": "chesterfield",
+  "name": "Chesterfield",
+  "beschreibung": "Cognacfarbenes Leder, Rollarmlehnen, Knöpfe, Glanzlichter, Kugelfüße",
+  "w": 48,
+  "h": 42,
+  "seat": 26
+ },
+ {
+  "datei": "04_korbsessel.png",
+  "id": "korbsessel",
+  "name": "Korbsessel mit Schaffell",
+  "beschreibung": "Rattan-Geflecht, dicke Leinenkissen, Schaffell über der Lehne",
+  "w": 48,
+  "h": 42,
+  "seat": 27
+ },
+ {
+  "datei": "05_bluemchen_volant.png",
+  "id": "bluemchen_volant",
+  "name": "Blümchen-Ohrensessel",
+  "beschreibung": "Cremefarben mit kleinen Rosen, rosa Paspel, Rüschenvolant bis zum Boden",
+  "w": 48,
+  "h": 42,
+  "seat": 27
+ },
+ {
+  "datei": "06_cordsessel.png",
+  "id": "cordsessel",
+  "name": "Cord-Kuschelsessel",
+  "beschreibung": "Moosgrüner Breitcord, extra breite runde Lehnen, oranges Kissen",
+  "w": 48,
+  "h": 42,
+  "seat": 26
+ },
+ {
+  "datei": "07_schaukelstuhl.png",
+  "id": "schaukelstuhl",
+  "name": "Schaukelstuhl mit Patchwork",
+  "beschreibung": "Holz mit Sprossen und Kufen, Patchwork-Polster, karierte Decke über der Lehne",
+  "w": 48,
+  "h": 42,
+  "seat": 28
+ },
+ {
+  "datei": "08_teddysessel.png",
+  "id": "teddysessel",
+  "name": "Teddy-Sessel",
+  "beschreibung": "Cremefarbener Teddystoff, ganz runde Form, gestricktes Herzkissen",
+  "w": 48,
+  "h": 42,
+  "seat": 28
+ },
+ {
+  "datei": "09_grossvatersessel.png",
+  "id": "grossvatersessel",
+  "name": "Karierter Großvatersessel",
+  "beschreibung": "Grüner Schottenkaro-Stoff, Häkeldeckchen auf der Lehne, gedrechselte Beine",
+  "w": 48,
+  "h": 42,
+  "seat": 27
+ },
+ {
+  "datei": "10_muschelsessel.png",
+  "id": "muschelsessel",
+  "name": "Muschelsessel",
+  "beschreibung": "Altrosa Samt mit Pfeifensteppung, Fransenborte, Messingbeine",
+  "w": 48,
+  "h": 42,
+  "seat": 27
+ }
+]

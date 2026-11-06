@@ -489,12 +489,14 @@ def horn(style='messing', r=9, neck_len=13):
     def f(x, y, dx, dy):
         rr = math.sqrt(dx * dx + dy * dy)
         ang = math.atan2(dy, dx)
-        if flower:                                    # scalloped rim like a morning glory
-            edge = .93 + .07 * math.cos(ang * 5)
+        if flower:                                    # scalloped rim like a morning glory, gold edge, petal ribs
+            edge = .9 + .1 * math.cos(ang * 6)
             if rr > edge:
                 return None
-            if rr > edge - .14:
-                return 'c4' if dy < -.3 and dx < 0 else l
+            if rr > edge - .13:
+                return 'br4' if dy < -.2 else 'br3'
+            if abs(math.sin(ang * 3)) < .1 and rr > .3:
+                return l
         else:
             if rr > .82:
                 return l if dy < .15 else m
@@ -718,4 +720,40 @@ def pilaster(h=100, w=6):
                 c = C('e8dccb') if x < w - 1 else C('fff6e8')
             L.px(x, y, c)
     L.vl(w - 1, 0, 97, mul(C('fbf0de'), 1))
+    return L.outline()
+
+
+def standgrammophon():
+    """cabinet gramophone (Standmodell): lid open, record and tone arm on top, fretwork speaker grille, records below"""
+    w = 30
+    L = Layer(w, 46)
+    # open lid leaning back: we look at its inside, a little narrower at the top, with a brass stay
+    for y in range(0, 8):
+        ins = 3 - y // 3
+        L.rect(1 + ins, y, w - 2 - 2 * ins, 1, 'wd1' if y == 0 else ('wd2' if y < 2 else 'wd3'))
+        L.px(1 + ins, y, 'wd1'); L.px(w - 2 - ins, y, 'wd1')
+    L.rect(6, 3, w - 12, 3, 'wd4'); L.hl(6, 3, w - 12, 'wd5')
+    L.vl(w - 6, 5, 4, 'br2')
+    # deck with record and tone arm
+    L.rect(0, 9, w, 3, 'wd1')
+    L.rect(4, 9, 18, 2, 'k2'); L.hl(5, 9, 16, 'k3'); L.rect(11, 9, 4, 1, 'r3')
+    L.hl(20, 8, 6, 'br2'); L.px(26, 9, 'br3'); L.px(19, 9, 'br1')
+    # body
+    L.rect(0, 12, w, 30, 'wd2'); L.vl(0, 12, 30, 'wd3'); L.vl(w - 1, 12, 30, 'wd1'); L.hl(0, 12, w, 'wd3')
+    # speaker grille with fretwork arches
+    L.rect(4, 15, w - 8, 12, 'c1')
+    for x in range(4, w - 4):
+        L.px(x, 15, 'wd1')
+    for gx in range(6, w - 5, 4):
+        L.vl(gx, 17, 10, 'wd2'); L.px(gx + 1, 16, 'wd2'); L.px(gx - 1, 16, 'wd2')
+    L.frame(3, 14, w - 6, 14, 'wd1')
+    # record compartment with sleeves
+    L.rect(4, 30, w - 8, 9, 'wd0')
+    cols = ['r3', 'c3', 'u3', 'y2', 'pk2', 'g3', 'c3', 'o3', 'lav2', 'r4', 'u4']
+    for i in range(w - 9):
+        L.vl(5 + i, 31 + (i % 3 == 0), 8 - (i % 3 == 0), cols[i % len(cols)])
+    L.frame(3, 29, w - 6, 11, 'wd1')
+    L.px(w // 2, 28, 'br3')
+    # plinth and feet
+    L.rect(0, 42, w, 2, 'wd1'); L.rect(1, 44, 3, 2, 'wd1'); L.rect(w - 4, 44, 3, 2, 'wd1')
     return L.outline()

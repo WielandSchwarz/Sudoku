@@ -782,6 +782,945 @@
      "datei": "teile/variante-1c/regal_zwei.png"
     }
    ]
+  },
+  "variante-1d": {
+   "titel": "Landhaus 1D: Pinnwand über dem Grammophon, Wandbrett entfernt, Grammophon 4 px weiter vorn. Grammophon: Messingtrichter auf Musiktruhe (bisher)",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-1d/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1d/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 146,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/variante-1d/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 147,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/variante-1d/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 187,
+     "y": 12,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/variante-1d/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 239,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 235,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 282,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 234,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 300,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/variante-1d/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/variante-1d/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 123,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/variante-1d/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 139,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/variante-1d/sessel.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 190,
+     "y": 81,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/variante-1d/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_messing",
+     "x": 192,
+     "y": 38,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-1d/grammophon_messing.png"
+    },
+    {
+     "name": "geranie",
+     "x": 244,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/variante-1d/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 294,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/variante-1d/regal_zwei.png"
+    }
+   ]
+  },
+  "grammophon-holz": {
+   "titel": "Landhaus 1D: Pinnwand über dem Grammophon, Wandbrett entfernt, Grammophon 4 px weiter vorn. Grammophon: Holztrichter auf Musiktruhe",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/grammophon-holz/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/grammophon-holz/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 146,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/grammophon-holz/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 147,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/grammophon-holz/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 187,
+     "y": 12,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/grammophon-holz/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 239,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 235,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 282,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 234,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 300,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/grammophon-holz/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/grammophon-holz/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 123,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/grammophon-holz/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 139,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/grammophon-holz/sessel.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 190,
+     "y": 81,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/grammophon-holz/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_holz",
+     "x": 192,
+     "y": 38,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/grammophon-holz/grammophon_holz.png"
+    },
+    {
+     "name": "geranie",
+     "x": 244,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/grammophon-holz/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 294,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/grammophon-holz/regal_zwei.png"
+    }
+   ]
+  },
+  "grammophon-bluete": {
+   "titel": "Landhaus 1D: Pinnwand über dem Grammophon, Wandbrett entfernt, Grammophon 4 px weiter vorn. Grammophon: Grüner Blütentrichter mit Goldrand auf Musiktruhe",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/grammophon-bluete/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/grammophon-bluete/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 146,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/grammophon-bluete/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 147,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/grammophon-bluete/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 187,
+     "y": 12,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/grammophon-bluete/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 239,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 235,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 282,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 234,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 300,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/grammophon-bluete/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/grammophon-bluete/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 123,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/grammophon-bluete/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 139,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/grammophon-bluete/sessel.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 190,
+     "y": 81,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/grammophon-bluete/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_bluete",
+     "x": 192,
+     "y": 38,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/grammophon-bluete/grammophon_bluete.png"
+    },
+    {
+     "name": "geranie",
+     "x": 244,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/grammophon-bluete/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 294,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/grammophon-bluete/regal_zwei.png"
+    }
+   ]
+  },
+  "grammophon-stand": {
+   "titel": "Landhaus 1D: Pinnwand über dem Grammophon, Wandbrett entfernt, Grammophon 4 px weiter vorn. Grammophon: Standgrammophon mit Plattenfach",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/grammophon-stand/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/grammophon-stand/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 146,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/grammophon-stand/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 147,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/grammophon-stand/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 187,
+     "y": 12,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/grammophon-stand/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 239,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 235,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 282,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 234,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/grammophon-stand/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 300,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/grammophon-stand/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/grammophon-stand/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 123,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/grammophon-stand/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 139,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/grammophon-stand/sessel.png"
+    },
+    {
+     "name": "standgrammophon",
+     "x": 191,
+     "y": 59,
+     "w": 32,
+     "h": 48,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/grammophon-stand/standgrammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 244,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/grammophon-stand/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 294,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/grammophon-stand/regal_zwei.png"
+    }
+   ]
   }
  }
 }
