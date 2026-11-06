@@ -263,11 +263,224 @@ DIELE = [
 ]
 
 
+# ------------------------------------------------------------------ round 2 of floors
+def wuerfel(top='#e4c290', left='#b88956', right='#8c623e'):
+    """tumbling blocks: inlaid parquet that looks like stacked cubes (2:1 isometric, cube 16 wide)"""
+    t = Tile(16, 24, left)
+    for y in range(24):
+        for x in range(16):
+            c = None
+            for j in range(-2, 4):
+                for i in range(-2, 3):
+                    ox = i * 16 + (j % 2) * 8; oy = j * 12
+                    lx, ly = x + .5 - ox, y + .5 - oy
+                    if abs(lx - 8) / 8 + abs(ly - 4) / 4 <= 1:
+                        c = top
+                    elif 0 <= lx < 8 and 4 + lx / 2 <= ly < 12 + lx / 2:
+                        c = left
+                    elif 8 <= lx < 16 and 4 + (16 - lx) / 2 <= ly < 12 + (16 - lx) / 2:
+                        c = right
+                    if c:
+                        break
+                if c:
+                    break
+            t.px(x, y, c or left)
+    src = t.im.copy().load()
+    for y in range(24):
+        for x in range(16):
+            c = src[x, y]
+            if src[(x + 1) % 16, y] != c or src[x, (y + 1) % 24] != c:
+                t.px(x, y, shade('#%02x%02x%02x' % c[:3], .86))
+    return t
+
+
+def kork(base='#c79a68'):
+    t = Tile(16, 16, base)
+    rnd = random.Random(31)
+    for y in range(16):
+        for x in range(16):
+            r = rnd.random()
+            if r < .18:
+                t.px(x, y, shade(base, .82))
+            elif r < .3:
+                t.px(x, y, shade(base, 1.1))
+            elif r < .33:
+                t.px(x, y, shade(base, .66))
+    return t
+
+
+def terrazzo(base='#ece4d6'):
+    t = Tile(24, 24, base)
+    rnd = random.Random(41)
+    chips = ['#c89a86', '#9aa8a0', '#d8c088', '#b0a8a0', '#e0b0a0']
+    for _ in range(26):
+        x, y = rnd.randrange(24), rnd.randrange(24); c = rnd.choice(chips)
+        t.px(x, y, c)
+        if rnd.random() < .5:
+            t.px(x + 1, y, c)
+        if rnd.random() < .3:
+            t.px(x, y + 1, shade(c, .9))
+    return t
+
+
+def kelim(cols=('#d9a08a', '#efe2c8', '#9fb39a', '#efe2c8', '#c8b07a', '#efe2c8')):
+    """flat-woven striped rug with small zigzags in the wide stripes"""
+    t = Tile(16, 24, cols[1])
+    hs = [5, 3, 5, 3, 5, 3]
+    y = 0
+    for c, h in zip(cols, hs):
+        for yy in range(y, y + h):
+            for x in range(16):
+                t.px(x, yy, c)
+        if h == 5:
+            for x in range(16):
+                t.px(x, y + 2 + (1 if (x // 2) % 2 else -1), shade(c, 1.12))
+        y += h
+    return t
+
+
+def berber(base='#efe6d4', line='#b8946a'):
+    t = Tile(16, 16, base)
+    rnd = random.Random(51)
+    for y in range(16):
+        for x in range(16):
+            if rnd.random() < .1:
+                t.px(x, y, shade(base, .95))
+    for i in range(8):
+        for (x, y) in ((8 + i, i), (8 - i, i), (8 + i, 15 - i), (8 - i, 15 - i)):
+            t.px(x, y, line)
+    t.px(8, 8, line)
+    return t
+
+
+def sternteppich(base='#7d93b4', star='#e8d8a0'):
+    t = teppich(base, lambda tt: None, seed=61)
+    for cx, cy in ((4, 4), (12, 12)):
+        for (dx, dy) in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            tt = (cx + dx, cy + dy); t.px(*tt, star)
+    return t
+
+
+WOHN2 = [
+    ('raeuchereiche', 'Räuchereiche', lambda: planks(64, 9, [[0], [28]], '#8a7262', seed=71, light=1.1)),
+    ('esche', 'Esche hell schmal', lambda: planks(48, 6, [[0], [20], [36]], '#ead2a8', seed=73, gap=.75, nails=False)),
+    ('altholz', 'Altholz bunt', lambda: planks(64, 8, [[0, 40], [20]], '#b88a5a', seed=75, var=(.78, 1.0, 1.18, .9, 1.08), knots=1)),
+    ('graublau', 'Dielen graublau gestrichen', lambda: planks(64, 9, [[0], [32]], '#9fb0b8', seed=77, grain=.96, gap=.72, light=1.06)),
+    ('wuerfel', 'Würfelparkett', wuerfel),
+    ('kork', 'Kork', kork),
+    ('terrazzo', 'Terrazzo', terrazzo),
+    ('kelim', 'Kelim-Streifen', kelim),
+    ('berber', 'Berber-Teppich', berber),
+    ('sternteppich', 'Blauer Sternenteppich', sternteppich),
+]
+
+
+def rauten(a='#c8604a', b='#efe4d0', grout='#d8c8b0'):
+    """diagonal checkerboard (diamonds)"""
+    t = Tile(16, 16, b)
+    for y in range(16):
+        for x in range(16):
+            u, v = (x + y) % 16, (x - y) % 16
+            c = a if ((u // 8) + (v // 8)) % 2 else b
+            if u % 8 == 0 or v % 8 == 0:
+                c = grout
+            t.px(x, y, c)
+    return t
+
+
+def kiesel():
+    t = Tile(24, 24, '#b8ab98')
+    rnd = random.Random(81)
+    cols = ['#e2dccf', '#cfc6b6', '#bfb3a0', '#d8cbb5', '#a8a090']
+    for _ in range(60):
+        cx, cy = rnd.uniform(0, 24), rnd.uniform(0, 24); rx, ry = rnd.uniform(1.2, 2.6), rnd.uniform(.9, 1.8); c = rnd.choice(cols)
+        for y in range(int(cy - ry) - 1, int(cy + ry) + 2):
+            for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
+                if ((x + .5 - cx) / rx) ** 2 + ((y + .5 - cy) / ry) ** 2 <= 1:
+                    t.px(x, y, shade(c, 1.08) if y < cy - ry * .3 else c)
+    return t
+
+
+def sandstein():
+    """irregular warm sandstone flags"""
+    t = Tile(32, 24, '#cdb89a')
+    rects = [(0, 0, 13, 9), (14, 0, 31, 7), (0, 10, 9, 23), (10, 10, 22, 17), (23, 8, 31, 16), (10, 18, 22, 23), (23, 17, 31, 23)]
+    cols = ['#e6cfa6', '#dcc298', '#e9d6b2', '#d6bb90']
+    rnd = random.Random(91)
+    for i, (x0, y0, x1, y1) in enumerate(rects):
+        c = cols[i % len(cols)]
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                cc = c
+                if rnd.random() < .12:
+                    cc = shade(c, .94)
+                if y == y0:
+                    cc = shade(c, 1.06)
+                t.px(x, y, cc)
+    return t
+
+
+def achteck():
+    """classic hallway tiles: white octagons with small dark square inserts"""
+    t = Tile(12, 12, '#d4ccbc')
+    for y in range(12):
+        for x in range(12):
+            dx, dy = abs(x - 5.5), abs(y - 5.5)
+            if dx <= 5 and dy <= 5 and dx + dy <= 7.5:
+                t.px(x, y, '#f4efe4' if (dx + dy < 6.5) else '#e4ddcf')
+    for (x, y) in ((11, 11), (0, 11), (11, 0), (0, 0), (1, 0), (0, 1), (11, 1), (1, 11), (10, 0), (0, 10), (10, 11), (11, 10)):
+        t.px(x, y, '#3e4652')
+    return t
+
+
+def holzpflaster():
+    """end-grain wood blocks in a brick bond, with growth rings"""
+    t = Tile(24, 16, '#6a4a30')
+    cols = ['#b88a5a', '#a87a4c', '#c4986a']
+    for row in range(2):
+        off = 0 if row == 0 else 6
+        for i in range(2):
+            x0 = off + i * 12; y0 = row * 8; c = cols[(row + i) % 3]
+            for y in range(y0, y0 + 7):
+                for x in range(x0, x0 + 11):
+                    r = math.hypot(x - (x0 + 5), (y - (y0 + 3)) * 1.4)
+                    t.px(x, y, shade(c, .88) if int(r) % 2 else c)
+    return t
+
+
+def zement_stern(ground='#f0e6d2', main='#c9784e', light='#e8b878', grout='#d6ccb8'):
+    """cement tile with an eight-pointed star"""
+    t = Tile(16, 16, ground)
+    for y in range(16):
+        for x in range(16):
+            dx, dy = x - 7.5, y - 7.5
+            sq, di = max(abs(dx), abs(dy)), abs(dx) + abs(dy)
+            if sq < 3.6 or di < 6.4:
+                t.px(x, y, light if (sq < 2.4 and di < 3.8) else main)
+            if max(abs(dx), abs(dy)) < 1.2:
+                t.px(x, y, ground)
+            if x == 15 or y == 15:
+                t.px(x, y, grout)
+    return t
+
+
+DIELE2 = [
+    ('rauten', 'Rauten rot-creme', rauten),
+    ('kiesel', 'Kieselmosaik', kiesel),
+    ('sandstein', 'Sandsteinplatten', sandstein),
+    ('achteck', 'Achteckfliesen mit Einleger', achteck),
+    ('holzpflaster', 'Holzpflaster', holzpflaster),
+    ('klinker', 'Klinker im Fischgrät', ziegel_fischgraet),
+    ('zement_stern', 'Zementfliesen Stern', zement_stern),
+    ('zement_rosa', 'Zementfliesen Rosa', lambda: zementfliese('#f3e6dc', '#c97a86', '#e8b4b8')),
+]
+
+
 if __name__ == '__main__':
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
     data = {'wohnraum': {}, 'diele': {}}
-    for kind, items in (('wohnraum', WOHN), ('diele', DIELE)):
+    for kind, items in (('wohnraum', WOHN + WOHN2), ('diele', DIELE + DIELE2)):
         for fid, name, f in items:
             t = f()
             t.im.save(os.path.join(out, '%s_%s.png' % (kind, fid)))

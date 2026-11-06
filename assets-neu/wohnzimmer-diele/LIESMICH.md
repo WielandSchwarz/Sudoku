@@ -4,12 +4,15 @@ Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Tren
 
 **Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Runde 8: Die Türen aus dem Tür-Slot als Haustür und die 10 neuen Tapeten sind freigegeben. Runde 9: eigene Farben für jede Tapete im Möbel-Menü und die Bodenprüfung, freigegeben. Runde 10: neue Böden für Wohnraum und Diele zur Auswahl. Der Raum selbst ist noch nicht zum Einbau freigegeben.
 
-## Runde 10: neue Böden für Wohnraum und Diele
+## Runde 10 und 11: neue Böden für Wohnraum und Diele (20 + 14)
 
 Wieland findet die bisherige Bodenauswahl nicht schick genug. Deshalb gibt es neue Böden, getrennt für Wohnraum und Diele.
 
 - **Wohnraum, 10 Böden** (`boeden2/uebersicht_wohnraum_x2.png`): Honig-Eiche, Walnuss breit, Weiß geölt, Kirsche schmal, Kiefer mit Ästen (Dielenbretter mit versetzten Stößen, Maserung, Lichtkante, Fuge und Nagelpunkten), Chevron-Eiche, Tafelparkett, Sisal, Altrosa Teppich, Salbei-Teppich.
 - **Diele, 6 Böden** (`boeden2/uebersicht_diele_x2.png`): Schachbrett Marmor, Zementfliesen Blau, Zementfliesen Grün, Terrakotta-Sechsecke, Schieferplatten, Sechseck-Mosaik mit Blüten.
+- **Runde 11, weitere 10 Wohnraum-Böden** (`boeden2/uebersicht_wohnraum_2_x2.png`): Räuchereiche, Esche hell schmal, Altholz bunt, Dielen graublau gestrichen, Würfelparkett (isometrische Würfel), Kork, Terrazzo, Kelim-Streifen, Berber-Teppich, Blauer Sternenteppich.
+- **Runde 11, weitere 8 Diele-Böden** (`boeden2/uebersicht_diele_2_x2.png`): Rauten rot-creme, Kieselmosaik, Sandsteinplatten, Achteckfliesen mit Einleger, Holzpflaster, Klinker im Fischgrät, Zementfliesen Stern, Zementfliesen Rosa.
+- Insgesamt also 20 Wohnraum- und 14 Diele-Böden, alle in `boeden2/boeden_neu.json`.
 - **Neu für den Einbau:** Die Diele bekommt eine eigene Bodenauswahl. Bisher hatte sie den festen Schachbrettboden. Vorschlag: Im Möbel-Menü unter „Boden“ zwei Titel mit je einer Kartenreihe, „Wohnraum“ und „Diele“. Der Diele-Boden reicht von x=0 bis zum Holzpfosten (x=91), der Wohnraum-Boden beginnt dort.
 - `boeden2/boeden_neu.json` enthält `wohnraum` und `diele`, je Boden `id`, `name`, `w`, `h` und `tile` (SVG 1:1, `w`/`h` = doppelte Kachelgröße wie bei den bisherigen Böden, Kachel beginnt an der Bodenkante y=100). Geprüft: pixelgleich zu den PNGs.
 - Einzelne Kacheln: `boeden2/wohnraum_*.png`, `boeden2/diele_*.png`. Ganze Räume: `boeden2/vorschau_*.png`.
