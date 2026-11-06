@@ -17992,6 +17992,8 @@ window.__EXTRAS = true;
     ["back0", "back1"].forEach(function (k) { var w = Z0[k][0], h = Z0[k][1], im = new Image();
       im.onload = function () { [1, -1].forEach(function (dir) { var c = document.createElement("canvas"); c.width = w; c.height = h + 3; var g = c.getContext("2d"); g.imageSmoothingEnabled = false;
           var c0 = document.createElement("canvas"); c0.width = w; c0.height = h + 3; var g0 = c0.getContext("2d"); g0.drawImage(im, 0, 3); kpCap(g0, false);
+          [[31, 9, 38], [32, 9, 38], [33, 9, 39], [34, 9, 39]].forEach(function (r) { var y = r[0] + 3; g0.clearRect(0, y, r[1], 1); g0.clearRect(r[2] + 1, y, w - r[2] - 1, 1);   // no paws: the flanks run smoothly down
+            g0.fillStyle = "#3a2414"; g0.fillRect(r[1], y, 1, 1); g0.fillRect(r[2], y, 1, 1); g0.fillStyle = "#e9a44c"; g0.fillRect(r[1] + 1, y, 4, 1); g0.fillRect(r[2] - 4, y, 4, 1); });
           if (dir < 0) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(c0, 0, 0); kpHI[k + (dir < 0 ? "L" : "")] = c; }); if (kp) kpRedraw(); };
       im.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">' + A0[k] + '</svg>'); }); }
   function kpHamDraw(t) {
