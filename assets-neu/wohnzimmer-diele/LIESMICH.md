@@ -2,7 +2,22 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon ist noch offen, Wieland wählt aus den Entwürfen der Runde 7. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon aus Runde 7 ist freigegeben (Form). Die Farbe ist noch nicht gewählt, die vier Farben können auch als Auswahl im Einrichten-Menü dienen. Neu in Runde 8: Tapetenfarben und die Türen aus dem Tür-Slot als Haustür. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+
+## Runde 8: neue Tapetenfarben, Türen aus dem Tür-Slot als Haustür
+
+### Tapetenfarben
+- 10 neue Farben der bisherigen Tapete. Das Muster (Rauten mit Lichtpunkt, Kachel 16×16) bleibt gleich, nur die vier Farben wechseln: Salbeigrün, Altrosa, Himmelblau, Buttergelb, Lavendel, Pfirsich, Mint, Leinen sowie zwei dunkle Töne, Tannengrün und Nachtblau.
+- `tapeten/tapeten_neu.json` enthält je Farbe `id`, `name`, `w`, `h`, `farben` und `tile`, ein SVG im selben Format wie `interior2.json` → `wall_cream`. Damit lassen sie sich als weitere Einträge in den Tapeten-Slot aufnehmen.
+- `tapeten/tapete_*.png` sind die Kacheln, `tapeten/vorschau_*.png` das ganze Zimmer (1D mit Messing-Grammophon) in jeder Farbe, `tapeten/uebersicht_x2.png` alle zusammen.
+- Erzeugt mit `python3 werkzeug/tapeten.py tapeten`. Die Mustertöne werden aus der Grundfarbe abgeleitet, bei dunklen Tapeten ist das Muster heller als der Grund.
+
+### Türen
+- Ohne Terrassentür wird der Tür-Slot zur Haustür in der Diele. Die sechs Modelle aus `mock2/room3.json` → `door` passen unverändert: Weiße Terrassentür, Holztür mit Bullauge, Grüne Landhaustür, Bogentür, Blaue Sprossentür, Rote Scheunentür. Rahmen und Türblatt bleiben getrennt, das Aufgehen funktioniert also weiter.
+- Weil die Türen 48 px breit sind (meine gezeichnete Haustür war 32 px), wird die Diele 12 px breiter: `diele_breite` 88 statt 76, altes Zimmer ab x=96 statt 84, Raum 342 px breit. Tür bei x=4, Unterkante y=99, Fußmatte 40 px breit, Hakenleiste und Bank bei x=58, Holzpfosten bei x=92.
+- Hinter den Glasflächen zeigt das Spiel den Garten wie bisher an der Terrassentür. In der Vorschau ist dafür der Garten aus dem Erkerfenster eingesetzt.
+- Der Weg in den Garten führt dann durch die Haustür.
+- Vorschau: `vorschau/tueren_diele_x4.png` (alle sechs), ganze Räume in `vorschau/tuer-*.png`, Positionen in `layout_landhaus.json` unter `tuer-*`.
 
 ## Runde 5 bis 7: neue Sessel freigegeben, neue Grammophone
 

@@ -120,8 +120,8 @@ def stange(w):
 
 
 class Land(VV.V):
-    def __init__(self, key, title):
-        super().__init__(key, title, 76, 8)
+    def __init__(self, key, title, DL=76):
+        super().__init__(key, title, DL, 8)
         R = self.R
         for y in range(H):                     # wipe the pasted old room: back to bare wall and floor
             for x in range(R.S, R.W):
@@ -374,11 +374,70 @@ def v1f(key):
     return v
 
 
+# ---------------------------------------------------------------- doors from the door slot (mock2/room3.json) as front door
+import json as _json
+from px import render as _render, SP as _SP
+
+DOORS = _json.load(open(_SP + '../mock2/room3.json'))['door']
+
+
+def slot_door(i):
+    d = DOORS[i]
+    im = _render(d['svg'], int(d['w']), int(d['h']))
+    L = Layer(im.width, im.height); L.paste(im, 0, 0)
+    return L, d['name'], d['id']
+
+
+def v1g(i, gram='messing'):
+    """hallway 12 px wider, front door = door from the door slot (48x48)"""
+    door, dname, did = slot_door(i)
+    v = Land('tuer-' + did, 'Landhaus 1D, Haustür aus dem Tür-Slot: ' + dname, DL=88)
+    R = v.R
+    R.hall_surface(floor=('checker', 'floor'), x0=0, x1=92, wainscot=(64, 'bw3', 'bw4', 'bw2'))
+    v.seam(91, wall=False)
+    v.snap()
+    # behind the glass the game shows the garden (like at the terrace door); here: the garden from the bay window
+    g = garden(44, 43); gl = Layer(44, door.h)
+    gl.paste(g, 0, 0)
+    for y in range(43, door.h):
+        gl.paste(g.crop((0, 42, 44, 43)), 0, y)
+    R.L.paste(gl, 6, 100 - door.h)
+    v.wall('haustuer', door, 4, 100 - door.h)
+    v.flat('fussmatte', fussmatte(40), 8, 101)
+    hb, hooks = hakenleiste(26)
+    v.wall('hakenleiste', hb, 58, 44)
+    v.wall('mantel', mantel(), 58 + hooks[0] - 5, 49)
+    v.wall('strohhut', hut('stroh'), 58 + hooks[1] - 7, 48)
+    v.wall('schal', schal(), 58 + hooks[2] - 2, 49)
+    v.stand('bank', bank(26), 58, 103)
+    post, cx0 = pfosten()
+    v.wall('trenner_holzpfosten', post, 92 - 3 - (cx0 + 1), 0)
+    S = R.S
+    var = G4.VARIANTS[gram]
+    v.old('teppich', x=62)
+    v.old('uhr', x=63)
+    v.old('pinnwand', x=103, y=10)
+    v.window('fenster', 180, 26, 46, 42)
+    v.old('schiffsbild', x=216, y=24)
+    v.old('regal')
+    v.old('lampe', x=39)
+    v.old('sessel', x=55)
+    mx = R.o(106)
+    top = v.stand('grammophon_moebel', G4.plattenschrank4(), mx, 106)
+    v.on_top('grammophon', top, G4.grammophon4(**var['kw']), mx - 1)
+    v.old('geranie', x=160)
+    r2 = regal2()
+    R.L.paste(r2, R.o(210), 54)
+    v.items.append(dict(name='regal_zwei', x=R.o(210), y=54, w=r2.w, h=r2.h, ebene='boden', img=r2))
+    v.notes['hamster'] = (S + 140, 124)
+    return v
+
+
 if __name__ == '__main__':
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else 'out2'
     lay = {}
-    for f in (v1a, v1b, v1c, v1d, lambda: v1f('messing'), lambda: v1f('kupfer'), lambda: v1f('gruen'), lambda: v1f('kirsch')):
+    for f in (v1a, v1b, v1c, v1d, *[(lambda k: (lambda: v1g(k)))(k) for k in range(6)], lambda: v1f('messing'), lambda: v1f('kupfer'), lambda: v1f('gruen'), lambda: v1f('kirsch')):
         v = f(); lay[v.key] = v.export(out); print(v.key, v.R.W, len(v.items))
     json.dump(dict(einheit='1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100',
                    reihenfolge='Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene "alt" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position',

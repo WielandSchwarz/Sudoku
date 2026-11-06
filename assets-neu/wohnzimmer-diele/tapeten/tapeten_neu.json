@@ -1,0 +1,132 @@
+{
+ "wall_salbei": {
+  "id": "salbei",
+  "name": "Salbeigrün",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#dfe6cf",
+   "#d0dcb5",
+   "#e8ecdf",
+   "#c4d2a4"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#dfe6cf\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#d0dcb5\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#e8ecdf\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#c4d2a4\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_altrosa": {
+  "id": "altrosa",
+  "name": "Altrosa",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#f2d9d4",
+   "#e7bfb7",
+   "#f8eae7",
+   "#ddada3"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#f2d9d4\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#e7bfb7\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#f8eae7\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#ddada3\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_himmel": {
+  "id": "himmel",
+  "name": "Himmelblau",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#d9e6ee",
+   "#bfd6e3",
+   "#e8eff4",
+   "#aec9da"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#d9e6ee\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#bfd6e3\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#e8eff4\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#aec9da\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_butter": {
+  "id": "butter",
+  "name": "Buttergelb",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#f7eabf",
+   "#ecd99a",
+   "#fdf6de",
+   "#e2ca7d"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#f7eabf\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#ecd99a\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#fdf6de\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#e2ca7d\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_lavendel": {
+  "id": "lavendel",
+  "name": "Lavendel",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#e5def0",
+   "#d1c5e5",
+   "#f0ecf6",
+   "#c4b5dc"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#e5def0\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#d1c5e5\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#f0ecf6\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#c4b5dc\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_pfirsich": {
+  "id": "pfirsich",
+  "name": "Pfirsich",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#f6dcc6",
+   "#ebc4a4",
+   "#fcede1",
+   "#e1b189"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#f6dcc6\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#ebc4a4\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#fcede1\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#e1b189\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_mint": {
+  "id": "mint",
+  "name": "Mint",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#d6ede2",
+   "#bce2d0",
+   "#e6f3ed",
+   "#aad9c3"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#d6ede2\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#bce2d0\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#e6f3ed\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#aad9c3\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_leinen": {
+  "id": "leinen",
+  "name": "Leinen",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#e7ddd0",
+   "#ddccb6",
+   "#ede7e0",
+   "#d3bfa5"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#e7ddd0\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#ddccb6\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#ede7e0\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#d3bfa5\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_tanne": {
+  "id": "tanne",
+  "name": "Tannengrün",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#5b7860",
+   "#6d8b72",
+   "#879e8b",
+   "#739779"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#5b7860\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#6d8b72\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#879e8b\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#739779\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ },
+ "wall_nachtblau": {
+  "id": "nachtblau",
+  "name": "Nachtblau",
+  "w": 32,
+  "h": 32,
+  "farben": [
+   "#46557a",
+   "#57678e",
+   "#7884a1",
+   "#586b9a"
+  ],
+  "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" shape-rendering=\"crispEdges\"><path fill=\"#46557a\" d=\"M0 0h16v1h-16zM0 1h16v1h-16zM0 2h4v1h-4zM5 2h11v1h-11zM0 3h3v1h-3zM4 3h1v1h-1zM6 3h5v1h-5zM12 3h4v1h-4zM0 4h2v1h-2zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h5v1h-5zM13 4h3v1h-3zM0 5h3v1h-3zM4 5h1v1h-1zM6 5h10v1h-10zM0 6h4v1h-4zM5 6h11v1h-11zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h12v1h-12zM13 10h3v1h-3zM0 11h3v1h-3zM4 11h7v1h-7zM12 11h1v1h-1zM14 11h2v1h-2zM0 12h4v1h-4zM5 12h5v1h-5zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM0 13h11v1h-11zM12 13h1v1h-1zM14 13h2v1h-2zM0 14h12v1h-12zM13 14h3v1h-3zM0 15h16v1h-16z\"/><path fill=\"#57678e\" d=\"M4 2h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM4 6h1v1h-1zM12 10h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM12 14h1v1h-1z\"/><path fill=\"#7884a1\" d=\"M11 3h1v1h-1zM12 4h1v1h-1zM3 11h1v1h-1zM4 12h1v1h-1z\"/><path fill=\"#586b9a\" d=\"M4 4h1v1h-1zM12 12h1v1h-1z\"/></svg>"
+ }
+}

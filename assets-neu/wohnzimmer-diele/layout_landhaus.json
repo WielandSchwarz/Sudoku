@@ -1020,6 +1020,1428 @@
     }
    ]
   },
+  "tuer-terrace": {
+   "titel": "Landhaus 1D, Haustür aus dem Tür-Slot: Weiße Terrassentür",
+   "breite": 342,
+   "diele_breite": 88,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 96,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 4,
+     "y": 52,
+     "w": 48,
+     "h": 48,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 8,
+     "y": 101,
+     "w": 42,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/tuer-terrace/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 58,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 58,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 65,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 79,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 58,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/tuer-terrace/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 78,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/tuer-terrace/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 159,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/tuer-terrace/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 199,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/tuer-terrace/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 251,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 247,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 294,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 246,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 312,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/tuer-terrace/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 97,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/tuer-terrace/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 135,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/tuer-terrace/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 151,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/tuer-terrace/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 202,
+     "y": 83,
+     "w": 34,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/tuer-terrace/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 201,
+     "y": 38,
+     "w": 40,
+     "h": 47,
+     "ebene": "wand",
+     "datei": "teile/tuer-terrace/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 256,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/tuer-terrace/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 306,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/tuer-terrace/regal_zwei.png"
+    }
+   ]
+  },
+  "tuer-wooden": {
+   "titel": "Landhaus 1D, Haustür aus dem Tür-Slot: Holztür mit Bullauge",
+   "breite": 342,
+   "diele_breite": 88,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 96,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 4,
+     "y": 52,
+     "w": 48,
+     "h": 48,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 8,
+     "y": 101,
+     "w": 42,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/tuer-wooden/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 58,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 58,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 65,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 79,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 58,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/tuer-wooden/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 78,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/tuer-wooden/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 159,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/tuer-wooden/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 199,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/tuer-wooden/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 251,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 247,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 294,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 246,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 312,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/tuer-wooden/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 97,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/tuer-wooden/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 135,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/tuer-wooden/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 151,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/tuer-wooden/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 202,
+     "y": 83,
+     "w": 34,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/tuer-wooden/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 201,
+     "y": 38,
+     "w": 40,
+     "h": 47,
+     "ebene": "wand",
+     "datei": "teile/tuer-wooden/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 256,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/tuer-wooden/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 306,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/tuer-wooden/regal_zwei.png"
+    }
+   ]
+  },
+  "tuer-sage": {
+   "titel": "Landhaus 1D, Haustür aus dem Tür-Slot: Grüne Landhaustür",
+   "breite": 342,
+   "diele_breite": 88,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 96,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 4,
+     "y": 52,
+     "w": 48,
+     "h": 48,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 8,
+     "y": 101,
+     "w": 42,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/tuer-sage/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 58,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 58,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 65,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 79,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 58,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/tuer-sage/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 78,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/tuer-sage/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 159,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/tuer-sage/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 199,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/tuer-sage/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 251,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 247,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 294,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 246,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 312,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/tuer-sage/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 97,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/tuer-sage/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 135,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/tuer-sage/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 151,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/tuer-sage/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 202,
+     "y": 83,
+     "w": 34,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/tuer-sage/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 201,
+     "y": 38,
+     "w": 40,
+     "h": 47,
+     "ebene": "wand",
+     "datei": "teile/tuer-sage/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 256,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/tuer-sage/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 306,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/tuer-sage/regal_zwei.png"
+    }
+   ]
+  },
+  "tuer-arch": {
+   "titel": "Landhaus 1D, Haustür aus dem Tür-Slot: Bogentür",
+   "breite": 342,
+   "diele_breite": 88,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 96,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 4,
+     "y": 52,
+     "w": 48,
+     "h": 48,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 8,
+     "y": 101,
+     "w": 42,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/tuer-arch/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 58,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 58,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 65,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 79,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 58,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/tuer-arch/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 78,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/tuer-arch/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 159,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/tuer-arch/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 199,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/tuer-arch/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 251,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 247,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 294,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 246,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 312,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/tuer-arch/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 97,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/tuer-arch/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 135,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/tuer-arch/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 151,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/tuer-arch/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 202,
+     "y": 83,
+     "w": 34,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/tuer-arch/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 201,
+     "y": 38,
+     "w": 40,
+     "h": 47,
+     "ebene": "wand",
+     "datei": "teile/tuer-arch/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 256,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/tuer-arch/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 306,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/tuer-arch/regal_zwei.png"
+    }
+   ]
+  },
+  "tuer-french": {
+   "titel": "Landhaus 1D, Haustür aus dem Tür-Slot: Blaue Sprossentür",
+   "breite": 342,
+   "diele_breite": 88,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 96,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 4,
+     "y": 52,
+     "w": 48,
+     "h": 48,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 8,
+     "y": 101,
+     "w": 42,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/tuer-french/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 58,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 58,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 65,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 79,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 58,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/tuer-french/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 78,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/tuer-french/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 159,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/tuer-french/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 199,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/tuer-french/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 251,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 247,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 294,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 246,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 312,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/tuer-french/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 97,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/tuer-french/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 135,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/tuer-french/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 151,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/tuer-french/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 202,
+     "y": 83,
+     "w": 34,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/tuer-french/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 201,
+     "y": 38,
+     "w": 40,
+     "h": 47,
+     "ebene": "wand",
+     "datei": "teile/tuer-french/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 256,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/tuer-french/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 306,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/tuer-french/regal_zwei.png"
+    }
+   ]
+  },
+  "tuer-barn": {
+   "titel": "Landhaus 1D, Haustür aus dem Tür-Slot: Rote Scheunentür",
+   "breite": 342,
+   "diele_breite": 88,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 96,
+   "altes_zimmer_bis": 246,
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 4,
+     "y": 52,
+     "w": 48,
+     "h": 48,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 8,
+     "y": 101,
+     "w": 42,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/tuer-barn/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 58,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 58,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 65,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 79,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 58,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/tuer-barn/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 78,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/tuer-barn/teppich.png"
+    },
+    {
+     "name": "uhr",
+     "x": 159,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/tuer-barn/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 199,
+     "y": 10,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/tuer-barn/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 251,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 247,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 294,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 246,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 312,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/tuer-barn/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 97,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/tuer-barn/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 135,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/tuer-barn/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 151,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/tuer-barn/sessel.png"
+    },
+    {
+     "name": "grammophon_moebel",
+     "x": 202,
+     "y": 83,
+     "w": 34,
+     "h": 24,
+     "ebene": "boden",
+     "unten": 106,
+     "schatten": true,
+     "datei": "teile/tuer-barn/grammophon_moebel.png"
+    },
+    {
+     "name": "grammophon",
+     "x": 201,
+     "y": 38,
+     "w": 40,
+     "h": 47,
+     "ebene": "wand",
+     "datei": "teile/tuer-barn/grammophon.png"
+    },
+    {
+     "name": "geranie",
+     "x": 256,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/tuer-barn/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 306,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/tuer-barn/regal_zwei.png"
+    }
+   ]
+  },
   "grammophon4-messing": {
    "titel": "Landhaus 1D mit Grammophon (Runde 7): Messing",
    "breite": 330,
