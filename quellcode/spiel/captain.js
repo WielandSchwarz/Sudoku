@@ -1100,26 +1100,30 @@
     var q2 = cpWP(best2), rr = cpRel(cp.px, cp.py, cp.h, q2[0], q2[1]); cpGlass(true, Math.atan2(rr[1], rr[0]));   // tapping a "?" puts the glasses up, pointed at it
   });
   // ---- the panel: the leg, the timetable strip, what is going on, the telegraph buttons, the glasses, "Los!" ----
+  // ---- the panel, laid out like the stoker's: the timetable strip, one message box with today's orders, and "Los!" ----
+  var cpGlBtn = document.createElement("button"); cpGlBtn.type = "button"; cpGlBtn.className = "cap-glbtn"; cpGlBtn.setAttribute("aria-label", "Fernglas"); cpEl.appendChild(cpGlBtn);
+  (function () { var c = document.createElement("canvas"); c.width = 16; c.height = 11; var g = c.getContext("2d"), R = function (x, y, w, h, k) { g.fillStyle = k; g.fillRect(x, y, w, h); };
+    [1, 9].forEach(function (x) { R(x, 2, 6, 8, "#2a1a10"); R(x + 1, 3, 4, 6, "#4a3a3a"); R(x + 1, 3, 2, 5, "#6a5a5a"); R(x, 9, 6, 2, "#2a1a10"); R(x + 1, 9, 4, 1, "#a8c8e0"); R(x + 1, 0, 4, 3, "#2a1a10"); R(x + 2, 1, 2, 1, "#c8a040"); });
+    R(7, 4, 2, 3, "#2a1a10"); R(7, 5, 2, 1, "#c8a040"); cpGlBtn.style.backgroundImage = "url(" + c.toDataURL() + ")"; })();
+  cpGlBtn.addEventListener("click", function (e) { e.stopPropagation(); if (!cp || cp.anim || cp.intro || cp.done) return; cpGlass(!cp.glass, 0); });
   function cpPanelDraw() {
     if (!cp) return; var L = cpLeg(), busy = !!cp.anim, n = cp.route.length, a = Math.max(0, Math.min(n - 7, cp.leg - 2)), strip = "";
-    for (var i = a; i < a + 7 && i < n; i++) { var Li = cp.route[i], st = i < cp.leg ? (cp.res[i] ? " ok" : " bad") : i === cp.leg ? " cur" : "", ic = i === cp.leg && cp.ev ? "sturm" : DZ_RI[Li.s];
-      strip += '<b class="dz-t o-cap' + st + '"><img src="' + DZ["ri_" + ic] + '" alt="">' + (Li.wh ? '<img class="dz-wh" src="' + DZ.ri_wh + '" alt="">' : "") + '</b>'; }
-    var tx = cp.ev ? "Funkspruch: Ein Sturm zieht auf! Bei dem Seegang lieber langsamer." : (CP_TX[L.k] || L.i) + cp.extra;
-    var h = '<div class="cap-top"><b>' + (cp.ev ? "Sturm!" : L.n) + '</b><span>Etappe ' + (cp.leg + 1) + '/' + n + '</span></div><div class="dz-plan cap-plan">' + strip + '</div>';
-    h += '<p class="cap-msg">' + (cp.pre ? '<span class="dz-d">' + cp.pre + '</span> ' : "") + tx + '</p>';
-    if (!busy && !cp.intro && !cp.done) { var need = cpNeed(), oks = [-2, -1, 0, 1, 2].filter(function (r) { return !cpSim(r, need); }), rudTxt = oks.indexOf(0) >= 0 ? "↑ Kurs halten" : oks.length && oks.every(function (r) { return r < 0; }) ? "← nach links" : oks.length && oks.every(function (r) { return r > 0; }) ? "→ nach rechts" : "↔ ausweichen";
+    for (var i = a; i < a + 7 && i < n; i++) { var Li = cp.route[i], evi = cp.info[i] && cp.info[i].ev, o = evi ? "halb" : Li.o, st = i < cp.leg ? (cp.res[i] ? " ok" : " bad") : i === cp.leg ? " cur" : "", ic = evi ? "sturm" : DZ_RI[Li.s];
+      strip += '<b class="dz-t o-' + o + st + (evi ? " ev" : "") + '"><img src="' + DZ["ri_" + ic] + '" alt="">' + (Li.wh ? '<img class="dz-wh" src="' + DZ.ri_wh + '" alt="">' : "") + '<i>' + DZ_ORD[o].n.replace(" Fahrt", "") + '</i></b>'; }
+    var tx = cp.ev ? '<span class="dz-ev">Funkspruch: Ein Sturm zieht auf! Bei dem Seegang lieber langsamer.</span>' : (CP_TX[L.k] || L.i) + cp.extra, ord = "";
+    if (!busy && !cp.intro && !cp.done) { var need = cpNeed(), oks = [-2, -1, 0, 1, 2].filter(function (r) { return !cpSim(r, need); }), rudTxt = oks.indexOf(0) >= 0 ? "↑ geradeaus" : oks.length && oks.every(function (r) { return r < 0; }) ? "← links" : oks.length && oks.every(function (r) { return r > 0; }) ? "→ rechts" : "↔ ausweichen";
       var okSp = cp.lvl === need, okR = !cpSim(cp.rud, cp.lvl), okW = !L.wh || cp.wh;
-      h += '<div class="cap-order"><span class="ch l' + need + (okSp ? " ok" : "") + '">' + ["STOPP", "HALBE", "VOLLE"][need] + '</span><span class="ch rd' + (okR ? " ok" : "") + '">' + rudTxt + '</span>' + (L.wh ? '<span class="ch wh' + (okW ? " ok" : "") + '">Pfeife</span>' : "") + '</div>'; }
-    h += '<div class="cap-row2"><div class="cap-sp">' + ["Stopp", "Halbe", "Volle"].map(function (nm, l) { return '<button type="button" data-l="' + l + '" class="l' + l + (cp.lvl === l ? " on" : "") + '"' + (busy ? " disabled" : "") + '>' + nm + '</button>'; }).join("") + '</div>' +
-      '<button type="button" class="cap-glb"' + (busy ? " disabled" : "") + '>Fernglas</button><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
-    if (cp.glass) h = h.replace(/<div class="cap-row2">[\s\S]*$/, '<div class="cap-row2 cap-glrow"><span>nah</span><input type="range" class="cap-foc" min="3" max="70" step="0.5" value="' + cp.glass.foc + '" aria-label="Schärfe"><span>fern</span><button type="button" class="cap-glx">Absetzen</button></div>');
-    cpPanel.innerHTML = h;
+      ord = '<span class="cap-order"><button type="button" data-l="' + need + '" class="ch l' + need + (okSp ? " ok" : "") + '">' + ["Stopp", "Halbe", "Volle"][need] + '</button><span class="ch rd' + (okR ? " ok" : "") + '">' + rudTxt + '</span>' + (L.wh ? '<button type="button" class="ch wh' + (okW ? " ok" : "") + '">Pfeife</button>' : "") + '</span>'; }
+    var h = '<div class="dz-plan">' + strip + '</div>';
+    if (cp.glass) h += '<div class="dz-row"><div class="dz-msg cap-glrow"><span>nah</span><input type="range" class="cap-foc" min="3" max="70" step="0.5" value="' + cp.glass.foc + '" aria-label="Schärfe"><span>fern</span></div><button type="button" class="dz-go cap-glx">Zurück</button></div>';
+    else h += '<div class="dz-row"><div class="dz-msg cap-msg2">' + (cp.pre ? '<span class="dz-d">' + cp.pre + '</span> ' : "") + tx + ord + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
+    cpPanel.innerHTML = h; cpGlBtn.hidden = !!(busy || cp.intro || cp.done); cpGlBtn.classList.toggle("on", !!cp.glass);
   }
   cpPanel.addEventListener("input", function (e) { if (e.target.classList.contains("cap-foc") && cp && cp.glass) cp.glass.foc = +e.target.value; });
   cpPanel.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || !cp || cp.anim || cp.intro || cp.done) return; e.stopPropagation();
     if (b.dataset.l != null) { cpSetLvl(+b.dataset.l); return; }
-    if (b.classList.contains("cap-glb")) { cpGlass(true, 0); return; }
+    if (b.classList.contains("wh")) { cp.wh = !cp.wh; if (cp.wh) dzWhistle(.8); cpPanelDraw(); cpRedraw(); return; }
     if (b.classList.contains("cap-glx")) { cpGlass(false); return; }
     if (b.classList.contains("cap-go")) cpGo();
   });

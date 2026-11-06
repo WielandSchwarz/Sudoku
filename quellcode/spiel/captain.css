@@ -14,7 +14,7 @@
 .cap-side { display: inline-flex; flex-direction: column; gap: 6px; width: 40%; margin-left: 2%; vertical-align: top; }
 .cap-sp { display: flex; gap: 4px; }
 .cap-gl { margin: 2px 0; font-weight: 800; font-size: .8rem; text-align: center; letter-spacing: 1px; }
-.cap-go { width: 100%; }
+.cap-go { width: auto; }
 .cap-roles { display: flex; gap: 8px; margin-top: 8px; }
 .cap-roles button { flex: 1; border: 0; font: inherit; background: #fff1d4; color: #3a2414; padding: 8px 6px 10px; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #e0c89c; cursor: pointer; }
 .cap-roles b { display: block; font-size: .95rem; } .cap-roles small { display: block; font-size: .7rem; line-height: 1.25; margin-top: 3px; }
@@ -42,3 +42,17 @@
 .cap-order .ch.l0 { background: #f6c0b8; } .cap-order .ch.l1 { background: #f8e0a0; } .cap-order .ch.l2 { background: #c8e8b8; }
 .cap-order .ch.ok { box-shadow: inset 0 0 0 2px #2e6a26, inset 0 -3px 0 2px #4a9a3a; }
 .cap-order .ch.ok::after { content: " ✓"; color: #2e6a26; }
+/* panel v2: like the stoker's */
+.cap-panel .dz-plan { margin-top: 2px; }
+.cap-msg2 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.cap-msg2 .cap-order { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin: 0; }
+.cap-msg2 .ch { font: inherit; font-weight: 900; font-size: .74rem; padding: 2px 7px 3px; border: 0; color: #3a2414; background: #fff8ec; box-shadow: inset 0 0 0 2px #3a2414; clip-path: var(--px-notch); cursor: pointer; }
+.cap-msg2 .ch.l0 { background: #ff9a8a; } .cap-msg2 .ch.l1 { background: #ffe08a; } .cap-msg2 .ch.l2 { background: #a8e08a; }
+.cap-msg2 .ch.rd { cursor: default; }
+.cap-msg2 .ch.ok { box-shadow: inset 0 0 0 2px #2a6a1e, inset 0 -3px 0 2px #4a9a3a; }
+.cap-msg2 .ch.ok::after { content: " ✔"; color: #2a6a1e; }
+.cap-glrow { display: flex; align-items: center; gap: 6px; } .cap-glrow span { font-size: .72rem; color: #8a5a2a; }
+.cap-glbtn { position: absolute; top: 3%; right: 2%; width: 10%; aspect-ratio: 1; border: 0; padding: 0; cursor: pointer; background: #fff8ec center / 70% no-repeat; image-rendering: pixelated; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -3px 0 2px #e0d0b4; clip-path: var(--px-notch); z-index: 3; }
+.cap-glbtn.on { background-color: #ffe08a; }
+.cap-glbtn[hidden] { display: none; }
+.cap-panel .dz-row .dz-msg { font-size: .8rem; }
