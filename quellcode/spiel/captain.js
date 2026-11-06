@@ -48,7 +48,25 @@
   function cpHash(a, b) { var h = Math.imul(a | 0, 374761393) ^ Math.imul(b | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
   // the curve of one leg: start at 0,0 heading north, the heading turns evenly with the distance sailed
   function cpPath(rud, d) { var w = CP_K * rud; if (!w) return [0, d, 0]; return [(1 - Math.cos(w * d)) / w, Math.sin(w * d) / w, w * d]; }
-  function cpDistU(lvl, S, u) { return lvl ? S * u : S * (1 - (1 - u) * (1 - u)); }
+  // the ship gathers way gently from the speed it had, and slows gently to a stop
+  function cpV0(lvl) { return (cp && cp.vps || 0) * (lvl ? 5.2 : 3.8); }
+  function cpV1(lvl, S) { var v0 = cpV0(lvl); return (S - v0 * .2) / .8; }
+  function cpDistU(lvl, S, u) { if (!lvl) return S * (1 - (1 - u) * (1 - u)); var v0 = cpV0(lvl), v1 = cpV1(lvl, S), ua = .4;
+    if (u < ua) { var q = u / ua; return v0 * u + (v1 - v0) * ua * (q * q * q - q * q * q * q / 2); } return v0 * ua + (v1 - v0) * ua * .5 + v1 * (u - ua); }
+  // the engines below, heard through the deck: the same beat as in the stoker's room, only muffled
+  var cpMuf = null;
+  function cpMufN() { var A = dzAC(); if (!cpMuf || cpMuf.context !== A) { var lp = A.createBiquadFilter(), g = A.createGain(); lp.type = "lowpass"; lp.frequency.value = 600; lp.Q.value = .7; g.gain.value = .6; lp.connect(g); g.connect(A.destination); cpMuf = lp; } return cpMuf; }
+  function cpTone(f, dur, g, type, at, f2) { try { var A = dzAC(), t0 = A.currentTime + .02 + (at || 0), o = A.createOscillator(), gn = A.createGain(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+      gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(.001, t0 + dur); o.connect(gn); gn.connect(cpMufN()); o.start(t0); o.stop(t0 + dur + .02); } catch (e) { } }
+  function cpNoise(dur, f, q, g, att, rel, at) { try { var A = dzAC(), t0 = A.currentTime + .02 + (at || 0), n = A.createBufferSource(), buf = A.createBuffer(1, Math.max(1, A.sampleRate * dur), A.sampleRate), d = buf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      var bp = A.createBiquadFilter(), gn = A.createGain(); bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = q; n.buffer = buf; gn.gain.setValueAtTime(0, t0); gn.gain.linearRampToValueAtTime(g, t0 + (att || .02)); gn.gain.setValueAtTime(g, t0 + Math.max(att || .02, dur - (rel || .1))); gn.gain.linearRampToValueAtTime(0, t0 + dur);
+      n.connect(bp); bp.connect(gn); gn.connect(cpMufN()); n.start(t0); n.stop(t0 + dur + .05); } catch (e) { } }
+  function cpEngine(lvl, dur, at, from) {
+    if (!lvl) { cpNoise(1.4, 700, .7, .14, .02, .9, at); cpTone(70, 1.3, .2, "triangle", at, 40); cpNoise(2.4, 2800, .6, .22, .2, 1.0, (at || 0) + .5); cpNoise(2.4, 5200, .9, .11, .2, 1.0, (at || 0) + .5); return; }   // winding down, then the boilers blow off steam
+    var st = lvl === 2 ? .23 : .42, s0 = from === 0 ? .8 : from === 1 ? .42 : from === 2 ? .23 : st;
+    for (var k = 0, tt = 0; tt < dur; k++) { var ramp = Math.max(0, 1 - tt / (dur * .4)), step = st + (s0 - st) * ramp; cpTone(58, .16, .3, "triangle", (at || 0) + tt, 44); cpNoise(.07, k % 2 ? 1300 : 1000, 2, .1, .005, .05, (at || 0) + tt + .04); tt += step; }
+    if (lvl === 2) cpTone(420, dur, .02, "sawtooth", at, 460);
+  }
   function cpLeg() { return cp.route[cp.leg]; }
   function cpNeed() { return cp.ev ? 1 : DZ_ORD[cpLeg().o].l; }
   function cpSky(i) { if (i == null) i = cp.leg; i = Math.min(i, cp.route.length - 1); var L = cp.route[i], k = L.s, ev = cp.info[i] && cp.info[i].ev; if (cp.arrNight && (k === "feuerschiff" || k === "quar" || k === "liberty" || k === "ny")) return "night";
@@ -1202,7 +1220,7 @@
     if (cpLeg().k === "wale" && lvl === 2) cp.O.forEach(function (o) { if (o.leg === cp.leg && o.ani) o.scared = performance.now() + 900; });
     if (cp.leg + 1 < cp.route.length) { cp.rel = cp.rel || []; cp.rel[cp.leg + 1] = halt ? cpPath(cp.rud, Math.max(0, cpDistU(lvl, S, hit.u) - .5)) : cpPath(safe, S); cpReanchor(cp.leg + 1); if (!cp.info[cp.leg + 1]) cpBuild(cp.leg + 1); }
     if (cp.wh) { dzWhistle(cpLeg().k === "abfahrt" ? 2.2 : 1.4); }
-    dzBell(lvl === 0 ? 1 : lvl === 1 ? 2 : 3); cpPanelDraw(); cpRaf = requestAnimationFrame(cpDraw);
+    dzBell(lvl === 0 ? 1 : lvl === 1 ? 2 : 3); cpEngine(lvl, cp.anim.dur / 1000, (cp.anim.pre ? 2.8 : 0) + .5, cp.lastLvl == null ? 0 : cp.vps > 0 ? cp.lastLvl : 0); cpPanelDraw(); cpRaf = requestAnimationFrame(cpDraw);
   }
   function cpStep(t) {
     var A = cp.anim; if (!A.t0) A.t0 = t; if (cp.shake > 0) cp.shake -= .016;
@@ -1242,6 +1260,7 @@
     else if (A.lvl < need) why = need === 2 ? "Zu langsam auf freier See, wir verlieren Zeit." : "Gestoppt? Hier sollten wir langsam weiterfahren.";
     else if (L.wh && !cp.wh) why = "Die Pfeife fehlte.";
     cp.O.forEach(function (o) { if (o.leg === cp.leg) o.dEnd = A.S; });
+    cp.vps = A.halt ? 0 : A.lvl ? cpV1(A.lvl, A.S) / (A.dur / 1000) : 0; cp.lastLvl = A.lvl;
     cp.res[cp.leg] = !why; cp.pre = why ? "✘ " + why : (L.d ? "✔ " + L.d : "✔");
     cp.anim = null; cp.leg++;
     if (cp.leg >= cp.route.length) { cp.leg = cp.route.length - 1; return cpEnd(); }
