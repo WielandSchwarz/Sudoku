@@ -317,11 +317,39 @@ def v1d(gram='messing'):
     return v
 
 
+# ---------------------------------------------------------------- round 5: completely new gramophones (side view)
+import grammophon2 as G2
+
+
+def v1e(key):
+    g, moebel, name = G2.gram(key)
+    v = Land('grammophon2-' + key, 'Landhaus 1D mit neuem Grammophon: ' + name)
+    hall(v)
+    S = v.R.S
+    v.old('teppich', x=62)
+    v.old('uhr', x=63)
+    v.old('pinnwand', x=103, y=10)
+    v.window('fenster', 180, 26, 46, 42)
+    v.old('schiffsbild', x=216, y=24)
+    v.old('regal')
+    v.old('lampe', x=39)
+    v.old('sessel', x=55)
+    mx = v.R.o(107)
+    top = v.stand('grammophon_moebel', moebel, mx, 106)
+    v.on_top('grammophon', top, g, mx + (moebel.w - g.w) // 2 + 1)
+    v.old('geranie', x=160)
+    r2 = regal2()
+    v.R.L.paste(r2, v.R.o(210), 54)
+    v.items.append(dict(name='regal_zwei', x=v.R.o(210), y=54, w=r2.w, h=r2.h, ebene='boden', img=r2))
+    v.notes['hamster'] = (S + 140, 124)
+    return v
+
+
 if __name__ == '__main__':
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else 'out2'
     lay = {}
-    for f in (v1a, v1b, v1c, v1d, lambda: v1d('holz'), lambda: v1d('bluete'), lambda: v1d('stand')):
+    for f in (v1a, v1b, v1c, v1d, lambda: v1e('kupfer'), lambda: v1e('rosen'), lambda: v1e('walnuss'), lambda: v1e('sterne')):
         v = f(); lay[v.key] = v.export(out); print(v.key, v.R.W, len(v.items))
     json.dump(dict(einheit='1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100',
                    reihenfolge='Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene "alt" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position',

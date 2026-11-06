@@ -2,12 +2,39 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Entwurf ist **1D** (Runde 4). Offen sind noch die Wahl des Grammophons und die Auswahl der neuen Sessel. Die Freigabe zum Einbau steht noch aus.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Raum-Entwurf ist **1D** (Runde 4). Die 10 neuen Sessel sind freigegeben und ersetzen die bisherigen (Runde 5). Das Grammophon ist noch offen, Wieland wählt aus den neuen Entwürfen in Runde 5. Der Raum selbst ist noch nicht zum Einbau freigegeben.
+
+## Runde 5: neue Sessel freigegeben, ganz neue Grammophone
+
+### Sessel: zum Einbau freigegeben
+- Wieland hat alle 10 neuen Sessel freigegeben. Sie **ersetzen die bisherigen 10 Sessel vollständig**.
+- `sessel/chairs_neu.json` hat dasselbe Format wie `mock2/chairs_new.json`: je ID `id`, `name`, `w`, `h`, `seat`, `svg` mit SVG-Pfaden 1:1, pixelgleich zu den PNGs geprüft. Die neuen Sessel übernehmen die IDs der alten, damit gespeicherte Einrichtungen gültig bleiben:
+  - `wing_red`: Ohrensessel mit Strickdecke
+  - `wing_check`: Karierter Großvatersessel
+  - `velvet`: Muschelsessel
+  - `club`: Chesterfield
+  - `beanbag`: Teddy-Sessel (behält die `squish`-Animation)
+  - `rocking`: Schaukelstuhl mit Patchwork
+  - `egg`: Gelber Rundsessel
+  - `strandkorb`: Korbsessel mit Schaffell
+  - `peacock`: Blümchen-Ohrensessel
+  - `sofa`: Cord-Kuschelsessel
+- Hinweis für den Einbau: `build.py` überschreibt heute `chair[0]` (wing_red) mit `interior2.json` → `chair_wing_red` und mischt `chairs_new.json` ein (`club`, `egg`). Beide Überschreibungen müssen durch `chairs_neu.json` ersetzt werden.
+- Umwandeln aus den PNGs: `python3 werkzeug/sessel_svg.py sessel`.
+
+### Grammophone: neue Entwürfe zur Auswahl
+Die bisherigen Entwürfe zeigten den Trichter frontal. Die neuen sind in der klassischen Seitenansicht gezeichnet: Ein Schwanenhals-Trichter steigt hinten aus dem Kasten und öffnet sich zum Sessel hin. Die Schalldose liegt auf der Platte, rechts sitzt die Kurbel. Jedes Grammophon hat ein eigenes Möbel darunter. Übersicht: `vorschau/grammophon2_optionen_x4.png`, ganze Räume in `vorschau/grammophon2-*.png`, Teile in `teile/grammophon2-*` (`grammophon` und `grammophon_moebel`).
+1. **Kupfer:** Kupfertrichter mit Messingrand, Eichenkasten, runder Spitzentisch mit Platten auf der Ablage.
+2. **Rosen-Emaille:** cremefarbener Trichter mit aufgemalten Röschen und Goldrand, mintgrüner Kasten, weißes Kommödchen mit geschwungenen Beinen.
+3. **Walnuss:** Holztrichter mit Dauben und Messingrand, dunkler Kasten, zwei gestapelte Plattenkisten.
+4. **Nachtblau:** blauer Trichter mit Goldsternen und leicht gewelltem Goldrand, schwarzer Kasten, Walnusstruhe mit zwei Schubladen.
+
+In diesen Ansichten hängt die Pinnwand bei alt y=10 (2 px höher als in 1D), damit zwischen Pinnwand und Trichter Luft bleibt. Das Möbel steht bei alt x=107 mit Unterkante y=106. Gezeichnet wurde alles mit `werkzeug/grammophon2.py`.
 
 ## Runde 4: 1D, Pinnwand über dem Grammophon, Grammophon-Entwürfe, 10 neue Sessel
 - **1D** (`vorschau/variante-1d*`) unterscheidet sich von 1C so: Die Pinnwand (`pcBoard`) hängt über dem Grammophon (alt x=103, y=12), das Wandbrett ist entfernt. Über dem ersten Regal ist die Wand jetzt frei. Das Grammophon steht 4 px weiter vorn (Unterkante y=106 statt 102), also etwas von der Wand weg. Das Schiffsbild bleibt über dem zweiten Regal.
 - Das Schiffsmodell (`pcModel`) stand bisher auf dem Wandbrett und braucht einen neuen Platz. Den legt Wieland noch fest.
-- **Grammophon-Entwürfe** (`vorschau/grammophon_optionen_x4.png`, ganze Räume in `vorschau/grammophon-*.png`, Teile in `teile/grammophon-*`): A Messingtrichter (bisher), B Holztrichter, C grüner Blütentrichter mit Goldrand, D Standgrammophon mit offenem Deckel, Stoffbespannung und Plattenfach. Wieland wählt noch.
+- **Grammophon-Entwürfe A bis D:** von Wieland verworfen, Dateien entfernt. Neue Entwürfe siehe Runde 5.
 - **10 neue Sessel** (`sessel/`, Übersicht `sessel/uebersicht_x4.png`): gleiches Format wie die Einträge in `furn2.json` → `chair` (48×42, 1:1). `sessel.json` enthält je Sessel `name`, `beschreibung` und `seat` (y der Sitzfläche für `seatPos`). Sie sind als PNG gespeichert. Für `furn2.json` müssen sie in das dortige SVG-Pfadformat umgewandelt werden (1 Rechteck je Pixelzeile und Farbe). Gezeichnet wurden sie mit `werkzeug/sessel.py`.
 
 ## Runde 3: 1C, gemütlicher angeordnet
