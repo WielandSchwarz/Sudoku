@@ -521,8 +521,8 @@
     var im = kpHI[key]; if (im) { var lean = home ? Math.round(cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0, x = Math.round(kpHm.x - im.width / 2) + lean, y = 140 - im.height - hop - bob;
       // arms only when he works something: both hands on the rim while the wheel turns, one hand out to the lever or the cord
       var hi = home ? 0 : 6, sL = [x + 9, y + 29 - hi], sR = [x + 39, y + 29 - hi], arms = [];
-      if (home && (cp.wheelA != null || t - (kpHm.turnT || -9999) < 700)) { var a = cp.wheelA != null ? cp.wheelA : cp.rud * .45, rr = 25;
-        arms.push([sL, [CP_WHC[0] + rr * Math.cos(Math.PI - .5 - a), CP_WHC[1] - rr * Math.sin(Math.PI - .5 - a)]], [sR, [CP_WHC[0] + rr * Math.cos(.5 - a), CP_WHC[1] - rr * Math.sin(.5 - a)]]); }   // the hands turn with the rim
+      if (home && (cp.wheelA != null || t - (kpHm.turnT || -9999) < 700)) { var a = cp.wheelA != null ? cp.wheelA : cp.rud * .45, k = Math.max(-3, Math.min(3, Math.round(a * 5))), wg = Math.floor(t / 160) % 2;   // both paws on the rim beside him, a little up and down with the turn, a tiny wiggle
+        arms.push([sL, [sL[0] - 9, sL[1] - 3 - k + wg]], [sR, [sR[0] + 9, sR[1] - 3 + k + wg]]); }
       if (!walk && kpHm.arr && kpHm.act === "tel") { var ta = CP_TEL[cp.lvl] * Math.PI / 180; arms.push([sL, [CP_TELC[0] + 22 * Math.cos(ta), CP_TELC[1] + 22 * Math.sin(ta) + (hop ? 1 : 0)]]); }   // to the lever's knob
       if (!walk && kpHm.arr && kpHm.act === "wh") arms.push([sR, [168, 98 + (hop ? 3 : 0)]]);
       if (arms.length) kpArms(arms); cpc.drawImage(im, x, y); }   // the arms first, the body in front of them
