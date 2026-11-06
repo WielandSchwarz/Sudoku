@@ -482,30 +482,35 @@
     kpRadioShow("FLASCHENPOST", L[0], L[1], '<div class="kp-r-g">' + gift + '</div>', "kp-r-bottle"); kp.radioK = "bottle"; KP_S.clink(); if (n10 === 0) KP_S.cheer(true);
   }
 
-  // ---- the captain himself: our hamster seen from behind at the wheel, with a captain's cap; he walks over to the telegraph and the whistle ----
-  var kpHm = { x: 90, tx: 90, act: "home", arr: 0, lt: 0 };
-  function kpHamTo(where) { kpHm.tx = where === "tel" ? 64 : where === "wh" ? 157 : 90; kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
+  // ---- the captain himself: our own hamster (the game's sprites, one art pixel = one pixel) with a captain's cap;
+  //      seen from behind at the wheel, walking on two legs to the telegraph and to the whistle ----
+  var kpHm = { x: 90, tx: 90, act: "home", arr: 0, lt: 0, dir: 1 }, kpHI = null;
+  function kpHamTo(where) { kpHm.tx = where === "tel" ? 70 : where === "wh" ? 146 : 90; kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
   function kpHamBusy() { return kpHm.x !== 90 || kpHm.tx !== 90 || kpHm.arr; }
+  function kpCap(g, side) {   // the cap drawn on top of a sprite canvas (the sprite sits 3 rows down)
+    var O = "#2a1a10", W = "#f6f2ea", L = "#ffffff", Sh = "#d6d0c4", B = "#1e1a24", Bh = "#3e3848", Gd = "#e8c040", P = function (x, y, w, c) { g.fillStyle = c; g.fillRect(x, y + 3, w, 1); };
+    if (!side) { var rows = [[18, 29], [16, 31], [15, 32], [14, 33], [14, 33], [14, 33], [14, 33]];
+      rows.forEach(function (r, k) { var y = k - 3; if (k === 0) return P(r[0], y, r[1] - r[0] + 1, O); P(r[0], y, 1, O); P(r[1], y, 1, O); P(r[0] + 1, y, r[1] - r[0] - 1, k < 3 ? L : W); P(r[1] - 4, y, 3, Sh); });
+      P(14, 4, 20, O); P(14, 5, 1, O); P(33, 5, 1, O); P(15, 5, 18, Bh); P(14, 6, 1, O); P(33, 6, 1, O); P(15, 6, 18, B); P(14, 7, 20, O); return; }
+    var sr = [[15, 24], [13, 26], [12, 27], [12, 27], [12, 27]];
+    sr.forEach(function (r, k) { var y = k - 2; if (k === 0) return P(r[0], y, r[1] - r[0] + 1, O); P(r[0], y, 1, O); P(r[1], y, 1, O); P(r[0] + 1, y, r[1] - r[0] - 1, k < 2 ? L : W); P(r[0] + 1, y, 2, Sh); });
+    P(12, 3, 16, O); P(12, 4, 1, O); P(13, 4, 14, Bh); P(12, 5, 1, O); P(13, 5, 14, B); P(24, 4, 2, Gd); P(27, 4, 1, O); P(27, 5, 1, O);
+    P(25, 6, 7, O); P(26, 7, 6, B); P(31, 6, 1, O); P(26, 8, 7, O); P(32, 7, 1, O); P(12, 6, 14, O);
+  }
+  var KP_HAMX = /*KPHAM*/;
+  function kpHamLoad() { kpHI = {}; var A0 = Object.assign({}, HAM.art, KP_HAMX.art), Z0 = Object.assign({}, HAM.size, KP_HAMX.size);
+    ["back0", "bwalk0", "bwalk1", "bwalk2", "bwalk3", "stand0", "stand1"].forEach(function (k) { var w = Z0[k][0], h = Z0[k][1], im = new Image();
+      im.onload = function () { [1, -1].forEach(function (dir) { var c = document.createElement("canvas"); c.width = w; c.height = h + 3; var g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+          var c0 = document.createElement("canvas"); c0.width = w; c0.height = h + 3; var g0 = c0.getContext("2d"); g0.drawImage(im, 0, 3); kpCap(g0, k !== "back0");
+          if (dir < 0) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(c0, 0, 0); kpHI[k + (dir < 0 ? "L" : "")] = c; }); if (kp) kpRedraw(); };
+      im.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">' + A0[k] + '</svg>'); }); }
   function kpHamDraw(t) {
-    var dt = Math.min(50, t - (kpHm.lt || t)); kpHm.lt = t; var d = kpHm.tx - kpHm.x, walk = Math.abs(d) > .5;
-    if (walk) kpHm.x += Math.sign(d) * Math.min(Math.abs(d), dt * .13);
-    else { kpHm.x = kpHm.tx; if (kpHm.act !== "home" && !kpHm.arr) kpHm.arr = t; if (kpHm.arr && t - kpHm.arr > 750) { kpHm.arr = 0; kpHm.act = "home"; kpHm.tx = 90; } }
-    var F = ["#e8a85a", "#f6c88a", "#b87a3a"], O = "#2a1a10", lean = kpHm.act === "home" && !walk ? (cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0,
-      hop = kpHm.arr && t - kpHm.arr < 380 ? Math.round(Math.sin((t - kpHm.arr) / 380 * Math.PI) * 3) : 0, bob = walk ? (Math.floor(t / 110) % 2) : 0,
-      cx = Math.round(kpHm.x + lean), yb = 133 - hop - bob, atWheel = kpHm.act === "home" && !walk, reach = kpHm.arr && kpHm.act !== "home";
-    var blob = function (x, y, rx, ry, f) { cpBlob(x, y, rx + .8, ry + .8, function () { return O; }); cpBlob(x, y, rx, ry, f); };
-    // arms: on the spokes at the wheel, up to the lever or the cord when he works them
-    if (atWheel) { blob(cx - 11, yb - 15, 2.4, 2.1, function () { return F[0]; }); blob(cx + 11, yb - 15, 2.4, 2.1, function () { return F[0]; }); }
-    if (reach) { var sd = kpHm.act === "tel" ? -1 : 1; blob(cx + sd * 10, yb - 21, 2.2, 2.6, function () { return F[0]; }); }
-    // feet peeking out below, the round back with the light flanks, a stub of a tail
-    blob(cx - 5, yb - 1, 2.6, 1.4, function () { return "#e8b0a0"; }); blob(cx + 5, yb - 1, 2.6, 1.4, function () { return "#e8b0a0"; });
-    blob(cx - 8, yb - 21, 2.2, 2.2, function (dx) { return dx < 0 ? "#d88a7a" : F[2]; }); blob(cx + 8, yb - 21, 2.2, 2.2, function (dx) { return dx > 0 ? "#d88a7a" : F[2]; });   // the ears
-    blob(cx, yb - 12, 10, 11.5, function (dx, dy) { return dy > .3 && Math.abs(dx) > .55 ? "#fff1d8" : dx > .6 || dy > .75 ? F[2] : dx < -.55 && dy < .1 ? F[1] : F[0]; });
-    mR(cpc, cx - 3, yb - 18, 1, 6, F[2]); mR(cpc, cx + 2, yb - 17, 1, 5, F[2]);   // a darker stripe down the back
-    blob(cx, yb - 3, 1.6, 1.2, function () { return F[1]; });
-    // the captain's cap from behind: white crown, black band
-    blob(cx, yb - 25, 8.5, 3.2, function (dx, dy) { return dy < -.3 ? "#ffffff" : dx > .5 ? "#d8d4cc" : "#f4f0e8"; });
-    mR(cpc, cx - 8, yb - 23, 17, 2, "#1e1a24"); mR(cpc, cx - 9, yb - 23, 1, 2, O); mR(cpc, cx + 9, yb - 23, 1, 2, O); mR(cpc, cx - 7, yb - 23, 15, 1, "#3a3444");
+    if (!kpHI) kpHamLoad(); var dt = Math.min(50, t - (kpHm.lt || t)); kpHm.lt = t; var d = kpHm.tx - kpHm.x, walk = Math.abs(d) > .5;
+    if (walk) { kpHm.x += Math.sign(d) * Math.min(Math.abs(d), dt * .09); kpHm.dir = d > 0 ? 1 : -1; }
+    else { kpHm.x = kpHm.tx; if (kpHm.act !== "home" && !kpHm.arr) kpHm.arr = t; if (kpHm.arr && t - kpHm.arr > 800) { kpHm.arr = 0; kpHm.act = "home"; kpHm.tx = 90; } }
+    var home = kpHm.act === "home" && !walk, hop = kpHm.arr && t - kpHm.arr < 400 ? Math.round(Math.sin((t - kpHm.arr) / 400 * Math.PI) * 3) : 0, key;
+    if (home) key = "back0"; else if (walk) key = "bwalk" + (Math.floor(t / 120) % 4) + (kpHm.dir < 0 ? "L" : ""); else key = (hop ? "stand1" : "stand0") + (kpHm.act === "tel" ? "L" : "");
+    var im = kpHI[key]; if (im) { var lean = home ? Math.round(cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0, x = Math.round(kpHm.x - im.width / 2) + lean, y = (home ? 140 : 137) - im.height - hop; cpc.drawImage(im, x, y); }
     if (kpHamBusy()) kpKick();
   }
   // ---- panel and cards ----
@@ -589,6 +594,6 @@
   var _kp_int = interrupt; interrupt = function () { if (kpOpen && !window.__resume) kpClose(); return _kp_int.apply(this, arguments); };
   capGame = kpGame;
   window.__cap2 = { lv: function (i) { kpStart(i); kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); }, st: function () { return kp && { li: kp.li, row: kp.row, lane: kp.lane, tr: kp.tr, t: kp.t, turns: kp.turns, par: kp.par, hits: kp.hits, inc: kp.inc, ti: kp.ti, tasks: kp.tasks.length, done: !!kp.done, anim: !!kp.anim, card: !!kp.card, got: kp.gotN, sky: cpSky(), found: cp && cp.found.slice(), seen: cp && cp.O.filter(function (o) { return o.unk && o.seen; }).length, rep: kpReport() }; },
-    solve: function () { var r = kpSolve(kpState()); return r && r.f; }, ham: function (w) { kpHamTo(w); }, set: function (o) { if (o.d != null) cp.rud = o.d; if (o.spd != null) cp.lvl = o.spd; if (o.wh != null) cp.wh = o.wh; kpPanelDraw(); kpRedraw(); }, go: function () { kpGo(); },
+    solve: function () { var r = kpSolve(kpState()); return r && r.f; }, ham: function (w) { kpHamTo(w); }, hamDbg: function () { return { keys: kpHI && Object.keys(kpHI), hm: kpHm }; }, set: function (o) { if (o.d != null) cp.rud = o.d; if (o.spd != null) cp.lvl = o.spd; if (o.wh != null) cp.wh = o.wh; kpPanelDraw(); kpRedraw(); }, go: function () { kpGo(); },
     glass: function (yaw, foc) { cpGlass(true, yaw); if (foc != null) cp.glass.foc = foc; }, seeAll: function () { cp.O.forEach(function (o) { o.seen = true; }); kpRedraw(); },
     lvls: function () { return KP_LV.length; }, layout: function () { return kp.cells.map(function (c) { return [c.row, c.lane, c.k, c.seq ? 1 : 0]; }).concat([["sky", kp.skyR], ["cur", kp.cur]]); } };
