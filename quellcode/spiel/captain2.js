@@ -174,7 +174,7 @@
     if (tr && tr.left <= 0) { lane = tr.to; tr = null; }
     if (kp.mum && spd >= 1 && row <= 5 && row + n >= 4) trig = Math.max(trig, spd);   // passing the Mümmel at speed: our suction pulls her stern out
     for (var k = 1; k <= n; k++) { var r = row + k, occ = tr ? tr.from + Math.round(Math.min(1, (tr.tot - tr.left + .5) / tr.tot) * (tr.to - tr.from)) : lane;   // while gliding across, the ship counts in the lane it is mostly in
-      kp.cells.forEach(function (c) { if (!c.live || c.row !== r || kpLaneAt(c, t) !== occ) return; if (c.k === "bottle") (spd < 2 ? picks : miss).push(c); if (c.inc && incs.indexOf(c) < 0) incs.push(c); });
+      kp.cells.forEach(function (c) { if (!c.live || c.row !== r || kpLaneAt(c, t) !== occ) return; if (c.k === "bottle") picks.push(c); if (c.inc && incs.indexOf(c) < 0) incs.push(c); });
       var h = kpHaz(r, occ, spd, trig, t); if (h) return { picks: picks, miss: miss, incs: incs, row: r - 1, lane: tr ? (occ === tr.from ? tr.to : tr.from) : lane, tr: null, hit: h, hitRow: r, k: k, trig: trig, ti: ti, drift: drift };
       if (tr) { tr.left--; if (tr.left <= 0) { lane = tr.to; tr = null; } } }
     var res = { picks: picks, miss: miss, incs: incs, row: row + n, lane: lane, tr: tr, hit: null, trig: trig, ti: ti, drift: drift }, T = kp.tasks[ti];
@@ -228,6 +228,7 @@
   }
   function kpStep(t) {
     var A = kp.anim; if (!A.t0) A.t0 = t; if (cp.shake > 0) cp.shake -= .016;
+    if (A.sink) return;
     if (A.crash) { var C = A.crash, ct = t - C.t0, v = cpSm1((ct - 900) / (C.dur - 900)); kpPose(C.rho + (C.back - C.rho) * v); if (ct >= C.dur) kpEndTurn(); return; }
     var u = Math.min(1, (t - A.t0) / A.dur), n = A.n, a = A.v0, b = A.v1, dd = a * u + (3 * n - 2 * a - b) * u * u + (a + b - 2 * n) * u * u * u, rho = A.r0 + dd; kpPose(rho);
     if (kp.mum && kp.mum.go) { var M = kp.mum, ang = [0, -.42, -.7], tgt = ang[M.go], fr = ang[M.from || 0], e = cpSm1((rho - 3.3) / 2.2); M.o.a = fr + (tgt - fr) * e; M.o.x = M.px - 7.4 * Math.sin(M.o.a); M.o.y = M.py - 7.4 * Math.cos(M.o.a); if (!M.told && e > .2) { M.told = 1; beep([[220, .05], [140, .09]]); dzBuzz([30]); kpSay("Unser Sog reißt die Mümmel los!"); } }
@@ -242,6 +243,7 @@
     kpEndTurn();
   }
   function kpCrash(t) {
+    if (kp.anim.res.hit.k === "ice") return kpSinkStart(t);
     var A = kp.anim, h = A.res.hit, k = h.k, sd = kpLaneAt(h, kp.t) * KP_LW - cp.px; kp.hits++; cp.shake = 1.1; beep([[110, .14], [80, .2], [60, .25]]); dzNoise(.6, 300, .8, .3, .01, .4); dzBuzz([80, 40, 160]);
     kpSay(KP_HITS[k] || CP_HITS[k] || "Rumms!"); KP_S.hit(k);
     var cpt = shipW(Math.max(-1.5, Math.min(1.5, sd * .4)), 2.5, 1.0);
@@ -288,7 +290,9 @@
     cp.O.forEach(function (o) { if (o.tx != null) { o.x += (o.tx - o.x) * .05; if (Math.abs(o.tx - o.x) > .05) tw = true; else { o.x = o.tx; o.tx = null; } } });
     if (kp.anim || cp.glass || tw || cp.fx.length || amt > 0 || now < (kp.busy || 0)) kpRaf = requestAnimationFrame(kpDraw);
     var roll = (Math.sin(t / 620) * 2.9 + Math.sin(t / 1300) * 1.1) * amt + Math.sin(t / 1900) * .25, heave = Math.sin(t / 480) * 1.4 * amt + Math.sin(t / 1400) * .25;
-    kpBk.style.transform = cp.glass ? "" : "translateY(" + heave.toFixed(2) + "%) rotate(" + roll.toFixed(2) + "deg) scale(1.06)";
+    var su = kp.sink ? cpSm1((now - kp.sink.t0 - 500) / 7500) : 0;
+    if (kp.sink && kp.sink.side) { kpSideDraw(now); return; }
+    kpBk.style.transform = cp.glass ? "" : "translateY(" + (heave - su * 9).toFixed(2) + "%) rotate(" + roll.toFixed(2) + "deg) scale(1.06)";
     if (cp.glass) { kpbc.clearRect(0, 0, 180, 135); cpDrawGlass(t); return; }
     try {
       var sh = cp.shake > 0 ? Math.round(Math.sin(t / 30) * 2) : 0, off = (((-cp.h * 160) % 180) + 180) % 180;
@@ -308,7 +312,9 @@
       if (amt > 0) { cpc.fillStyle = "rgba(40,50,64," + (.2 * amt).toFixed(3) + ")"; cpc.fillRect(0, 0, 180, 135); for (var rn = 0; rn < Math.round(44 * amt); rn++) { var rx = (rn * 47 + t / 4) % 180, ry = (rn * 31 + t / 2) % 130; mR(cpc, Math.round(rx), Math.round(ry), 1, 2, "#a8b8c8"); } }
       cpc.setTransform(1, 0, 0, 1, 0, 0);
       cpc = kpc; cpc.setTransform(1, 0, 0, 1, 0, 0); cpc.clearRect(0, 0, 180, 135); cpc.setTransform(1, 0, 0, 1, 0, sh);
+      if (su > 0) cpc.setTransform(1, 0, 0, 1, 0, sh + Math.round(su * 18));
       cpDeck(t); cpDeckIce(); kpRopes();
+      if (su > 0) { cpc.setTransform(1, 0, 0, 1, 0, sh); kpSinkBridge(t, su, sky); }
       if (amt > 0) { cpc.fillStyle = "rgba(40,50,64," + (.12 * amt).toFixed(3) + ")"; cpc.fillRect(0, 50, 180, 30); }
       cpBridge(t); kpLamp(t); if (!kp.card) kpHamDraw(t);
       cpc.setTransform(1, 0, 0, 1, 0, 0);
@@ -540,11 +546,77 @@
       if (arms.length) kpArms(arms); cpc.drawImage(im, x, y); }   // the arms first, the body in front of them
     if (kpHamBusy()) kpKick();
   }
+  // ---- the disaster: rammed the iceberg. The bow goes down slowly, the lifeboats row away; then from the side, the whole ship sinks ----
+  var kpCat = document.createElement("button"); kpCat.type = "button"; kpCat.className = "kp-cat"; kpCat.textContent = "Katastrophe"; kpCat.hidden = true; kpEl.appendChild(kpCat);
+  kpCat.addEventListener("click", function (e) { e.stopPropagation(); if (!kp || !kp.sink || kp.sink.side) return; kpCat.hidden = true;
+    kp.sink.side = { t0: performance.now(), bub: [] }; kpBk.style.visibility = "hidden"; kpToast.hidden = true;
+    dzTone(52, 4, .22, "sawtooth", 0, 30); dzTone(78, 3, .1, "triangle", 1.5, 40); dzNoise(9, 380, .5, .22, 1, 3); setTimeout(function () { if (kp && kp.sink) dzWhistle(1.8); }, 1200); kpKick(); });
+  function kpSinkReset() { kpCat.hidden = true; kpBk.style.visibility = ""; kpBk.style.transform = ""; }
+  function kpSinkStart(t) {
+    var A = kp.anim; A.sink = 1; kp.hits++; kp.sink = { t0: performance.now() }; cp.shake = 1.4; cp.deckIce = []; for (var di = 0; di < 12; di++) cp.deckIce.push([(Math.random() - .5) * 3, -1.2 + Math.random() * 3.2, .15 + Math.random() * .3]);
+    cpBurst(shipW(0, 2.5, 1.0), 40, ["#ffffff", "#d8ecf8", "#a8c8dc"], 3.5, 5); beep([[110, .14], [80, .2], [60, .3]]); KP_S.hit("ice"); dzBuzz([120, 60, 300]);
+    kpSay("Eisberg gerammt! Wir schlagen leck!");
+    setTimeout(function () { if (kp && kp.sink) { dzBell(6); dzTone(60, 3.5, .16, "sawtooth", 0, 38); } }, 900);
+    setTimeout(function () { if (kp && kp.sink) kpSay("Alle Hamster in die Rettungsboote!"); }, 3000);
+    setTimeout(function () { if (kp && kp.sink && !kp.sink.side) { kpCat.hidden = false; KP_S.splash(true); } }, 5200);
+    kpPanelDraw(); kpKick();
+  }
+  function kpSeaPal(sky) { return DZ_WP[sky] || DZ_WP.day; }
+  // a lifeboat seen from afar on the bridge view: a white hull and a row of little hamster heads
+  function kpBoatS(x, y, n) { x = Math.round(x); y = Math.round(y); var w = 4 + n * 3;
+    mR(cpc, x, y, w, 1, "#3a2414"); mR(cpc, x, y + 1, w, 1, "#f4f0e6"); mR(cpc, x + 1, y + 2, w - 2, 1, "#3a2414"); mR(cpc, x - 1, y, 1, 1, "#3a2414"); mR(cpc, x + w, y, 1, 1, "#3a2414");
+    for (var i = 0; i < n; i++) { var hx = x + 2 + i * 3; mR(cpc, hx - 1, y - 3, 4, 3, "#3a2414"); mR(cpc, hx, y - 2, 2, 2, "#e8a040"); } }
+  function kpSinkBridge(t, su, sky) {
+    var P = kpSeaPal(sky), top = Math.round(76 - su * 30);
+    for (var x = 0; x < 180; x++) { var yt = top + Math.round(Math.sin(x * .16 + t / 260) * 1.2 + Math.sin(x * .05 - t / 500));
+      mR(cpc, x, yt, 1, 1, (x + Math.floor(t / 90)) % 3 ? P[4] : P[3]); mR(cpc, x, yt + 1, 1, 1, P[3]); mR(cpc, x, yt + 2, 1, Math.max(0, 84 - yt), (x % 2) ? P[2] : P[1]); }
+    if (su < .95) for (var b = 0; b < 8; b++) { var bx = 70 + ((b * 37 + Math.floor(t / 60)) % 40), by = top - 1 - ((b * 13 + Math.floor(t / 40)) % 3); mR(cpc, bx, by, 1, 1, "#ffffff"); }   // the sea boils where the bow goes under
+    var e = Math.max(0, (now0() - kp.sink.t0 - 2200) / 1000);
+    var m = dzc; dzc = cpc;   // the lifeboats come out from both sides of the ship and row away, riding on the water
+    [[-1, 0, 7], [1, .8, 4], [-1, 2.2, 12]].forEach(function (q) { var u = e - q[1]; if (u <= 0) return; var dx = Math.min(80, u * 6), bob = Math.round(Math.sin(t / 380 + q[1] * 3));
+      kpBoatL(q[0] < 0 ? 48 - dx : 110 + dx, Math.min(76, top + q[2]) + bob, t, q[1]); });
+    dzc = m;
+  }
+  function now0() { return performance.now(); }
+  // the big lifeboat of the side scene: hull with a 1px outline, three hamster faces, oars in turn
+  function kpBoatL(x, y, t, ph) { x = Math.round(x); y = Math.round(y);
+    DR(x, y, 22, 1, "#3a2414"); DR(x, y + 1, 22, 1, "#8a5a32"); DR(x + 1, y + 2, 20, 1, "#f4f0e6"); DR(x + 2, y + 3, 18, 1, "#f4f0e6"); DR(x + 3, y + 4, 16, 1, "#3a2414");
+    DR(x, y + 2, 1, 1, "#3a2414"); DR(x + 1, y + 3, 1, 1, "#3a2414"); DR(x + 2, y + 4, 1, 1, "#3a2414"); DR(x + 21, y + 2, 1, 1, "#3a2414"); DR(x + 20, y + 3, 1, 1, "#3a2414"); DR(x + 19, y + 4, 1, 1, "#3a2414");
+    var row = Math.floor((t + ph * 500) / 420) % 2;
+    DR(x - 3 + row, y + 3 + row, 4, 1, "#a87448"); DR(x + 21 - row, y + 3 + row, 4, 1, "#a87448");
+    for (var i = 0; i < 3; i++) { var hx = x + 3 + i * 6, hy = y - 5 + ((i + Math.floor(t / 600)) % 3 === 0 ? -1 : 0);
+      DR(hx, hy - 1, 1, 1, "#3a2414"); DR(hx + 4, hy - 1, 1, 1, "#3a2414"); DR(hx - 1, hy, 6, 5, "#3a2414"); DR(hx, hy, 4, 5, "#e8a040"); DR(hx + 1, hy + 3, 2, 2, "#fff0dc"); DR(hx, hy + 4, 4, 1, "#fff0dc");
+      DR(hx + 1, hy + 1, 1, 1, "#3a2414"); DR(hx + 3, hy + 1, 1, 1, "#3a2414"); DR(hx + 2, hy + 3, 1, 1, "#d8463c"); } }
+  function kpSideDraw(now) {
+    var S = kp.sink.side, tt = (now - S.t0) / 1000, sky = cpSky(), sc = DZ_SKY[sky] || DZ_SKY.day, storm = sky === "storm", m = dzc; dzc = kpc;
+    kpc.setTransform(1, 0, 0, 1, 0, 0); kpc.clearRect(0, 0, 180, 135);
+    for (var y = 0; y < 82; y++) { var bnd = y < 24 ? 0 : y < 48 ? 1 : 2, seam = (y % 24) < 3 && y > 3; for (var dx0 = 0; dx0 < 180; dx0 += 2) DR(dx0 + (y % 2), y, 2, 1, seam && ((dx0 / 2 + y) % 2) ? sc[Math.max(0, bnd - 1)] : sc[bnd]); }
+    if (sky === "night") for (var st = 0; st < 60; st++) DR((st * 53 + st * st) % 180, (st * 29) % 66, 1, 1, (st + Math.floor(now / 400)) % 9 ? "#c8d0f0" : "#ffffff");
+    dzImg("sv_ice", 4, 46);
+    var im = DZI.sv_ship, SX = 34, SYY = 42, tilt = 10 + 50 * cpSm1(tt / 8), sinkC = 2 * Math.min(1, tt / 3) + 86 * cpSm1((tt - 5.5) / 8.5);
+    kpc.save(); kpc.beginPath(); kpc.rect(0, 0, 180, 73); kpc.clip();
+    if (dzOk(im, "sv_ship")) for (var c = 0; c < 140; c++) { var dy = Math.round(sinkC + tilt * (70 - c) / 140); if (SYY + dy < 72) dzc.drawImage(im, c, 0, 1, 36, SX + c, SYY + dy, 1, 36);
+      if (Math.random() < .006 && SYY + dy + 33 > 72 && SYY + dy < 72) S.bub.push({ x: SX + c, y: 73, l: .8 }); }
+    kpc.restore(); dzWater(now, tt * 4, sky, storm, sky === "night");
+    S.bub = S.bub.filter(function (b) { b.l -= .016; b.y -= .25; DR(b.x, b.y, 1, 1, "#ffffff"); if (b.l > .4) DR(b.x + 1, b.y + 1, 1, 1, "#e8f4fc"); return b.l > 0; });
+    if (tt > 13 && tt < 16) for (var w = 0; w < 8; w++) DR(70 + ((w * 23 + Math.floor(now / 70)) % 70), 73 + (w % 2), 1, 1, "#ffffff");   // the last swirl where she went down
+    [[62, -2.4, 84, 0], [120, 2, 96, 1], [90, -1.2, 110, 2]].forEach(function (q) { var x = Math.max(-30, Math.min(180, q[0] + q[1] * tt)); kpBoatL(x, q[2] + Math.round(Math.sin(now / 420 + q[3] * 2)), now, q[3]); });
+    if (storm) { dzc.globalAlpha = .55; for (var rn = 0; rn < 40; rn++) { var rx = ((rn * 23 + now / 4) % 200) - 10, ry = ((rn * 37 + now / 3) % 140) - 5; DR(rx, ry, 1, 3, "#c8d4e0"); } dzc.globalAlpha = 1; }
+    if (sky === "fog") { dzc.globalAlpha = .3; DR(0, 0, 180, 135, "#e4ecf2"); dzc.globalAlpha = 1; }
+    dzc = m;
+    if (tt > 16.5 && !kp.done) kpGameOver();
+  }
+  function kpGameOver() { kp.done = true; kp.card = true; beep([[392, .2], [330, .2], [262, .4]]);
+    kpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Game over</p><p class="fi-s">Die Pausbacke ist am Eisberg gesunken. Alle Hamster sind sicher in den Rettungsbooten.</p>' +
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b" data-a="again">Nochmal</button></div></div>';
+    kpCard.hidden = false; }
+
   // ---- panel and cards ----
   function kpSay(t) { kpToast.textContent = t; kpToast.hidden = false; kpToast.classList.remove("pop"); void kpToast.offsetWidth; kpToast.classList.add("pop"); clearTimeout(kpSay.t); kpSay.t = setTimeout(function () { kpToast.hidden = true; }, 1800); }
   function kpTipTxt(f) { var to = kpCl(kp.lane + f.d), sp = ["Stopp", "Halbe Fahrt", "Volle Fahrt"][f.spd], cd = kpCurAt(kp.row), ln = kp.tr ? "das Ruder liegen lassen" : cd && f.d === -cd && to === kp.lane ? "gegen die Strömung halten" : cd && !f.d ? "mit der Strömung treiben lassen" : to === kp.lane ? "die Spur halten" : "in die " + KP_LANEA[to + 1] + " Spur"; return sp + " und " + ln + "."; }
   function kpPanelDraw() {
     if (!kp || !cp) return; var d = kpLvl(), busy = !!kp.anim, h = "";
+    if (kp.sink) { kpPanel.innerHTML = '<div class="dz-plan kp-lvls"><b class="kp-lt cur">' + (kp.li + 1) + '</b><span class="kp-ln">' + d.name + '</span></div><div class="dz-row"><div class="dz-msg cap-msg2"><span class="dz-d">Eisberg gerammt! Das Schiff sinkt. Alle Hamster in die Rettungsboote!</span></div></div>'; kpGl.hidden = true; kpRadio.hidden = true; return; }
     h += '<div class="dz-plan kp-lvls"><b class="kp-lt cur">' + (kp.li + 1) + '</b><span class="kp-ln">' + d.name + '</span></div>';
     if (cp.glass) h += '<div class="dz-row"><div class="dz-msg">Zum Umsehen ziehen · am Ring des rechten Glases drehen, bis die beiden Hälften in der Mitte zusammenpassen</div><button type="button" class="dz-go cap-glx">Zurück</button></div>';
     else { var tr = kp.tr ? '<span class="kp-tr">Spurwechsel läuft noch ' + kp.tr.left + (kp.tr.left === 1 ? " Reihe" : " Reihen") + ', das Ruder liegt fest.</span>' : "",
@@ -615,8 +687,8 @@
   cpSky = function (i) { if (kpOpen && kp && kp.skyR && cp) return kpSkyAt(cp.d || 0); if (kpOpen && kp && kp.li != null) return KP_LV[kp.li].sky; return _kpSky0(i); };
   cpHidden = function (o, f) { if (!kpOpen) return _kpHid0(o, f); if (o.ani || o.unk) return !o.seen; if (o.k === "light" || o.seen) return false; var sk = cpSky(); return sk === "fog" ? f > 20 : sk === "storm" ? f > 30 : sk === "night" ? f > 34 : false; };
   function kpGame() { return new Promise(function (resolve) { kpOpen = true; cpc = kpc; kpEl.hidden = false; kpPanel.style.display = "block"; kpStart(0); kp.resolve = resolve; kpMenu(); kpRedraw(); }); }
-  function kpClose() { if (!kpOpen) return; var r = kp && kp.resolve; kpOpen = false; cancelAnimationFrame(kpRaf); kpRaf = 0; kpEl.hidden = true; kpCard.hidden = true; kpToast.hidden = true; kpRadio.hidden = true; kpPanel.style.display = "none"; cpc = kpC0; KP_S.ambOff(); clearInterval(kpSfxT); kpSfxT = 0; kp = null; cp = null; if (r) r(); }
-  var _kpStart0 = kpStart; kpStart = function (li) { var r = kp && kp.resolve; _kpStart0(li); kp.resolve = r; };
+  function kpClose() { if (!kpOpen) return; kpSinkReset(); var r = kp && kp.resolve; kpOpen = false; cancelAnimationFrame(kpRaf); kpRaf = 0; kpEl.hidden = true; kpCard.hidden = true; kpToast.hidden = true; kpRadio.hidden = true; kpPanel.style.display = "none"; cpc = kpC0; KP_S.ambOff(); clearInterval(kpSfxT); kpSfxT = 0; kp = null; cp = null; if (r) r(); }
+  var _kpStart0 = kpStart; kpStart = function (li) { var r = kp && kp.resolve; kpSinkReset(); _kpStart0(li); kp.resolve = r; };
   kpEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); kpClose(); });
   var _kp_int = interrupt; interrupt = function () { if (kpOpen && !window.__resume) kpClose(); return _kp_int.apply(this, arguments); };
   capGame = kpGame;

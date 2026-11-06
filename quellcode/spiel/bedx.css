@@ -3,9 +3,10 @@
 .bx-teddy svg, .bx-teddybed svg, .bx-bowl > svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
 .bx-teddybed { position: absolute; z-index: 5; pointer-events: none; }
 .bx-bowl { position: absolute; z-index: 3; border: 0; padding: 0; background: none; cursor: pointer; }
-.bx-fish { position: absolute; left: 16%; top: 55%; width: 44%; animation: bx-swim 6s steps(24) infinite; }
+.bx-fish { position: absolute; left: 13%; top: 45%; width: 37.5%; animation: bx-swim 7s steps(28) infinite; }
 .bx-fish svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
-.bx-fish.bx-up { top: 40%; }
-@keyframes bx-swim { 0% { left: 16%; transform: scaleX(-1); } 46% { left: 42%; transform: scaleX(-1); } 50% { left: 42%; transform: scaleX(1); } 96% { left: 16%; transform: scaleX(1); } 100% { left: 16%; transform: scaleX(-1); } }
+.bx-fish.bx-up { top: 34%; }
+@keyframes bx-swim { 0% { left: 13%; transform: scaleX(-1); } 46% { left: 48%; transform: scaleX(-1); } 50% { left: 48%; transform: scaleX(1); } 96% { left: 13%; transform: scaleX(1); } 100% { left: 13%; transform: scaleX(-1); } }
 .bx-flake { position: absolute; z-index: 4; width: 0.6%; aspect-ratio: 1; background: #e8c060; pointer-events: none; animation: bx-fall 1.1s steps(8) both; }
 @keyframes bx-fall { to { transform: translateY(700%); opacity: .2; } }
+.bx-bowl { overflow: visible; }

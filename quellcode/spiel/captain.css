@@ -89,3 +89,6 @@
 .kp-bot { margin-top: 6px; font-size: .72rem; }
 .kp-warn { display: block; color: #c8342a; font-weight: 800; font-size: .74rem; margin-top: 2px; }
 .kp-pov .kp-back { pointer-events: none; will-change: transform; transform-origin: 50% 40%; }
+.kp-cat { position: absolute; right: 3%; bottom: 4%; z-index: 4; padding: 2.2% 4%; border: 0; font: inherit; font-weight: 700; font-size: 15px; color: #fff; background: #e8650c; box-shadow: inset 0 0 0 2px #3a2414, inset 0 -4px 0 2px #b84c06; clip-path: var(--px-notch); cursor: pointer; animation: kpCatIn .3s steps(3) both; }
+.kp-cat[hidden] { display: none; }
+@keyframes kpCatIn { from { transform: translateY(30%); opacity: 0; } to { transform: none; opacity: 1; } }
