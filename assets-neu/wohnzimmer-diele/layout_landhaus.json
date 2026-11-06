@@ -100,7 +100,7 @@
      "name": "regal",
      "x": 85,
      "y": 54,
-     "w": 39,
+     "w": 37,
      "h": 54,
      "ebene": "alt",
      "alt_x": 1,
@@ -109,23 +109,23 @@
     },
     {
      "name": "sessel",
-     "x": 120,
-     "y": 62,
-     "w": 51,
-     "h": 51,
+     "x": 122,
+     "y": 69,
+     "w": 48,
+     "h": 44,
      "ebene": "alt",
-     "alt_x": 36,
-     "alt_y": 62,
+     "alt_x": 38,
+     "alt_y": 69,
      "datei": "teile/variante-1a/sessel.png"
     },
     {
      "name": "lampe",
-     "x": 169,
+     "x": 171,
      "y": 58,
-     "w": 17,
-     "h": 48,
+     "w": 15,
+     "h": 46,
      "ebene": "alt",
-     "alt_x": 85,
+     "alt_x": 87,
      "alt_y": 58,
      "datei": "teile/variante-1a/lampe.png"
     },
@@ -360,7 +360,7 @@
      "name": "regal",
      "x": 85,
      "y": 54,
-     "w": 39,
+     "w": 37,
      "h": 54,
      "ebene": "alt",
      "alt_x": 1,
@@ -369,12 +369,12 @@
     },
     {
      "name": "lampe",
-     "x": 169,
+     "x": 171,
      "y": 58,
-     "w": 17,
-     "h": 48,
+     "w": 15,
+     "h": 46,
      "ebene": "alt",
-     "alt_x": 85,
+     "alt_x": 87,
      "alt_y": 58,
      "datei": "teile/variante-1b/lampe.png"
     },
@@ -416,13 +416,13 @@
     },
     {
      "name": "sessel",
-     "x": 120,
-     "y": 62,
-     "w": 51,
-     "h": 51,
+     "x": 122,
+     "y": 69,
+     "w": 48,
+     "h": 44,
      "ebene": "alt",
-     "alt_x": 36,
-     "alt_y": 62,
+     "alt_x": 38,
+     "alt_y": 69,
      "datei": "teile/variante-1b/sessel.png"
     },
     {
@@ -533,6 +533,253 @@
      "unten": 103,
      "schatten": true,
      "datei": "teile/variante-1b/gummibaum.png"
+    }
+   ]
+  },
+  "variante-1c": {
+   "titel": "Landhaus gemütlich: ein Fenster rechts, Leselampe zwischen Regal und Sessel, Grammophon neben dem Sessel, zweites Bücherregal",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "fenster": "alt x=180 Mitte, oben y=26",
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-1c/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1c/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 146,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/variante-1c/teppich.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 85,
+     "y": 16,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/variante-1c/pinnwand.png"
+    },
+    {
+     "name": "uhr",
+     "x": 147,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/variante-1c/uhr.png"
+    },
+    {
+     "name": "wandbrett_alt",
+     "x": 183,
+     "y": 12,
+     "w": 48,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/wandbrett_alt.png"
+    },
+    {
+     "name": "fenster",
+     "x": 239,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 235,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 282,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 234,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 300,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/variante-1c/schiffsbild.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/variante-1c/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 123,
+     "y": 58,
+     "w": 15,
+     "h": 46,
+     "ebene": "alt",
+     "alt_x": 87,
+     "alt_y": 58,
+     "datei": "teile/variante-1c/lampe.png"
+    },
+    {
+     "name": "sessel",
+     "x": 139,
+     "y": 69,
+     "w": 48,
+     "h": 44,
+     "ebene": "alt",
+     "alt_x": 38,
+     "alt_y": 69,
+     "datei": "teile/variante-1c/sessel.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 190,
+     "y": 77,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-1c/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_messing",
+     "x": 192,
+     "y": 34,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-1c/grammophon_messing.png"
+    },
+    {
+     "name": "geranie",
+     "x": 244,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/variante-1c/geranie.png"
+    },
+    {
+     "name": "regal_zwei",
+     "x": 294,
+     "y": 54,
+     "w": 37,
+     "h": 54,
+     "ebene": "boden",
+     "datei": "teile/variante-1c/regal_zwei.png"
     }
    ]
   }

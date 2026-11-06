@@ -45,15 +45,15 @@ class V:
         """the hallway surfaces (wallpaper, floor, panelling, corner strip) before any furniture"""
         self.bg = self.R.L.im.crop((0, 0, self.R.S + 2, H))
 
-    def old_shelf(self, dy=-6):
+    def old_shelf(self, dy=-6, x=188):
         """the wall shelf that hung above the piano stays, 6 px higher so the horn fits under it"""
         lay = Layer(48, 24)
         for y in range(18, 40):
-            for x in range(188, 234):
-                c = ROOMNAT.getpixel((x, y))
-                if c != WALL.getpixel(((x + 8) % 16, (y + 8) % 16)):
-                    lay.px(x - 188, y - 18, c)
-        self.wall('wandbrett_alt', lay, self.R.o(188), 18 + dy)
+            for sx in range(188, 234):
+                c = ROOMNAT.getpixel((sx, y))
+                if c != WALL.getpixel(((sx + 8) % 16, (y + 8) % 16)):
+                    lay.px(sx - 188, y - 18, c)
+        self.wall('wandbrett_alt', lay, self.R.o(x), 18 + dy)
 
     def seam(self, x, wall=True):
         for y in range(0, 135):

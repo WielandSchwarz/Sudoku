@@ -19,13 +19,19 @@ def clean_px(ox, y):
     return FLOOR.getpixel((ox % 48, (y + 12) % 16))
 
 
-def cut(box):
+SKIP = {'lampe': lambda x, y: x == 86 and y >= 70}   # where lamp shade and armchair touch, that column belongs to the chair
+
+
+def cut(box, name=None):
     """an old piece of furniture, cut out of the capture: every pixel that differs from bare wall/floor (its floor shadow included)"""
     x0, y0, x1, y1 = box
+    skip = SKIP.get(name)
     L = Layer(x1 - x0, y1 - y0)
     for y in range(y0, y1):
         for x in range(x0, x1):
             c = NODOOR.getpixel((x, y))
+            if skip and skip(x, y):
+                continue
             if c != clean_px(x, y):
                 L.px(x - x0, y - y0, c)
     bb = L.im.getbbox()
@@ -34,7 +40,7 @@ def cut(box):
 
 
 OLD = {   # boxes in the old room
-    'regal': (0, 48, 40, 110), 'sessel': (36, 62, 87, 114), 'lampe': (85, 56, 104, 106),
+    'regal': (0, 48, 38, 110), 'sessel': (38, 62, 86, 114), 'lampe': (86, 56, 104, 106),
     'uhr': (44, 10, 80, 47), 'schiffsbild': (90, 18, 118, 42), 'pinnwand': (126, 14, 166, 44),
     'geranie': (138, 50, 180, 112), 'teppich': (74, 108, 152, 132),
 }
@@ -123,7 +129,7 @@ class Land(VV.V):
 
     def old(self, name, dx=0, dy=0, x=None, y=None, ax=None):
         """x/y: new position in old-room coordinates, ax: absolute x in the new room (e.g. in the hallway)"""
-        lay, ox, oy = cut(OLD[name])
+        lay, ox, oy = cut(OLD[name], name)
         nx = ax if ax is not None else self.R.o(ox if x is None else x) + dx
         ny = (oy if y is None else y) + dy
         self.R.L.paste(lay, nx, ny)
@@ -204,11 +210,81 @@ def v1b():
     return v
 
 
+# ---------------------------------------------------------------- round 3: one window, cosier arrangement
+def regal2():
+    """second bookcase: the same carcass as the old one, new contents (books, ivy, records, wool basket)"""
+    lay, ox, oy = cut(OLD['regal'])
+    R = Layer(lay.w, lay.h); R.paste(lay.im, 0, 0)
+    E, F = C('4e3018'), C('3e2410')
+    comps = [(3, 16), (20, 31), (35, 47)]
+    for y0, y1 in comps:                          # empty the compartments: bare back boards
+        for y in range(y0, y1 + 1):
+            for x in range(4, 32):
+                R.px(x, y, F if (x - 5) % 6 == 0 else E)
+    gold = C('c8a03a')
+
+    def book(x, bottom, w, h, col, dark):
+        R.rect(x, bottom - h + 1, w, h, col); R.vl(x + w - 1, bottom - h + 1, h, dark)
+        R.hl(x, bottom - h + 3, w - 1, gold); R.hl(x, bottom - 2, w - 1, gold)
+    # top: upright books, then a little ivy pot with tendrils
+    x = 5
+    for w, h, c, d in ((3, 12, 'g2', 'g1'), (2, 10, 'r3', 'r1'), (3, 11, 'u3', 'u2'), (2, 12, 'y1', 'wd2'), (3, 9, 'lav2', 'lav1')):
+        book(x, 16, w, h, P[c], P[d]); x += w
+    R.rect(21, 12, 7, 5, P['o2']); R.hl(20, 12, 9, P['o3']); R.vl(27, 13, 4, P['o1'])
+    for px_, py_ in ((21, 10), (23, 9), (25, 10), (27, 9), (22, 11), (26, 11)):
+        R.px(px_, py_, P['g3']); R.px(px_ + 1, py_, P['g4'])
+    for py_ in range(13, 19):
+        R.px(20 if py_ % 2 else 19, py_, P['g2'])
+    for py_ in range(13, 21):
+        R.px(29 if py_ % 2 else 30, py_, P['g2'])
+    # middle: three books lying flat, records standing
+    for i, (c, d) in enumerate((('r3', 'r1'), ('c2', 'c1'), ('u3', 'u2'))):
+        y = 31 - i * 2
+        R.rect(5 + i % 2, y - 1, 10 - i, 2, P[c]); R.hl(5 + i % 2, y, 10 - i, P[d])
+    R.rect(7, 23, 4, 3, P['c3']); R.hl(7, 23, 4, P['c4']); R.px(10, 25, P['c1'])    # a little candle-cup on the books
+    for i, c in enumerate(('pk2', 'k2', 'y2', 'k2', 'mint1', 'r4', 'k2', 'u4', 'o3')):
+        R.vl(18 + i, 22 + (i % 3 == 1), 10 - (i % 3 == 1), P[c])
+    # bottom: wicker basket with wool, books leaning
+    R.rect(5, 41, 12, 7, P['y1']); R.hl(5, 41, 12, P['y3'])
+    for xx in range(5, 17, 2):
+        R.vl(xx, 42, 6, P['bw3'])
+    R.rect(7, 38, 4, 3, P['pk2']); R.px(7, 38, P['pk3']); R.rect(11, 39, 4, 2, P['mint2']); R.px(11, 39, P['mint3'])
+    x = 19
+    for w, h, c, d in ((3, 11, 'o2', 'o1'), (3, 12, 'g3', 'g2'), (2, 10, 'c2', 'c1'), (3, 12, 'r2', 'r1')):
+        book(x, 47, w, h, P[c], P[d]); x += w
+    return R
+
+
+def v1c():
+    v = Land('variante-1c', 'Landhaus gemütlich: ein Fenster rechts, Leselampe zwischen Regal und Sessel, Grammophon neben dem Sessel, zweites Bücherregal')
+    hall(v)
+    S = v.R.S
+    # floor and wall pieces, back to front
+    v.old('teppich', x=62)
+    v.old('pinnwand', x=1, y=16)
+    v.old('uhr', x=63)
+    v.old_shelf(dy=-6, x=99)                  # the wall shelf (and the ship model) moves along with the gramophone
+    v.window('fenster', 180, 26, 46, 42)
+    v.old('schiffsbild', x=216, y=24)
+    v.old('regal')
+    v.old('lampe', x=39)
+    v.old('sessel', x=55)
+    top = v.stand('musiktruhe', musiktruhe(30, 24), v.R.o(106), 102)
+    v.on_top('grammophon_messing', top, grammophon('messing'), v.R.o(106) + 2)
+    v.old('geranie', x=160)
+    r2 = regal2()
+    v.R.L.paste(r2, v.R.o(210), 54)
+    v.items.append(dict(name='regal_zwei', x=v.R.o(210), y=54, w=r2.w, h=r2.h, ebene='boden', img=r2))
+    v.notes['hamster'] = (S + 128, 124)
+    v.notes['meta'] = dict(fenster='alt x=180 Mitte, oben y=26')
+    return v
+
+
 if __name__ == '__main__':
     import sys
     out = sys.argv[1] if len(sys.argv) > 1 else 'out2'
     lay = {}
-    for f in (v1a, v1b):
+    for f in (v1a, v1b, v1c):
         v = f(); lay[v.key] = v.export(out); print(v.key, v.R.W, len(v.items))
     json.dump(dict(einheit='1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100',
                    reihenfolge='Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene "alt" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position',

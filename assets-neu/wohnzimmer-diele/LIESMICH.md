@@ -2,7 +2,16 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Wieland hat Variante 1 (Landhaus) gewählt. Daraus sind zwei Fassungen entstanden, die Wahl zwischen ihnen steht noch aus. Bitte erst einbauen, wenn Wieland eine davon freigegeben hat.
+**Status:** Wieland hat Variante 1 (Landhaus) mit einem Fenster gewählt. Aktueller Entwurf ist **1C** (Runde 3). Die Freigabe zum Einbau steht noch aus.
+
+## Runde 3: 1C, gemütlicher angeordnet
+Wünsche: Es bleibt bei einem Fenster. Die Möbel sollen gemütlicher stehen, das Grammophon neben dem Sessel, dazu ein zweites Bücherregal. Der Gummibaum ganz rechts fällt weg.
+
+Anordnung von links nach rechts (alte Koordinaten, neu = alt + 84):
+- **Boden:** Regal (alt x=1, unverändert), Leselampe (x=39, vorher 87), Sessel (x=55, vorher 38), Musiktruhe mit Messing-Grammophon (x=106), Geranie unter dem Fenster (x=160, vorher 138), zweites Bücherregal `regal_zwei` (x=210, oben y=54). Der Teppich liegt vor Sessel und Grammophon (x=62).
+- **Wand:** Pinnwand über dem Regal (x=1), Uhr über dem Sessel (x=63), Wandbrett mit Kaktus, Büchern und Platte über dem Grammophon (x=99, y=12; das Schiffsmodell gehört weiter dorthin), Fenster (Mitte x=180, oben y=26), Schiffsbild über dem zweiten Regal (x=216).
+- **Zweites Regal:** gleicher Korpus wie das alte, mit neuem Inhalt: Bücher und Efeutopf oben, liegende Bücher, ein Teelicht und Schallplatten in der Mitte, Wollkorb und Bücher unten. Damit es als Slot-Möbel wählbar wird, braucht es beim Einbau einen Eintrag wie die anderen Regale. Bis dahin ist es feste Deko.
+- Alle Positionen stehen in `layout_landhaus.json` unter `variante-1c`. Die Spots aus `app.js` (`SPOT.chairFront`, `SPOT.window`, `SPOT.plant`, `L.lamp`, `L.chair`, `L.plant`, `L.clockCx`) müssen an die neuen Plätze angepasst werden.
 
 ## Runde 2: Landhaus ohne Terrassentür, mit Fenstern
 Wünsche: Die Terrassentür kommt weg. Das Wohnzimmer soll ruhiger und gemütlicher werden. Es braucht ein oder zwei Fenster.
