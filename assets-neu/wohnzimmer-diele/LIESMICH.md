@@ -2,7 +2,22 @@
 
 Wunsch von Wieland: Links liegen Haustür und Diele, dann kommt ein kleiner Trenner, danach das bisherige Wohnzimmer. Es endet direkt hinter dem Klavier. Statt des Klaviers steht dort ein Grammophon.
 
-**Status:** Entwürfe zur Auswahl. Bitte erst einbauen, wenn Wieland eine Variante freigegeben hat.
+**Status:** Wieland hat Variante 1 (Landhaus) gewählt. Daraus sind zwei Fassungen entstanden, die Wahl zwischen ihnen steht noch aus. Bitte erst einbauen, wenn Wieland eine davon freigegeben hat.
+
+## Runde 2: Landhaus ohne Terrassentür, mit Fenstern
+Wünsche: Die Terrassentür kommt weg. Das Wohnzimmer soll ruhiger und gemütlicher werden. Es braucht ein oder zwei Fenster.
+
+- **1A, ein Fenster** (`vorschau/variante-1a*`): Das Fenster sitzt dort, wo die Terrassentür war (alt x=126 Mitte, oben y=26). Die Pinnwand hängt über dem Regal, die Uhr bleibt über dem Sessel, das Schiffsbild hängt rechts neben dem Fenster.
+- **1B, zwei Fenster** (`vorschau/variante-1b*`): Ein Fenster hängt über dem Sessel (alt x=62), das zweite an Stelle der Terrassentür (alt x=125). Die Uhr hängt über dem Regal, die Pinnwand rechts neben dem zweiten Fenster, das Schiffsbild in der Diele über der Hakenleiste.
+- Die Diele und die Musikecke sind wie in Variante 1.
+- Die Fenster sind im Stil des alten Zimmerfensters gezeichnet (`props.window`): weißer Rahmen, 2×2 Scheiben mit 2px-Sprossen, weiße Fensterbank. Dazu kommen eine Holzstange und gebundene Vorhänge in den Farben der alten Erker-Vorhänge. Hinter dem Glas ist im Entwurf der Garten aus dem Erkerfenster zu sehen. Beim Einbau sollte dort wie bisher die echte Gartenszene mit Tageszeit und Wetter erscheinen.
+- Pinnwand (`pcBoard`), Schiffsbild (`dzPic`) und Schiffsmodell auf dem Wandbrett behalten ihre Funktion, nur ihre Positionen ändern sich.
+- Die alten Möbel sind unverändert, nur verschoben. Regal, Sessel, Lampe, Geranie und Teppich stehen an ihren bisherigen Plätzen.
+- `layout_landhaus.json` enthält alle Positionen. Bei Teilen mit `ebene: "alt"` stehen in `alt_x`/`alt_y` die bisherigen Koordinaten.
+- `python3 werkzeug/landhaus.py <zielordner>` erzeugt beide Fassungen neu.
+- Offen: Ohne Terrassentür braucht der Weg in den Garten einen neuen Platz. Naheliegend ist die Haustür.
+
+## Runde 1
 
 ## Was sich am Raum ändert
 - Der Raum wird 328 bis 334 px breit statt 360 px (siehe `layout.json` → `breite`).

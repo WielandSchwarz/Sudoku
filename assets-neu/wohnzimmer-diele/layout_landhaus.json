@@ -1,0 +1,540 @@
+{
+ "einheit": "1 Bildpixel = 1 Raumpixel; y=0 oben, Fußleiste y=97..99, Boden ab y=100",
+ "reihenfolge": "Teile in der Liste von oben nach unten zeichnen (später = weiter vorne). ebene \"alt\" = Möbel aus dem bisherigen Zimmer, alt_x/alt_y = bisherige Position",
+ "varianten": {
+  "variante-1a": {
+   "titel": "Landhaus mit einem Fenster: Fenster statt Terrassentür, Pinnwand über dem Regal, Schiffsbild neben dem Fenster",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "fenster": "alt x=126 Mitte, oben y=26 (Rahmen 48x42 inkl. Bank), Vorhänge in den Farben des alten Erkerfensters",
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-1a/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1a/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/trenner_holzpfosten.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/variante-1a/teppich.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 39,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/variante-1a/regal.png"
+    },
+    {
+     "name": "sessel",
+     "x": 120,
+     "y": 62,
+     "w": 51,
+     "h": 51,
+     "ebene": "alt",
+     "alt_x": 36,
+     "alt_y": 62,
+     "datei": "teile/variante-1a/sessel.png"
+    },
+    {
+     "name": "lampe",
+     "x": 169,
+     "y": 58,
+     "w": 17,
+     "h": 48,
+     "ebene": "alt",
+     "alt_x": 85,
+     "alt_y": 58,
+     "datei": "teile/variante-1a/lampe.png"
+    },
+    {
+     "name": "uhr",
+     "x": 130,
+     "y": 12,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/variante-1a/uhr.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 85,
+     "y": 16,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/variante-1a/pinnwand.png"
+    },
+    {
+     "name": "fenster",
+     "x": 185,
+     "y": 26,
+     "w": 50,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 181,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 228,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 180,
+     "y": 22,
+     "w": 62,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/fenster_stange.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 246,
+     "y": 24,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/variante-1a/schiffsbild.png"
+    },
+    {
+     "name": "geranie",
+     "x": 228,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/variante-1a/geranie.png"
+    },
+    {
+     "name": "wandbrett_alt",
+     "x": 272,
+     "y": 12,
+     "w": 48,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/wandbrett_alt.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 272,
+     "y": 77,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-1a/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_messing",
+     "x": 274,
+     "y": 34,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-1a/grammophon_messing.png"
+    },
+    {
+     "name": "gummibaum",
+     "x": 306,
+     "y": 60,
+     "w": 26,
+     "h": 44,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1a/gummibaum.png"
+    }
+   ]
+  },
+  "variante-1b": {
+   "titel": "Landhaus mit zwei Fenstern: Fenster über dem Sessel und an Stelle der Terrassentür, Uhr über dem Regal, Pinnwand rechts, Schiffsbild in der Diele",
+   "breite": 330,
+   "diele_breite": 76,
+   "trenner_breite": 8,
+   "altes_zimmer_versatz": 84,
+   "altes_zimmer_bis": 246,
+   "fenster": "zwei Fenster: alt x=62 und x=125 Mitte, Vorhänge in den Farben des alten Erkerfensters",
+   "teile": [
+    {
+     "name": "haustuer",
+     "x": 8,
+     "y": 46,
+     "w": 32,
+     "h": 55,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/haustuer.png"
+    },
+    {
+     "name": "fussmatte",
+     "x": 9,
+     "y": 101,
+     "w": 30,
+     "h": 6,
+     "ebene": "liegt",
+     "datei": "teile/variante-1b/fussmatte.png"
+    },
+    {
+     "name": "hakenleiste",
+     "x": 46,
+     "y": 44,
+     "w": 28,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/hakenleiste.png"
+    },
+    {
+     "name": "mantel",
+     "x": 46,
+     "y": 49,
+     "w": 13,
+     "h": 30,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/mantel.png"
+    },
+    {
+     "name": "strohhut",
+     "x": 53,
+     "y": 48,
+     "w": 15,
+     "h": 8,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/strohhut.png"
+    },
+    {
+     "name": "schal",
+     "x": 67,
+     "y": 49,
+     "w": 8,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/schal.png"
+    },
+    {
+     "name": "bank",
+     "x": 46,
+     "y": 87,
+     "w": 28,
+     "h": 17,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1b/bank.png"
+    },
+    {
+     "name": "trenner_holzpfosten",
+     "x": 66,
+     "y": 0,
+     "w": 28,
+     "h": 102,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/trenner_holzpfosten.png"
+    },
+    {
+     "name": "schiffsbild",
+     "x": 49,
+     "y": 18,
+     "w": 24,
+     "h": 20,
+     "ebene": "alt",
+     "alt_x": 92,
+     "alt_y": 20,
+     "datei": "teile/variante-1b/schiffsbild.png"
+    },
+    {
+     "name": "teppich",
+     "x": 158,
+     "y": 108,
+     "w": 71,
+     "h": 22,
+     "ebene": "alt",
+     "alt_x": 74,
+     "alt_y": 108,
+     "datei": "teile/variante-1b/teppich.png"
+    },
+    {
+     "name": "regal",
+     "x": 85,
+     "y": 54,
+     "w": 39,
+     "h": 54,
+     "ebene": "alt",
+     "alt_x": 1,
+     "alt_y": 54,
+     "datei": "teile/variante-1b/regal.png"
+    },
+    {
+     "name": "lampe",
+     "x": 169,
+     "y": 58,
+     "w": 17,
+     "h": 48,
+     "ebene": "alt",
+     "alt_x": 85,
+     "alt_y": 58,
+     "datei": "teile/variante-1b/lampe.png"
+    },
+    {
+     "name": "fenster_sessel",
+     "x": 123,
+     "y": 22,
+     "w": 46,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_sessel.png"
+    },
+    {
+     "name": "fenster_sessel_vorhang_links",
+     "x": 119,
+     "y": 21,
+     "w": 11,
+     "h": 40,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_sessel_vorhang_links.png"
+    },
+    {
+     "name": "fenster_sessel_vorhang_rechts",
+     "x": 162,
+     "y": 21,
+     "w": 11,
+     "h": 40,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_sessel_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_sessel_stange",
+     "x": 118,
+     "y": 18,
+     "w": 58,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_sessel_stange.png"
+    },
+    {
+     "name": "sessel",
+     "x": 120,
+     "y": 62,
+     "w": 51,
+     "h": 51,
+     "ebene": "alt",
+     "alt_x": 36,
+     "alt_y": 62,
+     "datei": "teile/variante-1b/sessel.png"
+    },
+    {
+     "name": "uhr",
+     "x": 87,
+     "y": 14,
+     "w": 32,
+     "h": 32,
+     "ebene": "alt",
+     "alt_x": 46,
+     "alt_y": 12,
+     "datei": "teile/variante-1b/uhr.png"
+    },
+    {
+     "name": "fenster",
+     "x": 186,
+     "y": 26,
+     "w": 46,
+     "h": 44,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster.png"
+    },
+    {
+     "name": "fenster_vorhang_links",
+     "x": 182,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_vorhang_links.png"
+    },
+    {
+     "name": "fenster_vorhang_rechts",
+     "x": 225,
+     "y": 25,
+     "w": 11,
+     "h": 42,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_vorhang_rechts.png"
+    },
+    {
+     "name": "fenster_stange",
+     "x": 181,
+     "y": 22,
+     "w": 58,
+     "h": 4,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/fenster_stange.png"
+    },
+    {
+     "name": "pinnwand",
+     "x": 235,
+     "y": 16,
+     "w": 36,
+     "h": 26,
+     "ebene": "alt",
+     "alt_x": 128,
+     "alt_y": 16,
+     "datei": "teile/variante-1b/pinnwand.png"
+    },
+    {
+     "name": "geranie",
+     "x": 228,
+     "y": 55,
+     "w": 31,
+     "h": 53,
+     "ebene": "alt",
+     "alt_x": 144,
+     "alt_y": 55,
+     "datei": "teile/variante-1b/geranie.png"
+    },
+    {
+     "name": "wandbrett_alt",
+     "x": 272,
+     "y": 12,
+     "w": 48,
+     "h": 24,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/wandbrett_alt.png"
+    },
+    {
+     "name": "musiktruhe",
+     "x": 272,
+     "y": 77,
+     "w": 32,
+     "h": 26,
+     "ebene": "boden",
+     "unten": 102,
+     "schatten": true,
+     "datei": "teile/variante-1b/musiktruhe.png"
+    },
+    {
+     "name": "grammophon_messing",
+     "x": 274,
+     "y": 34,
+     "w": 41,
+     "h": 45,
+     "ebene": "wand",
+     "datei": "teile/variante-1b/grammophon_messing.png"
+    },
+    {
+     "name": "gummibaum",
+     "x": 306,
+     "y": 60,
+     "w": 26,
+     "h": 44,
+     "ebene": "boden",
+     "unten": 103,
+     "schatten": true,
+     "datei": "teile/variante-1b/gummibaum.png"
+    }
+   ]
+  }
+ }
+}
