@@ -81,3 +81,5 @@
 .kp-r-f { font-size: .8rem; color: #6a5a4a; font-style: italic; }
 .kp-r-t { font-family: "Courier New", Courier, monospace; font-weight: 700; font-size: 1.05rem; line-height: 1.25; margin: 4px 0; }
 .kp-r-s { font-size: .75rem; color: #6a5a4a; text-align: right; font-style: italic; }
+.kp-r-bottle b { color: #2e7a26; } .kp-r-bottle { border-bottom-color: #2e7a26; }
+.kp-r-g { margin-top: 4px; font-weight: 800; font-size: .95rem; color: #2e7a26; }

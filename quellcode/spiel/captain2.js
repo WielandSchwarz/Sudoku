@@ -28,7 +28,7 @@
         cell(3, 1, "tug", { a: .35 }); cell(4, 1, "tug", { a: -.25, dx: .6 });
         var mum = ob("ship", -11.6, 50, { a: 0 }); kp.mum = { o: mum, trig: 0, px: -11.6, py: 57.4 };
         [[-1, 5, 1], [-1, 6, 1], [0, 5, 2], [0, 6, 2]].forEach(function (m) { cell(m[1], m[0], "mum", { need: m[2], noObj: 1 }); });
-        cell(12, 0, "boat", { a: .5 });
+        cell(12, 0, "boat", { a: .5 }); cell(13, 1, "bottle", { find: 1, soft: 1 });
         B.push({ k: "land", b0: -1.3, b1: -.45 }, { k: "land", b0: .35, b1: 1.2 });
       } },
     { key: "solent", s: "kanal", sky: "day", name: "Durch den Kernsund", rows: 28, start: 0, harbour: 0,
@@ -42,12 +42,12 @@
         for (var r = 1; r < 34; r += 3) { ob("buoyR", -10.6, r * KP_R + 4); ob("buoyG", 10.6, r * KP_R + 4); }
         kp.bank(-1, 3, 5); cell(10, 0, "boat", { net: 1, a: .4 }); cell(10, 1, "boat", { net: 1, a: -.6 });
         kp.bank(1, 13, 16); cell(15, -1, "boat", { net: 1, a: .2 });
-        cell(21, 1, "pilot", { task: 1, a: 0 });
+        cell(21, 1, "pilot", { task: 1, a: 0 }); cell(18, -1, "bottle", { find: 1, soft: 1 });
         kp.bank(-1, 24, 26);
         ob("tower", -22, 150); B.push({ k: "land", b0: .25, b1: 1.3 }, { k: "land", b0: -1.5, b1: -.7 });
       } },
     { key: "nebel", s: "nebel", sky: "fog", name: "Nebel im Pfotenkanal", rows: 30, start: 0, harbour: 0,
-      tx: "Dichter Nebel. Was voraus treibt, zeigt nur das Fernglas. Die Pfeife warnt Fischerboote in unserer Spur, dann weichen sie aus.",
+      tx: "Dichter Nebel. Was voraus treibt, zeigt nur das Fernglas. Die Pfeife warnt Fischerboote. Flaschenpost lässt sich bis Halbe Fahrt auffischen.",
       star: "Zwei Dinge im Nebel erkannt",
       notes: [[0, "Dichter Nebel. Was voraus treibt, zeigt nur das Fernglas: Treibholz oder etwas Harmloses?"], [6, "Irgendwo voraus tuckert ein Motor. Die Pfeife warnt die Fischer."], [11, "Weiter durch den Nebel. Lieber einmal mehr durchs Fernglas schauen."], [27, "Der Nebel wird dünner, gleich ist der Kanal geschafft."]],
       build: function (ob, cell, B) {
@@ -64,7 +64,7 @@
   function kpRS() { var d = kpLvl(); return { route: [{ k: d.key, s: d.s }], leg: 0, info: [{}], anc: [{ x: 0, y: 0, h: 0 }], O: [], B: [], px: 0, py: 0, h: 0, lvl: 1, rud: 0, wh: false, glass: null, anim: null,
     shake: 0, fx: [], swim: [], deckIce: null, castOff: 1, intro: false, done: false, found: [], newF: [], d: 0, res: [], hits: 0, tips: 0, route0: 1 }; }
   function kpStart(li) { if (typeof kpRadio !== "undefined") kpRadio.hidden = true;
-    kp = { li: li, row: 0, lane: 0, tr: null, vis: null, v: 0, turns: 0, hits: 0, inc: 0, cells: [], anim: null, pre: "", tips: 3, tip: null, whFirst: false, found0: 0, task: false, taskMiss: false, card: true, moored: li === 0 };
+    kp = { li: li, row: 0, lane: 0, tr: null, vis: null, v: 0, turns: 0, hits: 0, inc: 0, cells: [], anim: null, pre: "", tips: 3, tip: null, got: [], whFirst: false, found0: 0, task: false, taskMiss: false, card: true, moored: li === 0 };
     var d = kpLvl(); kp.lane = d.start; cp = kpRS(); cp.px = kp.lane * KP_LW; cp.lvl = li === 0 ? 1 : 2;
     var ob = function (k, x, y, o) { var r = Object.assign({ k: k, x: x, y: y, leg: 0, seen: false, r: 2.6 }, o || {}); cp.O.push(r); return r; };
     var cell = function (row, lane, k, o) { o = o || {}; var c = { row: row, lane: lane, k: k, live: true, need: o.need, task: o.task, soft: o.soft, fogb: k === "fogb" };
@@ -85,15 +85,16 @@
     for (var i = 0; i < kp.cells.length; i++) { var c = kp.cells[i]; if (!c.live || c.soft || c.row !== row || c.lane !== L) continue;
       if (c.k === "mum" && !(spd >= c.need || trig >= c.need)) continue; return c; } return null; }
   function kpSim(st, delta, spd) {
-    var row = st.row, lane = st.lane, tr = null, n = KP_N[spd], trig = st.trig || 0;
+    var row = st.row, lane = st.lane, tr = null, n = KP_N[spd], trig = st.trig || 0, picks = [], miss = [];
     if (st.tr) { var nl = Math.min(st.tr.left, KP_CH[spd]); tr = { from: st.tr.from, to: st.tr.to, left: nl, tot: st.tr.tot - st.tr.left + nl }; }   // a faster bell cannot make it slower, a slower one finishes it sooner
     if (!tr && delta) { var to = kpCl(lane + delta); if (to !== lane) tr = { from: lane, to: to, left: KP_CH[spd], tot: KP_CH[spd] }; }
     if (tr && tr.left <= 0) { lane = tr.to; tr = null; }
     if (kp.mum && spd >= 1 && row <= 5 && row + n >= 4) trig = Math.max(trig, spd);   // passing the Mümmel at speed: our suction pulls her stern out
     for (var k = 1; k <= n; k++) { var r = row + k, occ = tr ? [tr.from + Math.round(Math.min(1, (tr.tot - tr.left + .5) / tr.tot) * (tr.to - tr.from))] : [lane];   // while gliding across, the ship counts in the lane it is mostly in
-      for (var j = 0; j < occ.length; j++) { var h = kpHaz(r, occ[j], spd, trig); if (h) return { row: r - 1, lane: tr ? (occ[j] === tr.from ? tr.to : tr.from) : lane, tr: null, hit: h, hitRow: r, k: k, trig: trig, task: st.task }; }
+      kp.cells.forEach(function (c) { if (c.k === "bottle" && c.live && c.row === r && c.lane === occ[0]) (spd < 2 ? picks : miss).push(c); });
+      for (var j = 0; j < occ.length; j++) { var h = kpHaz(r, occ[j], spd, trig); if (h) return { picks: picks, miss: miss, row: r - 1, lane: tr ? (occ[j] === tr.from ? tr.to : tr.from) : lane, tr: null, hit: h, hitRow: r, k: k, trig: trig, task: st.task }; }
       if (tr) { tr.left--; if (tr.left <= 0) { lane = tr.to; tr = null; } } }
-    var res = { row: row + n, lane: lane, tr: tr, hit: null, trig: trig, task: st.task }, T = kpTask();
+    var res = { picks: picks, miss: miss, row: row + n, lane: lane, tr: tr, hit: null, trig: trig, task: st.task }, T = kpTask();
     if (T && !st.task && spd === 0 && !tr && (res.row === T.row || res.row === T.row - 1) && Math.abs(lane - T.lane) === 1) res.task = true;
     return res;
   }
@@ -147,6 +148,8 @@
     if (kp.mum && kp.mum.go) { var M = kp.mum, ang = [0, -.42, -.7], tgt = ang[M.go], fr = ang[M.from || 0], e = cpSm1((rho - 3.3) / 2.2); M.o.a = fr + (tgt - fr) * e; M.o.x = M.px - 7.4 * Math.sin(M.o.a); M.o.y = M.py - 7.4 * Math.cos(M.o.a); if (!M.told && e > .2) { M.told = 1; beep([[220, .05], [140, .09]]); dzBuzz([30]); kpSay("Unser Sog reißt die Mümmel los!"); } }
     if (A.spd && Math.random() < (A.spd === 2 ? .9 : .45)) { var sd0 = Math.random() < .5 ? -1 : 1, bp = shipW(sd0 * (1.1 + Math.random() * .5), 2.0, .2); cp.fx.push({ x: bp[0], y: bp[1], z: bp[2], vx: Math.cos(cp.h) * sd0 * (1.5 + Math.random() * 1.5), vy: -Math.sin(cp.h) * sd0 * 2, vz: 2 + Math.random() * 2, l: .6, c: Math.random() < .5 ? "#ffffff" : "#d8eef8" }); }
     if (A.spd === 2 && rho < kpLvl().harbour && !A.wet) { A.wet = 1; setTimeout(function () { var q = [11, cp.py + 6, 1]; cpBurst(q, 14, ["#ffffff", "#d8eef8", "#a8d0e8"], 1.4, 5); }, 600); }
+    (A.res.picks || []).forEach(function (c) { if (c.live && rho > c.row - .35) { c.live = false; c.o.hid = true; cpBurst([c.o.x, c.o.y, .2], 10, ["#ffffff", "#d8eef8", "#5ab04a"], 1.2, 3); beep([[880, .04], [1175, .06]]); kp.got.push(c); } });
+    (A.res.miss || []).forEach(function (c) { if (!c.missed && rho > c.row - .35) { c.missed = 1; kpSay("Zu schnell! Die Flaschenpost treibt vorbei."); } });
     if (u < 1) return;
     if (A.res.hit) return kpCrash(t);
     kpEndTurn();
@@ -171,7 +174,8 @@
     else if (A.spd === 2 && A.r0 < d.harbour) { kp.inc++; msg = "✘ Zu schnell im Hafen: Die Bugwelle hat die Zuschauer am Kai nass gemacht."; }
     if (T && r.task && !kp.task) { kp.task = true; msg = "✔ Der Lotse klettert ins Boot. Gute Fahrt!"; T.live = false; T.o.tx = T.o.x + 9; beep([[660, .05], [880, .08]]); }
     if (T && !kp.task && !kp.taskMiss && kp.row > T.row) { kp.taskMiss = true; kp.inc++; msg = "✘ Vorbeigefahren! Der Lotse muss jetzt mit nach Frankreich."; }
-    kp.pre = msg; kp.anim = null; cp.wh = false; cp.rud = 0; setTimeout(function () { if (kp && !kp.anim && !kp.card) kpRadioMsg(); }, 350);
+    kp.pre = msg; kp.anim = null; cp.wh = false; cp.rud = 0; var gb = kp.got.splice(0);
+    setTimeout(function () { if (!kp || kp.anim || kp.card) return; if (gb.length) kpBottle(gb[0]); else kpRadioMsg(); }, 350);
     if (kp.row >= d.rows) return kpEnd();
     kpPanelDraw(); kpKick();
   }
@@ -257,6 +261,24 @@
     var h = Math.floor(12 + (kp.li === 2 ? 9 : kp.li * 2) + kp.turns * .4), mm = (kp.turns * 17 + 7) % 60;
     kpRadio.innerHTML = '<div class="kp-r-h"><b>FUNKSPRUCH</b><span>' + (h % 24) + ":" + (mm < 10 ? "0" : "") + mm + ' Uhr</span></div><div class="kp-r-f">von: ' + m.from + '</div><div class="kp-r-t">' + m.tx + '</div><div class="kp-r-s">notiert: Funker Pieps</div>';
     kpRadio.hidden = false; kpRadio.classList.remove("pop"); void kpRadio.offsetWidth; kpRadio.classList.add("pop"); beep([[1200, .03], [0, .03], [1200, .03], [0, .06], [1200, .08]]);
+  }
+  // ---- a message in a bottle: a little letter, and inside a reward ----
+  var KP_LETTERS = [
+    ["Leuchtturmwärter Knabber", "Hier ist es einsam, aber die Möwen sind nett. Für den Finder ein paar Leckerli!", "treat"],
+    ["Eine Hamsterdame aus Backentown", "Wenn du das liest, iss etwas Feines auf mein Wohl.", "treat"],
+    ["Kapitän a. D. Schnurrbart", "Ein alter Trick: Frag ruhig deinen Ersten Offizier, er weiß mehr, als er zugibt.", "tip"],
+    ["Unbekannt", "Ein Stück einer alten Karte. Der Rest schwimmt noch irgendwo ...", "map"],
+    ["Die Schiffsjungen der Karottonia", "Wir haben uns gelangweilt. Hier, ein Stück von unserer Schatzkarte!", "map"],
+    ["Ein Fischer vom Kernsund", "Danke, dass ihr nicht durch unsere Netze gefahren seid. Ein kleines Dankeschön.", "treat"]];
+  function kpBottle(c) {
+    var pool = KP_LETTERS.filter(function (l) { return l[2] !== "map" || (s.kpMap || 0) < 4; }), L = pool[Math.floor(Math.random() * pool.length)], gift = "";
+    if (L[2] === "treat") { s.treats = (s.treats || 0) + 2; gift = "+2 Leckerli"; }
+    if (L[2] === "tip") { kp.tips++; gift = "+1 Frage an den Ersten Offizier"; }
+    if (L[2] === "map") { s.kpMap = (s.kpMap || 0) + 1; gift = "Kartenstück " + s.kpMap + " von 4"; if (s.kpMap >= 4) { s.treats = (s.treats || 0) + 10; gift = "Die Schatzkarte ist komplett! Im Kreuz lagen 10 Leckerli."; } }
+    var LG = cpLog(); LG.bottle = (LG.bottle || 0) + 1; if (cp.found.indexOf("bottle") < 0) cp.found.push("bottle");
+    if (typeof renderNeeds === "function") try { renderNeeds(); } catch (e) { } if (window.SudokuSave) window.SudokuSave();
+    kpRadio.innerHTML = '<div class="kp-r-h kp-r-bottle"><b>FLASCHENPOST</b><span>aufgefischt</span></div><div class="kp-r-f">von: ' + L[0] + '</div><div class="kp-r-t">' + L[1] + '</div><div class="kp-r-g">' + gift + '</div>';
+    kp.radioK = "bottle"; kpRadio.hidden = false; kpRadio.classList.remove("pop"); void kpRadio.offsetWidth; kpRadio.classList.add("pop"); beep([[784, .06], [988, .06], [1175, .1]]);
   }
   // ---- panel and cards ----
   function kpSay(t) { kpToast.textContent = t; kpToast.hidden = false; kpToast.classList.remove("pop"); void kpToast.offsetWidth; kpToast.classList.add("pop"); clearTimeout(kpSay.t); kpSay.t = setTimeout(function () { kpToast.hidden = true; }, 1800); }
