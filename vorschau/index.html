@@ -16831,6 +16831,63 @@ window.__EXTRAS = true;
     return _cpKind2(o, w, a, t, k); };
   var _cpKind4 = cpKind; cpKind = function (o, w, a, t, k) { if (k === "nyb") return cpNYB(o, w, a, t); return _cpKind4(o, w, a, t, k); };
   CP_3K.nyb = 1;
+  // ===== superstructures with promenades, rails, wheelhouse windows, bridge wings, ventilators =====
+  function cpHouse2(T, a, v0, v1, hw, z0, z1, o) {
+    cpHouse(T, a, v0, v1, hw, z0, z1, o.prom ? 0 : o.win); var r = Math.min(hw, (v1 - v0) * .25);
+    [-1, 1].forEach(function (s) { var n = T.N(s, 0), u = s * hw * 1.012; if (!cpSees([T.P(s * hw, v0, z0), T.P(s * hw, v1 - r, z1)], n)) return;
+      if (o.prom) { cpPolyW([T.P(u, v0 + .25, z0 + .12), T.P(u, v1 - r - .1, z0 + .12), T.P(u, v1 - r - .1, z1 - .14), T.P(u, v0 + .25, z1 - .14)], "#3e4048");
+        for (var v = v0 + .25; v <= v1 - r - .1; v += .42) cpLine3(T.P(u, v, z0 + .12), T.P(u, v, z1 - .14), "#f0ece0"); cpLine3(T.P(u, v0 + .25, z0 + .42), T.P(u, v1 - r - .1, z0 + .42), "#f0ece0"); }
+      cpLine3(T.P(s * hw * 1.03, v0, z1 + .14), T.P(s * hw * 1.03, v1 - r, z1 + .14), "#f8f4ec"); });
+    var sl = T.P(0, (v0 + v1) / 2 - .05, 0); cpPrism(sl[0], sl[1], a, cpRect(hw * 2.08, v1 - v0 + .1), z1, z1 + .05, ["#fbf8f0", "#f4f0e6", "#9a968c", "#6a665c"]);
+    if (o.wh) { var n2 = T.N(0, 1); if (cpSees([T.P(-hw, v1, z0), T.P(hw, v1, z1)], n2)) { cpPolyW([T.P(-hw * .62, v1 - r * .3 + .01, z1 - .34), T.P(hw * .62, v1 - r * .3 + .01, z1 - .34), T.P(hw * .62, v1 - r * .3 + .01, z1 - .12), T.P(-hw * .62, v1 - r * .3 + .01, z1 - .12)], "#2a3a4a"); }
+      var wg = T.P(0, v1 - r - .1, 0); cpPrism(wg[0], wg[1], a, cpRect(hw * 2 + 1.2, .35), z1 - .06, z1, CP_WHITE); }
+  }
+  function cpVent(T, a, u, v, z) { var b = T.P(u, v, 0); cpPrism(b[0], b[1], a, cpRing(.11, 8), z, z + .38, CP_WHITE); var h = T.P(u, v + .07, 0); cpPrism(h[0], h[1], a, cpRing(.17, 8), z + .38, z + .55, ["#d8463c", "#e8584a", "#9a2a22", "#3a1008"]); }
+  var _cpShip3b = cpShip3;
+  cpShip3 = function (w, a, t, o) {
+    var T = cpLoc(w[0], w[1], a), big = !!o.big, s = big ? 1.5 : 1, H = { ls: 7 * s, lb: 7.4 * s, hw: big ? 1.7 : 1.35, zd: 1.5, sb: .55, ss: .25, zw: -.15, boot: .28, gold: .18, port: [.42, [.98, .68]], n: 30, rail: "#d8d0c0" };
+    cpHull(T, H, t);
+    cpHouse2(T, a, -4.6 * s, 3.2 * s, H.hw * .8, 1.5, 2.2, { prom: 1 }); cpHouse2(T, a, -3.8 * s, 2.0 * s, H.hw * .7, 2.2, 2.8, { win: .45 }); cpHouse2(T, a, .9 * s, 2.3 * s, H.hw * .5, 2.8, 3.3, { win: .32, wh: 1 });
+    [-1, 1].forEach(function (sd) { for (var bv = -3.4 * s; bv < 1.0 * s; bv += 1.25) cpBoat(T, a, sd * H.hw * .68, bv, 2.85); });
+    [[-.35, -3.0], [.35, -3.0], [-.4, -1.0], [.4, -1.0], [0, -4.2]].forEach(function (p) { cpVent(T, a, p[0], p[1] * s, 2.85); });
+    var fn = big ? [-3.6, -1.4, .8, 3.0] : [-2.2, .4], mum = !big;
+    fn.forEach(function (v, i) { var vv = v * s * (big ? .75 : 1); cpFunnel(T, a, vv, 2.85, big ? 5.4 : 5.0, .42, .35, mum ? ["#26262e", "#3a3a44", "#1a1a20", "#0a0a0e"] : ["#e8a03a", "#f0b04a", "#c8862a", "#5a3a10"], mum ? ["#f8f4ec", "#ffffff", "#d8d0c0", "#6a6a6a"] : null, !big || i < 3 ? t : null);
+      if (mum) { var c = T.P(0, vv - .35, 0); cpPrism(c[0], c[1], a, cpOct(1).map(function (p) { return [p[0] * .34, p[1] * .42]; }), 4.62, 5.0, ["#26262e", "#3a3a44", "#1a1a20", "#0a0a0e"]); }
+      cpLine3(T.P(0, vv + .5, 2.85), T.P(0, vv + .2, (big ? 5.4 : 5.0) - .1), "#8a8478"); var wp = cpProj.apply(null, T.P(0, vv + .22, (big ? 5.4 : 5.0) - .3)); if (wp && wp.k > .4) mR(cpc, Math.round(wp.x), Math.round(wp.y), 1, 1, "#e8c050"); });
+    var m1 = T.P(0, 6.0 * s, 1.9), m1t = T.P(0, 5.6 * s, 7.6), m2 = T.P(0, -5.8 * s, 1.7), m2t = T.P(0, -6.2 * s, 7.2);
+    cpLine3(m1, m1t, "#5a3a22"); cpLine3(m2, m2t, "#5a3a22"); cpLine3(T.P(-.7, 5.65 * s, 6.6), T.P(.7, 5.65 * s, 6.6), "#5a3a22"); cpLine3(T.P(-.7, -6.15 * s, 6.2), T.P(.7, -6.15 * s, 6.2), "#5a3a22");
+    var nest = T.P(0, 5.75 * s, 0); cpPrism(nest[0], nest[1], a, cpRing(.22, 8), 5.6, 5.95, ["#8a5a32", "#a87448", "#5a3a22", "#2a1a10"]);
+    cpLine3(m1t, m2t, "#b8b0a0"); cpLine3(m1t, T.P(0, 7.4 * s, cpZD(H, 7.4 * s)), "#b8b0a0"); cpLine3(m2t, T.P(0, -7 * s, cpZD(H, -7 * s)), "#b8b0a0");
+    [-1, 1].forEach(function (sd) { cpLine3(m1t, T.P(sd * H.hw, 5.0 * s, cpZD(H, 5 * s)), "#a8a090"); cpLine3(m2t, T.P(sd * H.hw, -5.2 * s, cpZD(H, -5.2 * s)), "#a8a090"); });
+    var fl = cpProj.apply(null, m2t); if (fl) { var fw = Math.floor(t / 300) % 2; mR(cpc, Math.round(fl.x) + 1, Math.round(fl.y), 4 - fw, 3, "#2a4a8a"); mR(cpc, Math.round(fl.x) + 1, Math.round(fl.y), 2, 1, "#d8463c"); }
+    if (o.ropes && !o.snapped) { var AN = cp.anc[o.leg], b1 = cpW(AN, -8.75, 31), b2 = cpW(AN, -8.75, 12); cpRope3(T.P(-H.hw, 6.2, 1.9), [b1[0], b1[1], 1.5], .3, "#e0d0a8"); cpRope3(T.P(-H.hw, -6.4, 1.7), [b2[0], b2[1], 1.5], .3, "#e0d0a8"); }
+  };
+  // ===== Pier 59 in detail: deck on pilings, granite headhouse with arches and flags, a long shed with a clerestory, lamps, rail, gangway =====
+  var _cpKind5 = cpKind;
+  cpKind = function (o, w, a, t, k) {
+    if (k !== "pier") return _cpKind5(o, w, a, t, k);
+    var T = cpLoc(w[0], w[1], a), dark = cpSky() === "night", GR = ["#e0b4a0", "#e8c4b0", "#b08470", "#5a3a30"], ST = CP_STONE;
+    cpPolyW([T.P(-15, -.3, .01), T.P(15, -.3, .01), T.P(15, 10, .01), T.P(-15, 10, .01)], "#1e3a52");                     // the shade under the deck
+    for (var px = -14.5; px <= 14.5; px += 1.2) { var pp = T.P(px, .1, 0); cpBox3(pp[0], pp[1], a, .22, .22, -.1, .85, ["#4a3424", "#5a4030", "#2a1c12", "#140a04"]); }   // pilings
+    var dk = T.P(0, 5, 0); cpBox3(dk[0], dk[1], a, 30, 10, .85, 1.2, ["#9a8a74", "#a89880", "#6a5a48", "#2a2018"]);
+    for (var fx = -14; fx <= 14; fx += 2.4) { var fp = cpProj.apply(null, T.P(fx, -.03, .7)); if (fp) { var r = Math.max(1, Math.round(fp.k * 3)); cpBlob(fp.x, fp.y, r, r * 1.2, function (dx) { return dx < 0 ? "#3a3a40" : "#1e1e24"; }); } }
+    for (var rx = -14.6; rx <= 14.6; rx += .6) cpLine3(T.P(rx, .2, 1.2), T.P(rx, .2, 1.55), "#f0ece0"); cpLine3(T.P(-14.6, .2, 1.55), T.P(14.6, .2, 1.55), "#f8f4ec");   // rail along the edge
+    for (var cx2 = -13; cx2 <= 13; cx2 += .7) { var hv = cpHash(Math.round(cx2 * 10), 77); if (hv > .78) continue; var hp = T.P(cx2, .8 + cpHash(Math.round(cx2 * 10), 5) * 1.8, 0); cpHam(hp[0], hp[1], 1.2, Math.floor(hv * 1000), t); }
+    [-11, -5, 5, 11].forEach(function (lx) { var lb = T.P(lx, .6, 0); cpLine3([lb[0], lb[1], 1.2], [lb[0], lb[1], 2.6], "#2e2e34"); var lp = cpProj(lb[0], lb[1], 2.65); if (lp) { mR(cpc, Math.round(lp.x) - 1, Math.round(lp.y) - 1, 3, 2, dark ? "#ffe08a" : "#f0e8c8"); if (dark) { mR(cpc, Math.round(lp.x) - 2, Math.round(lp.y) - 2, 5, 1, "#a88a40"); } } });
+    var gw = T.P(1.5, -.8, 0); cpPrism(gw[0], gw[1], a + .05, [[-.5, -1.4], [.5, -1.4], [.5, .8], [-.5, .8]], 1.15, 1.25, ["#c8a07a", "#d8b08a", "#8a6a44", "#3a2a1a"]); cpLine3(T.P(1.0, -2.2, 1.4), T.P(1.0, 0, 1.55), "#f0ece0"); cpLine3(T.P(2.0, -2.2, 1.4), T.P(2.0, 0, 1.55), "#f0ece0");   // gangway
+    // the long shed behind with a raised clerestory
+    var sh = T.P(0, 12, 0); cpBox3(sh[0], sh[1], a, 22, 10, 1.2, 3.0, ["#b8a888", "#c8b898", "#8a7a60", "#3a3020"]); var cl = T.P(0, 12, 0); cpBox3(cl[0], cl[1], a, 6, 10, 3.0, 3.6, ["#c8b898", "#d8c8a8", "#9a8a70", "#3a3020"]);
+    for (var cw = -2.6; cw <= 2.6; cw += .65) { var cp2 = cpProj.apply(null, T.P(cw, 6.98, 3.3)); if (cp2) mR(cpc, Math.round(cp2.x), Math.round(cp2.y), 1, 1, dark ? "#ffd34a" : "#3a4a5a"); }
+    // the granite headhouse facing the river: arched bays, a cornice, a green name board, flags on top
+    var hh = T.P(0, 7.5, 0); cpBox3(hh[0], hh[1], a, 20, 3, 1.2, 4.0, GR); cpBox3(hh[0], hh[1], a, 20.6, 3.4, 4.0, 4.25, ["#f0d8c8", "#f8e4d4", "#c8a898", "#6a4a40"]);
+    var n3 = T.N(0, -1), fv = 7.5 - 1.52; if (cpSees([T.P(-10, fv, 1.2), T.P(10, fv, 4)], n3)) {
+      for (var bxa = -8.5; bxa <= 8.5; bxa += 1.9) { if (Math.abs(bxa) < 1) continue; var ap = cpProj.apply(null, T.P(bxa, fv - .02, 2.6)); if (!ap) continue; var aw = ap.k * 16 * .55, ah = ap.k * 16 * 1.0;
+        cpBlob(ap.x, ap.y - ah * .35, aw, aw, function (dx, dy) { return dy < 0 ? (dark ? "#ffd34a" : "#3a3440") : null; }); mR(cpc, Math.round(ap.x - aw), Math.round(ap.y - ah * .35), Math.round(aw * 2), Math.round(ah * .9), dark ? "#e8b040" : "#3a3440"); if (ap.k > .5) mR(cpc, Math.round(ap.x), Math.round(ap.y - ah * .9), 1, Math.round(ah * 1.4), "#c8a898"); }
+      var dp = cpProj.apply(null, T.P(0, fv - .02, 2.0)); if (dp) { var dw = dp.k * 16 * 1.0, dh = dp.k * 16 * 1.6; cpBlob(dp.x, dp.y - dh * .55, dw, dw, function (dx, dy) { return dy < 0 ? "#2a1e1a" : null; }); mR(cpc, Math.round(dp.x - dw), Math.round(dp.y - dh * .55), Math.round(dw * 2), Math.round(dh * .95), "#2a1e1a"); }
+      cpPolyW([T.P(-3.5, fv - .03, 3.4), T.P(3.5, fv - .03, 3.4), T.P(3.5, fv - .03, 3.9), T.P(-3.5, fv - .03, 3.9)], "#2e5a3a"); for (var gl = -3.1; gl <= 3.1; gl += .5) { var gp = cpProj.apply(null, T.P(gl, fv - .04, 3.65)); if (gp) mR(cpc, Math.round(gp.x), Math.round(gp.y), 1, 1, "#e8c050"); } }
+    [-9, 0, 9].forEach(function (fx2, i) { var fb = T.P(fx2, 7, 0); cpLine3([fb[0], fb[1], 4.25], [fb[0], fb[1], 6.2], "#3a3a3a"); var fq = cpProj(fb[0], fb[1], 6.2); if (fq) { var fw2 = Math.floor(t / 300 + i) % 2, wd = Math.max(4, Math.round(fq.k * 16 * .9));
+        for (var st = 0; st < 5; st++) mR(cpc, Math.round(fq.x) + 1, Math.round(fq.y) + st, wd - (st % 2) * fw2, 1, st % 2 ? "#f8f4ec" : "#c8342a"); mR(cpc, Math.round(fq.x) + 1, Math.round(fq.y), Math.ceil(wd / 2), 3, "#2a3a7a"); } });
+  };
   // ===== wheelhouse variants (style study): 1 Teak & Messing, 2 Weiße Brücke, 3 Hamster-Kajüte, 4 Mahagoni =====
   var CP_BV = 4, cpFrames = {};
   var CP_BVP = {
@@ -17019,6 +17076,68 @@ window.__EXTRAS = true;
     var top = shipW(0, 2.2, 2.5); cpLine3(shipW(0, 2.2, zb), top, "#3a2414"); var fp = cpProj(top[0], top[1], top[2]);
     if (fp) { var fx = Math.round(fp.x), fy = Math.round(fp.y), fw = Math.floor(t / 250) % 2; mR(cpc, fx + 1, fy, 5 - fw, 2, "#d8463c"); mR(cpc, fx + 1, fy + 2, 5, 2, "#f8f4ec"); mR(cpc, fx + 1, fy + 4, 5 - fw, 1, "#d8463c"); }
   };
+  // ===== v8 "Mahagoni plastisch": bevelled panels, deep window reveals, coffered ceiling, a console top that recedes, a floor in perspective =====
+  CP_BVP[8] = CP_BVP[4]; CP_BV = 8;
+  var CP_TELC = [32, 103], CP_TELR = 21, CP_WHC = [90, 117];
+  var _cpFrameV1 = cpFrameV;
+  cpFrameV = function (v) {
+    if (v !== 8) return _cpFrameV1(v); if (cpFrames[8]) return cpFrames[8];
+    var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var g = cv.getContext("2d"), P = CP_BVP[4], W = P.w, B = P.br, M = cpMix; g.drawImage(_cpFrameV1(4), 0, 0);
+    var R = function (x, y, w, h, c) { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    var bevel = function (x, y, w, h) { R(x, y, w, h, W[1]); for (var i = 0; i < 2; i++) { R(x + i, y + i, w - i * 2, 1, M(W[0], "#ffffff", .18 - i * .08)); R(x + i, y + i, 1, h - i * 2, M(W[0], W[1], i * .5)); R(x + i, y + h - 1 - i, w - i * 2, 1, M(W[3], W[2], i * .5)); R(x + w - 1 - i, y + i, 1, h - i * 2, M(W[3], W[2], i * .5)); }
+      R(x + 3, y + 3, w - 6, h - 6, M(W[1], W[2], .35)); for (var gx = x + 4; gx < x + w - 4; gx += 3) R(gx, y + 3, 1, h - 6, M(W[1], W[2], .5 + ((gx * 7) % 3) * .08)); R(x + 3, y + 3, w - 6, 1, M(W[2], W[3], .5)); R(x + 3, y + 3, 1, h - 6, M(W[2], W[3], .5)); };
+    // window reveals: the wall has thickness, lit on the left, in shade on the right and above
+    CP_WIN.forEach(function (w) { var x = w[0], ww = w[1]; for (var i = 0; i < 4; i++) { R(x + i, 5 + i, 1, 70 - i, M(W[0], W[1], i * .3)); R(x + ww - 1 - i, 5 + i, 1, 70 - i, M(W[3], W[2], i * .3)); R(x + i, 5 + i, ww - i * 2, 1, M(W[3], W[2], i * .25)); } R(x, 74, ww, 1, M(W[0], "#ffffff", .25)); });
+    // coffered ceiling
+    for (var bx = 0; bx < 180; bx += 15) { R(bx, 0, 15, 4, M(W[3], W[2], .3)); R(bx + 1, 1, 13, 2, M(W[2], W[1], .45)); R(bx + 1, 1, 13, 1, M(W[1], W[0], .5)); }
+    // sconces with a warm glow on the pillars
+    [[61, 16], [119, 16]].forEach(function (s) { for (var r = 6; r > 0; r--) { g.fillStyle = "rgba(255,226,150," + (.05 + (6 - r) * .02) + ")"; g.fillRect(s[0] - 3 - r, s[1] - r, 6 + r * 2, 10 + r * 2); } R(s[0] - 2, s[1] + 7, 4, 2, B[2]); R(s[0] - 1, s[1], 2, 7, "#fff4b0"); R(s[0] - 1, s[1], 1, 7, "#ffffff"); R(s[0] - 2, s[1] - 1, 4, 1, B[1]); });
+    // the console top recedes to a vanishing point far ahead
+    var VX = 90, VY = -70;
+    for (var y = 77; y < 93; y++) { var f = (y - 77) / 16; R(0, y, 180, 1, M(W[0], W[1], .25 + f * .6)); }
+    for (var lx = -60; lx <= 240; lx += 15) for (var yy = 77; yy < 93; yy++) { var tt = (yy - VY) / (93 - VY), xx = Math.round(VX + (lx - VX) * tt); if (xx >= 0 && xx < 180) R(xx, yy, 1, 1, M(W[1], W[2], .55)); }
+    R(0, 76, 180, 1, P.ol); R(0, 77, 180, 1, B[1]); R(0, 92, 180, 1, B[0]); R(0, 93, 180, 2, W[3]); R(0, 95, 180, 1, M(W[3], "#000000", .3));
+    for (var px = 1; px < 180; px += 30) bevel(px, 97, 28, 18);
+    // a polished floor running away from us
+    for (var fy = 117; fy < 135; fy++) { var ff = (fy - 117) / 18; R(0, fy, 180, 1, M("#3a2214", "#6a4428", ff * .9)); for (var k = -7; k <= 7; k++) R(Math.round(90 + k * (13 + ff * 20)), fy, 1, 1, "#24140a"); if (fy % 6 === 0) R(0, fy, 180, 1, M("#24140a", "#3a2214", ff)); }
+    R(0, 116, 180, 1, B[2]); R(0, 115, 180, 1, W[3]);
+    // soft shadows on the floor under the pedestals and the wheel
+    [[CP_TELC[0], 133, 12], [147, 133, 13], [CP_WHC[0], 134, 22]].forEach(function (s) { for (var dx = -s[2]; dx <= s[2]; dx++) { var hh = Math.round(2.2 * Math.sqrt(1 - (dx / s[2]) * (dx / s[2]))); g.fillStyle = "rgba(20,8,4,.35)"; g.fillRect(s[0] + dx, s[1] - hh, 1, hh * 2 + 1); } });
+    // the telegraph column and the binnacle stand on the floor
+    var tc = CP_TELC[0]; R(tc - 7, 118, 14, 17, P.ol); R(tc - 6, 118, 12, 17, B[1]); R(tc - 6, 118, 3, 17, B[0]); R(tc + 3, 118, 2, 17, B[2]); R(tc - 9, 131, 18, 4, B[2]); R(tc - 9, 131, 18, 1, B[1]);
+    R(138, 114, 18, 21, P.ol); R(139, 114, 16, 21, W[1]); R(139, 114, 3, 21, W[0]); R(153, 114, 2, 21, W[2]); R(136, 131, 22, 4, B[2]); R(136, 131, 22, 1, B[1]);
+    [133, 158].forEach(function (bx2) { g.fillStyle = P.ol; g.beginPath(); g.arc(bx2, 108, 4, 0, 7); g.fill(); R(bx2 - 3, 106, 6, 5, "#3a5a3a"); R(bx2 - 2, 106, 2, 2, "#6a9a6a"); R(bx2 - 2, 106, 1, 1, "#ffffff"); });
+    R(150, 80, 28, 2, W[3]); R(151, 82, 26, 9, "#e8dcb8"); R(151, 82, 26, 1, "#fff4d8"); R(155, 84, 10, 1, "#6a8aa8"); R(158, 85, 1, 4, "#6a8aa8"); R(168, 86, 4, 1, "#c8463c"); R(151, 91, 26, 1, M(W[3], "#000000", .3));
+    cpFrames[8] = cv; return cv;
+  };
+  // a bigger telegraph with three wide coloured fields and a lever, a bigger wheel
+  var _cpBridgeV = null;
+  function cpBridge8(t) {
+    if (!CP_BV) return _cpBridgeV(t);
+    var P = CP_BVP[CP_BV], B = P.br, H = P.wh, tx = CP_TELC[0], ty = CP_TELC[1], TR = CP_TELR;
+    cpc.drawImage(cpFrame(), 0, 0);
+    cpBlob(tx, ty, TR, TR, function (dx, dy) { var d = dx * dx + dy * dy; return d > .9 ? P.ol : d > .76 ? (dx + dy < -.2 ? B[0] : dx + dy < .7 ? B[1] : B[2]) : d > .7 ? B[3] : dy > .3 ? "#ece0c8" : "#fbf6ea"; });
+    var cols = ["#d8463c", "#e8b03a", "#4a9a3a"];
+    for (var s3 = 0; s3 < 3; s3++) { var on = cp.lvl === s3; for (var an = CP_TEL[s3] - 27; an <= CP_TEL[s3] + 27; an += 3) { var ar = an * Math.PI / 180; for (var r = 9; r <= TR - 5; r++) mR(cpc, Math.round(tx + Math.cos(ar) * r), Math.round(ty + Math.sin(ar) * r), 1, 1, on ? cols[s3] : cpMix(cols[s3], "#fbf6ea", .55)); }
+      if (on) { var ar2 = CP_TEL[s3] * Math.PI / 180; cpBlob(tx + Math.cos(ar2) * (TR - 9), ty + Math.sin(ar2) * (TR - 9), 2.2, 2.2, function () { return "#ffffff"; }); } }
+    var na = CP_TEL[cp.lvl] * Math.PI / 180; for (var k = 0; k < TR - 4; k++) mR(cpc, Math.round(tx + Math.cos(na) * k), Math.round(ty + Math.sin(na) * k), 2, 2, P.ol);
+    for (var k2 = TR - 4; k2 < TR + 6; k2++) mR(cpc, Math.round(tx + Math.cos(na) * k2), Math.round(ty + Math.sin(na) * k2), 2, 2, B[1]);
+    cpBlob(tx + Math.cos(na) * (TR + 7), ty + Math.sin(na) * (TR + 7), 3, 3, function (dx) { return dx < 0 ? B[0] : B[2]; });
+    cpBlob(tx, ty, 3.5, 3.5, function (dx, dy) { return dx + dy < 0 ? B[0] : B[2]; });
+    // binnacle
+    cpBlob(147, 106, 12, 9, function (dx, dy) { var d = dx * dx + dy * dy; return d > .82 ? P.ol : dy < -.2 ? (dx < -.2 ? B[0] : B[1]) : d > .5 ? B[2] : null; });
+    cpBlob(147, 108, 7, 4, function () { return "#fbf6ea"; }); mR(cpc, Math.round(147 - Math.sin(cp.h) * 5), Math.round(108 - Math.cos(cp.h) * 2.5), 2, 2, "#c83a2a"); mR(cpc, 146, 97, 3, 2, B[0]);
+    // whistle cord
+    var pull = cp.wh ? 6 : 0; mR(cpc, 170, 0, 1, 94 + pull, "#e8d8b0"); cpBox(167, 94 + pull, 7, 10, H[1], H[0]); mR(cpc, 169, 96 + pull, 3, 6, H[2]); mR(cpc, 167, 94 + pull, 7, 1, B[0]);
+    if (cpLeg().wh && !cp.wh && !cp.anim) { if (Math.floor(t / 400) % 2) { mR(cpc, 165, 92, 11, 1, "#ffd34a"); mR(cpc, 165, 105, 11, 1, "#ffd34a"); } }
+    // the wheel, bigger: turned spokes with handles, a thick rim, a brass hub
+    var ang = (cp.wheelA != null ? cp.wheelA : cp.rud * .45) + (cp.anim ? Math.sin(t / 500) * .03 : 0), cx = CP_WHC[0], cy = CP_WHC[1];
+    for (var a = 0; a < 8; a++) { var aa = ang + a * Math.PI / 4, ca = Math.cos(aa), sa = Math.sin(aa); for (var r2 = 7; r2 < 37; r2++) { var px = Math.round(cx + ca * r2), py = Math.round(cy + sa * r2); if (py >= 135) continue; var hd = r2 > 29;
+        mR(cpc, px - 1, py, hd ? 3 : 2, hd ? 3 : 2, P.ol); mR(cpc, px, py, hd ? 2 : 1, hd ? 2 : 1, hd ? (r2 % 3 === 0 ? H[2] : H[0]) : (r2 < 12 ? H[1] : H[0])); } }
+    for (var q = 0; q < 260; q++) { var b = q / 260 * Math.PI * 2; for (var rr = 21; rr <= 27; rr++) { var qx = Math.round(cx + Math.cos(b) * rr), qy = Math.round(cy + Math.sin(b) * rr); if (qy >= 135) continue;
+        var lit = Math.cos(b + 2.3) > .3, sh = Math.cos(b + 2.3) < -.4; mR(cpc, qx, qy, 1, 1, rr === 21 || rr === 27 ? P.ol : rr === 22 ? (lit ? "#f0c890" : H[0]) : rr === 26 ? (sh ? cpMix(H[2], "#000000", .3) : H[2]) : (q % 16 < 2 ? B[1] : sh ? H[2] : lit ? H[0] : H[1])); } }
+    cpBlob(cx, cy, 8.5, 8.5, function (dx, dy) { var d = dx * dx + dy * dy; return d > .82 ? P.ol : dx + dy < -.5 ? "#fff4c0" : dx + dy < -.1 ? B[0] : dx + dy < .5 ? B[1] : B[2]; }); cpBlob(cx, cy, 3, 3, function (dx, dy) { return dx + dy < 0 ? B[1] : B[3]; });
+  }
   var _cpFrame0 = cpFrame; cpFrame = function () { return CP_BV ? cpFrameV(CP_BV) : _cpFrame0(); };
   var _cpBridge0 = cpBridge;
   cpBridge = function (t) {
@@ -17046,6 +17165,7 @@ window.__EXTRAS = true;
         mR(cpc, qx, qy, 1, 1, rr === 16 || rr === 20 ? P.ol : rr === 17 ? H[0] : rr === 19 ? H[2] : (q % 12 < 2 ? B[1] : H[1])); } }
     cpBlob(cx, cy, 6, 6, function (dx, dy) { var d = dx * dx + dy * dy; return d > .8 ? P.ol : dx + dy < -.3 ? B[0] : dx + dy < .4 ? B[1] : B[2]; }); cpBlob(cx, cy, 2, 2, function () { return B[3]; });
   };
+  _cpBridgeV = cpBridge; cpBridge = cpBridge8;
   function cpDraw(t) {
     cpRaf = cp && (cp.anim || cp.glass || cpSky() === "storm" && !cp.intro && !cp.done) ? requestAnimationFrame(cpDraw) : 0;
     if (!cp) return;
@@ -17139,9 +17259,10 @@ window.__EXTRAS = true;
   var cpRingD = null;
   cpCv.addEventListener("pointermove", function (e) { if (cpRingD && cp && cp.glass) { var pr = cpPt(e), an = Math.atan2(pr[1] - 64, pr[0] - 114), da = an - cpRingD.a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; cpRingD.a0 = an;
       var nf = Math.max(3, Math.min(70, cp.glass.foc + da * 9)); if (Math.floor(nf / 2) !== Math.floor(cp.glass.foc / 2)) beep([[700 + nf * 4, .01]]); cp.glass.foc = nf; return; }
-    if (cpPan && cp && cp.glass) { var pq = cpPt(e); cp.glass.yaw = Math.max(-1.5, Math.min(1.5, cpPan.y0 - (pq[0] - cpPan.x) / 480)); return; } if (!cpWheel || !cp) return; var p = cpPt(e), a = Math.atan2(p[1] - 112, p[0] - 90), d = a - cpWheel.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+    if (cpPan && cp && cp.glass) { var pq = cpPt(e); cp.glass.yaw = Math.max(-1.5, Math.min(1.5, cpPan.y0 - (pq[0] - cpPan.x) / 480)); return; } if (cpTelD && cp) { cpTelSet(cpPt(e)); return; } if (!cpWheel || !cp) return; var p = cpPt(e), a = Math.atan2(p[1] - CP_WHC[1], p[0] - CP_WHC[0]), d = a - cpWheel.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
     cp.wheelA = Math.max(-1.1, Math.min(1.1, cpWheel.r0 * .45 + d)); var r = Math.max(-2, Math.min(2, Math.round(cp.wheelA / .45))); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); cpPanelDraw(); } cpRedraw(); });
-  function cpWheelUp() { cpPan = null; if (cpRingD && cp && cp.glass) cp.glass.ring = 0; cpRingD = null; if (!cpWheel || !cp) return; cpWheel = null; cp.wheelA = null; cpRedraw(); }
+  var cpTelD = 0; function cpTelSet(pp) { var ta = Math.atan2(pp[1] - CP_TELC[1], pp[0] - CP_TELC[0]) * 180 / Math.PI, best = 1, bd2 = 999; CP_TEL.forEach(function (a, i) { var dd = Math.abs(ta - a); if (dd < bd2) { bd2 = dd; best = i; } }); if (pp[1] > CP_TELC[1] + 3) best = pp[0] < CP_TELC[0] - 5 ? 0 : pp[0] > CP_TELC[0] + 5 ? 2 : 1; cpSetLvl(best); }
+  function cpWheelUp() { cpTelD = 0; cpPan = null; if (cpRingD && cp && cp.glass) cp.glass.ring = 0; cpRingD = null; if (!cpWheel || !cp) return; cpWheel = null; cp.wheelA = null; cpRedraw(); }
   cpCv.addEventListener("pointerup", cpWheelUp); cpCv.addEventListener("pointercancel", cpWheelUp);
   cpCv.addEventListener("pointerdown", function (e) {
     if (!cp || cp.anim || cp.intro || cp.done) return; e.preventDefault();
@@ -17149,8 +17270,9 @@ window.__EXTRAS = true;
     if (cp.glass) { var rd = Math.hypot(pp[0] - 114, pp[1] - 64);
       if (rd > 38 && rd < 62 && Math.hypot(pp[0] - 66, pp[1] - 64) > 40) { cpRingD = { a0: Math.atan2(pp[1] - 64, pp[0] - 114), f0: cp.glass.foc }; cp.glass.ring = 1; } else cpPan = { x: pp[0], y0: cp.glass.yaw };
       try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
-    if (Math.hypot(pp[0] - 90, pp[1] - 112) < 28) { cpWheel = { a0: Math.atan2(pp[1] - 112, pp[0] - 90), r0: cp.rud }; try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
-    if (Math.hypot(pp[0] - 30, pp[1] - 101) < 17) { var ta = Math.atan2(pp[1] - 101, pp[0] - 30) * 180 / Math.PI, best = 1, bd2 = 999; CP_TEL.forEach(function (a, i) { var dd = Math.abs(ta - a); if (dd < bd2) { bd2 = dd; best = i; } }); if (pp[1] > 104) best = pp[0] < 26 ? 0 : pp[0] > 34 ? 2 : 1; cpSetLvl(best); return; }
+    if (Math.hypot(pp[0] - CP_TELC[0], pp[1] - CP_TELC[1]) < CP_TELR + 8) { cpTelD = 1; cpTelSet(pp); try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
+    if (Math.hypot(pp[0] - CP_WHC[0], pp[1] - CP_WHC[1]) < 42) { cpWheel = { a0: Math.atan2(pp[1] - CP_WHC[1], pp[0] - CP_WHC[0]), r0: cp.rud }; try { cpCv.setPointerCapture(e.pointerId); } catch (er) { } return; }
+    if (false) { var ta = Math.atan2(pp[1] - 101, pp[0] - 30) * 180 / Math.PI, best = 1, bd2 = 999; CP_TEL.forEach(function (a, i) { var dd = Math.abs(ta - a); if (dd < bd2) { bd2 = dd; best = i; } }); if (pp[1] > 104) best = pp[0] < 26 ? 0 : pp[0] > 34 ? 2 : 1; cpSetLvl(best); return; }
     if (pp[0] > 160 && pp[1] > 84 && pp[1] < 114) { cp.wh = !cp.wh; if (cp.wh) dzWhistle(.8); else beep([[300, .03]]); cpPanelDraw(); cpRedraw(); return; }
     var x = pp[0], y = pp[1], best2 = null, bd = 99;
     cp.O.forEach(function (o) { if (o.hid || o.seen || o.k === "quay" || o.k === "pier") return; if (o.so || o.leg !== cp.leg) return; var q = cpWP(o), p = cpProj(q[0], q[1]); if (!p || p.f > 70 || !cpHidden(o, p.f)) return; if (o.ani && p.f < 18) return; var d = Math.hypot(p.x - x, (p.y - 5 - y) * 1.4); if (d < bd) { bd = d; best2 = o; } });
