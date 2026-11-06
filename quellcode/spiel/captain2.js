@@ -485,7 +485,7 @@
   // ---- the captain himself: our own hamster (the game's sprites, one art pixel = one pixel) with a captain's cap;
   //      seen from behind at the wheel, walking on two legs to the telegraph and to the whistle ----
   var kpHm = { x: 90, tx: 90, act: "home", arr: 0, lt: 0, dir: 1 }, kpHI = null;
-  function kpHamTo(where) { kpHm.tx = where === "tel" ? 70 : where === "wh" ? 146 : 90; kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
+  function kpHamTo(where) { kpHm.tx = where === "tel" ? 74 : where === "wh" ? 142 : 90; kpHm.act = where; kpHm.arr = 0; if (kp) kpKick(); }
   function kpHamBusy() { return kpHm.x !== 90 || kpHm.tx !== 90 || kpHm.arr; }
   function kpCap(g, side) {   // the cap drawn on top of a sprite canvas (the sprite sits 3 rows down)
     var O = "#2a1a10", W = "#f6f2ea", L = "#ffffff", Sh = "#d6d0c4", B = "#1e1a24", Bh = "#3e3848", Gd = "#e8c040", P = function (x, y, w, c) { g.fillStyle = c; g.fillRect(x, y + 3, w, 1); };
@@ -499,9 +499,9 @@
   }
   var KP_HAMX = /*KPHAM*/;
   function kpHamLoad() { kpHI = {}; var A0 = Object.assign({}, HAM.art, KP_HAMX.art), Z0 = Object.assign({}, HAM.size, KP_HAMX.size);
-    ["back0", "bwalk0", "bwalk1", "bwalk2", "bwalk3", "stand0", "stand1"].forEach(function (k) { var w = Z0[k][0], h = Z0[k][1], im = new Image();
+    ["back0", "back1"].forEach(function (k) { var w = Z0[k][0], h = Z0[k][1], im = new Image();
       im.onload = function () { [1, -1].forEach(function (dir) { var c = document.createElement("canvas"); c.width = w; c.height = h + 3; var g = c.getContext("2d"); g.imageSmoothingEnabled = false;
-          var c0 = document.createElement("canvas"); c0.width = w; c0.height = h + 3; var g0 = c0.getContext("2d"); g0.drawImage(im, 0, 3); kpCap(g0, k !== "back0");
+          var c0 = document.createElement("canvas"); c0.width = w; c0.height = h + 3; var g0 = c0.getContext("2d"); g0.drawImage(im, 0, 3); kpCap(g0, false);
           if (dir < 0) { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(c0, 0, 0); kpHI[k + (dir < 0 ? "L" : "")] = c; }); if (kp) kpRedraw(); };
       im.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">' + A0[k] + '</svg>'); }); }
   function kpHamDraw(t) {
@@ -509,8 +509,8 @@
     if (walk) { kpHm.x += Math.sign(d) * Math.min(Math.abs(d), dt * .09); kpHm.dir = d > 0 ? 1 : -1; }
     else { kpHm.x = kpHm.tx; if (kpHm.act !== "home" && !kpHm.arr) kpHm.arr = t; if (kpHm.arr && t - kpHm.arr > 800) { kpHm.arr = 0; kpHm.act = "home"; kpHm.tx = 90; } }
     var home = kpHm.act === "home" && !walk, hop = kpHm.arr && t - kpHm.arr < 400 ? Math.round(Math.sin((t - kpHm.arr) / 400 * Math.PI) * 3) : 0, key;
-    if (home) key = "back0"; else if (walk) key = "bwalk" + (Math.floor(t / 120) % 4) + (kpHm.dir < 0 ? "L" : ""); else key = (hop ? "stand1" : "stand0") + (kpHm.act === "tel" ? "L" : "");
-    var im = kpHI[key]; if (im) { var lean = home ? Math.round(cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0, x = Math.round(kpHm.x - im.width / 2) + lean, y = (home ? 140 : 137) - im.height - hop; cpc.drawImage(im, x, y); }
+    var bob = walk ? Math.floor(t / 130) % 2 : 0; key = walk && bob ? "back1" : "back0";   // always seen from behind, a little waddle when he walks
+    var im = kpHI[key]; if (im) { var lean = home ? Math.round(cp.wheelA != null ? cp.wheelA * 2 : cp.rud * 1.5) : 0, x = Math.round(kpHm.x - im.width / 2) + lean, y = 140 - im.height - hop - bob; cpc.drawImage(im, x, y); }
     if (kpHamBusy()) kpKick();
   }
   // ---- panel and cards ----
