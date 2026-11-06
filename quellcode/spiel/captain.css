@@ -36,3 +36,9 @@
 .cap-glb:disabled { opacity: .5; }
 .cap-glrow span { font-size: .72rem; font-weight: 800; color: #8a5a2a; }
 .cap-foc { flex: 1; min-width: 0; accent-color: #e8650c; height: 28px; }
+.cap-msg { font-size: .92rem; line-height: 1.32; }
+.cap-order { display: flex; gap: 6px; margin: -2px 0 8px; flex-wrap: wrap; }
+.cap-order .ch { font-weight: 900; font-size: .95rem; padding: 3px 9px 4px; color: #3a2414; background: #fff8ec; box-shadow: inset 0 0 0 2px #3a2414; letter-spacing: .02em; }
+.cap-order .ch.l0 { background: #f6c0b8; } .cap-order .ch.l1 { background: #f8e0a0; } .cap-order .ch.l2 { background: #c8e8b8; }
+.cap-order .ch.ok { box-shadow: inset 0 0 0 2px #2e6a26, inset 0 -3px 0 2px #4a9a3a; }
+.cap-order .ch.ok::after { content: " ✓"; color: #2e6a26; }

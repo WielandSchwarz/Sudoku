@@ -1781,6 +1781,12 @@ body.dz-on .dz-panel { display: block; }
 .cap-glb:disabled { opacity: .5; }
 .cap-glrow span { font-size: .72rem; font-weight: 800; color: #8a5a2a; }
 .cap-foc { flex: 1; min-width: 0; accent-color: #e8650c; height: 28px; }
+.cap-msg { font-size: .92rem; line-height: 1.32; }
+.cap-order { display: flex; gap: 6px; margin: -2px 0 8px; flex-wrap: wrap; }
+.cap-order .ch { font-weight: 900; font-size: .95rem; padding: 3px 9px 4px; color: #3a2414; background: #fff8ec; box-shadow: inset 0 0 0 2px #3a2414; letter-spacing: .02em; }
+.cap-order .ch.l0 { background: #f6c0b8; } .cap-order .ch.l1 { background: #f8e0a0; } .cap-order .ch.l2 { background: #c8e8b8; }
+.cap-order .ch.ok { box-shadow: inset 0 0 0 2px #2e6a26, inset 0 -3px 0 2px #4a9a3a; }
+.cap-order .ch.ok::after { content: " ✓"; color: #2e6a26; }
 /* the wide living room: 360 wide, a camera slides it */
 #scene.wide-room.cam-on > .fx { margin-left: calc(var(--camp, 0%) * -1); }
 #scene.wide-room #room > .wallpaper, #scene.wide-room #room > .floor, #scene.wide-room #room > .baseboard { right: -100%; }
@@ -16061,8 +16067,8 @@ window.__EXTRAS = true;
       ob("ship", 0, 0, { sw: { px: -7.4, py: 28 }, hard: 1, ropes: 1, sqAll: 1, r: 3.2 }); ob("tug", 12, 22, { so: 1, a: -1.3, sq: [[.3, .8, 15.5], [1, -3.6, 15]] }); B.push({ k: "land", b0: .3, b1: 1.3 }); }
     else if (k === "solent") { gates(-1); B.push({ k: "land", b0: .25, b1: 1.3 }, { k: "land", b0: -1.5, b1: -.7 }); }
     else if (k === "cherAus") { gates(1); B.push({ k: "land", b0: -1.4, b1: -.5 }, { k: "town", b: -.9 }); }
-    else if (k === "queAus") { gates(-1); ob("tower", -10, 30); B.push({ k: "land", b0: -1.6, b1: -.75 }); }
-    else if (k === "liberty") { gates(1); ob("statue", 17, 50); B.push({ k: "ny", b: -.25, w: 50 }); }
+    else if (k === "queAus") { gates(-1); var lp0 = cpPath(-1, 21); ob("tower", lp0[0] - Math.cos(lp0[2]) * 12, lp0[1] + Math.sin(lp0[2]) * 12); B.push({ k: "land", b0: -1.6, b1: -.75 }); }
+    else if (k === "liberty") { gates(1); ob("statue", 30, 96); B.push({ k: "ny", b: -.25, w: 50 }); }
     else if (k === "lotse") { ob("pilot", 1.8, 12, { hard: 1, sq: [[.55, 1.8, 12], [1, 10, 22]] }); ob("pax", .3, 9.4, { so: 1, c: 3, w: [0, .52], sq: [[.05, .3, 9.4], [.45, 1.7, 11.7], [1, 1.7, 11.7]] }); ob("light", -8, 34); B.push({ k: "land", b0: -1.6, b1: -1 }); }
     else if (k === "fischer") { [[-4.5, 18], [.5, 20], [-1.5, 27], [-8, 24]].forEach(function (p) { ob("boat", p[0] * side, p[1], { hard: 1, net: 1, a: (cpHash(p[0] * 10 | 0, 3) - .5) * 1.4 }); }); }
     else if (sc === "reede") { ob("tender", 2.2, 12, { x0: 8, mv: .5, hard: 1, sq: [[.55, 2.2, 12], [1, 11, 24]] }); ob("tender", -9, 22, { sq: [[.25, -2.4, 11.5], [.6, -2.4, 11.5], [1, -11, 24]] }); cpPax(ob, 2.2, 12, .5); cpPax(ob, -2.4, 11.5, .55); B.push({ k: "town", b: .05 }, { k: "land", b0: -.6, b1: .7 }); }
@@ -16130,7 +16136,7 @@ window.__EXTRAS = true;
   }
 
   // ---- drawing ----
-  var CP_HZ = 18;
+  var CP_HZ = 24;
   var CAMV = { yaw: 0, Z: 1, hz: CP_HZ }, CP_EYE = 3.375, CP_NEAR = -5.2;      // the eye on the bridge: 3.4 units over the water, 6 behind the ship's point
   function cpProj(ox, oy, oz) { var H = cp.h + CAMV.yaw, dx = ox - cp.px, dy = oy - cp.py, f = dx * Math.sin(H) + dy * Math.cos(H), sd = dx * Math.cos(H) - dy * Math.sin(H);
     if (f < .8) return null; var k = 10 / (f + 6) * CAMV.Z, fe = f / CAMV.Z; return { x: 90 + sd * k * 16, y: CAMV.hz + (CP_EYE - (oz || 0)) * k * 16, k: k, f: f, sd: sd, sz: fe < 9 ? 4 : fe < 16 ? 3 : fe < 30 ? 2 : 1 }; }
@@ -16159,6 +16165,14 @@ window.__EXTRAS = true;
     for (var j = y0; j <= y1; j++) for (var i = x0; i <= x1; i++) { var hv = cpHash(i * 7 + 3, j * 13 + 5); if (hv > .2) continue;
       var p = cpProj(i * g + cpHash(i, j) * g, j * g + cpHash(j, i) * g); if (!p || p.y > 135 || p.x < 0 || p.x > 180) continue;
       var big = p.f < 10 ? 2 : 1; if ((Math.floor(t / 700) + i + j) % 5 === 0 && big === 1) continue; mR(cpc, Math.round(p.x), Math.round(p.y), big + (p.f < 6 ? 1 : 0), 1, col); }
+  }
+  // waves on the water: crests that roll towards the ship, long and white-capped in a storm
+  function cpWaves(t, storm, sky) {
+    var st = storm > .3, step = st ? 3.2 : 5, sp = st ? 2.2 : .7, ph = (t / 1000 * sp) % step, col = sky === "night" ? ["#3a4a78", "#0e162e"] : st ? ["#e8f0f4", "#1e2e38"] : ["#d8eef8", "#2e6a9a"], j0 = Math.floor((cp.py - 4) / step), j1 = j0 + Math.round(60 / step);
+    for (var j = j1; j >= j0; j--) { var y0 = j * step - ph;
+      for (var x = cp.px - 34; x < cp.px + 34; x += .7) { var crest = Math.sin(x * .45 + j * 1.7 + t / (st ? 400 : 900)); if (crest < (st ? .3 : .7)) continue;
+        var yy = y0 + Math.sin(x * .3 + j) * .7, p = cpProj(x, yy, 0); if (!p || p.y > 135 || p.x < -4 || p.x > 184) continue; var X = Math.round(p.x), Y = Math.round(p.y), wp = Math.max(1, Math.ceil(.7 * p.k * 16)), th = st && p.f < 14 ? 2 : 1;
+        mR(cpc, X, Y - th, wp, th, crest > .8 && st ? "#ffffff" : col[0]); mR(cpc, X, Y, wp, 1, col[1]); if (st && p.f < 20) mR(cpc, X, Y + 1, wp, 1, col[1]); } }
   }
   function cpHzX(b) { return Math.round(90 + (b - cp.h - CAMV.yaw) * 160 * CAMV.Z); }
   function cpBack(o, sky) {                                              // things on the horizon: coasts, towns, the skyline, the statue
@@ -16816,6 +16830,131 @@ window.__EXTRAS = true;
       R(150, 84, 28, 2, W[3]); R(151, 86, 26, 9, "#e8dcb8"); R(151, 86, 26, 1, "#fff4d8"); R(155, 88, 10, 1, "#6a8aa8"); R(158, 89, 1, 4, "#6a8aa8"); R(168, 90, 4, 1, "#c8463c"); cap(122, 70); bell(6, 5); }
     cpFrames[v] = cv; return cv;
   }
+  // ---- interior variants on the Mahagoni theme: 5 fein schattiert, 6 mit Tiefe, 7 Rundbrücke ----
+  CP_BVP[5] = CP_BVP[4]; CP_BVP[6] = CP_BVP[4]; CP_BVP[7] = CP_BVP[4];
+  var _cpFrameV0 = cpFrameV;
+  cpFrameV = function (v) {
+    if (v < 5) return _cpFrameV0(v); if (cpFrames[v]) return cpFrames[v];
+    var base = _cpFrameV0(4), cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var g = cv.getContext("2d"), P = CP_BVP[4], W = P.w, B = P.br; g.drawImage(base, 0, 0);
+    var R = function (x, y, w, h, c) { g.fillStyle = c; g.fillRect(x, y, w, h); }, M = cpMix;
+    var bevel = function (x, y, w, h) { R(x, y, w, h, W[1]); for (var i = 0; i < 2; i++) { R(x + i, y + i, w - i * 2, 1, M(W[0], "#ffffff", .15 - i * .08)); R(x + i, y + i, 1, h - i * 2, M(W[0], W[1], i * .5)); R(x + i, y + h - 1 - i, w - i * 2, 1, M(W[3], W[2], i * .5)); R(x + w - 1 - i, y + i, 1, h - i * 2, M(W[3], W[2], i * .5)); }
+      R(x + 3, y + 3, w - 6, h - 6, M(W[1], W[2], .35)); for (var gx = x + 4; gx < x + w - 4; gx += 3) R(gx, y + 3, 1, h - 6, M(W[1], W[2], .55 + ((gx * 7) % 3) * .08)); R(x + 3, y + 3, w - 6, 1, M(W[2], W[3], .5)); R(x + 3, y + 3, 1, h - 6, M(W[2], W[3], .5)); };
+    var reveal = function (x, ww, y0, y1) { for (var i = 0; i < 3; i++) { R(x + i, y0, 1, y1 - y0, M(W[0], W[1], i * .35)); R(x + ww - 1 - i, y0, 1, y1 - y0, M(W[3], W[2], i * .35)); R(x, y0 + i, ww, 1, M(W[3], W[2], i * .3)); } R(x, y1 - 1, ww, 1, M(W[0], "#ffffff", .2)); };
+    if (v === 5) {                                                        // finely shaded: bevelled panels, window reveals, coffered ceiling, glowing sconces
+      for (var px = 1; px < 180; px += 30) { bevel(px, 87, 28, 21); bevel(px, 111, 28, 24); }
+      CP_WIN.forEach(function (w) { reveal(w[0], w[1], 5, 75); });
+      for (var bx = 0; bx < 180; bx += 15) { R(bx, 0, 15, 4, M(W[3], W[2], .3)); R(bx + 1, 1, 13, 2, M(W[2], W[1], .4)); R(bx + 1, 1, 13, 1, M(W[1], W[0], .5)); }
+      [[61, 18], [119, 18]].forEach(function (s) { R(s[0] - 2, s[1] + 6, 4, 2, B[2]); R(s[0] - 1, s[1], 2, 6, "#fff4b0"); R(s[0] - 1, s[1], 1, 6, "#ffffff"); R(s[0] - 2, s[1] - 1, 4, 1, B[1]); for (var r = 1; r < 6; r++) { g.fillStyle = "rgba(255,230,150," + (0.12 - r * .02) + ")"; g.fillRect(s[0] - 2 - r, s[1] - r, 4 + r * 2, 8 + r * 2); } });
+      R(0, 78, 180, 1, B[0]); R(0, 82, 180, 1, B[2]); }
+    if (v === 6) {                                                        // with depth: the console top recedes, beams and floor run to the horizon
+      var VX = 90, VY = -60;
+      for (var y = 78; y < 92; y++) { var f = (y - 78) / 14, inset = Math.round((1 - f) * 6); R(0, y, 180, 1, M(W[0], W[1], f * .8)); R(0, y, inset, 1, W[3]); R(180 - inset, y, inset, 1, W[3]); }
+      for (var lx = -40; lx <= 220; lx += 18) { for (var yy = 78; yy < 92; yy++) { var tt = (yy - VY) / (92 - VY), xx = Math.round(VX + (lx - VX) * tt); if (xx >= 0 && xx < 180) R(xx, yy, 1, 1, M(W[1], W[2], .5)); } }
+      R(0, 92, 180, 2, W[3]); R(0, 91, 180, 1, B[1]);
+      for (var px2 = 1; px2 < 180; px2 += 30) bevel(px2, 95, 28, 18);
+      for (var fy = 116; fy < 135; fy++) { var ff = (fy - 116) / 19; R(0, fy, 180, 1, M("#3a2214", "#5a3a22", ff)); for (var k = -6; k <= 6; k++) { var x0 = Math.round(90 + k * (14 + ff * 22)); R(x0, fy, 1, 1, "#2a160c"); } }
+      R(0, 115, 180, 1, B[2]);
+      for (var bx2 = -60; bx2 <= 240; bx2 += 26) { var x1 = Math.round(VX + (bx2 - VX) * .55); g.fillStyle = W[3]; g.beginPath(); g.moveTo(bx2, 0); g.lineTo(bx2 + 4, 0); g.lineTo(x1 + 2, 4); g.lineTo(x1, 4); g.fill(); }
+      CP_WIN.forEach(function (w) { reveal(w[0], w[1], 5, 75); }); }
+    if (v === 7) {                                                        // a rounded bridge front: the side windows turn away, a brass handrail runs in front
+      var cutRows = function (fn) { for (var y = 3; y < 78; y++) { var r = fn(y); if (r) g.clearRect(r[0], y, r[1] - r[0], 1); } };
+      [[0, 60], [120, 180]].forEach(function (s) { R(s[0], 3, s[1] - s[0], 75, W[2]); for (var x = s[0]; x < s[1]; x++) if ((x - s[0]) % 6 === 0) R(x, 3, 1, 75, W[3]); });
+      cutRows(function (y) { var a = 6 + Math.round((75 - y) * 0), t0 = 5 + (58 - 6) * 0; var top = function (x) { return 10 - (x - 6) / 52 * 5; }, bot = function (x) { return 70 + (x - 6) / 52 * 5; }; var xa = 6, xb = 58; for (; xa < xb && !(y >= top(xa) && y < bot(xa)); xa++); return xa < xb ? [xa, xb] : null; });
+      cutRows(function (y) { var top = function (x) { return 5 + (x - 122) / 52 * 5; }, bot = function (x) { return 75 - (x - 122) / 52 * 5; }; var xb = 174, xa = 122; for (; xb > xa && !(y >= top(xb - 1) && y < bot(xb - 1)); xb--); return xb > xa ? [xa, xb] : null; });
+      g.fillStyle = P.ol; for (var x2 = 4; x2 < 60; x2++) { var tY = Math.round(10 - (x2 - 6) / 52 * 5), bY = Math.round(70 + (x2 - 6) / 52 * 5); g.fillRect(x2, tY - 2, 1, 2); g.fillRect(x2, bY, 1, 2); g.fillStyle = B[1]; g.fillRect(x2, tY - 1, 1, 1); g.fillStyle = P.ol; }
+      for (var x3 = 120; x3 < 176; x3++) { var tY2 = Math.round(5 + (x3 - 122) / 52 * 5), bY2 = Math.round(75 - (x3 - 122) / 52 * 5); g.fillStyle = P.ol; g.fillRect(x3, tY2 - 2, 1, 2); g.fillRect(x3, bY2, 1, 2); g.fillStyle = B[1]; g.fillRect(x3, tY2 - 1, 1, 1); }
+      R(4, 9, 2, 64, P.ol); R(174, 9, 2, 64, P.ol); R(58, 3, 2, 74, P.ol); R(120, 3, 2, 74, P.ol);
+      R(0, 66, 180, 2, B[1]); R(0, 66, 180, 1, B[0]); R(0, 68, 180, 1, B[3]); [20, 60, 90, 120, 160].forEach(function (bx3) { R(bx3, 68, 2, 9, B[2]); R(bx3, 68, 1, 9, B[0]); });
+      for (var px3 = 1; px3 < 180; px3 += 30) { bevel(px3, 87, 28, 21); bevel(px3, 111, 28, 24); } }
+    R(24, 112, 12, 23, P.ol); R(25, 112, 10, 23, B[1]); R(25, 112, 3, 23, B[0]); R(32, 112, 2, 23, B[2]); R(22, 131, 16, 4, B[2]); R(22, 131, 16, 1, B[1]);   /* the pedestals stand in front */
+    R(138, 114, 18, 21, P.ol); R(139, 114, 16, 21, W[1]); R(139, 114, 3, 21, W[0]); R(153, 114, 2, 21, W[2]); R(136, 131, 22, 4, B[2]); R(136, 131, 22, 1, B[1]);
+    [133, 158].forEach(function (bx2) { g.fillStyle = P.ol; g.beginPath(); g.arc(bx2, 108, 4, 0, 7); g.fill(); R(bx2 - 3, 106, 6, 5, "#3a5a3a"); R(bx2 - 2, 106, 2, 2, "#5a8a5a"); });
+    R(150, 84, 28, 2, W[3]); R(151, 86, 26, 9, "#e8dcb8"); R(151, 86, 26, 1, "#fff4d8"); R(155, 88, 10, 1, "#6a8aa8"); R(158, 89, 1, 4, "#6a8aa8"); R(168, 90, 4, 1, "#c8463c");
+    cpFrames[v] = cv; return cv;
+  };
+  // ===== polish: smoother shading, an iceberg of facets, round logs, a 2.5D skyline, the Freiheitshamsterin, a detailed foredeck =====
+  var cpMixC = {};
+  function cpMix(a, b, t) { var k = a + b + t; if (cpMixC[k]) return cpMixC[k]; var pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16), r = Math.round(((pa >> 16) & 255) * (1 - t) + ((pb >> 16) & 255) * t), g = Math.round(((pa >> 8) & 255) * (1 - t) + ((pb >> 8) & 255) * t), bl = Math.round((pa & 255) * (1 - t) + (pb & 255) * t);
+    return (cpMixC[k] = "#" + ((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1)); }
+  cpShade = function (n, C) { if (n[2] > .7) return C[0]; var d = n[0] * .55 - n[1] * .45 + n[2] * .3, q = Math.max(0, Math.min(4, Math.round((d + .75) / 1.5 * 4))); return cpMix(C[2], C[1], q / 4); };   /* five steps from shade to light */
+  var CP_ICE = ["#4a7a9a", "#7aa8c8", "#a8cce0", "#d4eaf6", "#eef8ff", "#ffffff"];
+  function cpIceTone(n) { var d = n[0] * .5 - n[1] * .4 + n[2] * .75; return CP_ICE[Math.max(0, Math.min(5, Math.round((d + .3) / 1.4 * 5)))]; }
+  function cpTriMesh(tris, toneFn) { var E = cpEye(); tris = tris.filter(function (q) { var a = q[0], b = q[1], c = q[2], ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2]; var n = [uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx], L = Math.hypot(n[0], n[1], n[2]) || 1; q.n = [n[0] / L, n[1] / L, n[2] / L]; q.d = Math.hypot((a[0] + b[0] + c[0]) / 3 - E[0], (a[1] + b[1] + c[1]) / 3 - E[1], (a[2] + b[2] + c[2]) / 3 - E[2]); return cpSees(q, q.n); });
+    tris.sort(function (p, q) { return q.d - p.d; }).forEach(function (q) { cpPolyW(q, toneFn(q.n)); }); }
+  function cpIceberg(T, R0, H, sd, t) {                                  // a dome of facets with jagged peaks; triangles counter-clockwise seen from outside
+    var NR = 4, NS = 15, V = [];
+    for (var i = 0; i <= NR; i++) { V.push([]); for (var j = 0; j < NS; j++) { var th = j / NS * 6.283, fr = i / NR, nz = cpHash(i * 31 + sd, j * 17 + sd), rr = R0 * fr * (.82 + .32 * cpHash(j + sd, 4)), zz = i === NR ? -.05 : H * Math.pow(1 - fr, .7) * (.5 + .9 * nz) * ((j + sd) % 6 === 2 && i <= 2 ? 1.6 : (j + sd) % 7 === 4 && i === 2 ? 1.4 : 1) * (i === 0 ? .9 : 1);
+        V[i].push(T.P(rr * Math.cos(th) + (i === 1 ? R0 * .12 * Math.cos(sd) : 0), rr * Math.sin(th), Math.max(-.05, zz))); } }
+    var tris = [];
+    for (var a = 0; a < NR; a++) for (var b = 0; b < NS; b++) { var b1 = (b + 1) % NS, p = V[a][b], q = V[a][b1], r = V[a + 1][b], s = V[a + 1][b1]; tris.push([p, s, q]); tris.push([p, r, s]); }
+    cpPolyW(V[NR].map(function (p) { return [p[0] + (p[0] - T.P(0, 0, 0)[0]) * .25, p[1] + (p[1] - T.P(0, 0, 0)[1]) * .25, .01]; }), "#6ab0c8");
+    cpTriMesh(tris, cpIceTone);
+    var ring = V[NR].map(function (p) { return [p[0], p[1], .06]; }); for (var k = 0; k < NS; k++) if ((k + Math.floor(t / 600)) % 3) cpLine3(ring[k], ring[(k + 1) % NS], "#ffffff");
+  }
+  function cpLogM(T, len, r, t) {                                         // a round log lying in the water, bark and a pale cut end
+    var N = 8, Q = [], B = ["#8a5a32", "#6a4428", "#4a2e1a"];
+    for (var i = 0; i < N; i++) { var a0 = i / N * 6.283, a1 = (i + 1) / N * 6.283, P = function (an, v) { return T.P(Math.cos(an) * r, v, .05 + Math.sin(an) * r); }; Q.push([P(a0, -len / 2), P(a1, -len / 2), P(a1, len / 2), P(a0, len / 2)]); }
+    var E = cpEye(); Q.map(function (q, i) { var an = (i + .5) / N * 6.283, n = T.N(Math.cos(an), 0, Math.sin(an)); return { q: q, n: n }; }).filter(function (o) { return cpSees(o.q, o.n); }).forEach(function (o) { cpPolyW(o.q, cpShade(o.n, ["#b8844c", "#a87448", "#5a3a22"])); cpLine3(o.q[0], o.q[3], "#4a2e1a"); });
+    [-1, 1].forEach(function (sg) { var cap = []; for (var i = 0; i < N; i++) { var an = i / N * 6.283; cap.push(T.P(Math.cos(an) * r, sg * len / 2, .05 + Math.sin(an) * r)); } if (cpSees(cap, T.N(0, sg))) { cpPolyW(cap, "#e0c088"); var c = cpProj.apply(null, T.P(0, sg * len / 2, .05)); if (c) mR(cpc, Math.round(c.x), Math.round(c.y), 1, 1, "#a8844c"); } });
+    var st = T.P(r * .6, len * .15, .25); cpLine3(st, [st[0] + .3, st[1] + .4, .55], "#6a4428");
+  }
+  // the Freiheitshamsterin: a hamster in a long copper-green robe, torch high, on her star fort and pedestal
+  function cpStatueH(o, w, a, t) {
+    var T = cpLoc(w[0], w[1], a), G = ["#8ad0b8", "#7ac0a8", "#4a8a74", "#1e3a30"], ST = ["#e8dcc0", "#e0d4b8", "#a89c80", "#4a4434"], ring = function (r, n) { return cpRing(r, n || 14); };
+    cpPrism(w[0], w[1], a, cpBlobPoly(7.5, 14, 3), -.2, .9, ["#7a9a6a", "#8aaa7a", "#4a6a3a", "#1e2a14"]);
+    var star = []; for (var i = 0; i < 22; i++) { var rr = i % 2 ? 2.9 : 4.2; star.push([Math.cos(i / 22 * 6.283) * rr, Math.sin(i / 22 * 6.283) * rr]); } cpPrism(w[0], w[1], a, star, .9, 2.0, CP_STONE);
+    cpBox3(w[0], w[1], a, 2.8, 2.8, 2.0, 5.6, ST); cpBox3(w[0], w[1], a, 3.2, 3.2, 5.6, 6.0, ST); cpBox3(w[0], w[1], a, 2.4, 2.4, 6.0, 6.9, ST);
+    [[1.25, 6.9, 7.6], [1.1, 7.6, 8.6], [.95, 8.6, 9.6], [.85, 9.6, 10.4], [.95, 10.4, 10.9]].forEach(function (L) { cpPrism(w[0], w[1], a, ring(L[0]), L[1], L[2], G); });   /* the robe in folds */
+    [[.7, 10.9, 11.3], [.95, 11.3, 11.9], [1.0, 11.9, 12.5], [.85, 12.5, 13.0], [.5, 13.0, 13.3]].forEach(function (L) { cpPrism(w[0], w[1], a, ring(L[0]), L[1], L[2], G); });     /* a round hamster head */
+    [[-.6, .1], [.6, .1]].forEach(function (e) { var c = T.P(e[0], e[1], 0); cpPrism(c[0], c[1], a, ring(.3, 8), 13.0, 13.6, G); });                                              /* ears */
+    for (var sp = 0; sp < 7; sp++) { var an = Math.PI + sp / 6 * Math.PI; cpLine3(T.P(Math.cos(an) * .7, Math.sin(an) * .5 - .2, 12.9), T.P(Math.cos(an) * 1.4, Math.sin(an) * 1.0 - .2, 13.9), "#4a8a74"); }
+    var ep = cpProj.apply(null, T.P(.35, -.95, 12.3)), ep2 = cpProj.apply(null, T.P(-.35, -.95, 12.3)); [ep, ep2].forEach(function (e) { if (e && e.k * 16 > 1.2) mR(cpc, Math.round(e.x), Math.round(e.y), 1, 1, "#1e3a30"); });
+    var sh = T.P(1.0, 0, 0); cpPrism(sh[0], sh[1], a, ring(.32, 8), 10.4, 12.6, G); cpPrism(sh[0] + .05, sh[1], a, ring(.28, 8), 12.6, 14.6, G);
+    var tc = T.P(1.05, 0, 0); cpPrism(tc[0], tc[1], a, ring(.42, 10), 14.6, 14.9, ["#e8c050", "#f0d070", "#b08a2a", "#4a3410"]);
+    var fl = cpProj.apply(null, T.P(1.05, 0, 15.2)); if (fl) { var fk = Math.floor(t / 150) % 3, s = Math.max(2, Math.round(fl.k * 16 * .5)); mR(cpc, Math.round(fl.x) - s, Math.round(fl.y) - s * 2 + fk % 2, s * 2, s * 2, "#ffb030"); mR(cpc, Math.round(fl.x) - Math.ceil(s / 2), Math.round(fl.y) - s * 3 + fk % 2, s, s * 2, "#ffd34a"); mR(cpc, Math.round(fl.x), Math.round(fl.y) - s * 3, 1, s, "#fff4b0"); }
+    var tb = T.P(-.95, .35, 0); cpBox3(tb[0], tb[1], a + .3, .4, 1.0, 8.8, 10.4, G);
+  }
+  var _cpKind3 = cpKind; cpKind = function (o, w, a, t, k) { var T = cpLoc(w[0], w[1], a);
+    if (k === "ice") return cpIceberg(T, o.big ? 3.9 : 2.0, o.big ? 7.5 : 3.2, Math.round(o.x * 13 + o.y * 7) & 255, t);
+    if (k === "wood") return cpLogM(cpLoc(w[0], w[1], a + .8), 2.6, .22, t);
+    if (k === "statue") return cpStatueH(o, w, a, t);
+    return _cpKind3(o, w, a, t, k); };
+  // ---- the skyline in 2.5D: each tower with a lit front, a shaded side, setbacks, spires, domes and water tanks ----
+  var _cpBack1 = cpBack;
+  cpBack = function (o, sky) {
+    if (o.k !== "ny") return _cpBack1(o, sky);
+    var dark = sky === "night", hz = CAMV.hz, X = cpHzX(o.b), wd = o.w, PAL = dark ? [["#3a4060", "#262c44"], ["#343a58", "#20263c"]] : [["#d8ccb4", "#a89c88"], ["#c0c4cc", "#8a909c"], ["#e0d0b0", "#b0a080"], ["#b8a898", "#887868"]];
+    var B = []; for (var j = -wd / 2; j < wd / 2; j += 4 + Math.floor(cpHash(j + 7, 2) * 3)) B.push({ x: j, w: 3 + Math.floor(cpHash(j, 3) * 3), h: 4 + Math.floor(Math.pow(cpHash(j + 99, 5), 1.6) * (wd > 30 ? 26 : 12)), k: Math.floor(cpHash(j, 9) * 5) });
+    B.sort(function (p, q) { return q.h - p.h; }).reverse();
+    B.sort(function (p, q) { return cpHash(p.x, 1) - cpHash(q.x, 1); }).forEach(function (b) { var x = X + b.x, P = PAL[(b.x + 99) % PAL.length], top = hz - b.h, sw = Math.max(1, Math.round(b.w * .4));
+      mR(cpc, x - 1, top - 1, b.w + sw + 2, b.h + 1, "#2a2a30"); mR(cpc, x, top, b.w, b.h, P[0]); mR(cpc, x + b.w, top + 1, sw, b.h - 1, P[1]); mR(cpc, x, top, b.w, 1, dark ? "#4a5070" : "#f0e8d8");
+      for (var wy = 2; wy < b.h - 1; wy += 2) for (var wx = 1; wx < b.w; wx += 2) if (cpHash(b.x * 7 + wx, wy) < (dark ? .5 : .8)) mR(cpc, x + wx, top + wy, 1, 1, dark ? (cpHash(wx, wy + b.x) < .7 ? "#ffd34a" : "#ffb030") : "#5a6a7a");
+      if (b.k === 0 && b.h > 10) { mR(cpc, x, top - 3, b.w - 1, 3, P[0]); mR(cpc, x + b.w - 1, top - 3, 1, 3, P[1]); mR(cpc, x + 1, top - 6, b.w - 3 > 0 ? b.w - 3 : 1, 3, P[0]); mR(cpc, x + Math.floor(b.w / 2), top - 9, 1, 3, "#2a2a30"); }
+      else if (b.k === 1 && b.h > 8) { mR(cpc, x, top - 2, b.w, 2, "#7a9a8a"); mR(cpc, x + 1, top - 3, Math.max(1, b.w - 2), 1, "#7a9a8a"); mR(cpc, x + Math.floor(b.w / 2), top - 5, 1, 2, "#2a2a30"); }
+      else if (b.k === 2) { mR(cpc, x + 1, top - 2, 2, 2, "#6a4a32"); mR(cpc, x + 1, top - 3, 2, 1, "#4a3a2a"); } });
+    mR(cpc, X - wd / 2 - 6, hz - 1, wd + 12, 1, "#4a4a44"); for (var px = -wd / 2 - 4; px < wd / 2 + 4; px += 7) { mR(cpc, X + px, hz - 2, 3, 1, "#3a3a3a"); }
+  };
+  // ---- the foredeck in more detail: shaded planks, thick bulwarks with stanchions, anchor chains, ventilators, a bell, the hatch under its tarpaulin ----
+  cpDeck = function (t) {
+    var Wd = function (p, z) { return shipW(p[0], p[1], z); }, zd = 1.0, zb = 1.45;
+    cpPolyW(CP_DECK.map(function (p) { return Wd(p, zd); }), "#c8945a");
+    for (var sx = -2.4, k = 0; sx <= 2.4; sx += .3, k++) { if (k % 3 === 1) cpPolyW([Wd([sx, -5.6], zd), Wd([sx + .3, -5.6], zd), Wd([sx + .3, 2.4 - Math.abs(sx + .3) * .95], zd), Wd([sx, 2.4 - Math.abs(sx) * .95], zd)], "#d0a066"); cpLine3(Wd([sx, -5.6], zd), Wd([sx, 2.4 - Math.abs(sx) * .95], zd), "#a8743e"); }
+    for (var i = 1; i < CP_DECK.length; i++) { var p = CP_DECK[i], q = CP_DECK[(i + 1) % CP_DECK.length], cx = (p[0] + q[0]) / 2, cy = (p[1] + q[1]) / 2, ix = -cx * .12, iy = -(cy + 1.5) * .06;   /* a shadow strip along the bulwark */
+      cpPolyW([Wd(p, zd + .005), Wd(q, zd + .005), Wd([q[0] - q[0] * .1, q[1] - (q[1] + 1.5) * .05], zd + .005), Wd([p[0] - p[0] * .1, p[1] - (p[1] + 1.5) * .05], zd + .005)], "#9a6a3a"); }
+    var hc = shipW(0, -3.6); cpBox3(hc[0], hc[1], cp.h, 2.3, 1.6, zd, zd + .32, ["#5a6a5a", "#6a7a6a", "#3a4a3a", "#1e2a1e"]); for (var bt = -.9; bt <= .9; bt += .45) cpLine3(shipW(bt, -4.4, zd + .33), shipW(bt, -2.8, zd + .33), "#3a4a3a");
+    [-.8, .8].forEach(function (s2) { var d = shipW(s2, .1); cpPrism(d[0], d[1], cp.h, cpRing(.3, 10), zd, zd + .45, ["#5a5a62", "#6a6a72", "#2e2e34", "#141418"]); cpPrism(d[0], d[1], cp.h, cpRing(.36, 10), zd + .45, zd + .52, CP_IRON);
+      var a0 = shipW(s2, .4, zd + .05), a1 = shipW(s2 * 1.35, 1.25, zd + .05); for (var c = 0; c <= 6; c++) { var u = c / 6, cp3 = [a0[0] + (a1[0] - a0[0]) * u, a0[1] + (a1[1] - a0[1]) * u, zd + .05], pr = cpProj(cp3[0], cp3[1], cp3[2]); if (pr) mR(cpc, Math.round(pr.x), Math.round(pr.y) - (c % 2), c % 2 ? 1 : 2, 1, "#3a3a40"); } });
+    [[-1.9, -4.3], [1.9, -4.3]].forEach(function (v) { var b = shipW(v[0], v[1]); cpPrism(b[0], b[1], cp.h, cpRing(.18, 8), zd, zd + .8, ["#f0e8d8", "#f8f0e0", "#c8c0b0", "#5a5040"]); var hd = shipW(v[0], v[1] + .12); cpPrism(hd[0], hd[1], cp.h, cpRing(.3, 8), zd + .8, zd + 1.1, ["#d8463c", "#e8584a", "#9a2a22", "#3a1008"]); });   /* ventilators with red cowls */
+    [[-1.2, -.8], [1.2, -.8], [-1.0, 1.0], [1.0, 1.0]].forEach(function (v) { var b = shipW(v[0], v[1]); cpPrism(b[0], b[1], cp.h, cpRing(.11, 8), zd, zd + .25, CP_IRON); });
+    for (var j = 1; j < CP_DECK.length; j++) { var P0 = CP_DECK[j], Q0 = CP_DECK[(j + 1) % CP_DECK.length], L = Math.hypot(Q0[0] - P0[0], Q0[1] - P0[1]), n = Math.max(1, Math.round(L / .5));
+      cpPolyW([Wd(P0, zd), Wd(Q0, zd), Wd(Q0, zb), Wd(P0, zb)], "#e8e0d0");
+      for (var s3 = 0; s3 <= n; s3++) { var u2 = s3 / n, sp = [P0[0] + (Q0[0] - P0[0]) * u2, P0[1] + (Q0[1] - P0[1]) * u2]; cpLine3(Wd(sp, zd + .02), Wd(sp, zb), "#c8c0b0"); }
+      var ox = (P0[0] + Q0[0]) * -.04, oy = -.06; cpPolyW([Wd(P0, zb), Wd(Q0, zb), Wd([Q0[0] + ox, Q0[1] + oy], zb + .02), Wd([P0[0] + ox, P0[1] + oy], zb + .02)], "#a8743e"); cpLine3(Wd(P0, zb), Wd(Q0, zb), "#6a4428"); cpLine3(Wd(P0, zd + .02), Wd(Q0, zd + .02), "#8a7a64"); }
+    var bl = shipW(0, -1.0); cpLine3(shipW(-.25, -1.0, zd), shipW(-.25, -1.0, zd + .7), "#5a3a22"); cpLine3(shipW(.25, -1.0, zd), shipW(.25, -1.0, zd + .7), "#5a3a22"); cpLine3(shipW(-.25, -1.0, zd + .7), shipW(.25, -1.0, zd + .7), "#5a3a22");
+    var bp = cpProj(bl[0], bl[1], zd + .62); if (bp) { var r = Math.max(2, Math.round(bp.k * 16 * .14)); cpBlob(bp.x, bp.y + r, r + .6, r + .6, function (dx, dy) { return dy < -.6 ? null : "#2a1a10"; }); cpBlob(bp.x, bp.y + r, r, r, function (dx, dy) { return dy < -.6 ? null : dx < -.2 ? "#f6dc84" : dx < .4 ? "#d8aa48" : "#a87a2a"; }); }
+    var top = shipW(0, 2.2, 2.5); cpLine3(shipW(0, 2.2, zb), top, "#3a2414"); var fp = cpProj(top[0], top[1], top[2]);
+    if (fp) { var fx = Math.round(fp.x), fy = Math.round(fp.y), fw = Math.floor(t / 250) % 2; mR(cpc, fx + 1, fy, 5 - fw, 2, "#d8463c"); mR(cpc, fx + 1, fy + 2, 5, 2, "#f8f4ec"); mR(cpc, fx + 1, fy + 4, 5 - fw, 1, "#d8463c"); }
+  };
   var _cpFrame0 = cpFrame; cpFrame = function () { return CP_BV ? cpFrameV(CP_BV) : _cpFrame0(); };
   var _cpBridge0 = cpBridge;
   cpBridge = function (t) {
@@ -16844,20 +16983,22 @@ window.__EXTRAS = true;
     cpBlob(cx, cy, 6, 6, function (dx, dy) { var d = dx * dx + dy * dy; return d > .8 ? P.ol : dx + dy < -.3 ? B[0] : dx + dy < .4 ? B[1] : B[2]; }); cpBlob(cx, cy, 2, 2, function () { return B[3]; });
   };
   function cpDraw(t) {
-    cpRaf = cp && (cp.anim || cp.glass) ? requestAnimationFrame(cpDraw) : 0;
+    cpRaf = cp && (cp.anim || cp.glass || cpSky() === "storm" && !cp.intro && !cp.done) ? requestAnimationFrame(cpDraw) : 0;
     if (!cp) return;
     if (cp.glass) { cpDrawGlass(t); return; }
     try {
       var A0 = cp.anim, mixU = A0 && !A0.look ? (A0.seq ? 1 : A0.u || 0) : 0, sky2 = cpSky(cp.leg + 1), sky = cpSky(), sea = cpSeaPic(sky), sh = cp.shake > 0 || cp.ev ? Math.round(Math.sin(t / (cp.ev ? 90 : 30)) * (cp.ev && cp.shake <= 0 ? 1 : 2)) : 0, off = (((-cp.h * 160) % 180) + 180) % 180;
-      cpc.setTransform(1, 0, 0, 1, 0, sh); cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0);
+      var storm = (sky === "storm" ? 1 - mixU : 0) + (sky2 === "storm" && cp.leg + 1 < cp.route.length ? mixU : 0), pitch = Math.round((Math.sin(t / 650) * 3 + Math.sin(t / 1700) * 2) * storm + Math.sin(t / 1400) * .6);   // the bow rises and falls
+      cpc.setTransform(1, 0, 0, 1, 0, sh); cpc.fillStyle = CP_SEA[sky][0][0]; cpc.fillRect(0, 0, 180, 80); cpc.setTransform(1, 0, 0, 1, 0, sh + pitch);
+      cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0);
       if (sky2 !== sky && mixU > 0 && cp.leg + 1 < cp.route.length) { var sea2 = cpSeaPic(sky2); cpc.globalAlpha = Math.min(1, mixU * 1.3); cpc.drawImage(sea2, Math.round(off) - 180, 0); cpc.drawImage(sea2, Math.round(off), 0); cpc.globalAlpha = 1; }
       cp.B.forEach(function (o) { var fac = o.leg > cp.leg ? mixU : o.leg < cp.leg ? 1 - mixU : 1; if (fac <= 0) return;   // coasts rise over the horizon as they come, and sink behind
-        cpc.save(); cpc.beginPath(); cpc.rect(0, 0, 180, CP_HZ + 1); cpc.clip(); cpc.translate(0, Math.round((1 - fac) * 18)); cpBack(o, sky); cpc.restore(); });
-      cpSkyDraw(mixU > .5 && cp.leg + 1 < cp.route.length ? sky2 : sky, t); cpFoam(CP_SEA[sky][1][2], t); if (sky === "storm") cpFoam("#e8f0f4", t + 999);
+        cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpc.translate(0, Math.round((1 - fac) * 18)); cpBack(o, sky); cpc.restore(); });
+      cpSkyDraw(mixU > .5 && cp.leg + 1 < cp.route.length ? sky2 : sky, t); cpFoam(CP_SEA[sky][1][2], t); cpWaves(t, storm, sky);
       // the yellow line: the whole leg as it would be sailed now
       if (!cp.anim && !cp.intro) { var S = CP_DIST[cp.lvl], AN = cp.anc[cp.leg]; for (var i = 1; i <= 20; i++) { var a0 = cpPath(cp.rud, S * i / 20), a = cpW(AN, a0[0], a0[1]), p = cpProj(a[0], a[1]); if (p && p.y < 135) mR(cpc, Math.round(p.x) - (p.sz > 2 ? 2 : 1), Math.round(p.y), p.sz > 2 ? 4 : 2, 1, "#ffd34a"); }
         var e0 = cpPath(cp.rud, S), e = cpW(AN, e0[0], e0[1]), pe = cpProj(e[0], e[1]); if (pe) mR(cpc, Math.round(pe.x) - 2, Math.round(pe.y) - 1, 5, 3, cp.lvl ? "#ffd34a" : "#d8463c"); }
-      cpWorldDraw(t, false); cpGulls(t, sky); cpDeck(t); cpDeckIce(); cpRopes();
+      cpWorldDraw(t, false); cpGulls(t, sky); cpc.setTransform(1, 0, 0, 1, 0, sh); cpDeck(t); cpDeckIce(); cpRopes();
       var amt = function (k) { return (sky === k ? 1 - mixU : 0) + (sky2 === k ? mixU : 0) * (cp.leg + 1 < cp.route.length ? 1 : 0) + (sky === k && sky2 === k ? 0 : 0); };
       var fogA = sky === "fog" && sky2 === "fog" ? 1 : amt("fog"), nA = sky === "night" && sky2 === "night" ? 1 : amt("night"), stA = sky === "storm" && sky2 === "storm" ? 1 : amt("storm");
       if (fogA > .02) for (var fy = 0; fy < 80; fy++) { var al = (fy < CP_HZ ? .7 : Math.max(0, .75 - (fy - CP_HZ) / 75)) * fogA; if (al > 0) { cpc.fillStyle = "rgba(226,232,236," + al.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
@@ -16876,7 +17017,7 @@ window.__EXTRAS = true;
     var hit = cpSim(cp.rud, lvl), safe = cp.rud;
     if (hit && CP_STRUCT[hit.k]) { safe = 0; for (var rr of [0, -1, 1, -2, 2]) { var h2 = cpSim(rr, lvl); if (!h2 || !CP_STRUCT[h2.k]) { safe = rr; break; } } }
     var halt = hit && CP_STRUCT[hit.k] && !!cpSim(safe, lvl) && CP_STRUCT[cpSim(safe, lvl).k];
-    cp.anim = { lvl: lvl, rud: cp.rud, safe: safe, S: S, dur: lvl ? 3200 : 2300, hit: hit, u: 0, halt: halt, pre: cp.leg === 0 && !cp.castOff ? 1 : 0 };
+    cp.anim = { lvl: lvl, rud: cp.rud, safe: safe, S: S, dur: lvl ? 5200 : 3800, hit: hit, u: 0, halt: halt, pre: cp.leg === 0 && !cp.castOff ? 1 : 0 };
     if (cpLeg().k === "wale" && lvl === 2) cp.O.forEach(function (o) { if (o.leg === cp.leg && o.ani) o.scared = performance.now() + 900; });
     if (cp.leg + 1 < cp.route.length) { var A = cp.anc[cp.leg], E = halt ? cpPath(cp.rud, Math.max(0, cpDistU(lvl, S, hit.u) - .5)) : cpPath(safe, S), W = cpW(A, E[0], E[1]); cp.anc[cp.leg + 1] = { x: W[0], y: W[1], h: A.h + E[2] }; cp.info[cp.leg + 1] = null; cp.O = cp.O.filter(function (o) { return o.leg <= cp.leg; }); cp.B = cp.B.filter(function (b) { return b.leg <= cp.leg; }); cpBuild(cp.leg + 1); }
     if (cp.wh) { dzWhistle(cpLeg().k === "abfahrt" ? 2.2 : 1.4); }
@@ -16907,10 +17048,10 @@ window.__EXTRAS = true;
       if (/boat|pilot|tender|schooner/.test(hk)) { var sw = shipW(sd1 >= 0 ? 2.5 : -2.5, 3.5, 0); cpSwimmers(sw, hk === "tender" ? 3 : 2); }
       var ho = A.hit.j != null ? cp.O[A.hit.j] : cp.O.filter(function (o) { return o.leg === cp.leg && o.sw; })[0];
       if (ho && ho.sw) { ho.aK = cpSwA(ho); ho.kT = performance.now(); } else if (ho && !CP_STRUCT[hk]) { ho.kT = performance.now(); ho.kDir = sd1 >= 0 ? 1 : -1; }
-      A.crash = { t0: t, d: cp.d, rec: !!CP_STRUCT[hk], hold: 1000, dur: CP_STRUCT[hk] ? 2600 : hk === "ship" ? 2400 : 1200 }; return; }
+      A.crash = { t0: t, d: cp.d, rec: !!CP_STRUCT[hk], hold: 1300, dur: CP_STRUCT[hk] ? 3200 : hk === "ship" ? 3000 : 1800 }; return; }
     if (u >= 1) { cp.O.forEach(function (o) { if (o.leg === cp.leg && o.sw) o.aEnd = cpSwA(o); });
       var hasSq = (!A.hit && A.lvl === 0 && cp.O.some(function (o) { return o.leg === cp.leg && o.sq; })) || cp.O.some(function (o) { return o.leg === cp.leg && o.sqAll; });   // something to watch: boats come alongside, guests come aboard
-      if (hasSq) { A.seq = t + 250; A.seqV = 0; cp.O.forEach(function (o) { if (o.leg === cp.leg && o.sq) o.seqd = 1; }); } else A.hold = t + 350; }
+      if (hasSq) { A.seq = t + 250; A.seqV = 0; cp.O.forEach(function (o) { if (o.leg === cp.leg && o.sq) o.seqd = 1; }); } else A.hold = t + 900; }
   }
   function cpQuaySide() { var q = cp.O.filter(function (o) { return o.leg === cp.leg && o.k === "quay"; }).map(function (o) { return [Math.abs(o.x - cpRel(cp.anc[cp.leg].x, cp.anc[cp.leg].y, cp.anc[cp.leg].h, cp.px, cp.py)[1]), o.x]; }).sort(function (a, b) { return a[0] - b[0]; })[0]; return q && q[1] < 0 ? -1 : 1; }
   function cpNext() {
@@ -16932,7 +17073,7 @@ window.__EXTRAS = true;
   var cpWheel = null;
   var cpPan = null;
   cpCv.addEventListener("pointermove", function (e) { if (cpPan && cp && cp.glass) { var pq = cpPt(e); cp.glass.yaw = Math.max(-1.5, Math.min(1.5, cpPan.y0 - (pq[0] - cpPan.x) / 480)); return; } if (!cpWheel || !cp) return; var p = cpPt(e), a = Math.atan2(p[1] - 112, p[0] - 90), d = a - cpWheel.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
-    cp.wheelA = Math.max(-1.1, Math.min(1.1, cpWheel.r0 * .45 + d)); var r = Math.max(-2, Math.min(2, Math.round(cp.wheelA / .45))); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); } cpRedraw(); });
+    cp.wheelA = Math.max(-1.1, Math.min(1.1, cpWheel.r0 * .45 + d)); var r = Math.max(-2, Math.min(2, Math.round(cp.wheelA / .45))); if (r !== cp.rud) { cp.rud = r; beep([[300 + r * 40, .02]]); cpPanelDraw(); } cpRedraw(); });
   function cpWheelUp() { cpPan = null; if (!cpWheel || !cp) return; cpWheel = null; cp.wheelA = null; cpRedraw(); }
   cpCv.addEventListener("pointerup", cpWheelUp); cpCv.addEventListener("pointercancel", cpWheelUp);
   cpCv.addEventListener("pointerdown", function (e) {
@@ -16955,6 +17096,9 @@ window.__EXTRAS = true;
     var tx = cp.ev ? "Funkspruch: Ein Sturm zieht auf! Bei dem Seegang lieber langsamer." : (CP_TX[L.k] || L.i) + cp.extra;
     var h = '<div class="cap-top"><b>' + (cp.ev ? "Sturm!" : L.n) + '</b><span>Etappe ' + (cp.leg + 1) + '/' + n + '</span></div><div class="dz-plan cap-plan">' + strip + '</div>';
     h += '<p class="cap-msg">' + (cp.pre ? '<span class="dz-d">' + cp.pre + '</span> ' : "") + tx + '</p>';
+    if (!busy && !cp.intro && !cp.done) { var need = cpNeed(), oks = [-2, -1, 0, 1, 2].filter(function (r) { return !cpSim(r, need); }), rudTxt = oks.indexOf(0) >= 0 ? "↑ Kurs halten" : oks.length && oks.every(function (r) { return r < 0; }) ? "← nach links" : oks.length && oks.every(function (r) { return r > 0; }) ? "→ nach rechts" : "↔ ausweichen";
+      var okSp = cp.lvl === need, okR = !cpSim(cp.rud, cp.lvl), okW = !L.wh || cp.wh;
+      h += '<div class="cap-order"><span class="ch l' + need + (okSp ? " ok" : "") + '">' + ["STOPP", "HALBE", "VOLLE"][need] + '</span><span class="ch rd' + (okR ? " ok" : "") + '">' + rudTxt + '</span>' + (L.wh ? '<span class="ch wh' + (okW ? " ok" : "") + '">Pfeife</span>' : "") + '</div>'; }
     h += '<div class="cap-row2"><div class="cap-sp">' + ["Stopp", "Halbe", "Volle"].map(function (nm, l) { return '<button type="button" data-l="' + l + '" class="l' + l + (cp.lvl === l ? " on" : "") + '"' + (busy ? " disabled" : "") + '>' + nm + '</button>'; }).join("") + '</div>' +
       '<button type="button" class="cap-glb"' + (busy ? " disabled" : "") + '>Fernglas</button><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
     if (cp.glass) h = h.replace(/<div class="cap-row2">[\s\S]*$/, '<div class="cap-row2 cap-glrow"><span>nah</span><input type="range" class="cap-foc" min="3" max="70" step="0.5" value="' + cp.glass.foc + '" aria-label="Schärfe"><span>fern</span><button type="button" class="cap-glx">Absetzen</button></div>');
@@ -17018,6 +17162,7 @@ window.__EXTRAS = true;
   /* preview test hooks */
   window.__capRoute = function () { return cp && cp.route.map(function (L) { return L.k; }); };
   window.__cap = { open: function () { return capGame(); },
+    storm: function () { cp.info[cp.leg].ev = "sturm"; cp.ev = "sturm"; cpPanelDraw(); cpRedraw(); },
     bv: function (v) { CP_BV = v; cpRedraw(); },
     pose: function (x, y, h) { cp.px = x; cp.py = y; cp.h = h; cpRedraw(); },
     ani: function () { var r = null; cp.O.forEach(function (o) { if (r || !o.ani || o.seen || o.leg !== cp.leg) return; var q = cpWP(o), rr = cpRel(cp.px, cp.py, cp.h, q[0], q[1]); r = { yaw: Math.atan2(rr[1], rr[0]), f: rr[0], k: o.k }; }); return r; },
