@@ -277,30 +277,42 @@
   }
 
   // ---- drawing ----
+  // how much storm there is at this point of the voyage: it builds up and dies down over a few rows
+  function kpStormAmt(rho) { var a = 0, on = null; (kp.skyR || []).forEach(function (q) { if (q[1] === "storm") on = q[0]; else if (on != null) { var up = cpSm1((rho - on + 2) / 3.5), dn = 1 - cpSm1((rho - q[0] + 2) / 3.5); a = Math.max(a, Math.min(up, dn)); on = null; } }); if (on != null) a = Math.max(a, cpSm1((rho - on + 2) / 3.5)); return a; }
+  // two layers: the world outside on its own canvas, rolled smoothly by CSS in a storm; the bridge, the deck and the captain in front
+  var kpBk = document.createElement("canvas"); kpBk.width = 180; kpBk.height = 135; kpBk.className = "fi-cv kp-back"; kpEl.insertBefore(kpBk, kpCv); var kpbc = kpBk.getContext("2d"); kpbc.imageSmoothingEnabled = false;
   function kpDraw(t) {
     cpRaf = 0; if (kpRaf) cancelAnimationFrame(kpRaf); kpRaf = 0; if (!kp || !kpOpen || !cp) return;
     if (kp.anim) kpStep(t); if (!kp) return;
-    var now = performance.now(), tw = false, sky = cpSky(), storm = sky === "storm" ? 1 : 0;
+    var now = performance.now(), tw = false, sky = cpSky(), base = kpLvl().sky, amt = kpStormAmt(cp.d || 0);
     cp.O.forEach(function (o) { if (o.tx != null) { o.x += (o.tx - o.x) * .05; if (Math.abs(o.tx - o.x) > .05) tw = true; else { o.x = o.tx; o.tx = null; } } });
-    if (kp.anim || cp.glass || tw || cp.fx.length || storm || now < (kp.busy || 0)) kpRaf = requestAnimationFrame(kpDraw);
-    if (cp.glass) { cpDrawGlass(t); return; }
+    if (kp.anim || cp.glass || tw || cp.fx.length || amt > 0 || now < (kp.busy || 0)) kpRaf = requestAnimationFrame(kpDraw);
+    var roll = (Math.sin(t / 620) * 2.9 + Math.sin(t / 1300) * 1.1) * amt + Math.sin(t / 1900) * .25, heave = Math.sin(t / 480) * 1.4 * amt + Math.sin(t / 1400) * .25;
+    kpBk.style.transform = cp.glass ? "" : "translateY(" + heave.toFixed(2) + "%) rotate(" + roll.toFixed(2) + "deg) scale(1.06)";
+    if (cp.glass) { kpbc.clearRect(0, 0, 180, 135); cpDrawGlass(t); return; }
     try {
-      var sea = cpSeaPic(sky), sh = cp.shake > 0 ? Math.round(Math.sin(t / 30) * 2) : 0, off = (((-cp.h * 160) % 180) + 180) % 180, pitch = Math.round((Math.sin(t / 650) * 3 + Math.sin(t / 1700) * 2) * storm + Math.sin(t / 1400) * .6);
-      cpc.setTransform(1, 0, 0, 1, 0, sh); cpc.fillStyle = CP_SEA[sky][0][0]; cpc.fillRect(0, 0, 180, 80); cpc.setTransform(1, 0, 0, 1, 0, sh + pitch);
-      cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0); cpWater(t, sky, storm);
-      cp.B.forEach(function (o) { cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpBack(cpBW(o), sky); cpc.restore(); });
-      cpSkyDraw(sky, t); if (storm) cpWaves(t, 1, sky);
+      var sh = cp.shake > 0 ? Math.round(Math.sin(t / 30) * 2) : 0, off = (((-cp.h * 160) % 180) + 180) % 180;
+      cpc = kpbc; cpc.setTransform(1, 0, 0, 1, 0, sh);
+      var layer = function (sk, a) { if (a <= 0) return; cpc.globalAlpha = a; var sea = cpSeaPic(sk); cpc.fillStyle = CP_SEA[sk][0][0]; cpc.fillRect(0, 0, 180, 80); cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0); cpc.globalAlpha = 1; };
+      layer(base, 1); if (base !== "storm") layer("storm", amt);
+      cpWater(t, base, amt); if (amt > 0 && base !== "storm") { cpc.globalAlpha = amt; cpWater(t, "storm", amt); cpc.globalAlpha = 1; }
+      cp.B.forEach(function (o) { cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpBack(cpBW(o), base); cpc.restore(); });
+      cpSkyDraw(base, t); if (amt > .05 && base !== "storm") { cpc.globalAlpha = amt; cpSkyDraw("storm", t); cpc.globalAlpha = 1; } if (amt > .3) cpWaves(t, amt, "storm");
       if (!kp.card && !kp.done) { kpMarks(sky, t); if (!kp.anim) kpCourse(); }
       cp.O.forEach(function (o) { if (o.seen || o.k === "m3" || o.k === "quay" || o.k === "shoal" || o.k === "pier") return; var f = o.y - cp.py; if (f > 0 && f < 15) { var wasHidden = cpHidden(o, f + 30); o.seen = true;   // close by, the lookout sees it with the naked eye
-          if (wasHidden && o.cell && !o.cell.soft && !o.cell.inc) KP_S.lookBell(o.k === "ice" ? 3 : 1); if (wasHidden && o.cell && !o.cell.soft && !o.cell.inc) kpSay(o.k === "ice" ? "Ausguck: EISBERG direkt voraus!" : o.k === "wood" ? "Ausguck: Treibholz direkt voraus!" : "Ausguck: Achtung, voraus!"); } });
+          if (wasHidden && o.cell && !o.cell.soft && !o.cell.inc) { KP_S.lookBell(o.k === "ice" ? 3 : 1); kpSay(o.k === "ice" ? "Ausguck: EISBERG direkt voraus!" : o.k === "wood" ? "Ausguck: Treibholz direkt voraus!" : "Ausguck: Achtung, voraus!"); } } });
       if (kp.anim) kpChart();
-      cpWorldDraw(t, false); cpGulls(t, sky); cpc.setTransform(1, 0, 0, 1, 0, sh); cpDeck(t); cpDeckIce(); kpRopes();
-      if (sky === "fog") for (var fy = 0; fy < 80; fy++) { var al = fy < CP_HZ ? .72 : Math.max(0, .78 - (fy - CP_HZ) / 70); if (al > 0) { cpc.fillStyle = "rgba(226,232,236," + al.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
-      if (sky === "night") { cpc.fillStyle = "rgba(8,14,40,.28)"; cpc.fillRect(0, 0, 180, 80); }
-      if (storm) { cpc.fillStyle = "rgba(40,50,64,.18)"; cpc.fillRect(0, 0, 180, 80); for (var rn = 0; rn < 40; rn++) { var rx = (rn * 47 + t / 4) % 180, ry = (rn * 31 + t / 2) % 78; mR(cpc, Math.round(rx), Math.round(ry), 1, 2, "#a8b8c8"); } }
+      cpWorldDraw(t, false); cpGulls(t, sky);
+      if (base === "fog") for (var fy = 0; fy < 80; fy++) { var al = fy < CP_HZ ? .72 : Math.max(0, .78 - (fy - CP_HZ) / 70); if (al > 0) { cpc.fillStyle = "rgba(226,232,236," + al.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
+      if (base === "night") { cpc.fillStyle = "rgba(8,14,40,.28)"; cpc.fillRect(0, 0, 180, 80); }
+      if (amt > 0) { cpc.fillStyle = "rgba(40,50,64," + (.2 * amt).toFixed(3) + ")"; cpc.fillRect(0, 0, 180, 135); for (var rn = 0; rn < Math.round(44 * amt); rn++) { var rx = (rn * 47 + t / 4) % 180, ry = (rn * 31 + t / 2) % 130; mR(cpc, Math.round(rx), Math.round(ry), 1, 2, "#a8b8c8"); } }
+      cpc.setTransform(1, 0, 0, 1, 0, 0);
+      cpc = kpc; cpc.setTransform(1, 0, 0, 1, 0, 0); cpc.clearRect(0, 0, 180, 135); cpc.setTransform(1, 0, 0, 1, 0, sh);
+      cpDeck(t); cpDeckIce(); kpRopes();
+      if (amt > 0) { cpc.fillStyle = "rgba(40,50,64," + (.12 * amt).toFixed(3) + ")"; cpc.fillRect(0, 50, 180, 30); }
       cpBridge(t); kpLamp(t); if (!kp.card) kpHamDraw(t);
       cpc.setTransform(1, 0, 0, 1, 0, 0);
-    } catch (err) { if (window.__kpErr) window.__kpErr(err); }
+    } catch (err) { cpc = kpc; if (window.__kpErr) window.__kpErr(err); }
   }
   function kpKick() { kp.busy = performance.now() + 6000; if (!kpRaf) kpRaf = requestAnimationFrame(kpDraw); }
   function kpRedraw() { if (!kpRaf) kpDraw(performance.now()); }
@@ -611,4 +623,4 @@
   window.__cap2 = { lv: function (i) { kpStart(i); kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); }, st: function () { return kp && { li: kp.li, row: kp.row, lane: kp.lane, tr: kp.tr, t: kp.t, turns: kp.turns, par: kp.par, hits: kp.hits, inc: kp.inc, ti: kp.ti, tasks: kp.tasks.length, done: !!kp.done, anim: !!kp.anim, card: !!kp.card, got: kp.gotN, sky: cpSky(), found: cp && cp.found.slice(), seen: cp && cp.O.filter(function (o) { return o.unk && o.seen; }).length, rep: kpReport() }; },
     solve: function () { var r = kpSolve(kpState()); return r && r.f; }, ham: function (w) { kpHamTo(w); }, hamDbg: function () { return { keys: kpHI && Object.keys(kpHI), hm: kpHm }; }, set: function (o) { if (o.d != null) cp.rud = o.d; if (o.spd != null) cp.lvl = o.spd; if (o.wh != null) cp.wh = o.wh; kpPanelDraw(); kpRedraw(); }, go: function () { kpGo(); },
     glass: function (yaw, foc) { cpGlass(true, yaw); if (foc != null) cp.glass.foc = foc; }, seeAll: function () { cp.O.forEach(function (o) { o.seen = true; }); kpRedraw(); },
-    lvls: function () { return KP_LV.length; }, layout: function () { return kp.cells.map(function (c) { return [c.row, c.lane, c.k, c.seq ? 1 : 0]; }).concat([["sky", kp.skyR], ["cur", kp.cur]]); } };
+    lvls: function () { return KP_LV.length; }, rho: function (r) { kp.row = Math.floor(r); kpPose(r); kpKick(); }, layout: function () { return kp.cells.map(function (c) { return [c.row, c.lane, c.k, c.seq ? 1 : 0]; }).concat([["sky", kp.skyR], ["cur", kp.cur]]); } };

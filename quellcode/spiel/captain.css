@@ -88,3 +88,4 @@
 .kp-grid b { display: block; font-size: .85rem; line-height: 1.1; } .kp-grid small { display: block; font-size: .55rem; letter-spacing: -.05em; }
 .kp-bot { margin-top: 6px; font-size: .72rem; }
 .kp-warn { display: block; color: #c8342a; font-weight: 800; font-size: .74rem; margin-top: 2px; }
+.kp-pov .kp-back { pointer-events: none; will-change: transform; transform-origin: 50% 40%; }
