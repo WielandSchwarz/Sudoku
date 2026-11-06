@@ -69,3 +69,5 @@
 .kp-tr { display: block; font-size: .72rem; color: #a8442a; font-weight: 700; margin-top: 2px; }
 .kp-pick { flex-direction: column; }
 .kp-pick { gap: 5px; } .kp-pick button { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px 9px; text-align: left; } .kp-pick b { font-size: .85rem; } .kp-pick small { margin: 0; }
+.kp-chart { flex: none; width: 50px; height: 104px; align-self: center; image-rendering: pixelated; }
+.kp-stop { color: #2e7a26; }

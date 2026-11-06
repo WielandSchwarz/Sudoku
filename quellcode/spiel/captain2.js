@@ -187,7 +187,9 @@
       cpc.drawImage(sea, Math.round(off) - 180, 0); cpc.drawImage(sea, Math.round(off), 0); cpWater(t, sky, 0);
       cp.B.forEach(function (o) { cpc.save(); cpc.beginPath(); cpc.rect(0, -10, 180, CP_HZ + 11); cpc.clip(); cpBack(cpBW(o), sky); cpc.restore(); });
       cpSkyDraw(sky, t);
-      if (!kp.card && !kp.done) { kpMarks(sky); if (!kp.anim) kpCourse(); }
+      if (!kp.card && !kp.done) { kpMarks(sky); kpStopZone(t); if (!kp.anim) kpCourse(); }
+      cp.O.forEach(function (o) { if (o.seen || !(o.unk || o.ani || sky === "fog") || o.k === "m3" || o.k === "quay" || o.k === "shoal") return; var f = o.y - cp.py; if (f > 0 && f < 15) { o.seen = true; if (o.cell && !o.cell.soft && o.unk) kpSay(o.k === "wood" ? "Ausguck: Treibholz direkt voraus!" : "Ausguck: Achtung, voraus!"); } });   // close by, the lookout sees it with the naked eye
+      if (kp.anim) kpChart();
       cpWorldDraw(t, false); cpGulls(t, sky); cpc.setTransform(1, 0, 0, 1, 0, sh); cpDeck(t); cpDeckIce(); kpRopes();
       if (sky === "fog") for (var fy = 0; fy < 80; fy++) { var al = fy < CP_HZ ? .72 : Math.max(0, .78 - (fy - CP_HZ) / 70); if (al > 0) { cpc.fillStyle = "rgba(226,232,236," + al.toFixed(2) + ")"; cpc.fillRect(0, fy, 180, 1); } }
       if (sky === "night") { cpc.fillStyle = "rgba(8,14,40,.28)"; cpc.fillRect(0, 0, 180, 80); }
@@ -203,7 +205,11 @@
   // the course this order would sail: a dotted line on the water, one dot more per row
   function kpCourse() { var spd = cp.lvl, vis = kpPrep(spd, kp.tr ? 0 : cp.rud), n = KP_N[spd], keep = kp.vis; kp.vis = vis;
     for (var i = 1; i <= n * 6; i++) { var rho = kp.row + i / 6, p = cpProj(kpLat(rho), rho * KP_R + 2.4); if (p && p.y < 80) mR(cpc, Math.round(p.x) - (p.sz > 2 ? 1 : 0), Math.round(p.y), p.sz > 2 ? 3 : 1, 1, i % 6 === 0 ? "#ffd34a" : "#fff0b0"); }
-    var e = kp.row + n, pe = cpProj(kpLat(e), e * KP_R + 2.4); if (pe) mR(cpc, Math.round(pe.x) - 2, Math.round(pe.y) - 1, 5, 3, spd ? "#ffd34a" : "#d8463c"); kp.vis = keep; }
+    var e = kp.row + n, pe = cpProj(kpLat(e), e * KP_R + 2.4), okS = spd === 0 && kpStopOK(e, Math.round(kpLat(e) / KP_LW)); if (pe) mR(cpc, Math.round(pe.x) - 2, Math.round(pe.y) - 1, 5, 3, okS ? "#7ae05a" : spd ? "#ffd34a" : "#d8463c"); kp.vis = keep; }
+  // a green box on the water beside the pilot boat: stop here
+  function kpStopZone(t) { var T = kpTask(); if (!T || kp.task || kp.taskMiss) return; var on = Math.floor(t / 400) % 2;
+    [T.lane - 1, T.lane + 1].forEach(function (L) { if (L < -1 || L > 1) return; var x0 = L * KP_LW - 2.6, x1 = L * KP_LW + 2.6, y0 = (T.row - 1) * KP_R + 2.5, y1 = T.row * KP_R + 4;
+      for (var u = 0; u <= 1.001; u += .08) [[x0 + (x1 - x0) * u, y0], [x0 + (x1 - x0) * u, y1], [x0, y0 + (y1 - y0) * u], [x1, y0 + (y1 - y0) * u]].forEach(function (q) { var p = cpProj(q[0], q[1]); if (p && p.y < 80 && p.y > CAMV.hz) mR(cpc, Math.round(p.x), Math.round(p.y), p.sz > 2 ? 2 : 1, 1, on ? "#7ae05a" : "#c8f8a8"); }); }); }
   function kpRopes() { if (!kp.moored) return; [[[2.2, .7], [11.45, 6.5]], [[2.45, -1.6], [11.45, 1.5]]].forEach(function (r) { var a = shipW(r[0][0], r[0][1], 1.45); cpRope3(a, [r[1][0], cp.py + r[1][1], 1.5], .25, "#e0d0a8"); }); }
   function kpLamp(t) { if (kp.card) return; var x0 = 79, y0 = 72, ln = Math.round(cp.px / KP_LW), tg = kp.tr ? kp.tr.to : kpCl(kp.lane + (kp.anim ? 0 : cp.rud)), blink = Math.floor(t / 280) % 2;
     if (kp.anim && kp.anim.res) tg = kp.anim.res.tr ? kp.anim.res.tr.to : kp.anim.res.lane;
@@ -211,6 +217,30 @@
     for (var i = -1; i <= 1; i++) { var lx = x0 + 2 + (i + 1) * 7, on = i === ln, nx = i === tg && tg !== ln;
       mR(cpc, lx, y0 + 2, 5, 4, "#1a1008"); mR(cpc, lx + 1, y0 + 3, 3, 2, on ? "#ffd34a" : nx ? (blink ? "#f08a3a" : "#5a3a1a") : "#3a2a1a"); if (on) mR(cpc, lx + 1, y0 + 3, 1, 1, "#fff6c8"); } }
 
+  // ---- the chart beside the message: the three lanes and the next twelve rows, as far as we know them ----
+  var kpChartCv = null;
+  function kpKnown(o, ahead) { if (!o) return true; if (o.seen) return true; if (o.unk || o.ani) return false; return !(kpLvl().sky === "fog" && ahead > 2.5); }
+  function kpStopOK(row, lane) { var T = kpTask(); return T && !kp.task && !kp.taskMiss && (row === T.row || row === T.row - 1) && Math.abs(lane - T.lane) === 1; }
+  function kpChart() {
+    var cv = kpChartCv; if (!cv || !kp || !cp) return; var g = cv.getContext("2d"), R0 = Math.floor(kp.anim ? cp.d : kp.row), d = kpLvl(), T = kpTask(), fr = (kp.anim ? cp.d : kp.row) - R0;
+    var X = function (L) { return 1 + (L + 1) * 8; }, Y = function (r) { return 49 - (r - R0 - fr) * 4; }, F = function (x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+    F(0, 0, 25, 52, "#3a2414"); F(1, 1, 23, 50, "#4a8ac0");
+    g.save(); g.beginPath(); g.rect(1, 1, 23, 50); g.clip();
+    for (var y = 1; y < 51; y += 2) { F(8, y, 1, 1, "#8ac0e0"); F(16, y, 1, 1, "#8ac0e0"); }
+    if (d.rows - R0 < 14) { var fy = Y(d.rows) - 1; for (var xx = 1; xx < 24; xx++) F(xx, fy, 1, 2, (xx + (fy & 1)) % 2 ? "#ffffff" : "#3a2414"); }
+    if (T && !kp.task && !kp.taskMiss) [T.lane - 1, T.lane + 1].forEach(function (L) { if (L < -1 || L > 1) return; var y0 = Y(T.row) - 3, x0 = X(L); g.strokeStyle = "#7ae05a"; g.lineWidth = 1; g.strokeRect(x0 + .5, y0 + .5, 6, 7); });
+    kp.cells.forEach(function (c) { if (!c.live && !(c.task && !kp.task)) return; var a = c.row - kp.row; if (a < -1 || a > 13) return; var x0 = X(c.lane), y0 = Y(c.row) - 3;
+      if (!kpKnown(c.o, a)) { F(x0 + 2, y0, 3, 4, "#a8b4c0"); F(x0 + 3, y0 + 1, 1, 1, "#3a4a5a"); return; }
+      if (c.k === "zone") return F(x0, y0, 7, 4, "#d8c898");
+      if (c.k === "mum") { if (kp.mum && (kp.mum.trig >= c.need)) return F(x0, y0, 7, 4, "#3a3034"); for (var q = 0; q < 7; q += 2) F(x0 + q, y0 + (q % 4 ? 0 : 2), 1, 2, "#e8a03a"); return; }
+      var col = c.k === "pilot" ? "#ffd34a" : c.k === "wood" ? "#8a5a32" : c.soft ? "#5ab04a" : c.k === "tug" ? "#7a2418" : "#e04a3c";
+      F(x0 + 1, y0 + 1, 5, 3, "#1a1008"); F(x0 + 2, y0 + 1, 3, 2, col); });
+    if (!kp.anim && !kp.card && !kp.done) { var spd = cp.lvl, vis = kpPrep(spd, kp.tr ? 0 : cp.rud), n = KP_N[spd], keep = kp.vis; kp.vis = vis;
+      for (var i = 1; i <= n * 4; i++) { var rho = kp.row + i / 4, lx = 1 + (kpLat(rho) / KP_LW + 1) * 8 + 3; F(lx, Y(rho), 1, 1, "#ffd34a"); }
+      var er = kp.row + n, el = kpLat(er) / KP_LW, ok = spd === 0 && kpStopOK(er, Math.round(el)); F(1 + (el + 1) * 8 + 2, Y(er) - 1, 3, 3, ok ? "#7ae05a" : spd ? "#ffd34a" : "#d8463c"); kp.vis = keep; }
+    var sx = 1 + (cp.px / KP_LW + 1) * 8 + 1.5; F(sx, 47, 4, 3, "#fff8ec"); F(sx + 1, 46, 2, 1, "#fff8ec");
+    g.restore();
+  }
   // ---- panel and cards ----
   function kpSay(t) { kpToast.textContent = t; kpToast.hidden = false; kpToast.classList.remove("pop"); void kpToast.offsetWidth; kpToast.classList.add("pop"); clearTimeout(kpSay.t); kpSay.t = setTimeout(function () { kpToast.hidden = true; }, 1800); }
   function kpTipTxt(f) { var to = kpCl(kp.lane + f.d), sp = ["Stopp", "Halbe Fahrt", "Volle Fahrt"][f.spd], ln = kp.tr ? "das Ruder liegen lassen" : to === kp.lane ? "die Spur halten" : "in die " + ["linke", "mittlere", "rechte"][to + 1] + " Spur"; return sp + " und " + ln + "."; }
@@ -222,8 +252,9 @@
     else { var tr = kp.tr ? '<span class="kp-tr">Spurwechsel läuft noch ' + kp.tr.left + (kp.tr.left === 1 ? " Reihe" : " Reihen") + ', das Ruder liegt fest.</span>' : "",
         tip = kp.tip ? '<span class="cap-tipsay">Erster Offizier: „' + kp.tip + '“</span>' : "",
         foot = '<span class="cap-foot"><span class="cap-clock">⏱ Zug ' + kp.turns + ' · Plan ' + kp.par + '</span>' + (!busy && !kp.done && !kp.tip ? '<button type="button" class="ch cap-tip"' + (kp.tips > 0 ? "" : " disabled") + '>Offizier fragen ' + "●".repeat(kp.tips) + "○".repeat(3 - kp.tips) + '</button>' : "") + '</span>';
-      h += '<div class="dz-row"><div class="dz-msg cap-msg2">' + (kp.pre ? '<span class="dz-d">' + kp.pre + '</span> ' : "") + (kp.pre ? "" : d.tx) + tr + tip + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>'; }
-    kpPanel.innerHTML = h; kpGl.hidden = !!(busy || kp.card || kp.done); kpGl.classList.toggle("on", !!cp.glass);
+      var T = kpTask(), near = T && !kp.task && !kp.taskMiss && T.row - kp.row <= 7 ? '<span class="kp-tr kp-stop">Lotsenboot voraus! Mit Stopp im grünen Feld daneben anhalten.</span>' : "";
+      h += '<div class="dz-row"><canvas class="kp-chart" width="25" height="52" aria-label="Seekarte"></canvas><div class="dz-msg cap-msg2">' + (kp.pre ? '<span class="dz-d">' + kp.pre + '</span> ' : "") + (kp.pre || near ? "" : d.tx) + near + tr + tip + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>'; }
+    kpPanel.innerHTML = h; kpChartCv = kpPanel.querySelector(".kp-chart"); kpChart(); kpGl.hidden = !!(busy || kp.card || kp.done); kpGl.classList.toggle("on", !!cp.glass);
   }
   function kpStars() { var d = kpLvl(), third = kp.li === 0 ? kp.whFirst : kp.li === 1 ? kp.task && !kp.taskMiss : cp.found.length - kp.found0 >= 2; return [kp.hits + kp.inc === 0, kp.turns <= kp.par, !!third]; }
   function kpMenu() {
@@ -292,6 +323,6 @@
   kpEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); kpClose(); });
   var _kp_int = interrupt; interrupt = function () { if (kpOpen && !window.__resume) kpClose(); return _kp_int.apply(this, arguments); };
   capGame = kpGame;
-  window.__cap2 = { lv: function (i) { kpStart(i); kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); }, st: function () { return kp && { li: kp.li, row: kp.row, lane: kp.lane, tr: kp.tr, turns: kp.turns, par: kp.par, hits: kp.hits, inc: kp.inc, task: kp.task, done: !!kp.done, anim: !!kp.anim, card: !!kp.card, found: cp && cp.found.slice() }; },
+  window.__cap2 = { lv: function (i) { kpStart(i); kp.card = false; kpCard.hidden = true; kpPanelDraw(); kpRedraw(); }, st: function () { return kp && { li: kp.li, row: kp.row, lane: kp.lane, tr: kp.tr, turns: kp.turns, par: kp.par, hits: kp.hits, inc: kp.inc, task: kp.task, done: !!kp.done, anim: !!kp.anim, card: !!kp.card, found: cp && cp.found.slice(), seen: cp && cp.O.filter(function (o) { return o.unk && o.seen; }).length }; },
     solve: function () { var r = kpSolve(kpState()); return r && r.f; }, set: function (o) { if (o.d != null) cp.rud = o.d; if (o.spd != null) cp.lvl = o.spd; if (o.wh != null) cp.wh = o.wh; kpPanelDraw(); kpRedraw(); }, go: function () { kpGo(); },
     glass: function (yaw, foc) { cpGlass(true, yaw); if (foc != null) cp.glass.foc = foc; }, seeAll: function () { cp.O.forEach(function (o) { o.seen = true; }); kpRedraw(); } };

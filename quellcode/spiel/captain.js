@@ -648,10 +648,10 @@
       if (sky === "fog") { cpc.fillStyle = "rgba(226,232,236,.4)"; cpc.fillRect(0, 0, 180, 135); }
       var cand = null, cd = 99, nf = 40, nd = 99;
       cp.O.forEach(function (o) { if (o.hid || o.so || o.k === "quay" || o.k === "pier") return; var q = cpWP(o), p = cpProj(q[0], q[1], o.k === "m3" ? 2 : 0); if (!p || p.f > 70) return; if (o.ani && p.f < 18) return;
-        var d = Math.hypot(p.x - 90, p.y - 6 - 64); if (d < nd) { nd = d; nf = p.f; } if (o.k !== "m3" && cpHidden(o, p.f) && d < cd) { cd = d; cand = [o, p]; } });
-      var tgt = cand && cd < 18 ? cand[1].f : nd < 26 ? nf : 40; r = Math.min(3, Math.floor(Math.abs(g.foc - tgt) / (tgt * .1 + 1.2)));
+        if (p.y > 140) return; var d = Math.hypot(p.x - 90, (p.y - 6 - 64) * .3); if (d < nd) { nd = d; nf = p.f; } if (o.k !== "m3" && cpHidden(o, p.f) && d < cd) { cd = d; cand = [o, p]; } });
+      var tgt = cand && cd < 22 ? cand[1].f : nd < 26 ? nf : 40; r = Math.min(3, Math.floor(Math.abs(g.foc - tgt) / (tgt * .1 + 1.2)));
       var dt = Math.min(.1, (t - (g.lt || t)) / 1000); g.lt = t;
-      if (cand && cd < 18 && r === 0) { g.hold += dt; if (g.hold > .55) { cpFound(cand[0]); g.hold = 0; } } else g.hold = 0;
+      if (cand && cd < 22 && r === 0) { g.hold += dt; if (g.hold > .4) { cpFound(cand[0]); g.hold = 0; } } else g.hold = 0;
     } catch (e) { }
     CAMV = { yaw: 0, Z: 1, hz: CP_HZ };
     var im = cpc.getImageData(0, 0, 180, 135), D = im.data, SH = new Uint8ClampedArray(D), err = typeof tgt === "number" ? (g.foc - tgt) / (tgt * .1 + 1.2) : 0;
