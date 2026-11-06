@@ -32,7 +32,7 @@
   // ---- start and end ----
   function rwStart(sky) {
     if (!rwHI) rwHamLoad();
-    rw = { sky: sky || "night", d: 0, v: 0, h: 0, bx: 0, turn: 0, drive: false, strokeT0: 0, good: 0, bad: 0, strokes: 0, beat: performance.now(), shake: 0, splash: [], drops: [], last: 0, done: false,
+    rw = { t0: performance.now(), sky: sky || "night", d: 0, v: 0, h: 0, bx: 0, turn: 0, drive: false, strokeT0: 0, good: 0, bad: 0, strokes: 0, beat: performance.now(), shake: 0, splash: [], drops: [], last: 0, done: false,
       ev: [{ k: "swim", d: 110, lx: -.7 }, { k: "swim", d: 200, lx: .65 }, { k: "swim", d: 290, lx: -.15 }, { k: "swim", d: 380, lx: .95 }, { k: "swim", d: 470, lx: -.75 }],
       saved: 0, missed: 0, rough: false, wet: 0, wetT: 0, pull: 0, cheerT: 0 };
     rwEl.hidden = false; rwCard.hidden = true; rwSay("Wisch nach unten zum Rudern!"); if (!rwRaf) rwRaf = requestAnimationFrame(rwDraw);
@@ -54,9 +54,8 @@
     if (dh > 0 && rw.h < .25 && !rw.drive) { rw.drive = true; rw.strokeT0 = now; rw.catchBeat = Math.abs(((now - rw.beat) % 1600) - 800) > 540; dzNoise(.12, 900, 1, .12, .005, .08); }   /* the blades catch the water */
     if (rw.drive && dh > 0) { var sp = dh / Math.max(.008, (now - (rw.hT || now)) / 1000 || .016); rw.pull = Math.max(rw.pull, sp); rw.v += dh * (rw.catchBeat ? 30 : 24); }
     if (rw.drive && h > .85) {                                                                                                                             /* the stroke is through: how was it? */
-      rw.drive = false; rw.strokes++; var dur = (now - rw.strokeT0) / 1000, ok = dur > .28 && dur < 1.1;
-      if (ok) { rw.good++; rw.v += rw.catchBeat ? 6 : 3; beep(rw.catchBeat ? [[523, .04], [659, .05]] : [[440, .04]]); dzNoise(.25, 700, .8, .1, .01, .2); }
-      else { rw.bad++; rw.v *= .75; for (var i = 0; i < 10; i++) rw.splash.push({ x: Math.random() < .5 ? 14 + Math.random() * 20 : 146 + Math.random() * 20, y: 96, vx: (Math.random() - .5) * 30, vy: -25 - Math.random() * 25, l: .7 }); dzNoise(.3, 1600, .7, .16, .01, .2); rwSay("Zu hektisch! Ruhig und gleichmäßig."); }
+      rw.drive = false; rw.strokes++;
+      rw.good++; rw.v += rw.catchBeat ? 5 : 3; beep(rw.catchBeat ? [[523, .04], [659, .05]] : [[440, .04]]); dzNoise(.25, 700, .8, .1, .01, .2);   /* every stroke counts; one on the "Hau-ruck" gives a little extra */
       rw.pull = 0;
     }
     if (dh < 0 && h < .2) rw.drive = false;
@@ -80,8 +79,8 @@
     rw.splash = rw.splash.filter(function (s2) { s2.l -= dt; s2.vy += 90 * dt; s2.x += s2.vx * dt; s2.y += s2.vy * dt; return s2.l > 0; });
     rw.drops = rw.drops.filter(function (s2) { s2.l -= dt; s2.vy += 60 * dt; s2.x += s2.vx * dt; s2.y += s2.vy * dt; return s2.l > 0 && s2.y < 135; });
   }
-  function rwFinish() { if (!rw) return; var st = [rw.strokes > 0 && rw.good / rw.strokes >= .7, rw.missed === 0, rw.saved > 0 && !rw.rough], n = st.filter(Boolean).length;
-    rwCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Gerettet!</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p><p class="fi-s">' + (st[0] ? "★" : "☆") + ' Gleichmäßig gerudert<br>' + (st[1] ? "★" : "☆") + ' Alle eingesammelt (' + rw.saved + '/' + rw.ev.length + ')<br>' + (st[2] ? "★" : "☆") + ' Sanft an Bord geholt</p>' +
+  function rwFinish() { if (!rw) return; var secs = (performance.now() - rw.t0) / 1000, st = [secs < 95, rw.missed === 0, rw.saved > 0 && !rw.rough], n = st.filter(Boolean).length;
+    rwCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Gerettet!</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p><p class="fi-s">' + (st[0] ? "★" : "☆") + ' Zügig gerudert (' + Math.round(secs) + ' s)<br>' + (st[1] ? "★" : "☆") + ' Alle eingesammelt (' + rw.saved + '/' + rw.ev.length + ')<br>' + (st[2] ? "★" : "☆") + ' Sanft an Bord geholt</p>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="menu">Übersicht</button><button type="button" class="fi-b" data-a="again">Nochmal</button></div></div>';
     rwCard.hidden = false; KP_S.cheer(true); }
   rwCard.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; e.stopPropagation(); var a = b.dataset.a; rwEnd(); if (!kp) return; if (a === "menu") { kpSinkReset(); kpMenu(); } else kpStart(kp.li); });
@@ -110,7 +109,7 @@
     if (night) { rwc.globalAlpha = .25; rwDisc(90, 72, 26, 8, function () { return "#ffe8a0"; }); rwc.globalAlpha = 1; }    /* the lantern's light on the water */
     // what floats ahead, far ones first
     rw.ev.slice().sort(function (a, b) { return b.d - a.d; }).forEach(function (e) { var z = e.d - rw.d; if (z < -4 || z > 260) return; var p = rwProj(z, e.lx), s = p.s;
-      if (!e.done) { var r2 = Math.max(2, 9 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * s);
+      if (!e.done) { var r2 = Math.max(3, 17 * s), bob = Math.round(Math.sin(t / 300) * 1.5 * s);
         rwDisc(p.x, p.y + bob, r2, r2 * .4, function (a, b, d) { var ang = Math.atan2(b, a); return d < .45 ? null : d > .85 ? "#3a2414" : Math.floor((ang + 3.2) / .8) % 2 ? "#ffffff" : "#e8463c"; });
         rwDisc(p.x, p.y - r2 * .5 + bob, r2 * .55, r2 * .55, function (a, b, d) { return d > .75 ? "#3a2414" : b > r2 * .2 ? "#fff6e4" : "#e9a44c"; });
         if (r2 > 4) { rP(p.x - r2 * .35, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x + r2 * .25, p.y - r2 * .7 + bob, 1, 1, "#24160c"); rP(p.x - r2 * .55, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); rP(p.x + r2 * .35, p.y - r2 * 1.05 + bob, 2, 2, "#3a2414"); }

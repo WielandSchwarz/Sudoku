@@ -1056,7 +1056,7 @@
     if (!it || !it.virt) return _v_gift(cat, it);
     var L = vOwn(), list = (it.room === "k" ? L.kown : L.bown)[it.sub]; if (list.indexOf(it.id) < 0) list.push(it.id); renderCosy();
     var where = it.room === "k" ? "Küche" : "Schlafzimmer";
-    var pic = it.room === "k" ? thumb(it.sub, it.id) : bThumb(it.sub, it.id);
+    var pic = it.room === "k" ? thumb(it.sub, it.id) : it.sub === "bed" ? bBedOnly(it.id) : bThumb(it.sub, it.id);
     var wrap = document.createElement("div"); wrap.className = "gift-wrap";
     wrap.innerHTML = '<div class="gift" role="dialog" aria-modal="true" aria-label="Neu für die ' + where + '"><h2>Neu für ' + (it.room === "k" ? "die Küche" : "das Schlafzimmer") + '!</h2><div class="stage v-stage">' + pic + '</div><p>' + it.name + '</p>' +
       '<div class="row"><button type="button" class="btn" data-a="later">Später</button><button type="button" class="btn primary" data-a="place">Gleich einrichten</button></div></div>';
@@ -1207,7 +1207,7 @@
     var art, where, place, gcls = "";
     if (it.virt) {
       var L = vOwn(), list = (it.room === "k" ? L.kown : L.bown)[it.sub]; if (list.indexOf(it.id) < 0) list.push(it.id); renderCosy();
-      art = it.room === "k" ? thumb(it.sub, it.id) : bThumb(it.sub, it.id); where = it.room === "k" ? "Küche einrichten" : "Schlafzimmer einrichten";
+      art = it.room === "k" ? thumb(it.sub, it.id) : it.sub === "bed" ? bBedOnly(it.id) : bThumb(it.sub, it.id); where = it.room === "k" ? "Küche einrichten" : "Schlafzimmer einrichten";
       place = function () { if (it.room === "k") { home.kitchen[it.sub] = it.id; renderKitchenArt(); } else { home.bedroom[it.sub] = it.id; renderBedroomArt(); } say(it.name + " ist jetzt " + (it.room === "k" ? "in der Küche." : "im Schlafzimmer.")); if (window.SudokuSave) window.SudokuSave(); };
     } else {
       home.owned[cat].push(it.id); renderCosy();

@@ -440,6 +440,9 @@
     if (cat === "bed") { var bi = HD.beds[i], bb = '<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + i] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + i] + '</g>'; o += i === 0 ? tintSvg(bb) : bb; }
     return '<svg viewBox="' + BVB[cat] + '" aria-hidden="true">' + o + '</svg>';
   }
+  function bBedOnly(i) {   // just the bed, without wall and floor: for the present card
+    var bi = HD.beds[i]; if (!bi) return bThumb("bed", i); var bb = '<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + i] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + i] + '</g>';
+    return '<svg viewBox="' + BVB.bed + '" aria-hidden="true">' + (i === 0 ? tintSvg(bb) : bb) + '</svg>'; }
   function renderBCatalog() {
     var c = BCATS.filter(function (q) { return q.id === bCat; })[0];
     bCatalog.innerHTML = '<div class="tabs k-tabs">' + BCATS.map(function (q) { return '<button type="button" class="tab" data-k="' + q.id + '" aria-pressed="' + (q.id === bCat) + '">' + q.name + '</button>'; }).join("") + '</div>' +

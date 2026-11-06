@@ -173,7 +173,7 @@
     shubu: { n: "Shubunkin", rx: 11, ry: 6, tail: "fan", tl: 14, df: 7, spots: 1, P: ["#e4ecf4", "#ffffff", "#ffffff", "#4a5a70", "#c8d8e8", "#e8f0f8", "#b8c8dc"] },
     oranda: { n: "Oranda", rx: 10, ry: 7, tail: "fan", tl: 12, df: 6, cap: 1, P: ["#f6eee2", "#ffffff", "#ffffff", "#8a7a6a", "#fff4e8", "#ffffff", "#e8dcc8"] }
   };
-  function aqKind() { var L = life(); return AQ_KINDS[(L.aq && L.aq.kind) || "schleier"] || AQ_KINDS.schleier; }
+  function aqKind() { var L = life(); return AQ_KINDS[(L.aq && L.aq.kind) || "perl"] || AQ_KINDS.perl; }
   function aqFish(c, F, t, K) {
     K = K || aqKind(); var P = K.P, rx = K.rx, ry = K.ry, dir = F.dir, X = Math.round(F.x), Y = Math.round(F.y + Math.sin(t / 700) * .6), sw = Math.sin(t / (F.fast ? 80 : 190)), px = function (dx, dy, col) { aP(c, X - dx * dir, Y + dy, 1, 1, col); };
     var hash = function (a, b) { return ((a * 73856093) ^ (b * 19349663)) >>> 0; };
