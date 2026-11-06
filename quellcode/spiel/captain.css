@@ -56,3 +56,8 @@
 .cap-glbtn.on { background-color: #ffe08a; }
 .cap-glbtn[hidden] { display: none; }
 .cap-panel .dz-row .dz-msg { font-size: .8rem; }
+.cap-foot { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 2px; }
+.cap-clock { font-size: .72rem; font-weight: 800; color: #6a4a2a; }
+.cap-msg2 .ch.cap-tip { background: #e8f0ff; font-size: .7rem; } .cap-msg2 .ch.cap-tip:disabled { opacity: .45; }
+.cap-tipsay { font-size: .72rem; font-style: italic; color: #2a4a8a; }
+.dz-t.o-cap { background: #fff1d4; }

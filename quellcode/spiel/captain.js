@@ -9,32 +9,32 @@
   var CP_DIST = [9, 34, 46];                                             // how far a leg carries the ship at Stopp (coasting), Halbe, Volle
   var CP_NAME = { whale: "Finnwal", dolph: "Delfine", seal: "Robbe auf der Scholle", bottle: "Flaschenpost", gull: "Möwenschwarm", orca: "Schwertwal", bear: "Eisbär auf der Scholle" };
   var CP_ANI = ["whale", "dolph", "seal", "bottle", "gull", "orca", "bear"];
-  var CP_TX = {
-    abfahrt: "Southamsterton, 10. April, Mittag: Leinen los! Drei lange Töne mit der Pfeife (Griff rechts), dann vorsichtig zwischen den Kaimauern hinaus.",
-    newyork: "Achtung! Der Sog der Pausbacke reißt die Mümmel von ihren Leinen, ihr Heck schwenkt auf uns zu! Je schneller wir sind, desto stärker zieht der Sog.",
-    solent: "Durch den Kernsund an der Isle of Weizen vorbei. Die Fahrrinne biegt nach links: zwischen den Tonnen bleiben.",
-    lotse: "Beim Feuerschiff Knabber kommt das Lotsenboot längsseits. Der Lotse geht von Bord.",
-    kanal: "Offenes Wasser im Pfotenkanal. Freie Fahrt nach Frankreich!",
-    fischer: "Eine Flotte Fischerboote liegt im Weg. Vorsichtig, und auf der freien Seite vorbei.",
-    cherbourg: "Schnüffelbourg am Abend: Wir ankern auf der Reede, die Tender bringen neue Gäste.",
-    cherAus: "Anker auf! Mit der Pfeife verabschieden und vorsichtig aus der Reede. Die Rinne biegt nach rechts.",
-    irisch: "Über die Irische Knuspersee nach Backentown. Weites, freies Wasser.",
-    queens: "Backentown, 11. April: Wieder auf der Reede. Die Tender kommen mit Post und Gästen längsseits.",
-    queAus: "Vorbei am Leuchtturm Fastnuss hinaus aufs Meer. Pfeife zum Abschied, die Rinne biegt nach links.",
-    see1: "Der Hamslantik! Freie See bis zum Horizont, westwärts.", see2: "Ruhige See, alle Kessel arbeiten. Freie Fahrt.", see3: "Weiter westwärts über freie See.",
-    nebel1: "Nebel über der Neufutterlandbank! Langsam fahren und mit der Pfeife warnen. Da vorne ist ein Schatten …",
-    nebel2: "Noch immer dichter Nebel. Langsam, mit Nebelsignal.",
-    klar: "Der Nebel lichtet sich: wieder freie See!",
-    eiswarn: "14. April, Funkspruch der Karottonia: Eis voraus! Schollen treiben im Wasser, also langsamer.",
-    eis: "23:40 Uhr, der Ausguck läutet dreimal: Eisberg direkt voraus! Maschinen stopp und hart Ruder!",
-    morgen: "Geschafft! Im Morgengrauen liegt wieder freie See vor uns.",
-    wale: "Finnwale kreuzen den Kurs! Langsam, damit sie Platz haben. Schau sie dir mit dem Fernglas an.",
-    sos: "Ein Fischerschoner zeigt Notflaggen! Wir halten an und schicken ein Rettungsboot hinüber.",
-    gruss: "Am Horizont die Backentasche, unser Schwesterschiff! Gruß mit der Pfeife, freie See.",
-    ambrose: "Das Feuerschiff Ambrösel vor Nuss York. Der Lotse kommt an Bord, ab jetzt langsamer.",
-    quar: "Vor Futter Island kommen die Ärzte der Quarantäne längsseits.",
-    liberty: "Die Freiheitshamsterin! Ein Gruß mit der Pfeife, langsam in den Hafen. Die Einfahrt biegt nach rechts.",
-    pier: "Der Körnerpier 59 liegt vor uns. Pfeife zur Begrüßung, dann an der Pier stoppen."
+  var CP_TX = {   // what the lookout and the radio report; the decision is the captain's
+    abfahrt: "Southamsterton, 10. April, Mittag. Tausende Hamster winken am Kai, die Schlepper warten. Die Kaimauern stehen eng.",
+    newyork: "Achtung, Ausguck: Die Mümmel reißt sich los! Ihr Heck schwenkt in unseren Weg, und unser Sog zieht sie mit.",
+    solent: "Kernsund an der Isle of Weizen. Die Fahrrinne zwischen den Tonnen ist schmal, daneben Sandbänke.",
+    lotse: "Feuerschiff Knabber. Das Lotsenboot liegt voraus und wartet, dass unser Lotse von Bord geht.",
+    kanal: "Pfotenkanal, offenes Wasser. Bis Frankreich ist kaum Verkehr gemeldet.",
+    fischer: "Eine Fischerflotte mit ausgelegten Netzen liegt im Weg. Kleine Boote, die eine Bugwelle schlecht vertragen.",
+    cherbourg: "Schnüffelbourg am Abend. Auf der Reede warten die Tender mit neuen Gästen auf uns.",
+    cherAus: "Alle Gäste an Bord. Die Ausfahrt aus der Reede führt durch eine Rinne zwischen Tonnen.",
+    irisch: "Irische Knuspersee. Weites Wasser bis Backentown.",
+    queens: "Backentown, 11. April. Die Tender mit Post und Gästen kommen uns entgegen.",
+    queAus: "Vorbei am Leuchtturm Fastnuss geht es hinaus. Die Rinne ist eng, die Felsen sind nah.",
+    see1: "Der Hamslantik. Bis zum Horizont nur Wasser.", see2: "Ruhige See, alle Kessel unter Dampf.", see3: "Westwärts über den Hamslantik.",
+    nebel1: "Dichter Nebel über der Neufutterlandbank! Hier fischen oft kleine Boote, man sieht keine 100 Meter weit.",
+    nebel2: "Immer noch Nebel. Irgendwo tutet ein anderes Schiff.",
+    klar: "Der Nebel lichtet sich. Freie Sicht voraus.",
+    eiswarn: "14. April, Funkspruch der Karottonia: Eisfelder auf unserem Kurs gemeldet.",
+    eis: "23:40 Uhr, der Ausguck läutet dreimal: Eisberg direkt voraus! Er ist schon sehr nah!",
+    morgen: "Morgengrauen. Das Eis liegt hinter uns, vor uns offenes Wasser.",
+    wale: "Fontänen voraus! Eine Gruppe Finnwale kreuzt unseren Kurs.",
+    sos: "Notflaggen voraus! Ein Fischerschoner braucht Hilfe.",
+    gruss: "Am Horizont die Backentasche, unser Schwesterschiff, auf Gegenkurs.",
+    ambrose: "Feuerschiff Ambrösel vor Nuss York. Ein Lotse will an Bord kommen.",
+    quar: "Futter Island. Die Ärzte der Quarantäne kommen mit ihrem Boot.",
+    liberty: "Die Freiheitshamsterin grüßt! Die Hafeneinfahrt ist voller kleiner Boote und Fähren.",
+    pier: "Der Körnerpier 59, voller jubelnder Hamster. Wir müssen genau davor zum Stehen kommen."
   };
   var CP_HITS = { ship: "Rumms! Die Mümmel gestreift!", gate: "Auf Grund gelaufen! Zwischen den Tonnen bleiben.", quay: "Rumms an die Kaimauer!", pier: "Rumms an die Pier!", ice: "Rumms! Der Eisberg schrammt am Rumpf, Eis poltert aufs Vorschiff!", floe: "Rumms! Eine Scholle!", wood: "Rumms! Treibholz!", boat: "Rumms! Ein Fischerboot gerammt, die Fischer fallen ins Wasser!", pilot: "Rumms! Der Lotse landet im Wasser!", tender: "Rumms! Der Tender schaukelt, Gäste fallen ins Wasser!", schooner: "Rumms! Die Fischer vom Schoner treiben im Wasser!", light: "Rumms! Das Feuerschiff!" };
   var cpEl = xEl("div", "bee-pov fi-pov cap-pov", scene); cpEl.hidden = true;
@@ -101,7 +101,7 @@
     else if (k === "lotse") { ob("pilot", 1.8, 12, { hard: 1, sq: [[.55, 1.8, 12], [1, 10, 22]] }); ob("pax", .3, 9.4, { so: 1, c: 3, w: [0, .52], sq: [[.05, .3, 9.4], [.45, 1.7, 11.7], [1, 1.7, 11.7]] }); ob("light", -8, 34); B.push({ k: "land", b0: -1.6, b1: -1 }); }
     else if (k === "fischer") { [[-4.5, 18], [.5, 20], [-1.5, 27], [-8, 24]].forEach(function (p) { ob("boat", p[0] * side, p[1], { hard: 1, net: 1, a: (cpHash(p[0] * 10 | 0, 3) - .5) * 1.4 }); }); }
     else if (sc === "reede") { ob("tender", 2.2, 12, { x0: 8, mv: .5, hard: 1, sq: [[.55, 2.2, 12], [1, 11, 24]] }); ob("tender", -9, 22, { sq: [[.25, -2.4, 11.5], [.6, -2.4, 11.5], [1, -11, 24]] }); cpPax(ob, 2.2, 12, .5); cpPax(ob, -2.4, 11.5, .55); B.push({ k: "town", b: .05 }, { k: "land", b0: -.6, b1: .7 }); }
-    else if (k === "nebel1") ob("boat", .4 * side, 24, { hard: 1 });
+    else if (k === "nebel1") ob("boat", .4 * side, 24, { hard: 1, fogA: 1 });
     else if (k === "nebel2") ob("ship", -13, 40, {});
     else if (k === "eiswarn") { ob("floe", .3 * side, 25, { hard: 1 }); ob("floe", -8, 19); ob("floe", 9, 31); ob("floe", -12, 40); ob("seal", -6 * side, 46, { ani: 1 }); }
     else if (k === "eis") { ob("ice", 0, 15, { r: 3.5, hard: 1, big: 1 }); ob("floe", 7, 27); ob("floe", -8, 31); if (R() < .35) ob("bear", 8 * side, 44, { ani: 1 }); }
@@ -113,7 +113,7 @@
     else if (k === "pier") { ob("nyb", -16, 34, { sd: 1, wd: 16, hmax: 16 }); ob("nyb", 2, 40, { sd: 2, wd: 18, hmax: 22, n: 9 }); ob("nyb", 20, 33, { sd: 3, wd: 14, hmax: 14 }); ob("nyb", 6, 60, { sd: 4, wd: 30, hmax: 26, n: 10 });
       ob("pier", 0, 12.4, { r: 14, hard: 1, fz: 2.7 }); ob("tug", -5, 6, { sq: [[.5, -2.6, 9.2], [1, -2.6, 9.2]] }); ob("tug", 5, 7, { sq: [[.5, 2.6, 9.4], [1, 2.6, 9.4]] }); cpPax(ob, 0, 12, .6, 1); B.push({ k: "ny", b: 0, w: 80 }); }
     else if (sc === "see" || sc === "morgen") {                          // the open sea: now and then something adrift, now and then an animal far out
-      if (!IN.ev && R() < .45) { ob("wood", .5 * side, 24, { hard: 1 }); IN.extra = " Aber da treibt etwas voraus …"; }
+      if (!IN.ev && R() < .7) { var pick = R(); if (pick < .5) ob("wood", .5 * side, 24, { hard: 1, unk: 1 }); else ob("bottle", .5 * side, 24, { unk: 1, ani: 0, find: 1 }); IN.extra = " Ausguck: Etwas treibt voraus!"; }
       if (R() < .7) animal(k === "kanal" ? ["gull", "dolph", "bottle"] : ["whale", "dolph", "dolph", "bottle", R() < .25 ? "orca" : "whale"]);
       if (R() < .55) ob("ship", -side * (16 + R() * 6), 70, { y0: 115, mv: 1, big: R() < .3 });   // a steamer far off, going the other way
     }
@@ -147,14 +147,14 @@
         if (o.k === "quay") { if (P[1] > o.y0 && P[1] < o.y1 && Math.abs(P[0] - o.x) < 1.8) return { k: "quay", u: u }; continue; }
         if (o.sw) { if (done[j]) continue; var sp = cpSwPts(o, cpSwA(o, u, lvl)); for (var m = 0; m < sp.length; m++) { var rs = cpRel(P[0], P[1], P[2], sp[m][0], sp[m][1]); if (rs[0] < 2.4 && rs[0] > -6 && Math.abs(rs[1]) < o.r) return { k: "ship", u: u, sd: rs[1] }; } continue; }
         if (done[j] || !(o.hard || o.gate)) continue; var q = cpOP(o, u, d), r = cpRel(P[0], P[1], P[2], q[0], q[1]);
-        if (r[0] < (o.fz || .8)) { done[j] = 1; if (o.gate ? Math.abs(r[1]) >= o.r : Math.abs(r[1]) < o.r) return { k: o.k, u: u, j: j, sd: r[1] }; } } }
+        if (r[0] < (o.fz || .8)) { done[j] = 1; if (o.fogA && lvl < 2) continue; if (o.gate ? Math.abs(r[1]) >= (lvl === 2 ? o.r - 1 : o.r) : Math.abs(r[1]) < o.r) return { k: o.k, u: u, j: j, sd: r[1] }; } } }
     var E = cpPath(rud, S);
     for (var jj = 0; jj < cp.O.length; jj++) { var oo = cp.O[jj]; if (oo.leg !== cp.leg || done[jj] || !oo.hard || oo.k === "quay" || oo.sw) continue; var qq = cpOP(oo, 1, S), rr = cpRel(E[0], E[1], E[2], qq[0], qq[1]); if (rr[0] < 1.6 && Math.abs(rr[1]) < oo.r) return { k: oo.k, u: 1 }; }
     return null;
   }
   function cpNew() {
     return { route: dzRoute(), leg: 0, res: [], hits: 0, found: [], newF: [], lvl: 1, rud: 0, wh: false, looks: 2, O: [], B: [], anc: [{ x: 0, y: 0, h: 0 }], info: [], ev: null, extra: "", lastEv: -9, arrNight: Math.random() < .45,
-      px: 0, py: 0, h: 0, d: 0, anim: null, done: false, intro: true, look: null, shake: 0, pre: "" };
+      px: 0, py: 0, h: 0, d: 0, anim: null, done: false, intro: true, tips: 3, tipLeg: -1, tUsed: 0, inc: 0, look: null, shake: 0, pre: "" };
   }
   function cpStartLeg() {
     if (!cp.info[cp.leg]) cpBuild(cp.leg); cpAhead();
@@ -311,7 +311,7 @@
     var Q = ["111", "001", "010", "000", "010"], qx = x - 2, qy = y - 11 - bob;
     mR(cpc, qx - 1, qy - 1, 5, 7, "#3a2414"); mR(cpc, qx, qy, 3, 5, "#fff8ec"); Q.forEach(function (row, j) { for (var i = 0; i < 3; i++) if (row[i] === "1") mR(cpc, qx + i, qy + j, 1, 1, "#3a2414"); });
   }
-  function cpHidden(o, f) { if (o.ani) return !o.seen; return !o.seen && cpSky() === "fog" && f > 12; }
+  function cpHidden(o, f) { if (o.ani || o.unk) return !o.seen; return !o.seen && cpSky() === "fog" && f > 12; }
 
   // ===== a little 3D on the 180x135 pixel grid: flat-shaded prisms, filled row by row so every pixel stays one pixel =====
   function cpC(wx, wy, wz) { var H = cp.h + CAMV.yaw, dx = wx - cp.px, dy = wy - cp.py; return [dx * Math.sin(H) + dy * Math.cos(H), dx * Math.cos(H) - dy * Math.sin(H), wz]; }
@@ -644,7 +644,7 @@
   function cpFound(it) {
     it.seen = true; beep([[1046, .04], [1318, .06]]);
     var msg = it.k === "ice" ? "Ein Eisberg!" : it.k === "floe" ? "Eine Scholle" : it.k === "boat" ? "Ein Fischerboot!" : it.k === "wood" ? "Treibholz!" : it.k === "ship" ? "Ein Dampfer" : CP_NAME[it.k] || "";
-    if (it.ani) { var LG = cpLog(), first = !LG[it.k]; LG[it.k] = (LG[it.k] || 0) + 1; if (cp.found.indexOf(it.k) < 0) cp.found.push(it.k); if (first) cp.newF.push(it.k); msg = first ? "Neu im Logbuch: " + CP_NAME[it.k] + "!" : CP_NAME[it.k] + "!"; if (window.SudokuSave) window.SudokuSave(); }
+    if (it.ani || it.find) { var LG = cpLog(), first = !LG[it.k]; LG[it.k] = (LG[it.k] || 0) + 1; if (cp.found.indexOf(it.k) < 0) cp.found.push(it.k); if (first) cp.newF.push(it.k); msg = first ? "Neu im Logbuch: " + CP_NAME[it.k] + "!" : CP_NAME[it.k] + "!"; if (window.SudokuSave) window.SudokuSave(); }
     cpSay(msg);
   }
   function cpGlass(on, yaw) { if (!cp || cp.anim) return; cp.glass = on ? { yaw: yaw || 0, foc: 8, hold: 0 } : null; if (on && !cp.glassTold) { cp.glassTold = 1; cpSay("Ring am rechten Glas drehen"); } cpPanelDraw(); if (on) { if (!cpRaf) cpRaf = requestAnimationFrame(cpDraw); } else cpRedraw(); }
@@ -1213,7 +1213,7 @@
   function cpGo() {
     if (!cp || cp.anim || cp.intro || cp.done || cp.glass) return;
     var lvl = cp.lvl, S = CP_DIST[lvl] + (lvl === 0 && cpLeg().k === "eis" ? 5 : 0);
-    var hit = cpSim(cp.rud, lvl), safe = cp.rud;
+    var hit = cpSim(cp.rud, lvl), safe = cp.rud; if (cpLeg().k === "eiswarn") cp.iceLuck = Math.random() < .4;
     if (hit && CP_STRUCT[hit.k]) { safe = 0; for (var rr of [0, -1, 1, -2, 2]) { var h2 = cpSim(rr, lvl); if (!h2 || !CP_STRUCT[h2.k]) { safe = rr; break; } } }
     var halt = hit && CP_STRUCT[hit.k] && !!cpSim(safe, lvl) && CP_STRUCT[cpSim(safe, lvl).k];
     cp.anim = { lvl: lvl, rud: cp.rud, safe: safe, S: S, dur: lvl ? 5200 : 3800, hit: hit, u: 0, halt: halt, pre: cp.leg === 0 && !cp.castOff ? 1 : 0 };
@@ -1253,15 +1253,29 @@
       if (hasSq) { A.seq = t + 250; A.seqV = 0; cp.O.forEach(function (o) { if (o.leg === cp.leg && o.sq) o.seqd = 1; }); } else A.hold = t + 900; }
   }
   function cpQuaySide() { var q = cp.O.filter(function (o) { return o.leg === cp.leg && o.k === "quay"; }).map(function (o) { return [Math.abs(o.x - cpRel(cp.anc[cp.leg].x, cp.anc[cp.leg].y, cp.anc[cp.leg].h, cp.px, cp.py)[1]), o.x]; }).sort(function (a, b) { return a[0] - b[0]; })[0]; return q && q[1] < 0 ? -1 : 1; }
+  var CP_T = [2.2, 1.6, 1.0];   // hours a leg takes at Stopp, Halbe, Volle
+  function cpSched() { var s0 = 0; for (var i = 0; i < cp.route.length; i++) s0 += CP_T[DZ_ORD[cp.route[i].o].l]; return s0 - 2.5; }
+  function cpPlanSoFar(n) { var s0 = 0; for (var i = 0; i < n; i++) s0 += CP_T[cpNeedOf(i)]; return s0 - 2.5 * n / cp.route.length; }
+  function cpClock() { var d = cpPlanSoFar(cp.leg) - (cp.tUsed || 0), v = Math.abs(d).toFixed(1).replace(".", ","); return Math.abs(d) < .05 ? "im Plan" : d > 0 ? v + " h vor dem Plan" : v + " h hinter dem Plan"; }
   function cpNext() {
-    var A = cp.anim, L = cpLeg(), need = cpNeed(), why = "";
-    if (A.hit) why = CP_HITS[A.hit.k] || "Rumms!";
-    else if (A.lvl > need) why = cp.ev ? "Zu schnell im Sturm! Ein Brecher ging über das Vorschiff." : L.k === "wale" ? "Zu schnell! Die Wale sind erschrocken abgetaucht." : L.k === "abfahrt" && A.lvl === 2 ? "Viel zu schnell im Hafen! Die Bugwelle hat die Zuschauer am Kai nass gemacht." : L.k === "newyork" ? "Zu schnell! Die Mümmel kam uns gefährlich nah." : need === 0 ? "Hier hätten wir stoppen müssen!" : "Zu schnell für diese Stelle!";
-    else if (A.lvl < need) why = need === 2 ? "Zu langsam auf freier See, wir verlieren Zeit." : "Gestoppt? Hier sollten wir langsam weiterfahren.";
-    else if (L.wh && !cp.wh) why = "Die Pfeife fehlte.";
+    var A = cp.anim, L = cpLeg(), need = cpNeed(), why = "", inc = "", tt = CP_T[A.lvl], k = L.k, straight = [-2, -1, 0, 1, 2].filter(function (r) { return !cpSim(r, A.lvl); }).indexOf(0) >= 0 && !cp.O.some(function (o) { return o.leg === cp.leg && o.unk && o.hard; });
+    if (A.hit) { why = CP_HITS[A.hit.k] || "Rumms!"; tt += 1; }
+    else if (need === 0 && A.lvl > 0) { inc = k === "sos" ? "Wir sind vorbeigefahren, der Schoner bekam keine Hilfe." : k === "lotse" || k === "ambrose" ? "Ohne Halt konnte der Lotse nicht übersteigen." : k === "quar" ? "Die Ärzte kamen nicht an Bord, wir müssen später nochmal warten." : k === "cherbourg" || k === "queens" ? "Die Tender konnten nicht anlegen, die Gäste blieben an Land." : "Hier hätten wir halten müssen."; tt += .8; }
+    else if (A.lvl === 2 && need === 1) {
+      inc = cp.ev ? "Ein Brecher ging über das Vorschiff. Im Sturm war das zu schnell." : k === "abfahrt" ? "Die Bugwelle hat die Zuschauer am Kai nass gemacht." : k === "fischer" ? "Unsere Bugwelle hat die Fischerboote durchgeschüttelt, die Netze sind zerrissen." :
+        k === "eiswarn" ? (cp.iceLuck ? "" : "Eine Scholle schrammt am Rumpf, das war knapp.") : k === "wale" ? "" : k === "liberty" ? "Unsere Wellen haben die kleinen Fähren tanzen lassen." : k === "ambrose" ? "Der Lotse kam bei der Fahrt kaum an Bord." : k.indexOf("nebel") === 0 ? "" : k === "solent" || k === "cherAus" || k === "queAus" ? "" : "";
+      if (inc) tt += .3; }
+    if (!A.hit && L.k.indexOf("nebel") === 0 && !cp.wh) { inc = inc || "Ohne Nebelsignal hat uns ein Fischerboot fast gerammt."; tt += .3; }
+    if (!A.hit && A.rud !== 0 && straight) tt += .2;
+    cp.tUsed = (cp.tUsed || 0) + tt; if (inc) cp.inc = (cp.inc || 0) + 1;
+    if (!why && inc) why = inc;
+    if (!why && A.lvl === 2 && k === "wale") cp.extraMsg = "Die Wale sind abgetaucht.";
+    if (false) {
+    } else if (false && A.lvl > need) why = cp.ev ? "Zu schnell im Sturm! Ein Brecher ging über das Vorschiff." : L.k === "wale" ? "Zu schnell! Die Wale sind erschrocken abgetaucht." : L.k === "abfahrt" && A.lvl === 2 ? "Viel zu schnell im Hafen! Die Bugwelle hat die Zuschauer am Kai nass gemacht." : L.k === "newyork" ? "Zu schnell! Die Mümmel kam uns gefährlich nah." : need === 0 ? "Hier hätten wir stoppen müssen!" : "Zu schnell für diese Stelle!";
+    if (!why && L.wh && cp.wh && k.indexOf("nebel") !== 0) cpSay("Die Hamster an Land jubeln!");
     cp.O.forEach(function (o) { if (o.leg === cp.leg) o.dEnd = A.S; });
     cp.vps = A.halt ? 0 : A.lvl ? cpV1(A.lvl, A.S) / (A.dur / 1000) : 0; cp.lastLvl = A.lvl;
-    cp.res[cp.leg] = !why; cp.pre = why ? "✘ " + why : (L.d ? "✔ " + L.d : "✔");
+    cp.res[cp.leg] = !why; cp.pre = (why ? "✘ " + why : (L.d ? "✔ " + L.d : "✔")) + " (" + String(tt.toFixed(1)).replace(".", ",") + " h)";
     cp.anim = null; cp.leg++;
     if (cp.leg >= cp.route.length) { cp.leg = cp.route.length - 1; return cpEnd(); }
     cpStartLeg();
@@ -1305,20 +1319,23 @@
   function cpPanelDraw() {
     if (!cp) return; var L = cpLeg(), busy = !!cp.anim, n = cp.route.length, a = Math.max(0, Math.min(n - 7, cp.leg - 2)), strip = "";
     for (var i = a; i < a + 7 && i < n; i++) { var Li = cp.route[i], evi = cp.info[i] && cp.info[i].ev, o = evi ? "halb" : Li.o, st = i < cp.leg ? (cp.res[i] ? " ok" : " bad") : i === cp.leg ? " cur" : "", ic = evi ? "sturm" : DZ_RI[Li.s];
-      strip += '<b class="dz-t o-' + o + st + (evi ? " ev" : "") + '"><img src="' + DZ["ri_" + ic] + '" alt="">' + (Li.wh ? '<img class="dz-wh" src="' + DZ.ri_wh + '" alt="">' : "") + '<i>' + DZ_ORD[o].n.replace(" Fahrt", "") + '</i></b>'; }
+      strip += '<b class="dz-t o-cap' + st + (evi ? " ev" : "") + '"><img src="' + DZ["ri_" + ic] + '" alt=""></b>'; }
     var tx = cp.ev ? '<span class="dz-ev">Funkspruch: Ein Sturm zieht auf! Bei dem Seegang lieber langsamer.</span>' : (CP_TX[L.k] || L.i) + cp.extra, ord = "";
-    if (!busy && !cp.intro && !cp.done) { var need = cpNeed(), oks = [-2, -1, 0, 1, 2].filter(function (r) { return !cpSim(r, need); }), rudTxt = oks.indexOf(0) >= 0 ? "↑ geradeaus" : oks.length && oks.every(function (r) { return r < 0; }) ? "← links" : oks.length && oks.every(function (r) { return r > 0; }) ? "→ rechts" : "↔ ausweichen";
+    var tipNow = cp.tipLeg === cp.leg;
+    if (!busy && !cp.intro && !cp.done && tipNow) { var need = cpNeed(), oks = [-2, -1, 0, 1, 2].filter(function (r) { return !cpSim(r, need); }), rudTxt = oks.indexOf(0) >= 0 ? "↑ geradeaus" : oks.length && oks.every(function (r) { return r < 0; }) ? "← links" : oks.length && oks.every(function (r) { return r > 0; }) ? "→ rechts" : "↔ ausweichen";
       var okSp = cp.lvl === need, okR = !cpSim(cp.rud, cp.lvl), okW = !L.wh || cp.wh;
       ord = '<span class="cap-order"><button type="button" data-l="' + need + '" class="ch l' + need + (okSp ? " ok" : "") + '">' + ["Stopp", "Halbe", "Volle"][need] + '</button><span class="ch rd' + (okR ? " ok" : "") + '">' + rudTxt + '</span>' + (L.wh ? '<button type="button" class="ch wh' + (okW ? " ok" : "") + '">Pfeife</button>' : "") + '</span>'; }
     var h = '<div class="dz-plan">' + strip + '</div>';
     if (cp.glass) h += '<div class="dz-row"><div class="dz-msg">Zum Umsehen ziehen · am Ring des rechten Glases drehen, bis die beiden Hälften in der Mitte zusammenpassen</div><button type="button" class="dz-go cap-glx">Zurück</button></div>';
-    else h += '<div class="dz-row"><div class="dz-msg cap-msg2">' + (cp.pre ? '<span class="dz-d">' + cp.pre + '</span> ' : "") + tx + ord + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
+    var foot = '<span class="cap-foot"><span class="cap-clock">⏱ ' + cpClock() + '</span>' + (!busy && !cp.intro && !cp.done && !tipNow ? '<button type="button" class="ch cap-tip"' + (cp.tips > 0 ? "" : " disabled") + '>Offizier fragen ' + "●".repeat(cp.tips) + "○".repeat(3 - cp.tips) + '</button>' : "") + '</span>';
+    if (!cp.glass) h += '<div class="dz-row"><div class="dz-msg cap-msg2">' + (cp.pre ? '<span class="dz-d">' + cp.pre + '</span> ' : "") + tx + (tipNow ? '<span class="cap-tipsay">Erster Offizier: „Ich würde so fahren:“</span>' : "") + ord + foot + '</div><button type="button" class="dz-go cap-go"' + (busy ? " disabled" : "") + '>Los!</button></div>';
     cpPanel.innerHTML = h; cpGlBtn.hidden = !!(busy || cp.intro || cp.done); cpGlBtn.classList.toggle("on", !!cp.glass);
   }
   cpPanel.addEventListener("input", function (e) { if (e.target.classList.contains("cap-foc") && cp && cp.glass) cp.glass.foc = +e.target.value; });
   cpPanel.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b || !cp || cp.anim || cp.intro || cp.done) return; e.stopPropagation();
     if (b.dataset.l != null) { cpSetLvl(+b.dataset.l); return; }
+    if (b.classList.contains("cap-tip")) { if (cp.tips > 0) { cp.tips--; cp.tipLeg = cp.leg; beep([[660, .05], [880, .06]]); cpPanelDraw(); } return; }
     if (b.classList.contains("wh")) { cp.wh = !cp.wh; if (cp.wh) dzWhistle(.8); cpPanelDraw(); cpRedraw(); return; }
     if (b.classList.contains("cap-glx")) { cpGlass(false); return; }
     if (b.classList.contains("cap-go")) cpGo();
@@ -1327,17 +1344,16 @@
   function cpIntro() {
     cp.intro = true;
     cpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">Kapitän der Pausbacke</p><p class="dz-route">Southamsterton → Nuss York · ' + cp.route.length + ' Etappen</p>' +
-      '<p class="fi-s">Jede Etappe: Fahrt am Telegrafen, Kurs am Steuerrad (die gelbe Linie zeigt ihn), Pfeife am Griff rechts. Dann Los!</p>' +
-      '<p class="fi-s">Stopp bei Hindernissen direkt voraus · Halbe in Häfen, Engen und Nebel · Volle auf freier See</p>' +
-      '<p class="fi-s">★ Nichts rammen<br>★ Jede Etappe richtig<br>★ 4 Tiere und Funde: Fernglas hoch, scharf stellen</p>' +
+      '<p class="fi-s">Du bist der Kapitän: Fahrt am Telegrafen, Kurs am Steuerrad, Pfeife am Griff. Der Fahrplan ist knapp: Volle Fahrt spart Zeit, aber nicht überall ist das klug. Was voraus treibt, zeigt dir das Fernglas. Dreimal darfst du den Ersten Offizier fragen.</p>' +
+      '<p class="fi-s">★ Keine Unfälle<br>★ Pünktlich in Nuss York<br>★ 4 Tiere und Funde im Fernglas</p>' +
       '<div class="fi-row"><button type="button" class="fi-b" data-a="go">Leinen los!</button></div></div>';
     cpCard.hidden = false;
   }
   function cpEnd() {
-    cp.done = true; var okN = cp.res.filter(Boolean).length, st = [cp.hits === 0, okN === cp.route.length, cp.found.length >= 4], n = st.filter(Boolean).length, LG = cpLog();
+    cp.done = true; var okN = cp.res.filter(Boolean).length, late = (cp.tUsed || 0) - cpPlanSoFar(cp.route.length), st = [cp.hits === 0 && !cp.inc, late <= .05, cp.found.length >= 4], n = st.filter(Boolean).length, LG = cpLog();
     var book = CP_ANI.map(function (k) { return '<span class="' + (LG[k] ? (cp.newF.indexOf(k) >= 0 ? "nw" : "") : "no") + '">' + (LG[k] ? CP_NAME[k] : "?") + '</span>'; }).join("");
     cpCard.innerHTML = '<div class="fi-c dz-intro"><p class="fi-h">' + (n === 3 ? "Triumphale Ankunft!" : "Angekommen in Nuss York") + '</p><p class="dz-route">' + "★".repeat(n) + "☆".repeat(3 - n) + '</p>' +
-      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Nichts gerammt" + (cp.hits ? " (" + cp.hits + "× Rumms)" : "") + '<br>' + (st[1] ? "★" : "☆") + " Etappen richtig: " + okN + "/" + cp.route.length + '<br>' + (st[2] ? "★" : "☆") + " " + cp.found.length + " gesichtet</p>" +
+      '<p class="fi-s">' + (st[0] ? "★" : "☆") + " Keine Unfälle" + (cp.hits || cp.inc ? " (" + (cp.hits + (cp.inc || 0)) + "×)" : "") + '<br>' + (st[1] ? "★" : "☆") + (late <= .05 ? " Pünktlich" + (late < -1.95 ? ", sogar " + String((-late).toFixed(1)).replace(".", ",") + " h zu früh! Das Blaue Band!" : "") : " " + String(late.toFixed(1)).replace(".", ",") + " h Verspätung") + '<br>' + (st[2] ? "★" : "☆") + " " + cp.found.length + " gesichtet</p>" +
       '<p class="fi-s cap-book-h">Logbuch</p><div class="cap-book">' + book + '</div>' +
       '<div class="fi-row"><button type="button" class="fi-b2" data-a="end">Fertig</button><button type="button" class="fi-b" data-a="again">Nochmal</button></div></div>';
     cpCard.hidden = false; cpPanelDraw(); cpRedraw(); if (n >= 2) dzWhistle(2); beep(n === 3 ? [[523, .08], [659, .08], [784, .12]] : [[523, .08], [659, .1]]);
