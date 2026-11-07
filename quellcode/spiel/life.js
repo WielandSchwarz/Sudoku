@@ -610,7 +610,7 @@
   }
   async function letterArrives(force, from, kind) {
     if (!force && !letterOk()) return false;
-    var l = makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
+    var l = arguments[3] || makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
     var L = life(); L.lastLetter = Date.now();
     var an = ALLANI[l.from], fromLeft = Math.random() < 0.5;
     if (l.gift && l.gift.t === "seeds" && !l.gift.txt) l.gift.txt = "Als kleine Begrüßung lege ich dir zwei Tütchen " + CROPS[l.gift.k].name + "-Samen bei.";
@@ -645,6 +645,29 @@
   /* safety net: if anything goes wrong while the letter flies in, it still opens fully and can be closed */
   var _lArrive = letterArrives;
   letterArrives = function () { var pr = _lArrive.apply(this, arguments); pr.catch(function () { if (letterOn) { letterEl.classList.add("landed", "open", "out", "unfold"); } }); return pr; };
+  /* letters no longer open by themselves: they land in the inbox top left, which wobbles; a tap opens the first one */
+  var inboxEl = lEl("button", "l-inbox", scene); inboxEl.type = "button"; inboxEl.hidden = true; inboxEl.setAttribute("aria-label", "Post");
+  function renderInbox() {
+    var L = life(), n = (L.inbox || []).length;
+    inboxEl.hidden = !n; if (!n) return;
+    inboxEl.innerHTML = '<svg viewBox="0 0 30 20" aria-hidden="true" shape-rendering="crispEdges">' + ENV0 + '</svg>' + (n > 1 ? '<b>' + n + '</b>' : "");
+  }
+  var _lArriveFull = letterArrives;
+  letterArrives = async function (force, from, kind) {
+    if (!force && !letterOk()) return false;
+    var l = makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
+    var L = life(); L.lastLetter = Date.now(); L.inbox = L.inbox || []; L.inbox.push(l);
+    if (window.SudokuSave) window.SudokuSave();
+    renderInbox(); inboxEl.classList.remove("new"); void inboxEl.offsetWidth; inboxEl.classList.add("new"); beep([[880, .05], [660, .05]]);
+    return true;
+  };
+  inboxEl.addEventListener("click", function (e) {
+    e.stopPropagation(); var L = life(); if (letterOn || !(L.inbox || []).length || decor) return;
+    var l = L.inbox.shift(); if (window.SudokuSave) window.SudokuSave(); renderInbox();
+    _lArriveFull(true, l.from, null, l);
+  });
+  renderInbox(); setInterval(renderInbox, 3000);
+  window.__inbox = { n: function () { return (life().inbox || []).length; }, test: function (id) { return letterArrives(true, id || Object.keys(ALLANI)[0], "hello"); } };
   letterEl.addEventListener("click", function (e) { if (e.target.closest("[data-a=ok]") || (letterEl.classList.contains("unfold") && e.target.classList.contains("lf-dim"))) closeLetter(); });
   // a letter every few hours of play, only when you are looking at the hamster
   // a new friend writes right away, but only once the hamster screen is open and nothing else is in the way

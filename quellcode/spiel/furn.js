@@ -185,6 +185,7 @@
         if (!busy && !s.asleep) act("look", async function () { front({ eyes: "wide", ears: "up", mouth: "open" }); pulse("hop", 420); await wait(500); await nibbleNose(6); front({ eyes: "happy", mouth: "smile", blush: true }); await wait(500); });
       } else say(it.name + " wartet im Katalog unter „Zimmer einrichten“.");
       wrap.remove(); if (decor) { curCat = cat; renderCatalog(); }
+      setTimeout(function () { window.__giftBusy = 0; }, a === "place" ? 2600 : 600);   /* the other popups wait until he has sniffed his new furniture */
     });
   }
   function openPackage() {

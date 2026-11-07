@@ -478,3 +478,8 @@
 .fc-h i { width: 7px !important; height: 6px !important; clip-path: polygon(0 16.7%, 14.3% 16.7%, 14.3% 0, 42.9% 0, 42.9% 16.7%, 57.1% 16.7%, 57.1% 0, 85.7% 0, 85.7% 16.7%, 100% 16.7%, 100% 50%, 85.7% 50%, 85.7% 66.7%, 71.4% 66.7%, 71.4% 83.3%, 57.1% 83.3%, 57.1% 100%, 42.9% 100%, 42.9% 83.3%, 28.6% 83.3%, 28.6% 66.7%, 14.3% 66.7%, 14.3% 50%, 0 50%) !important; }
 .fc-n { font-size: .75rem; line-height: 1; color: #a8463c; font-weight: 700; margin-left: 2px; align-self: center; }
 #pov-svg { shape-rendering: crispEdges; }
+.soundbtn { margin-right: 8px; }
+.top-btns .soundbtn { margin-right: 0; }
+.soundbtn svg path:first-child { fill: currentColor; stroke: currentColor; }
+.soundbtn.off { opacity: .75; }
+.top > .soundbtn + .mapbtn { margin-left: 0; }

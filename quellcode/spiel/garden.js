@@ -686,6 +686,7 @@
     if (s.asleep) { s.asleep = false; stopZzz(); syncButtons(); skyTime(); front({ blanket: null }); }
     if (busy && !interruptible()) return;
     if (busy) interrupt();
+    window.__giftBusy = Date.now();
     act("unwrap", async function () {
       if (place2 === "garden") await goInsideSeq();
       if (!home.pending.delivered) {
