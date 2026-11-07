@@ -10510,80 +10510,95 @@ window.__EXTRAS = true;
   };
   setInterval(teddyState, 600);
   window.__bx = { teddy: function () { return { shelf: !teddyShelf.hidden, bed: !teddyBed.hidden }; } };
-  // ===================== the aquarium up close (v2): close to the glass, a big gravel floor to furnish, plants that grow out of the bowl,
-  // the goldfish with friends (a snail on the glass, two shrimps, a little school of neons). Feed, play, love, furnish. =====================
+  // ===================== the aquarium up close (v2): close to the glass, a square glass tank filling the picture,
+  // the goldfish with friends (a snail on the glass, two shrimps, a little school of neons). Feed and play. =====================
   var AQ_W = 180, AQ_H = 135, AQ_CX = 90, AQ_CY = 68, AQ_RX = 78, AQ_RY = 60, AQ_WL = 26, AQ_FB = 98;
   var AD = "#3a2414", AG = "#2e6a2e", Ag = "#4e9a44", Al = "#86cc62", AL = "#b4e48a";
   // the places: six at the back of the gravel, three at the front, one on the rim, one on the water
   var AQ_SL = [{ x: 30, y: 101, k: "f" }, { x: 50, y: 99, k: "f" }, { x: 70, y: 98, k: "f" }, { x: 110, y: 98, k: "f" }, { x: 130, y: 99, k: "f" }, { x: 150, y: 101, k: "f" },
     { x: 44, y: 116, k: "f" }, { x: 90, y: 120, k: "f" }, { x: 136, y: 116, k: "f" }, { x: 60, y: 8, k: "r" }, { x: 90, y: AQ_WL, k: "t" }];
-  var AQ_ITEMS = [
-    ["seegras", "Seegras", "f"], ["pest", "Wasserpest", "f"], ["ludwig", "Ludwigie", "f"], ["farn", "Javafarn", "f"], ["bambus", "Bambus", "f"], ["moos", "Mooskugel", "f"],
-    ["kiste", "Schatzkiste", "f"], ["burg", "Burg", "f"], ["muschel", "Muschel", "f"], ["helm", "Taucherhelm", "f"], ["krug", "Amphore", "f"], ["wurzel", "Wurzel", "f"],
-    ["pilz", "Pilzhaus", "f"], ["steine", "Steine", "f"], ["anker", "Anker", "f"], ["figur", "Figur", "f"],
-    ["efeu", "Efeutute", "r"], ["seerose", "Seerose", "t"], ["frosch", "Froschbiss", "t"]
-  ];
-  var AQ_DEF = ["seegras", "", "burg", "bambus", "", "seegras", "moos", "kiste", "", "efeu", "seerose"];
+  var AQ_DEF = ["seegras", "pest", "burg", "", "ludwig", "seegras", "moos", "kiste", "", "", ""];
   var aqEl = xEl("div", "bee-pov fi-pov aq-pov", scene); aqEl.hidden = true;
   aqEl.innerHTML = '<canvas width="180" height="135" class="fi-cv aq-cv"></canvas><div class="aq-toast" hidden></div><div class="fi-card" hidden></div><button type="button" class="bp-x" aria-label="Aquarium schließen">×</button>';
   var aqCv = aqEl.querySelector("canvas"), aqc = aqCv.getContext("2d"); aqc.imageSmoothingEnabled = false;
   var aqCard = aqEl.querySelector(".fi-card"), aqToast = aqEl.querySelector(".aq-toast");
   var aqBar = document.createElement("div"); aqBar.className = "aq-bar"; aqBar.style.display = "none"; scene.parentNode.insertBefore(aqBar, scene.nextSibling);   // the buttons sit under the picture, like the stoker's panel
   function aP(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); }
-  function aqEll(x, y) { var a = (x + .5 - AQ_CX) / AQ_RX, b = (y + .5 - AQ_CY) / AQ_RY; return a * a + b * b <= 1; }
-  function aqIn(x, y) { return aqEll(x, y) || (y >= 7 && y < 24 && Math.abs(x + .5 - AQ_CX) <= 37 - Math.max(0, y - 18) * 0); }
-  function aqSt() { var L = life(); if (!L.aq || L.aq.v !== 2) L.aq = { v: 2, s: AQ_DEF.slice() }; return L.aq; }
-  // ---- the still picture, drawn once (2.5D): the wall, the chest top with the bowl's shadow and a bright spot of focused light,
-  // the glass sphere shaded like a ball of water, the water surface and the gravel seen as discs from slightly above ----
+  function aqSt() { var L = life(); if (!L.aq || L.aq.v !== 3) L.aq = { v: 3, s: AQ_DEF.slice(), kind: L.aq && L.aq.kind }; L.aq.s = AQ_DEF.slice(); return L.aq; }
+  // ---- the tank: square glass that fills the picture. Three looks to choose from:
+  // "klassik" a black-framed tank with a lid and a lamp on a wooden cabinet, "blick" seen a little from above and from the side so the water surface
+  // and the right-hand pane show, "nano" a rimless glass cube with a white lid, a painted plant background and dark soil ----
+  var AQ_STYLE = "klassik", AQ_G = null;
+  var AQ_GEO = { klassik: { x0: 5, x1: 175, y0: 12, y1: 123, wl: 19, fb: 95 }, blick: { x0: 4, x1: 150, y0: 20, y1: 126, wl: 24, fb: 96, side: 26, up: 12 }, nano: { x0: 9, x1: 171, y0: 17, y1: 125, wl: 24, fb: 97 } };
   var aqBg = document.createElement("canvas"); aqBg.width = AQ_W; aqBg.height = AQ_H; var aqWater = new Uint8Array(AQ_W * AQ_H), aqGrav = new Uint8Array(AQ_W * AQ_H);
+  var aqFront = document.createElement("canvas"); aqFront.width = AQ_W; aqFront.height = AQ_H;
+  var aqL = document.createElement("canvas"); aqL.width = AQ_W; aqL.height = AQ_H; var aqLc = aqL.getContext("2d"); aqLc.imageSmoothingEnabled = false;
+  var aqMask = document.createElement("canvas"); aqMask.width = AQ_W; aqMask.height = AQ_H;
   var AQ_DEEP = ["#c4ecf8", "#a8e0f4", "#8ed2ee", "#78c4e6", "#64b4dc", "#52a2d0", "#4490c2", "#3a7eb2"];
-  function aqFloorY(x) { var u = (x - AQ_CX) / 66; return Math.round(AQ_FB - 5 * Math.sqrt(Math.max(0, 1 - u * u))); }   /* the far edge of the gravel disc */
-  function aqSurfW() { var b = (AQ_WL - AQ_CY) / AQ_RY; return AQ_RX * Math.sqrt(1 - b * b); }
-  (function () {
-    var c = aqBg.getContext("2d"), y, x;
-    for (y = 0; y < 112; y++) for (x = 0; x < AQ_W; x++) aP(c, x, y, 1, 1, (x % 10 === 0 && y % 9 === 4) ? "#e4d0ac" : y > 100 ? "#ecdcbe" : "#f3e7cf");         /* calm wallpaper, a little shade near the chest */
-    aP(c, 0, 111, AQ_W, 1, AD); for (y = 112; y < AQ_H; y++) aP(c, 0, y, AQ_W, 1, y < 114 ? "#d8a070" : y < 122 ? "#b47448" : y < 130 ? "#a0683a" : "#8a5a32");
-    for (y = 116; y < AQ_H; y += 6) for (x = (y * 7) % 23; x < AQ_W; x += 31) aP(c, x, y, 9, 1, "#8a5a32");                                              /* wood grain */
-    c.globalAlpha = .35; aqDisc(c, 98, 125, 70, 6, function () { return "#3a2414"; }); c.globalAlpha = .55; aqDisc(c, 100, 125, 44, 4, function () { return "#3a2414"; }); c.globalAlpha = 1;   /* the shadow, a little to the right */
-    aqDisc(c, 82, 126, 16, 2, function (a, b, d) { return d > .6 ? "#e8b880" : "#fff0c8"; });                                                                 /* light focused through the ball of water */
-    for (y = 0; y < AQ_H; y++) for (x = 0; x < AQ_W; x++) {
-      if (!aqIn(x, y)) continue;
-      var nx = (x + .5 - AQ_CX) / AQ_RX, ny = (y + .5 - AQ_CY) / AQ_RY, r = Math.sqrt(nx * nx + ny * ny), inBall = aqEll(x, y), col;
-      var edge = !aqIn(x + 1, y) || !aqIn(x - 1, y) || !aqIn(x, y - 1) || !aqIn(x, y + 1);
-      if (edge) col = AD;
-      else if (!inBall || y < AQ_WL - 3) { col = r > .93 && inBall ? "#bfe0ee" : ((x + y) % 2 ? "#eef8fc" : "#e4f3f9"); if (!inBall && (!aqIn(x + 2, y) || !aqIn(x - 2, y))) col = "#c4e4f0"; }   /* air in the glass */
-      else if (r > .955) col = nx > .2 ? "#3a7ea8" : "#9ad0e8";                                                                                             /* the thick glass: dark where light passes through it sideways */
-      else if (y >= aqFloorY(x) && y >= AQ_FB - 6) {                                                                                                         /* gravel: darker at the back and at the round edge */
-        var dep = (y - aqFloorY(x)) / (AQ_H - AQ_FB), sh = Math.min(1, Math.max(0, (r - .7) / .25)), cell = (x * 7 + y * 13 + x * y) % 7, base = ["#d8bc90", "#c8a878", "#e4cca4", "#b8a080", "#e0c4a8", "#bc9c74", "#ecd8b4"][cell];
-        col = y - aqFloorY(x) < 2 ? "#6a5440" : sh > .5 + ((x + y) % 2) * .2 ? "#8a7058" : dep < .12 && (x + y) % 2 ? "#a88a68" : base; aqGrav[y * AQ_W + x] = 1; }
-      else if (Math.abs(y - AQ_WL) <= 3 && Math.abs((x + .5 - AQ_CX) / aqSurfW()) < 1 && ((x + .5 - AQ_CX) / aqSurfW()) * ((x + .5 - AQ_CX) / aqSurfW()) + ((y - AQ_WL) / 3.4) * ((y - AQ_WL) / 3.4) <= 1) {
-        col = y < AQ_WL ? ((x + y) % 2 ? "#e0f6fc" : "#d0eff9") : y === AQ_WL ? "#ffffff" : "#b8e6f6"; if (y >= AQ_WL) aqWater[y * AQ_W + x] = 1; }             /* the water surface, an ellipse seen from a little above */
-      else if (y < AQ_WL) col = (x + y) % 2 ? "#eef8fc" : "#e4f3f9";
-      else { var dv = (y - AQ_WL) / (AQ_FB - AQ_WL), lit = Math.max(0, -nx * .6 - ny * .3), v = dv * 4 + r * r * 3.2 - lit * 1.6, i = Math.floor(v), f = v - i;
+  function aqIn(x, y) { var G = AQ_G; return x >= G.x0 && x < G.x1 && y >= G.y0 && y < G.y1; }
+  function aqEll(x, y) { return aqIn(x, y); }
+  function aqFloorY(x) { var G = AQ_G; return Math.round(G.fb + Math.sin(x * .07) * 1.2 + (G.side ? -(x - G.x0) / (G.x1 - G.x0) * 3 : 0)); }
+  function aqBuild(style) {
+    AQ_STYLE = AQ_GEO[style] ? style : "klassik"; var G = AQ_G = AQ_GEO[AQ_STYLE]; AQ_WL = G.wl; AQ_FB = G.fb; aqWater.fill(0); aqGrav.fill(0);
+    var c = aqBg.getContext("2d"), x, y; c.clearRect(0, 0, AQ_W, AQ_H);
+    // the room behind
+    for (y = 0; y < AQ_H; y++) for (x = 0; x < AQ_W; x++) aP(c, x, y, 1, 1, (x % 10 === 0 && y % 9 === 4) ? "#e4d0ac" : "#f3e7cf");
+    // the cabinet or shelf under the tank
+    var by = G.y1 + 1; aP(c, 0, by, AQ_W, AQ_H - by, AQ_STYLE === "nano" ? "#c8945a" : "#8a5a32"); aP(c, 0, by, AQ_W, 1, AD); aP(c, 0, by + 1, AQ_W, 2, AQ_STYLE === "nano" ? "#e0b07a" : "#b47a46");
+    for (y = by + 5; y < AQ_H; y += 4) for (x = (y * 7) % 19; x < AQ_W; x += 27) aP(c, x, y, 8, 1, AQ_STYLE === "nano" ? "#b07a46" : "#6a3e22");
+    // the water, gravel and back wall inside the front pane
+    for (y = G.y0; y < G.y1; y++) for (x = G.x0; x < G.x1; x++) {
+      var col, u = (x - G.x0) / (G.x1 - G.x0), ex = Math.min(u, 1 - u);
+      if (y >= aqFloorY(x)) { var cell = (x * 7 + y * 13 + x * y) % 7; col = AQ_STYLE === "nano" ? (y > G.y1 - 9 ? ["#e8d8b8", "#d8c4a0", "#f0e4cc", "#c8b490", "#e0d0b0", "#d0bc98", "#ecdcc0"][cell] : ["#3a2e26", "#2e241e", "#4a3a2e", "#342a22", "#40322a", "#2a221c", "#4e3e30"][cell]) : ["#d8bc90", "#c8a878", "#e4cca4", "#b8a080", "#e0c4a8", "#bc9c74", "#ecd8b4"][cell];
+        if (y - aqFloorY(x) < 2) col = AQ_STYLE === "nano" ? "#1e1814" : "#6a5440"; aqGrav[y * AQ_W + x] = 1; }
+      else if (y < AQ_WL) col = AQ_STYLE === "klassik" ? ((x + y) % 2 ? "#3a3a40" : "#44444a") : ((x + y) % 2 ? "#eef8fc" : "#e4f3f9");
+      else { var dv = (y - AQ_WL) / (AQ_FB - AQ_WL), v = dv * 4.2 + (ex < .08 ? (.08 - ex) * 18 : 0) - (AQ_STYLE === "nano" ? 1.6 : 0), i = Math.floor(v), f = v - i;
         col = AQ_DEEP[Math.max(0, Math.min(7, i + (f > .5 + ((x + y) % 2) * .25 - .125 ? 1 : 0)))]; aqWater[y * AQ_W + x] = 1; }
       aP(c, x, y, 1, 1, col);
     }
-    // the opening at the top: a ring, the far inside of the neck darker
-    aqDisc(c, AQ_CX, 7, 37, 3.4, function (a, b, d) { return d > .8 ? AD : b < 0 ? "#a8d4e8" : "#d8f0f8"; }); aqDisc(c, AQ_CX, 7, 33, 2, function (a, b, d) { return b < 0 ? "#7ab8d4" : "#c8e8f4"; });
-    for (x = -36; x <= 36; x += 1) if (Math.abs(x) > 30) aP(c, AQ_CX + x, 8, 1, 1, "#ffffff");
-  })();
-  (function () { var c = aqBg.getContext("2d"), seed = 7, R = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };   /* rounded pebbles: bigger towards the front, each with its own light and shadow */
-    var PB = [["#f0e2c8", "#d0bc9c", "#9a8468"], ["#d8d2c4", "#aaa496", "#6e6a5e"], ["#f0c8a8", "#c89878", "#8a5e44"], ["#e4dccc", "#b4ac9c", "#7a7466"], ["#f8ecd4", "#d4c4a4", "#9a8a6c"]];
-    var pts = []; for (var n = 0; n < 240; n++) pts.push([R() * AQ_W, AQ_FB - 4 + Math.pow(R(), .8) * (AQ_H - AQ_FB + 4), R(), Math.floor(R() * PB.length)]); pts.sort(function (a, b) { return a[1] - b[1]; });
-    pts.forEach(function (q) { var x = Math.round(q[0]), y = Math.round(q[1]); if (!aqGrav[y * AQ_W + x]) return; var dep = (y - AQ_FB + 4) / (AQ_H - AQ_FB + 4), rx = .8 + dep * 2.8 + q[2], ry = Math.max(.7, rx * .6), P = PB[q[3]];
-      aqDisc(c, x + 1, y + 1, rx, ry * .7, function (a, b) { return aqGrav[(y + 1 + b) * AQ_W + x + 1 + a] ? "#7a6248" : null; });                               /* a little shadow under each */
-      aqDisc(c, x, y, rx, ry, function (a, b, d) { if (!aqGrav[(y + b) * AQ_W + x + a]) return null; return d > .7 ? P[2] : a + b * 1.5 < -1 ? P[0] : P[1]; }); }); })();
-  var aqFront = document.createElement("canvas"); aqFront.width = AQ_W; aqFront.height = AQ_H;   /* the shine on the curved glass, over everything */
-  (function () { var c = aqFront.getContext("2d");
-    for (var k = 0; k < 80; k++) { var a = 2.05 + k * .011, x = Math.round(AQ_CX + Math.cos(a) * (AQ_RX - 6)), y = Math.round(AQ_CY - Math.sin(a) * (AQ_RY - 6)); if (aqEll(x, y)) aP(c, x, y, 2, 2, "rgba(255,255,255,.9)"); }
-    for (var k1 = 0; k1 < 50; k1++) { var a1 = 2.2 + k1 * .011, x1 = Math.round(AQ_CX + Math.cos(a1) * (AQ_RX - 11)), y1 = Math.round(AQ_CY - Math.sin(a1) * (AQ_RY - 11)); if (aqEll(x1, y1)) aP(c, x1, y1, 1, 1, "rgba(255,255,255,.55)"); }
-    aqDisc(c, 46, 40, 3, 2, function (a, b, d) { return d > .6 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.95)"; });
-    for (var k2 = 0; k2 < 26; k2++) { var a2 = -.35 + k2 * .02, x3 = Math.round(AQ_CX + Math.cos(a2) * (AQ_RX - 5)), y3 = Math.round(AQ_CY - Math.sin(a2) * (AQ_RY - 5)); aP(c, x3, y3, 1, 2, "rgba(255,255,255,.45)"); }
-    for (var k3 = 0; k3 < 60; k3++) { var a3 = 3.6 + k3 * .03, x4 = Math.round(AQ_CX + Math.cos(a3) * (AQ_RX - 4)), y4 = Math.round(AQ_CY - Math.sin(a3) * (AQ_RY - 4)); if (aqEll(x4, y4) && y4 > AQ_FB) aP(c, x4, y4, 1, 1, "rgba(255,255,255,.35)"); }   /* light caught in the bottom rim */
-  })();
-  var aqL = document.createElement("canvas"); aqL.width = AQ_W; aqL.height = AQ_H; var aqLc = aqL.getContext("2d"); aqLc.imageSmoothingEnabled = false;
-  var aqMask = document.createElement("canvas"); aqMask.width = AQ_W; aqMask.height = AQ_H;
-  (function () { var c = aqMask.getContext("2d"); for (var y = 0; y < AQ_H; y++) for (var x = 0; x < AQ_W; x++) { var inside = aqIn(x, y) && aqIn(x + 1, y) && aqIn(x - 1, y) && aqIn(x, y + 1) && aqIn(x, y - 1); if (inside || (y <= 8 && Math.abs(x + .5 - AQ_CX) <= 33)) aP(c, x, y, 1, 1, "#ffffff"); } })();   /* only through the opening may things stick out */
+    if (AQ_STYLE === "nano") { var seed = 3, R = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };   /* a painted plant background on the back glass */
+      for (var p = 0; p < 26; p++) { var px = G.x0 + R() * (G.x1 - G.x0), ph = 20 + R() * 45; for (var k = 0; k < ph; k++) { var yy = Math.round(AQ_FB - k), xx = Math.round(px + Math.sin(k * .12 + p) * 3); if (aqWater[yy * AQ_W + xx]) { aP(c, xx, yy, 1, 1, k % 7 < 4 ? "#5a9a7a" : "#6aaa88"); if (k % 6 === 3) { aP(c, xx - 2, yy, 2, 1, "#78b896"); aP(c, xx + 1, yy - 1, 2, 1, "#5a9a7a"); } } } } }
+    // light from the lamp: soft bright bands that fall from the top
+    if (AQ_STYLE !== "blick") for (var r = 0; r < 6; r++) { var rx = G.x0 + 14 + r * 28; for (var yy2 = AQ_WL + 1; yy2 < AQ_FB - 4; yy2++) { var w = 3 + Math.round((yy2 - AQ_WL) / 16); if ((yy2 + r) % 2) aP(c, rx + Math.round((yy2 - AQ_WL) * .25), yy2, w, 1, "rgba(255,255,240,.10)"); } }
+    // the water surface line
+    for (x = G.x0; x < G.x1; x++) { aP(c, x, AQ_WL, 1, 1, x % 5 ? "#c8ecf8" : "#ffffff"); aP(c, x, AQ_WL + 1, 1, 1, "#a8dcf0"); }
+    // the frame, the lid, the panes
+    if (AQ_STYLE === "klassik") {
+      aP(c, G.x0 - 5, 0, G.x1 - G.x0 + 10, G.y0, "#1e1e22"); aP(c, G.x0 - 5, 0, G.x1 - G.x0 + 10, 1, AD); aP(c, G.x0 - 4, 1, G.x1 - G.x0 + 8, 2, "#4a4a52"); aP(c, G.x0 - 5, G.y0 - 2, G.x1 - G.x0 + 10, 1, "#0e0e10");
+      aP(c, G.x0, G.y0, G.x1 - G.x0, 1, "#fff4c8"); aP(c, G.x0, G.y0 + 1, G.x1 - G.x0, 1, "#e8d8a0");                                                   /* the lamp under the lid */
+      aP(c, G.x0 - 5, G.y0, 5, G.y1 - G.y0, "#1e1e22"); aP(c, G.x1, G.y0, 5, G.y1 - G.y0, "#1e1e22"); aP(c, G.x0 - 4, G.y0, 1, G.y1 - G.y0, "#4a4a52"); aP(c, G.x1 + 1, G.y0, 1, G.y1 - G.y0, "#4a4a52");
+      aP(c, G.x0 - 5, G.y1, G.x1 - G.x0 + 10, 3, "#1e1e22"); aP(c, G.x0 - 5, G.y1, G.x1 - G.x0 + 10, 1, "#4a4a52");
+      for (x = 0; x < AQ_W; x += 1) if (x < G.x0 - 5 || x >= G.x1 + 5) { for (y = 0; y < G.y1 + 3; y++) aP(c, x, y, 1, 1, (x % 10 === 0 && y % 9 === 4) ? "#e4d0ac" : "#f3e7cf"); }
+    } else if (AQ_STYLE === "nano") {
+      aP(c, G.x0 - 3, G.y0 - 11, G.x1 - G.x0 + 6, 9, AD); aP(c, G.x0 - 2, G.y0 - 10, G.x1 - G.x0 + 4, 7, "#f4f4f0"); aP(c, G.x0 - 2, G.y0 - 10, G.x1 - G.x0 + 4, 1, "#ffffff"); aP(c, G.x0 - 2, G.y0 - 4, G.x1 - G.x0 + 4, 1, "#c8c8c0");
+      aP(c, AQ_W / 2 - 18, G.y0 - 2, 36, 2, "#fffbe0");                                                                                              /* the LED */
+      for (y = G.y0 - 2; y < G.y1 + 1; y++) { aP(c, G.x0 - 2, y, 2, 1, "#bfe6f2"); aP(c, G.x1, y, 2, 1, "#9ad0e4"); aP(c, G.x0 - 3, y, 1, 1, "#6aa8c0"); aP(c, G.x1 + 2, y, 1, 1, "#5a98b0"); }
+      aP(c, G.x0 - 2, G.y1, G.x1 - G.x0 + 4, 1, "#9ad0e4");
+    } else {
+      // seen a little from above and from the right: the far top edge, the water surface between, the right-hand pane in shade
+      var S = G.side, U = G.up;
+      for (y = G.y0 - U; y < G.y0; y++) { var t1 = (y - (G.y0 - U)) / U, xa = Math.round(G.x0 + S * (1 - t1)), xb = Math.round(G.x1 + S * (1 - t1)); for (x = xa; x < xb; x++) { aP(c, x, y, 1, 1, (x + y) % 3 ? "#b8e4f4" : "#d8f2fa"); } aP(c, xa, y, 1, 1, "#6aa8c0"); }
+      aP(c, G.x0 + S, G.y0 - U - 1, G.x1 - G.x0, 1, "#3a6a80");
+      for (x = G.x1; x < G.x1 + S; x++) { var t2 = (x - G.x1) / S, ya = Math.round(G.y0 - U * t2), yb = Math.round(G.y1 - U * t2); for (y = ya; y < yb; y++) { var dv2 = (y - ya) / (yb - ya); aP(c, x, y, 1, 1, y < ya + 4 ? "#b8e4f4" : dv2 > .72 ? "#7a6a58" : AQ_DEEP[Math.min(7, 4 + Math.floor(dv2 * 4 + t2 * 1.5))]); } aP(c, x, ya, 1, 1, "#6aa8c0"); aP(c, x, yb, 1, 1, "#3a6a80"); }
+      for (y = G.y0 - 1; y <= G.y1; y++) { aP(c, G.x0 - 1, y, 1, 1, "#6aa8c0"); aP(c, G.x1, y, 1, 1, "#9ad0e4"); } aP(c, G.x0 - 1, G.y1, G.x1 - G.x0 + 2, 1, "#3a6a80"); aP(c, G.x0 - 1, G.y0 - 1, G.x1 - G.x0 + 2, 1, "#ffffff");
+    }
+    // round pebbles, bigger at the front
+    var sd = 7, R2 = function () { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; }, PB = AQ_STYLE === "nano" ? [["#f0e4cc", "#d8c4a0", "#a8946e"], ["#d8d2c4", "#aaa496", "#6e6a5e"]] : [["#f0e2c8", "#d0bc9c", "#9a8468"], ["#d8d2c4", "#aaa496", "#6e6a5e"], ["#f0c8a8", "#c89878", "#8a5e44"], ["#e4dccc", "#b4ac9c", "#7a7466"]];
+    var pts = []; for (var n = 0; n < 200; n++) pts.push([G.x0 + R2() * (G.x1 - G.x0), AQ_FB + 2 + Math.pow(R2(), .8) * (G.y1 - AQ_FB), R2(), Math.floor(R2() * PB.length)]); pts.sort(function (a, b) { return a[1] - b[1]; });
+    pts.forEach(function (q) { var x2 = Math.round(q[0]), y2 = Math.round(q[1]); if (!aqGrav[y2 * AQ_W + x2]) return; if (AQ_STYLE === "nano" && y2 < G.y1 - 9 && q[2] < .7) return; var dep = (y2 - AQ_FB) / (G.y1 - AQ_FB), rx2 = .8 + dep * 2.4 + q[2] * .8, ry2 = Math.max(.7, rx2 * .6), P = PB[q[3]];
+      aqDisc(c, x2, y2, rx2, ry2, function (a, b, d) { if (!aqGrav[(y2 + b) * AQ_W + x2 + a]) return null; return d > .7 ? P[2] : a + b * 1.5 < -1 ? P[0] : P[1]; }); });
+    // the places for the plants and the things
+    var X = function (u2) { return Math.round(G.x0 + (G.x1 - G.x0) * u2); };
+    AQ_SL = [{ x: X(.12), y: AQ_FB + 4, k: "f" }, { x: X(.26), y: AQ_FB + 3, k: "f" }, { x: X(.4), y: AQ_FB + 3, k: "f" }, { x: X(.6), y: AQ_FB + 3, k: "f" }, { x: X(.74), y: AQ_FB + 3, k: "f" }, { x: X(.88), y: AQ_FB + 4, k: "f" },
+      { x: X(.2), y: G.y1 - 6, k: "f" }, { x: X(.5), y: G.y1 - 4, k: "f" }, { x: X(.8), y: G.y1 - 6, k: "f" }, { x: X(.3), y: G.y0, k: "r" }, { x: X(.5), y: AQ_WL, k: "t" }];
+    // the shine on the front glass
+    var fc = aqFront.getContext("2d"); fc.clearRect(0, 0, AQ_W, AQ_H);
+    for (var k2 = 0; k2 < 46; k2++) { aP(fc, G.x0 + 10 + k2, G.y0 + 6 + k2 * 2, 1, 2, "rgba(255,255,255,.35)"); aP(fc, G.x0 + 14 + k2, G.y0 + 6 + k2 * 2, 1, 2, "rgba(255,255,255,.18)"); }
+    for (var k3 = 0; k3 < 20; k3++) aP(fc, G.x1 - 30 + k3, G.y0 + 4 + k3 * 2, 1, 2, "rgba(255,255,255,.22)");
+    // only inside the glass do things show
+    var mc = aqMask.getContext("2d"); mc.clearRect(0, 0, AQ_W, AQ_H); aP(mc, G.x0, G.y0 + (AQ_STYLE === "klassik" ? 2 : 0), G.x1 - G.x0, G.y1 - G.y0 - (AQ_STYLE === "klassik" ? 2 : 0), "#ffffff");
+  }
+  aqBuild(AQ_STYLE);
   function aqFog(c) { c.globalAlpha = .16; for (var y = AQ_WL + 3; y < AQ_H; y++) { var row = -1; for (var x = 0; x <= AQ_W; x++) { var w = x < AQ_W && (aqWater[y * AQ_W + x] || aqGrav[y * AQ_W + x]); if (w && row < 0) row = x; if (!w && row >= 0) { aP(c, row, y, x - row, 1, "#2a6a9a"); row = -1; } } } c.globalAlpha = 1; }   /* water between us and the back row */
   function aqShadow(c, x, y, rx) { c.globalAlpha = .28; aqDisc(c, x + 2, y, rx, Math.max(1, rx * .28), function (a, b) { return aqGrav[(y + b) * AQ_W + x + 2 + a] ? "#2a1a10" : null; }); c.globalAlpha = 1; }
   // ---- small drawing helpers ----
@@ -10724,9 +10739,9 @@ window.__EXTRAS = true;
   function aqNeon(c, N2) { var x = Math.round(N2.x), y = Math.round(N2.y), d = N2.dir, px = function (dx, dy, col) { aP(c, x + dx * d, y + dy, 1, 1, col); };
     for (var i = -3; i <= 3; i++) { px(i, -1, i > -3 && i < 3 ? "#b8ccd8" : null || "#b8ccd8"); px(i, 0, "#30c8f0"); px(i, 1, i < 0 ? "#f0503a" : "#e8eef0"); } px(-4, 0, "#b8ccd8"); px(-5, -1, "#d8e4ea"); px(-5, 1, "#d8e4ea"); px(3, 0, AD); px(2, -1, "#b8ccd8"); }
   function aqNewState() { var nn = []; for (var i = 0; i < 5; i++) nn.push({ x: 40 + i * 5, y: 50 + (i % 2) * 4, dir: 1, ox: (i % 3) * 7 - 7, oy: (i % 2) * 6 - 3 });
-    return { fish: { x: 96, y: 62, dir: -1, tx: 70, ty: 60, next: 0, happy: 0, blush: 0, gulp: 0, fast: 0, blink: 0 }, snail: { a: 2.6, dir: 1, hide: 0, x: 0, y: 0 },
+    return { fish: { x: 96, y: 62, dir: -1, tx: 70, ty: 60, next: 0, happy: 0, blush: 0, gulp: 0, fast: 0, blink: 0 }, snail: { a: .3, dir: 1, hide: 0, x: 0, y: 0 },
       shrimps: [{ x: 60, y: 110, dir: 1, tx: 70, pick: 0, next: 0 }, { x: 120, y: 116, dir: -1, tx: 110, pick: 0, next: 0 }], neons: nn, school: { x: 50, y: 52, tx: 120, ty: 46, next: 0 },
-      bub: [], flakes: [], hearts: [], mode: "", edit: false, ate: 0, plays: 0, pets: 0 }; }
+      bub: [], flakes: [], hearts: [], mode: "", ate: 0, plays: 0, pets: 0 }; }
   function aqDraw(t) {
     aqRaf = 0; if (!aq || aqEl.hidden) return; aqRaf = requestAnimationFrame(aqDraw); if (aq.preview) return;
     var dt = Math.min(.05, (t - (aq.last || t)) / 1000); aq.last = t; var S = aqSt();
@@ -10759,10 +10774,10 @@ window.__EXTRAS = true;
     if (sl[9] === "efeu") AQ_DRAW.efeu(aqc, AQ_SL[9].x, AQ_SL[9].y, t, true);
     aq.hearts = aq.hearts.filter(function (h) { h.l -= dt; h.y -= 14 * dt; h.x += h.vx * dt; var x = Math.round(h.x), y = Math.round(h.y); aP(aqc, x - 3, y - 1, 3, 1, AD); aP(aqc, x + 1, y - 1, 3, 1, AD);
       aP(aqc, x - 3, y, 7, 2, "#e8465a"); aP(aqc, x - 2, y + 2, 5, 1, "#e8465a"); aP(aqc, x - 1, y + 3, 3, 1, "#e8465a"); aP(aqc, x, y + 4, 1, 1, "#e8465a"); aP(aqc, x - 2, y, 1, 1, "#ffb0b8"); return h.l > 0; });
-    if (aq.edit) AQ_SL.forEach(function (p, i) { var y = p.k === "f" ? p.y - 7 : p.y, on = Math.floor(t / 400) % 2; aP(aqc, p.x - 4, y - 4, 9, 9, AD); aP(aqc, p.x - 3, y - 3, 7, 7, on ? "#fff8ec" : "#ffe08a"); aP(aqc, p.x - 2, y, 5, 1, AD); aP(aqc, p.x, y - 2, 1, 5, AD); });
+    if (false) AQ_SL.forEach(function (p, i) { var y = 0, on = 0; aP(aqc, p.x - 4, y - 4, 9, 9, AD); aP(aqc, p.x - 3, y - 3, 7, 7, on ? "#fff8ec" : "#ffe08a"); aP(aqc, p.x - 2, y, 5, 1, AD); aP(aqc, p.x, y - 2, 1, 5, AD); });
   }
   // ---- how they move ----
-  function aqClampT(F) { F.ty = Math.max(AQ_WL + 10, Math.min(AQ_FB - 4, F.ty)); var a = (F.tx - AQ_CX) / (AQ_RX - 26), b = (F.ty - AQ_CY) / (AQ_RY - 14), d = a * a + b * b; if (d > 1) { F.tx = AQ_CX + (F.tx - AQ_CX) / Math.sqrt(d); F.ty = AQ_CY + (F.ty - AQ_CY) / Math.sqrt(d); } F.ty = Math.max(AQ_WL + 10, Math.min(AQ_FB - 4, F.ty)); }
+  function aqClampT(F) { var G = AQ_G; F.tx = Math.max(G.x0 + 18, Math.min(G.x1 - 18, F.tx)); F.ty = Math.max(AQ_WL + 10, Math.min(AQ_FB - 5, F.ty)); }
   function aqStep(t, dt) {
     var F = aq.fish, now = performance.now();
     if (aq.mode === "feed") { var fl = aq.flakes.filter(function (f) { return !f.gone; }); if (fl.length && !aq.full) { var n = fl.reduce(function (a, f) { return Math.hypot(f.x - F.x, f.y - F.y) < Math.hypot(a.x - F.x, a.y - F.y) ? f : a; }); F.tx = n.x - F.dir * 11; F.ty = n.y - 1; F.fast = 1; } }
@@ -10774,8 +10789,8 @@ window.__EXTRAS = true;
     if (d > .8) { F.x += dx / d * Math.min(d, sp); F.y += dy / d * Math.min(d, sp * .8); }
     if (!F.blink && Math.random() < dt * .35) { F.blink = 1; setTimeout(function () { if (aq) aq.fish.blink = 0; }, 130); }
     // the snail creeps along the inside of the glass, now and then turning back
-    var Sn = aq.snail; if (Sn.hide > 0) Sn.hide -= dt; else if (Math.random() > dt * .05) { Sn.a += Sn.dir * dt * .01; if (Sn.a > 3.6 || Sn.a < 1.9) Sn.dir *= -1; }
-    Sn.x = AQ_CX + Math.cos(Sn.a) * (AQ_RX - 9); Sn.y = AQ_CY - Math.sin(Sn.a) * (AQ_RY - 9); Sn.dir2 = Sn.dir;
+    var Sn = aq.snail; if (Sn.hide > 0) Sn.hide -= dt; else if (Math.random() > dt * .05) { Sn.a += Sn.dir * dt * .012; if (Sn.a > 1 || Sn.a < 0) { Sn.dir *= -1; Sn.a = Math.max(0, Math.min(1, Sn.a)); } }
+    Sn.x = AQ_G.x0 + 10 + Sn.a * 60; Sn.y = AQ_FB - 8;   /* it creeps along the front glass, just above the gravel */ Sn.dir2 = Sn.dir;
     // the shrimps pick at the gravel, scuttle a bit, pick again
     aq.shrimps.forEach(function (p) { if (p.pick > 0) { p.pick -= dt; return; } if (now > p.next) { p.next = now + 1500 + Math.random() * 3000; p.tx = Math.max(36, Math.min(144, p.x + (Math.random() - .5) * 50)); p.ty = 104 + Math.random() * 16; }
       var ex = p.tx - p.x, ey = (p.ty || p.y) - p.y; if (Math.abs(ex) > 1 || Math.abs(ey) > 1) { p.dir = ex < 0 ? -1 : 1; p.x += Math.sign(ex) * Math.min(Math.abs(ex), 12 * dt); p.y += Math.sign(ey) * Math.min(Math.abs(ey), 5 * dt); } else if (Math.random() < dt * .8) p.pick = 1 + Math.random() * 1.5; });
@@ -10804,18 +10819,14 @@ window.__EXTRAS = true;
   // ---- the buttons under the picture ----
   function aqBarDraw() {
     if (!aq) return;
-    if (aq.edit) { aqBar.innerHTML = '<span class="aq-hint">Tippe auf ein Feld</span><button type="button" class="fi-b" data-a="done">Fertig</button>'; return; }
     var busy = !!aq.mode;
-    aqBar.innerHTML = [["feed", "Füttern"], ["play", "Spielen"], ["edit", "Einrichten"]].map(function (b) { var on = aq.mode === b[0]; return '<button type="button" class="fi-b2' + (on ? " on" : "") + '" data-a="' + b[0] + '"' + (busy && !on ? " disabled" : "") + '>' + (b[0] === "play" && on ? "Fertig" : b[1]) + '</button>'; }).join("");
+    aqBar.innerHTML = [["feed", "Füttern"], ["play", "Spielen"]].map(function (b) { var on = aq.mode === b[0]; return '<button type="button" class="fi-b2' + (on ? " on" : "") + '" data-a="' + b[0] + '"' + (busy && !on ? " disabled" : "") + '>' + (b[0] === "play" && on ? "Fertig" : b[1]) + '</button>'; }).join("");
   }
   aqBar.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !aq) return; e.stopPropagation(); var a = b.dataset.a;
-    if (a === "done") { aq.edit = false; aqBarDraw(); beep([[660, .04], [880, .05]]); if (window.SudokuSave) window.SudokuSave(); return; }
-    if (a === "edit") { aq.edit = true; aqBarDraw(); beep([[520, .04]]); return; }
     if (a === "feed") { aq.mode = "feed"; aq.ate = 0; aq.full = Date.now() - (life().fishFed || 0) < 3 * 3600e3; var x0 = 60 + Math.random() * 60; for (var k = 0; k < 8; k++) aq.flakes.push({ x: x0 + (k * 7) % 26 - 13, y: AQ_WL + 1 + (k % 3), ph: k, c: k % 2 ? "#e8c060" : "#d8703a" }); beep([[1047, .03], [1175, .03], [1319, .04]]); aqBarDraw(); return; }
     if (a === "play") { if (aq.mode === "play") { aq.mode = ""; aq.ptr = null; aq.hoop = null; aqBarDraw(); return; } aq.mode = "play"; aq.plays = 0; aq.hoop = { x: 50 + Math.random() * 80, y: 50 + Math.random() * 30 }; aqSay("Lotse den Goldfisch durch den Ring!"); aqBarDraw(); return; } });
   function aqPt(e) { var r = aqCv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * AQ_W, (e.clientY - r.top) / r.height * AQ_H]; }
   aqCv.addEventListener("pointerdown", function (e) { if (!aq) return; e.preventDefault(); var p = aqPt(e);
-    if (aq.edit) { var best = -1, bd = 16; AQ_SL.forEach(function (sp, i) { var d = Math.hypot(p[0] - sp.x, (p[1] - (sp.k === "f" ? sp.y - 7 : sp.y)) * .7); if (d < bd) { bd = d; best = i; } }); if (best >= 0) aqPick(best); return; }
     aq.drag = true; try { aqCv.setPointerCapture(e.pointerId); } catch (er) { }
     if (aq.mode === "play") { aq.ptr = p; return; }
     var F = aq.fish, Sn = aq.snail;
@@ -10831,16 +10842,6 @@ window.__EXTRAS = true;
   });
   aqCv.addEventListener("pointermove", function (e) { if (!aq || !aq.drag) return; var p = aqPt(e); if (aq.mode === "play") aq.ptr = p; });
   aqCv.addEventListener("pointerup", function () { if (aq) aq.drag = false; });
-  // ---- one card with little pictures to choose what goes in a place ----
-  function aqPick(i) {
-    var S = aqSt(), cur = S.s[i], kind = AQ_SL[i].k, list = AQ_ITEMS.filter(function (it) { return it[2] === kind; });
-    aqCard.innerHTML = '<div class="fi-c aq-pick"><p class="fi-h">' + (kind === "r" ? "Auf den Rand" : kind === "t" ? "Aufs Wasser" : "Einrichten") + '</p><div class="aq-grid">' + list.map(function (it) { return '<button type="button" data-k="' + it[0] + '"' + (cur === it[0] ? ' class="on"' : "") + '><canvas width="40" height="44"></canvas><small>' + it[1] + '</small></button>'; }).join("") +
-      '<button type="button" data-k=""' + (!cur ? ' class="on"' : "") + '><canvas width="40" height="44"></canvas><small>Leer</small></button></div></div>';
-    aqCard.hidden = false;
-    aqCard.querySelectorAll("canvas").forEach(function (cv) { var k = cv.parentNode.dataset.k, c = cv.getContext("2d"); c.imageSmoothingEnabled = false; aP(c, 0, 0, 40, 44, "#86c8e8"); aP(c, 0, 0, 40, 6, "#e0f2f9"); aP(c, 0, 38, 40, 6, "#d8bc90"); aP(c, 0, 38, 40, 1, "#9a7a58");
-      if (!k || !AQ_DRAW[k]) return; c.save(); if (kind === "f") { if (/seegras|pest|bambus/.test(k)) { c.translate(0, -56); AQ_DRAW[k](c, 20, 96, 1200); } else AQ_DRAW[k](c, 20, 40, 1200); } else if (kind === "t") { c.translate(-70, -AQ_WL + 14); AQ_DRAW[k](c, 90, AQ_WL, 1200); } else { c.translate(-34, 4); AQ_DRAW[k](c, 56, 6, 1200, false); AQ_DRAW[k](c, 56, 6, 1200, true); } c.restore(); });
-    aqCard.onclick = function (e) { var b = e.target.closest("button"); if (!b) { aqCard.hidden = true; return; } e.stopPropagation(); S.s[i] = b.dataset.k; aqCard.hidden = true; beep(b.dataset.k ? [[660, .04], [880, .05]] : [[440, .04]]); if (window.SudokuSave) window.SudokuSave(); };
-  }
   function aqOpen() { aq = aqNewState(); aqEl.hidden = false; aqBar.style.display = "flex"; aqCard.hidden = true; aqBarDraw(); if (!aqRaf) aqRaf = requestAnimationFrame(aqDraw); beep([[520, .04], [780, .05]]); }
   function aqClose() { aqEl.hidden = true; aqBar.style.display = "none"; aq = null; if (aqRaf) cancelAnimationFrame(aqRaf); aqRaf = 0; renderBowl(); }
   aqEl.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); aqClose(); });
@@ -10855,7 +10856,7 @@ window.__EXTRAS = true;
     if (S.s[10]) { P(8, 6, 4, 1, "#5aa04e"); if (S.s[10] === "seerose") P(9, 5, 1, 1, "#ff9ab8"); }
     g.innerHTML = '<svg viewBox="0 0 24 21" shape-rendering="crispEdges">' + px + '</svg>'; }
   renderBowl();
-  window.__aq = { open: aqOpen, close: aqClose, st: function () { return aq && { mode: aq.mode, edit: aq.edit, fish: [Math.round(aq.fish.x), Math.round(aq.fish.y), aq.fish.dir], flakes: aq.flakes.length, slots: aqSt().s.slice() }; }, set: function (i, k) { aqSt().s[i] = k; }, kind: function (k) { life().aq.kind = k; }, variants: function () { aq.preview = true; aqc.drawImage(aqBg, 0, 0); var ks = Object.keys(AQ_KINDS), pos = [[45, 44], [118, 44], [45, 76], [118, 76], [82, 100]]; ks.forEach(function (k, i) { aqFish(aqc, { x: pos[i][0], y: pos[i][1], dir: -1 }, 400, AQ_KINDS[k]); }); return ks.map(function (k) { return AQ_KINDS[k].n; }); }, tap: function (x, y) { aqCv.dispatchEvent(new PointerEvent("pointerdown", { clientX: 0, clientY: 0 })); } };
+  window.__aq = { style: function (k) { aqBuild(k); }, open: aqOpen, close: aqClose, st: function () { return aq && { mode: aq.mode, fish: [Math.round(aq.fish.x), Math.round(aq.fish.y), aq.fish.dir], flakes: aq.flakes.length, slots: aqSt().s.slice() }; }, set: function (i, k) { aqSt().s[i] = k; }, kind: function (k) { life().aq.kind = k; }, variants: function () { aq.preview = true; aqc.drawImage(aqBg, 0, 0); var ks = Object.keys(AQ_KINDS), pos = [[45, 44], [118, 44], [45, 76], [118, 76], [82, 100]]; ks.forEach(function (k, i) { aqFish(aqc, { x: pos[i][0], y: pos[i][1], dir: -1 }, 400, AQ_KINDS[k]); }); return ks.map(function (k) { return AQ_KINDS[k].n; }); }, tap: function (x, y) { aqCv.dispatchEvent(new PointerEvent("pointerdown", { clientX: 0, clientY: 0 })); } };
   // ===================== friends (preview): one screen at a time, and a new pixel screen for a new friend =====================
   // nothing piles up: the item screen waits while a letter is open, and a letter waits while any screen is open (letterOk already checks .ip)
   var _so_ipNext = ipNext;
