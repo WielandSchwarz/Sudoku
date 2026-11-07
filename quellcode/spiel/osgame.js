@@ -76,7 +76,7 @@ function mountObstsalat(root, ART, opts) {
   function addScore(n) { S.score = Math.max(0, S.score + n); }
   function showBanner(text, secs, timed) {
     banT.textContent = text; banTime.style.display = timed ? "block" : "none"; banTime.style.transform = "scaleX(1)";
-    ban.classList.remove("pop", "away"); void ban.offsetWidth; ban.classList.add("pop");
+    ban.classList.remove("pop", "away", "rw"); void ban.offsetWidth; ban.classList.add("pop");
     clearTimeout(banTimer); banTimer = setTimeout(function () { ban.classList.add("away"); }, secs * 1000);
   }
 
@@ -257,6 +257,7 @@ function mountObstsalat(root, ART, opts) {
     S.done = true; S.endT = 0; S.endTitle = title || "";
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
+    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4); ban.classList.add("rw"); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
       Promise.resolve().then(function () { return opts.board.submit(mine.score); })

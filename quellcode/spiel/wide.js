@@ -204,10 +204,11 @@
   // (tapping the floor to send the hamster somewhere is switched off again: it got in the way of other taps)
   var WALK_Y = { room: [110, 130], kitchen: [108, 128], garden: [112, 130], bedroom: [112, 128] };
   // ---- the ship model stands on the wall shelf above the piano instead of books, plant and record; picture and pinboard hang a little lower ----
+  var MODEL_X = 207;
   if (typeof pcModel !== "undefined") {
-    place(pcModel, 207, 12, 42); pcModel.classList.add("on-shelf");   // for now on top of the second bookshelf (Wieland still picks its place)
+    place(pcModel, MODEL_X, 37, 42); pcModel.classList.add("on-shelf");   /* standing on top of the bookshelf, the steamer picture hangs higher above it */
     if (typeof pcBoard !== "undefined") { pcBoardAt = "wide"; place(pcBoard, 103, 10, 36); }
-    if (typeof dzPic !== "undefined") place(dzPic, 216, 24, 24);
+    if (typeof dzPic !== "undefined") place(dzPic, MODEL_X + 9, 14, 24);
   }
   // ---- the hall's own floor, the gramophone, and wallpapers in your own colours ----
   /*WALLCOL*/
