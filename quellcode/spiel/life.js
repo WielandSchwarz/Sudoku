@@ -1032,6 +1032,9 @@
   }
   function vCats() { return KCATS.map(function (q) { return { cat: "k_" + q.id, q: q, room: "k", n: 3 }; }).concat(BCATS.map(function (q) { return { cat: "b_" + q.id, q: q, room: "b", n: q.id === "bed" ? 7 : q.names.length }; })); }
   function vInfo(cat) { return vCats().filter(function (v) { return v.cat === cat; })[0]; }
+  (function () { var ub = document.getElementById("d-unlock"); if (ub) ub.addEventListener("click", function () {   /* preview admin: kitchen and bedroom things (beds too) count as earned */
+    var L = vOwn(); vCats().forEach(function (v) { var o = v.room === "k" ? L.kown : L.bown, n = Math.max(v.n, v.q.names.length), a = []; for (var i = 0; i < n; i++) a.push(i); o[v.q.id] = a; });
+    try { if (typeof kCatalog !== "undefined" && !kCatalog.hidden) renderKCatalog(); if (typeof bCatalog !== "undefined" && !bCatalog.hidden) renderBCatalog(); renderCosy(); } catch (e) {} }); })();
   function vOwned(cat, i) { var L = vOwn(), v = vInfo(cat); if (!v) return true; var a = (v.room === "k" ? L.kown : L.bown)[v.q.id] || []; return a.indexOf(i) >= 0; }
   var V_TOTAL = vCats().reduce(function (s2, v) { return s2 + v.n; }, 0);
   TOTAL_ITEMS += V_TOTAL;

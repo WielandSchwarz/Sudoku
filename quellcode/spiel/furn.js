@@ -222,5 +222,5 @@
   });
   document.getElementById("d-unlock").addEventListener("click", function () {
     for (var c in FURN) home.owned[c] = FURN[c].map(function (x) { return x.id; });
-    renderCosy(); if (decor) renderCatalog(); say("Alle 60 Möbel freigeschaltet (nur in der Vorschau).");
+    renderCosy(); if (decor) renderCatalog(); say("Alle Möbel freigeschaltet, auch Küche und Schlafzimmer (nur in der Vorschau).");
   });

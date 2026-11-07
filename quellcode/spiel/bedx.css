@@ -45,3 +45,4 @@
 .lk-pov .lk-redo { position: absolute; right: 2%; top: 2%; width: 26px; height: 26px; border: 0; background: #fff8ec; box-shadow: inset 0 0 0 2px #3a2414; font: inherit; font-size: 1rem; line-height: 1; cursor: pointer; z-index: 4; clip-path: var(--px-notch2); color: #3a2414; }
 .lk-pov .cap-toast { top: auto; bottom: 4%; }
 .bx-teddy.bx-onbed { z-index: 4; }
+.mdw-pov.d2-pov .bp-ban { left: 24%; right: 24%; top: 15%; bottom: auto; text-align: center; white-space: nowrap; }
