@@ -14,8 +14,8 @@ function mountObstsalat(root, ART, opts) {
   var HURRY = 10;                                       // last seconds: the clock turns orange
   var INK = "#3a2414";
   var SPECIALS = { frostbeere: { t: 5, ban: "Zeitlupe" }, sonnenblume: { t: 7, ban: "Doppelte Punkte" }, honigwabe: { t: 4, ban: "Obstregen" },
-    pusteblume: { t: 4, ban: "Schweben" }, kleeblatt: { t: 5, ban: "Magnet" }, regenbogenerdbeere: { t: 2.5, ban: "Kombi-Zeit" }, uhrbluete: { t: 0, ban: "+5 Sekunden" }, gluehbeere: { t: 6, ban: "Leuchtobst" } };
-  var GLOW = { frostbeere: "#bfe8ff", sonnenblume: "#ffd8a0", honigwabe: "#ffffff", pusteblume: "#ffffff", kleeblatt: "#d0ffd0", regenbogenerdbeere: "#ffd0f0", uhrbluete: "#ffd0f0", gluehbeere: "#fff8a0" };
+    pusteblume: { t: 4, ban: "Schweben" }, kleeblatt: { t: 5, ban: "Magnet" }, regenbogenerdbeere: { t: 2.5, ban: "Kombi-Zeit" }, uhrbluete: { t: 0, ban: "+5 Sekunden" }, gluehbeere: { t: 6, ban: "Leuchtobst" }, hamsterkern: { t: 10, ban: "Hamster-Mode" } };
+  var GLOW = { frostbeere: "#bfe8ff", sonnenblume: "#ffd8a0", honigwabe: "#ffffff", pusteblume: "#ffffff", kleeblatt: "#d0ffd0", regenbogenerdbeere: "#ffd0f0", uhrbluete: "#ffd0f0", gluehbeere: "#fff8a0", hamsterkern: "#ffd8a0" };
 
   // ---------- DOM
   root.classList.add("os-root");
@@ -38,7 +38,8 @@ function mountObstsalat(root, ART, opts) {
   // ---------- images
   function img(src) { var i = new Image(); i.src = src; return i; }
   var BG = {}; Object.keys(ART.bg).forEach(function (k) { BG[k] = img(ART.bg[k]); });
-  var HAM = {}; Object.keys(ART.ham).forEach(function (k) { HAM[k] = img(ART.ham[k]); });
+  var HAM = {}, HAMSIL = {}; Object.keys(ART.ham).forEach(function (k) { HAM[k] = img(ART.ham[k]);
+    HAM[k].onload = function () { ["#ffd850", "#fff6c0"].forEach(function (col) { var s = document.createElement("canvas"); s.width = HAM[k].width; s.height = HAM[k].height; var sg = s.getContext("2d"); sg.drawImage(HAM[k], 0, 0); sg.globalCompositeOperation = "source-in"; sg.fillStyle = col; sg.fillRect(0, 0, s.width, s.height); (HAMSIL[k] = HAMSIL[k] || {})[col] = s; }); }; });
   var BOWL = ART.bowl.map(function (b) { return { im: img(b.img), w: b.w, h: b.h }; });
   var BIG = { im: img(ART.bowl_big.img), w: ART.bowl_big.w, h: ART.bowl_big.h };
   var FR = {};
@@ -69,7 +70,7 @@ function mountObstsalat(root, ART, opts) {
   function reset() {
     S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .8, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
       face: "normal", faceT: 0, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
-      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 9 + Math.random() * 4, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0 };
+      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 9 + Math.random() * 4, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0 };
     endEl.hidden = true; boardEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
   }
@@ -106,9 +107,15 @@ function mountObstsalat(root, ART, opts) {
     var vx = drift != null ? drift : (90 - x) / 100 * (20 + Math.random() * 20) + (Math.random() - .5) * 14;
     S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt }); sfx(k === "kastanie" ? "launchBomb" : "launch");
   }
+  /* a chestnut on its own, between the volleys, where the least fruit is */
+  function bombLaunch() {
+    var xs = S.items.map(function (it) { return it.x; }).concat(S.queue.map(function (q) { return q.x; })), best = 90, bd = -1;
+    for (var c = 0; c < 8; c++) { var x = 20 + Math.random() * 140, d = xs.reduce(function (m, v) { return Math.min(m, Math.abs(v - x)); }, 999); if (d > bd) { bd = d; best = x; } }
+    S.queue.push({ at: S.wt + .2, k: "kastanie", x: best, peak: 16 + Math.random() * 36, drift: (90 - best) / 100 * 8 + (Math.random() - .5) * 16 });
+  }
   function volley() {
     var t = S.t, n = Math.min(5, 1 + Math.floor(t / 14) + (Math.random() < .4 ? 1 : 0));
-    var bombP = t < 8 || S.slowT > 0 || S.doubleT > 0 ? 0 : Math.min(.1, .04 + t / 1500), bombs = 0;   /* at most one chestnut per volley, none while a special runs */
+    var bombP = 0, bombs = 0;                          /* chestnuts no longer fly with the fruit, they come on their own (bombLaunch) */
     // most of a volley is spread over the whole width with its own height; only a small group of 3 or 4 flies close together for combos
     var group = n >= 3 && Math.random() < Math.min(.5, .2 + t / 120) ? (n >= 5 && Math.random() < .4 ? 4 : 3) : 0;
     var slots = [], rest = n - group, i;
@@ -128,8 +135,8 @@ function mountObstsalat(root, ART, opts) {
       }
       S.queue.push({ at: at, k: k, x: Math.max(16, Math.min(164, x)), peak: pk, drift: drift });
     }
-    if (S.t > S.nextSpecial && S.slowT <= 0 && S.doubleT <= 0 && S.rainT <= 0 && S.floatT <= 0 && S.magT <= 0 && S.comboT <= 0 && S.glowT <= 0) {
-      var SK = ["frostbeere", "sonnenblume", "honigwabe", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete"]; if (timeNow() === "nacht") SK.push("gluehbeere", "gluehbeere");
+    if (S.t > S.nextSpecial && S.slowT <= 0 && S.doubleT <= 0 && S.rainT <= 0 && S.floatT <= 0 && S.magT <= 0 && S.comboT <= 0 && S.glowT <= 0 && S.shieldT <= 0) {
+      var SK = ["frostbeere", "sonnenblume", "honigwabe", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete", "hamsterkern"]; if (timeNow() === "nacht") SK.push("gluehbeere", "gluehbeere");
       var sk = SK[Math.floor(Math.random() * SK.length)];
       S.queue.push({ at: S.wt + .3, k: sk, x: 50 + Math.random() * 80, peak: 18 + Math.random() * 16, drift: null });
       S.nextSpecial = S.t + 9 + Math.random() * 5;
@@ -185,6 +192,8 @@ function mountObstsalat(root, ART, opts) {
           for (var kc = 0; kc < 6; kc++) S.bits.push({ x: it.x, y: it.y, vx: (Math.random() - .5) * 90, vy: -30 - Math.random() * 50, c: kc % 2 ? "#7a4a26" : "#c8905a", life: .5 }); return; }
       }
       it.cut = true;
+      if (it.k === "kastanie" && S.shieldT > 0) {    /* Hamster-Mode: the chestnut just breaks, and even gives points */
+        sliceItem(it, bx - ax, by - ay); addScore(points(2)); popText("+" + points(2), it.x, it.y, "#f8d850"); sfx("shieldhit"); cheer(1); return; }
       if (it.k === "kastanie") { boom(it); return; }
       if (it.k === "kokosnuss") { sliceItem(it, bx - ax, by - ay); addScore(points(1)); sfx("kokos"); cheer(1);
         for (var kp = 0; kp < 6; kp++) S.items.push({ k: "kokosstueck", x: it.x + (kp - 2.5) * 3, y: it.y, vx: (kp - 2.5) * 22 + (Math.random() - .5) * 10, vy: -95 - Math.random() * 45, cut: false, born: S.wt });
@@ -208,6 +217,7 @@ function mountObstsalat(root, ART, opts) {
     if (k === "kleeblatt") S.magT = sp.t;
     if (k === "regenbogenerdbeere") { S.comboT = sp.t; S.chain = 0; }
     if (k === "gluehbeere") S.glowT = sp.t;
+    if (k === "hamsterkern") S.shieldT = sp.t;
     sfx(k);
     if (k === "uhrbluete") { S.timeLeft += 5; showBanner(sp.ban, 1.8, false); cheer(1); return; }
     S.specialMax = sp.t; S.specialKey = k;
@@ -406,6 +416,8 @@ function mountObstsalat(root, ART, opts) {
     var tm = timeNow();
     if (!S.done) {
       S.spawnT -= dt;
+      S.bombT -= dt;
+      if (S.bombT <= 0) { if (S.slowT <= 0 && S.doubleT <= 0 && S.floatT <= 0 && S.magT <= 0 && S.rainT <= 0 && S.spawnT > .5) bombLaunch(); S.bombT = S.bombT <= 0 && S.spawnT <= .5 ? .3 : Math.max(3.5, 7 - S.t / 15) + Math.random() * 2; }
       if (S.spawnT <= 0 && S.rainT <= 0) { volley(); S.spawnT = Math.max(1.1, 1.8 - S.t / 60) + Math.random() * .35; }
       if (S.rainT > 0) {                                // fruit rain from both sides
         S.rainSpawn -= dt;
@@ -425,8 +437,9 @@ function mountObstsalat(root, ART, opts) {
     if (S.floatT > 0) S.floatT -= dt;
     if (S.magT > 0) S.magT -= dt;
     if (S.glowT > 0) S.glowT -= dt;
+    if (S.shieldT > 0) S.shieldT -= dt;
     if (S.comboT > 0) { S.comboT -= dt; if (S.comboT <= 0) { var ch = S.chain + (S.strokeHits || 0), lc2 = S.strokeCuts[S.strokeCuts.length - 1]; if (ch >= 3 && lc2 && !S.done) combo(ch, lc2.x, lc2.y); S.chain = 0; if (!S.stroke) S.strokeCuts = []; } }
-    var spLeft = Math.max(S.slowT, S.doubleT, S.rainT, S.floatT, S.magT, S.comboT, S.glowT);
+    var spLeft = Math.max(S.slowT, S.doubleT, S.rainT, S.floatT, S.magT, S.comboT, S.glowT, S.shieldT);
     if (S.specialMax && spLeft > 0) banTime.style.transform = "scaleX(" + Math.max(0, spLeft / S.specialMax).toFixed(3) + ")";
 
     S.items.forEach(function (it) {
@@ -455,6 +468,10 @@ function mountObstsalat(root, ART, opts) {
     var bg = BG[env.season]; if (bg.complete) cx.drawImage(bg, 0, 0);
     drawEnvBack(tm); drawTint(tm, false);
     var hop = S.hop > 0 ? -3 : 0, face = S.face === "normal" && S.blinkT < 0 ? "blinzeln" : S.face;
+    if (S.shieldT > 0 && HAMSIL[face] && (S.shieldT > 2 || Math.floor(S.t * 8) % 2)) {   /* Hamster-Mode: golden outline, blinking in the last 2 seconds */
+      var hc = HAMSIL[face][Math.floor(S.t * 5) % 2 ? "#ffd850" : "#fff6c0"];
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(hc, HB.x + o[0], HB.y + hop + o[1]); });
+    }
     if (HAM[face].complete) sprite(HAM[face], HB.x, HB.y + hop);
     cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(104, 131, 40, 2);
     var lv = S.shown < FULL * .08 ? 0 : S.shown < FULL * .4 ? 1 : S.shown < FULL * .75 ? 2 : 3, b = BOWL[lv];

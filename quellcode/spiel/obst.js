@@ -57,6 +57,8 @@
       else if (k === "regenbogenerdbeere") { [523, 587, 659, 698, 784, 880, 988, 1047].forEach(function (f, i) { tone(f, .1, .045, "square", i * .045); }); }
       else if (k === "uhrbluete") { for (var u = 0; u < 4; u++) { tone(1600, .04, .06, "square", u * .12); tone(1200, .04, .05, "square", u * .12 + .06); } tone(1568, .4, .05, "triangle", .5); }
       else if (k === "gluehbeere") { [659, 831, 988, 1319].forEach(function (f, i) { tone(f, .5, .03, "sine", i * .09); }); }
+      else if (k === "hamsterkern") { [392, 523, 659, 784, 1047].forEach(function (f, i) { tone(f, .14, .06, "square", i * .07); }); tone(1047, .5, .05, "triangle", .38); tone(1568, .4, .03, "sine", .45); }
+      else if (k === "shieldhit") { noise(.12, 2600, 900, 1.4, .1); [1319, 1760].forEach(function (f, i) { tone(f, .14, .05, "triangle", i * .05); }); }
       else if (k === "knock") { tone(n > 1 ? 260 : 220, .08, .14, "triangle", 0, 120); noise(.06, 1400, 600, 2, .08); }
       else if (k === "kokos") { noise(.18, 1800, 500, 1, .14); tone(180, .12, .1, "triangle", 0, 90); [1047, 1319, 1568].forEach(function (f, i) { tone(f, .16, .04, "triangle", .12 + i * .06); }); }
       else if (k === "melone") { noise(.22, 1600, 300, .9, .16); tone(150, .16, .12, "sine", 0, 70); }

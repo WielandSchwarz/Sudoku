@@ -130,3 +130,26 @@ if __name__ == '__main__':
     c = Image.new('RGBA', (Wd, Hd), (150, 200, 130, 255)); x = 0
     for i in ims: c.alpha_composite(i, (x, 0)); x += i.width + 4
     c.resize((Wd * 6, Hd * 6), Image.NEAREST).save(os.path.join(D, 'neu_sheet.png'))
+
+def hamsterkern():
+    """special: a big golden-striped sunflower seed -> Hamster-Mode (chestnuts can't hurt)"""
+    w, h = 16, 24; L = Layer(w, h)
+    def f(x, y):
+        dy = (y + .5 - 12) / 11.2
+        if abs(dy) > 1: return None
+        half = 7.2 * math.sqrt(max(0, 1 - dy * dy)) * (1 - .62 * max(0, -dy) ** 1.3) * (1 - .12 * max(0, dy))   # pointed at the top
+        dx = (x + .5 - 8) / max(.1, half)
+        return (dx, dy) if abs(dx) <= 1 else None
+    shaded(L, f, ('#fff6c0', '#f8d850', '#e0a830', '#a87420'))
+    for y in range(3, 22):
+        for x in range(w):
+            p = L.get(x, y)
+            if p and p[3] and x in (5, 8, 11) and y > 4: L.px(x, y, C('#6a4a1c') if x != 5 else C('#8a6424'))
+    L.px(6, 5, C('#ffffff')); L.px(6, 6, C('#ffffff')); L.px(7, 4, C('#ffffff'))
+    return L.outline()
+
+NEW2 = {'hamsterkern': (hamsterkern, '#fff8e0', '#f8d850', 9)}
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'kern':
+    D = os.path.dirname(os.path.abspath(__file__)); L = hamsterkern()
+    json.dump({'hamsterkern': dict(img=uri(L.im), w=L.w, h=L.h, flesh='#fff8e0', seed='#f8d850', r=9, weights={})}, open(os.path.join(D, 'kern.json'), 'w'))
+    L.im.resize((L.w * 10, L.h * 10), Image.NEAREST).save(os.path.join(D, 'kern_big.png'))
