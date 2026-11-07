@@ -3146,7 +3146,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 116 · 07.11.2026</p>
+    <p class="opt-version">Version 117 · 07.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -20535,7 +20535,10 @@ function recolorWallSvg(svg, grund, muster) {
   function d2Make(k) {   /* the dirt on one piece: three or four spots of different kinds on the parts that get dirty; greasy things always need Spüli */
     var pool = { plate: ["ketchup", "jam", "sauce", "crumbs", "egg"], plate2: ["egg", "sauce", "crumbs", "cheese"], bowl: ["dried", "jam", "crumbs", "cheese"], cup: ["cocoa", "cocoa", "dried"], mug: ["cocoa", "dried", "jam"], glass: ["jam", "crumbs", "sauce"], pan: ["burnt", "burnt", "egg", "crumbs"], pot: ["cocoa", "dried", "burnt", "sauce"], tray: ["burnt", "cheese", "crumbs", "sauce"], board: ["crumbs", "jam", "cheese", "sauce"] }[k].slice().sort(function () { return Math.random() - .5; });
     var small = k === "cup" || k === "mug" || k === "glass", kinds = pool.slice(0, small ? 2 : 3);
-    if (k === "pan" || k === "tray" || k === "plate2" || k === "pot" || Math.random() < .5) kinds.push("grease");
+    if (k === "pan") kinds.push("grease");                                   /* only the pan is greasy: it gets Spüli first */
+    if (k === "board" && kinds.indexOf("crumbs") < 0) kinds[0] = "crumbs";   /* the board always has crumbs to knock off */
+    if (k === "pot" && kinds.indexOf("burnt") < 0) kinds[0] = "burnt";       /* the pot always has something burnt on: it is soaked first */
+    if (k === "glass") kinds = [];                                           /* the glass is only rinsed and polished */
     var spots = [], tries = 0;
     kinds.forEach(function (ty) { var r = ty === "crumbs" ? 8 : small ? 5 : 7 + Math.floor(Math.random() * 4);
       while (tries++ < 600) { var x = Math.round(Math.random() * 76 - 38), y = Math.round(Math.random() * 56 - 28);
@@ -20548,15 +20551,37 @@ function recolorWallSvg(svg, grund, muster) {
     var find = null; if (window.__dishFind || Math.random() < .6) { for (var t2 = 0; t2 < 200; t2++) { var fx = Math.round(Math.random() * 120 - 60), fy = Math.round(Math.random() * 60 - 30); if ((fx / 56) * (fx / 56) + (fy / 44) * (fy / 44) < 1 || (fx > -14 && fx < 22 && fy > 18)) continue;
         find = { k: window.__dishFindK || D2_FIND[Math.floor(Math.random() * D2_FIND.length)], x: fx, y: fy, seen: false, got: false }; break; }
       if (find) for (var f2 = 0; f2 < 3; f2++) foam.push({ x: find.x + Math.round(Math.random() * 6 - 3), y: find.y + Math.round(Math.random() * 4 - 2), r: 5, w: 1 }); }   /* hidden under ordinary-looking suds */
-    return { k: k, spots: spots, foam: foam, find: find, done: false, t0: performance.now() };
+    var liq = null; if (k === "cup" || k === "mug") { liq = []; for (var ly = -40; ly <= 40; ly++) for (var lx = -50; lx <= 50; lx++) if (d2Sh(k, lx, ly) === 4) liq.push([lx, ly]); }   /* leftover cocoa inside, to be poured out first */
+    var later = null; if (d2S && d2S.level < 1) { later = foam; foam = []; }   /* no water yet: the suds come once the water is foamed up */
+    return { k: k, spots: spots, foam: foam, foamLater: later, find: find, done: false, t0: performance.now(), liq: liq, knocks: 0 };
   }
+  /* ---- one step at a time, like planting: the banner always says the one thing to do now ---- */
+  var D2_RECIPE = { plate: ["scrub", "rinse", "dry"], plate2: ["scrub", "rinse", "dry"], bowl: ["scrub", "rinse", "dry"], tray: ["scrub", "rinse", "dry"],
+    pan: ["grease", "scrub", "rinse", "dry"], pot: ["soak", "scrub", "rinse"], glass: ["rinse", "polish"], board: ["knock", "scrub", "dry"], cup: ["pour", "scrub", "rinse"], mug: ["pour", "scrub", "rinse"] };
+  var D2_STEPTXT = { fill: "Wasser einlassen", soap: "Spüli rein", foam: "Schaum schlagen", scrub: "Schrubben!", grease: "Spüli aufs Fett", soak: "Einweichen", rinse: "Abspülen", dry: "Abtrocknen!",
+    polish: "Polieren!", knock: "Krümel abklopfen", pour: "Ausschütten", drain: "Stöpsel raus" };
+  function d2Go(list) { d2S.queue = list.slice(); d2Adv(); }
+  function d2Adv() { var S = d2S; S.step = S.queue.shift() || null; if (!S.step) { d2PieceDone(); return; } d2Enter(S.step); }
+  function d2Insert(list) { var S = d2S; if (S.step) S.queue.unshift(S.step); S.queue = list.concat(S.queue); d2Adv(); }   /* dirty water or flat suds: fix that first, then carry on */
+  function d2Nope() { var S = d2S; if (!S || !S.step) return; var t = D2_STEPTXT[S.step]; d2V.ban.textContent = ""; mBan(d2V, t); beep([[220, .05]]); }
+  function d2Drops(polish) { var S = d2S, it = S.cur; S.polish = !!polish; S.drops = []; var tr2 = 0; while (S.drops.length < (polish ? 7 : 9) && tr2++ < 800) { var qx = Math.round(Math.random() * 80 - 40), qy = Math.round(Math.random() * 60 - 30); if (d2Sh(it.k, qx, qy) >= 2 && S.drops.every(function (d) { return Math.hypot(d.x - qx, d.y - qy) > 7; })) S.drops.push({ x: qx, y: qy }); } }
+  function d2Enter(st) {
+    var S = d2S; S.ready = st === "rinse"; mBan(d2V, D2_STEPTXT[st]);
+    if (S.cur && S.cur.foamLater && ["fill", "soap", "foam", "drain"].indexOf(st) < 0) { S.cur.foam = S.cur.foamLater.concat(S.cur.foam); S.cur.foamLater = null; }
+    if (st === "dry" && !S.drops) d2Drops(false);
+    if (st === "polish") d2Drops(true);
+    if (st === "foam" && S.suds >= .8) setTimeout(function () { if (d2S && d2S.step === "foam") d2Adv(); }, 400);
+    if (st === "scrub" && S.cur && d2Clean(S.cur)) setTimeout(function () { if (d2S && d2S.step === "scrub") d2Adv(); }, 300);
+  }
+  function d2PieceDone() { var S = d2S; S.step = null; S.ready = false; S.drops = null; S.towelAt = null; S.fly = { t0: performance.now(), tx: 62 + S.towel.length * 13, ty: 10 }; d2Burst(D2.cx, D2.cy, 12); beep([[1047, .04], [1319, .04], [1568, .08]]); }
   function d2Start() {
     var pool = D2_PIECES.slice().sort(function () { return Math.random() - .5; }).slice(0, 4);
     if (window.__dishPool2) pool = window.__dishPool2.slice();   /* preview test hook */
-    d2S = { suds: 1, soapIn: true, residue: 0, dirt: 0, level: 1, drain: false, filling: false, empty: false, sudsWarn: false, drops: null, towelAt: null, perfect: true, pets: [], deco: [], left: pool, total: pool.length, cur: null, tool: "sponge", towel: [], finds: [], popped: 0, wrong: 0, fx: [], bub: [], rub: null, hint: null, rinse: 0, fly: null, slide: 0, over: false, face: null, faceT: 0, lastFace: "" };
+    d2S = { suds: 0, soapIn: false, residue: 0, dirt: 0, level: 0, drain: false, filling: false, empty: true, queue: [], step: null, first: true, sudsWarn: false, drops: null, towelAt: null, perfect: true, pets: [], deco: [], left: pool, total: pool.length, cur: null, tool: "sponge", towel: [], finds: [], popped: 0, wrong: 0, fx: [], bub: [], rub: null, hint: null, rinse: 0, fly: null, slide: 0, over: false, face: null, faceT: 0, lastFace: "" };
     d2V.card.hidden = true; d2Next();
   }
-  function d2Next() { var S = d2S; if (!S.left.length) { d2End(); return; } S.cur = d2Make(S.left.shift()); S.slide = 1; S.rx = 0; S.drops = null; S.towelAt = null; S.ready = false; S.water = 0; S.wrun = 0; S.hold = null; mBan(d2V, "Schrubben!"); }
+  function d2Next() { var S = d2S; if (!S.left.length) { d2End(); return; } S.cur = d2Make(S.left.shift()); S.slide = 1; S.rx = 0; S.drops = null; S.towelAt = null; S.ready = false; S.water = 0; S.wrun = 0; S.hold = null; S.soak = null; S.bounce = 0;
+    var steps = (S.first ? ["fill", "soap", "foam"] : []).concat(D2_RECIPE[S.cur.k] || ["scrub", "rinse", "dry"]); S.first = false; d2Go(steps); }
   function d2Clean(it) { return it.spots.every(function (s) { return s.hp <= 0; }); }
   // ---- the kitchen behind: tiles, the tea towel on its rail, the tap; the counter with a sink nearly as wide as the screen ----
   var D2K = null;
@@ -20636,13 +20661,14 @@ function recolorWallSvg(svg, grund, muster) {
     d2Tap(c, S.water > 0);
     var bq = S.squeeze && now - S.squeeze < 180 ? 1 : 0, bw = d2Art("bottle");   /* the Spüli bottle on the counter, squashed for a moment when squeezed */
     mR(c, D2_BOT.x - 6, D2_BOT.y - 1, 13, 2, "rgba(58,36,20,.25)"); c.drawImage(bw, D2_BOT.x - 5, D2_BOT.y - 20 + bq);
-    if (S.hint && now < S.hint.t1 && S.hint.k === "soap" && Math.floor(now / 200) % 2) dwArrow(c, D2_BOT.x + 16, D2_BOT.y - 10, t, "r");
-    if (S.ready && !S.water && !S.fly && !S.drops && S.level >= 1) dwArrow(c, 156, 26, t, "d");   /* turn on the tap! */
+    if ((S.step === "soap" || S.step === "grease") && !S.squirt) dwArrow(c, D2_BOT.x + 16, D2_BOT.y - 10, t, "r");
+    if (S.step === "rinse" && !S.water && !S.fly) dwArrow(c, 156, 26, t, "d");   /* turn on the tap! */
+    if ((S.step === "soak" && !S.soak) || S.step === "knock" || S.step === "pour") dwArrow(c, D2.cx, D2.cy - 34, t, "d");
     // the water: soapy, light ripples drifting
     var X0 = D2.x0 + 3, X1 = D2.x1 - 3, Y0 = D2.y0 + 3, Y1 = D2.y1 - 3;
     if (S.drain) { if (S.level === 1) S.residue = Math.max(.25, S.suds); S.level = Math.max(0, S.level - .006); if (Math.floor(now / 160) !== Math.floor((now - 16) / 160)) beep([[140 + Math.random() * 60, .04]]);
-      if (S.level <= 0) { S.drain = false; S.empty = true; S.dirt = 0; S.suds = 0; S.soapIn = false; if (S.cur) { S.cur.foam = S.cur.foam.filter(function (f) { return !f.w; }); if (S.cur.find) S.cur.find.seen = true; } mBan(d2V, "Jetzt frisches Wasser!"); } }
-    if (S.filling) { S.level = Math.min(1, S.level + .006); S.residue = Math.max(0, S.residue - .006); if (S.level >= 1) { S.filling = false; mBan(d2V, "Spüli rein!"); S.hint = { x: 0, y: 0, k: "soap", t1: now + 4000, nob: 1 }; } }
+      if (S.level <= 0) { S.drain = false; S.empty = true; S.dirt = 0; S.suds = 0; S.soapIn = false; if (S.cur) { S.cur.foam = S.cur.foam.filter(function (f) { return !f.w; }); if (S.cur.find) S.cur.find.seen = true; } if (S.step === "drain") d2Adv(); } }
+    if (S.filling) { S.level = Math.min(1, S.level + .006); S.residue = Math.max(0, S.residue - .006); if (S.level >= 1) { S.filling = false; S.dirt = 0; if (S.step === "fill") d2Adv(); } }
     var dk = Math.min(1, S.dirt), WL = S.level;   /* seen from above: as the water goes down it draws back from the sloping walls towards the drain, gets shallower and lets the steel show through */
     for (var y = Y0; y < Y1; y++) for (var x = X0; x < X1; x += 2) { var cx = Math.max(X0 + 5, Math.min(X1 - 6, x)), cy = Math.max(Y0 + 5, Math.min(Y1 - 6, y)); if (Math.hypot(x - cx, y - cy) > 5) continue;
       var dW = d2WaterIn(x, y, X0, X1, Y0, Y1, WL); if (dW < 0) { mR(c, x, y, 2, 1, d2Steel(x, y, WL, dW, t)); continue; }
@@ -20651,19 +20677,24 @@ function recolorWallSvg(svg, grund, muster) {
     // the plug and its chain at the front right of the basin
     var PG = D2_PLUG; if (S.level > 0 && !S.drain) { for (var ch = 0; ch < 8; ch++) mR(c, PG.x + 4 + ch, PG.y - 9 + ch, 1, 1, ch % 2 ? "#8a949e" : "#c8d0d8"); mR(c, PG.x - 4, PG.y - 2, 9, 5, "#3a2414"); mR(c, PG.x - 3, PG.y - 1, 7, 3, "#c83a3a"); mR(c, PG.x - 3, PG.y - 1, 7, 1, "#f06a5a"); mR(c, PG.x - 1, PG.y - 3, 3, 2, "#3a2414"); }
     else { mR(c, PG.x - 3, PG.y - 1, 7, 3, "#3a2414"); mR(c, PG.x - 2, PG.y, 5, 1, "#5a646e"); if (S.drain) for (var sw = 0; sw < 10; sw++) { var an = now / 120 + sw * .63, rr = 3 + (sw % 3) * 3; mR(c, PG.x + Math.cos(an) * rr, PG.y + Math.sin(an) * rr * .5, 1, 1, "#ffffff"); } mR(c, PG.x + 10, PG.y - 12, 7, 4, "#3a2414"); mR(c, PG.x + 11, PG.y - 11, 5, 2, "#c83a3a"); }
-    if (S.dirt > .7 && S.level >= 1 && !S.drain && Math.floor(now / 250) % 2) dwArrow(c, PG.x, PG.y - 6, t, "d");
-    if (S.empty && !S.filling) dwArrow(c, 156, 26, t, "d");
+    if (S.step === "drain" && !S.drain) dwArrow(c, PG.x, PG.y - 6, t, "d");
+    if (S.step === "fill" && S.empty && !S.filling) dwArrow(c, 156, 26, t, "d");
     if (S.filling) { if (Math.random() < .5) S.fx.push({ x: 117, y: 62, vx: (Math.random() - .5) * 40, vy: -12 - Math.random() * 15, life: .4, c: "#ffffff" }); for (var yf = 24; yf < 62; yf++) { mR(c, 116, yf, 3, 1, "#a8d8f0"); mR(c, 117, yf, 1, 1, (yf + Math.floor(t / 40)) % 5 ? "#e8f6ff" : "#ffffff"); } }
     var it = S.cur;
     if (it) {
       var ox = D2.cx, oy = D2.cy;
       if (S.slide > 0) { S.slide = Math.max(0, S.slide - .04); oy += Math.round(S.slide * 8); }
-      if (S.water > 0 && !S.fly) S.rx = Math.min(1, (S.rx || 0) + .04); else if (!S.fly) S.rx = Math.max(0, (S.rx || 0) - .04); var gx0 = D2.cx + Math.round(22 * (S.rx || 0) * (S.rx || 0) * (3 - 2 * (S.rx || 0))); ox = gx0;   /* the clean piece glides under the tap */
+      if (S.bounce && now - S.bounce < 260) oy -= Math.round(Math.sin((now - S.bounce) / 260 * Math.PI) * 5);
+      if (S.soak) { oy += 2; var su2 = (now - S.soak) / 2600; if (Math.random() < .25) S.fx.push({ x: ox + Math.random() * 60 - 30, y: oy + Math.random() * 40 - 20, vx: 0, vy: -20, life: .5, c: "#e8f6ff" });
+        if (su2 >= 1) { S.soak = null; S.cur.spots.forEach(function (s3) { s3.soaked = true; s3.hp *= .5; }); beep([[520, .05], [700, .06]]); d2Adv(); } }
+      if (S.water > 0 && !S.fly) S.rx = Math.min(1, (S.rx || 0) + .08); else if (!S.fly) S.rx = Math.max(0, (S.rx || 0) - .06); var gx0 = D2.cx + Math.round(22 * (S.rx || 0) * (S.rx || 0) * (3 - 2 * (S.rx || 0))); ox = gx0;   /* the clean piece glides under the tap */
       if (S.fly) { var u = Math.min(1, (now - S.fly.t0) / 650); ox = gx0 + (S.fly.tx - gx0) * u; if (u >= 1) S.rx = 0; oy = D2.cy + (S.fly.ty - D2.cy) * u - Math.sin(u * Math.PI) * 26; }
       // the find lies in the water beside the piece
-      if (it.find && !it.got && !S.fly) d2Find(c, it.find.k, D2.cx + it.find.x, D2.cy + it.find.y, it.find.sq > 0 && (it.find.sq -= .05) > 0);
+      if (it.find && !it.got && !S.fly && S.level >= .6) d2Find(c, it.find.k, D2.cx + it.find.x, D2.cy + it.find.y, it.find.sq > 0 && (it.find.sq -= .05) > 0);
       if (!(S.fly && now - S.fly.t0 > 520)) {
         var spr = d2Spr[it.k] || (d2Spr[it.k] = d2Sprite(it.k)); c.drawImage(spr, Math.round(ox - 50), Math.round(oy - 50));
+        if (it.liq) it.liq.forEach(function (q) { var wv = Math.sin((q[0] + t / 120) / 3) + Math.sin(q[1] / 2); mR(c, ox + q[0], oy + q[1], 1, 1, wv > 1.3 ? "#9a6a44" : wv < -1.2 ? "#5a3418" : "#7a4a28"); });   /* cocoa left in the cup */
+        if (S.soak) { var ring = ((now - S.soak) / 18) % 30; for (var ra = 0; ra < 40; ra++) { var aa = ra / 40 * Math.PI * 2; mR(c, ox + Math.cos(aa) * (34 + ring * .5), oy + Math.sin(aa) * (26 + ring * .4), 1, 1, "rgba(255,255,255,.6)"); } }
         it.spots.forEach(function (s) { if (s.hp <= 0 && s.scratch) { for (var z = -3; z <= 3; z++) { mR(c, ox + s.x + z, oy + s.y + z, 1, 1, "rgba(255,255,255,.7)"); mR(c, ox + s.x + z + 3, oy + s.y + z - 1, 1, 1, "rgba(58,36,20,.35)"); } } if (s.hp <= 0) return; var D = D2_DIRT[s.ty], f = s.hp / s.max;
           if (s.ty === "crumbs") { s.cr.forEach(function (q, i) { if (i / s.cr.length < f) { mR(c, ox + s.x + q[0], oy + s.y + q[1], 2, 2, D.c[1]); mR(c, ox + s.x + q[0], oy + s.y + q[1], 1, 1, D.c[0]); } }); return; }
           for (var yy = -s.r; yy <= s.r; yy++) for (var xx = -s.r; xx <= s.r; xx++) { var e = (xx * xx) / (s.r * s.r) + (yy * yy) / (s.r * s.r * .7), wob = (((xx + s.x) * 7 + (yy + s.y) * 13) % 5 - 2) * .06; if (e > 1 + wob) continue;
@@ -20694,20 +20725,22 @@ function recolorWallSvg(svg, grund, muster) {
     if (S.squirt) { var su = (now - S.squirt.t0) / 450, sq = S.squirt;   /* a squirt of washing-up liquid flies in an arc onto the piece */
       if (su < 1) { for (var q2 = 0; q2 < 6; q2++) { var uu = su - q2 * .06; if (uu < 0) continue; mR(c, sq.x0 + (sq.tx - sq.x0) * uu - 1, sq.y0 + (sq.ty - sq.y0) * uu - Math.sin(uu * Math.PI) * 22 - 1, 3, 2, q2 ? "#8ae070" : "#c8f0a0"); } }
       else { S.squirt = null; if (it) { var tg = sq.spot; if (tg && tg.hp > 0) { tg.hp = 0; beep([[700, .05], [940, .06]]); }
-        for (var k3 = 0; k3 < 7; k3++) it.foam.push({ x: sq.tx - D2.cx + Math.round(Math.random() * 12 - 6), y: sq.ty - D2.cy + Math.round(Math.random() * 8 - 4), r: 2 + Math.floor(Math.random() * 2), soap: 1 });
+        if (!sq.water) for (var k3 = 0; k3 < 7; k3++) it.foam.push({ x: sq.tx - D2.cx + Math.round(Math.random() * 12 - 6), y: sq.ty - D2.cy + Math.round(Math.random() * 8 - 4), r: 2 + Math.floor(Math.random() * 2), soap: 1 });
         for (var k4 = 0; k4 < 8; k4++) S.fx.push({ x: sq.tx, y: sq.ty, vx: (Math.random() - .5) * 40, vy: -15 - Math.random() * 20, life: .6, c: "#ffffff" });
-        d2Ready(); } } }
+        if ((S.step === "soap" && sq.water) || (S.step === "grease" && !it.spots.some(function (s2) { return s2.ty === "grease" && s2.hp > 0; }))) d2Adv(); } } }
     if (it && S.drops && !S.fly) {   /* water drops on the clean piece: dry them off with the tea towel */
-      S.drops.forEach(function (d) { var x = ox + d.x, y = oy + d.y; mR(c, x - 1, y - 2, 3, 5, "#3a5a78"); mR(c, x, y - 3, 1, 1, "#3a5a78"); mR(c, x, y - 1, 1, 3, "#a8d8f0"); mR(c, x, y - 1, 1, 1, "#ffffff"); });
+      S.drops.forEach(function (d) { var x = ox + d.x, y = oy + d.y;
+        if (S.polish) { for (var py = -2; py <= 2; py++) for (var px2 = -3; px2 <= 3; px2++) if ((px2 * px2) / 9 + (py * py) / 4 <= 1 && (px2 + py) % 2 === 0) mR(c, x + px2, y + py, 1, 1, "rgba(200,190,170,.85)"); return; }   /* smudges on the glass */
+        mR(c, x - 1, y - 2, 3, 5, "#3a5a78"); mR(c, x, y - 3, 1, 1, "#3a5a78"); mR(c, x, y - 1, 1, 3, "#a8d8f0"); mR(c, x, y - 1, 1, 1, "#ffffff"); });
       if (S.towelAt) dwSpr(c, "t_towel", S.towelAt[0] - 18, S.towelAt[1] - 12);
-      if (!S.drops.length) { S.drops = null; S.towelAt = null; S.fly = { t0: now, tx: 62 + S.towel.length * 13, ty: 10 }; d2Burst(ox, oy, 12); beep([[1047, .04], [1319, .04], [1568, .08]]); } }
+      if (!S.drops.length) { S.drops = null; S.towelAt = null; S.polish = false; d2Adv(); } }
     if (S.residue > 0 && S.level < 1) { var nR = Math.round(S.residue * 160);   /* soap suds left stuck on the steel */
       for (var ri = 0; ri < nR; ri++) { var rp = D2_FOAMPTS[ri % D2_FOAMPTS.length]; if (Math.min(rp[0] - X0, X1 - rp[0], rp[1] - Y0, Y1 - rp[1]) > 12 + Math.sin(rp[0] * .3) * 5) continue; if (d2WaterIn(rp[0], rp[1], X0, X1, Y0, Y1, S.level) >= 0) continue; if (it && d2Sh(it.k, rp[0] - D2.cx - Math.round(22 * (S.rx || 0)), rp[1] - D2.cy) > 0) continue;
         var rr = Math.max(1, rp[2] - 1); for (var yy6 = -rr; yy6 <= rr; yy6++) for (var xx6 = -rr; xx6 <= rr; xx6++) { if (Math.hypot(xx6, yy6) > rr + .3) continue; mR(c, rp[0] + xx6, rp[1] + yy6, 1, 1, xx6 + yy6 < 0 ? "#f4f8fa" : "#d8e0e6"); } } }
     if (S.level > .3) { var nF = Math.round(Math.pow(S.suds, 1.1) * D2_FOAMPTS.length), pox = D2.cx + Math.round(22 * (S.rx || 0)), wt2 = 0;   /* the suds on the water */
       for (var fi = 0; fi < nF; fi++) { var fp = D2_FOAMPTS[fi], fxp = fp[0], fyp = fp[1] + Math.round(Math.sin(now / 900 + fi) * 1); if (d2WaterIn(fxp, fyp, X0, X1, Y0, Y1, S.level) < 3) continue; if (it && d2Sh(it.k, fxp - pox, fyp - D2.cy) > 0) continue;
         for (var yy5 = -fp[2]; yy5 <= fp[2]; yy5++) for (var xx5 = -fp[2]; xx5 <= fp[2]; xx5++) { var d5 = Math.hypot(xx5, yy5 * 1.25); if (d5 > fp[2] + .3) continue; mR(c, fxp + xx5, fyp + yy5, 1, 1, d5 > fp[2] - .8 ? (S.dirt > .5 ? "#c8c0a8" : "#c8dcea") : xx5 + yy5 < -1 ? "#ffffff" : (S.dirt > .5 ? "#e8e2d0" : "#eef6fa")); } } }
-    if (S.level >= 1 && S.suds < .3 && S.soapIn && !S.drops && !S.fly) { var sxh = 44, syh = 46;   /* a little stirring hint: a dotted circle going round */
+    if (S.step === "foam") { var sxh = 44, syh = 46;   /* a little stirring hint: a dotted circle going round */
       for (var a7 = 0; a7 < 14; a7++) { var an7 = now / 260 + a7 * .42; if (a7 > 10) continue; mR(c, sxh + Math.cos(an7) * 9, syh + Math.sin(an7) * 6, 2, 2, a7 === 10 ? "#ffd34a" : "#fff8ec"); } }
     d2Pets(c, t, now);
     // bubbles drifting up, to be popped
@@ -20787,15 +20820,18 @@ function recolorWallSvg(svg, grund, muster) {
     mR(c, X, Y, 34, 12, "#3a2414"); for (var yy = 1; yy < 11; yy++) for (var xx = 1; xx < 33; xx++) mR(c, X + xx, Y + yy, 1, 1, ((xx >> 1) + (yy >> 1)) % 2 ? "#d8a860" : "#b88440");
     mR(c, X + 1, Y + 1, 32, 2, "#e8c080"); mR(c, X + 1, Y + 10, 32, 1, "#8a5a28"); }
   function d2Ready() {   /* every spot is gone: now it only needs rinsing under the tap */
-    var S = d2S, it = S.cur; if (!it || S.ready || !d2Clean(it)) return; S.ready = true; S.water = 0; S.rub = null; S.hint = null; it.foam = it.foam.filter(function (f) { return f.w || f.soap; }); mBan(d2V, "Jetzt abspülen!"); }
+    var S = d2S, it = S.cur; if (!it || S.step !== "scrub" || !d2Clean(it)) return; S.water = 0; S.rub = null; S.hint = null; it.foam = it.foam.filter(function (f) { return f.w || f.soap; }); d2Adv(); }
   function d2Squirt() {   /* Spüli: squeeze the bottle, and a squirt flies onto the greasy spot (or into the middle) */
-    var S = d2S, it = S.cur; S.squeeze = performance.now(); if (!it || S.fly || S.squirt) return; if (S.level < 1) { mBan(d2V, "Erst Wasser einlassen"); return; } var wasEmpty = !S.soapIn; S.soapIn = true; S.suds = Math.min(1, S.suds + (wasEmpty ? .4 : .35)); S.sudsWarn = false; if (wasEmpty) setTimeout(function () { if (d2S) mBan(d2V, "Jetzt Schaum schlagen!"); }, 600);
+    var S = d2S, it = S.cur; S.squeeze = performance.now(); if (!it || S.fly || S.squirt) return; if (S.step !== "soap" && S.step !== "grease") { d2Nope(); return; }
+    if (S.step === "soap") { S.soapIn = true; S.suds = Math.max(S.suds, .15); S.sudsWarn = false; }
     var g = null; it.spots.forEach(function (sp) { if (!g && sp.ty === "grease" && sp.hp > 0) g = sp; });
     var gx3 = S.water > 0 && S.rx > 0 ? 28 : 0;
-    S.squirt = { t0: performance.now(), x0: D2_BOT.x, y0: D2_BOT.y - 20, tx: D2.cx + gx3 + (g ? g.x : 0), ty: D2.cy + (g ? g.y : 0), spot: g }; beep([[500, .05], [300, .08]]); }
+    if (S.step === "soap") { g = null; S.squirt = { t0: performance.now(), x0: D2_BOT.x, y0: D2_BOT.y - 20, tx: 46, ty: 48, spot: null, water: 1 }; }
+    else S.squirt = { t0: performance.now(), x0: D2_BOT.x, y0: D2_BOT.y - 20, tx: D2.cx + gx3 + (g ? g.x : 0), ty: D2.cy + (g ? g.y : 0), spot: g };
+    beep([[500, .05], [300, .08]]); }
   function d2HoldStart(kind, sp) {   /* a hold begins: scrubbing a spot, squeezing the bottle, or holding the tap open */
     var S = d2S, tough = sp && sp.tough, w = kind === "scrub" ? (tough ? .13 : .17) : .18, c0 = .5 + Math.random() * .26;
-    S.hold = { kind: kind, sp: sp, v: 0, zone: [c0, c0 + w], rate: kind === "scrub" ? (tough ? 1 / 2.3 : 1 / 1.8) : kind === "soap" ? 1 / 2 : 1 / 2.4 }; S.rub = null;
+    S.hold = { kind: kind, sp: sp, v: 0, zone: [c0, c0 + w], rate: kind === "scrub" ? (tough ? 1 / 2.3 : 1 / 1.8) : kind === "soap" ? 1 / 2 : 1 / 1.3 }   /* the rinse fills almost twice as fast */; S.rub = null;
     if (kind === "water") { S.water = 1; beep([[200, .05], [260, .05]]); } else if (kind === "soap") beep([[500, .05], [300, .08]]); }
   function d2Gauge(c, H2) {   /* the same wooden bar as at the coffee machine, standing at the right: it fills from the bottom */
     var X = 3, Y = 30, Wd = 12, Ht = 66, ih = Ht - 6, f = Math.max(0, Math.min(1, H2.v)), col = H2.kind === "water" ? ["#bfe8ff", "#6ac0f0"] : H2.kind === "soap" ? ["#c8f0a0", "#6fc04a"] : ["#ffe08a", "#d8a040"];
@@ -20819,11 +20855,24 @@ function recolorWallSvg(svg, grund, muster) {
     else {   /* the rinse at the end: let go in the golden zone */
       S.water = 0;
       if (lo) { it.foam = it.foam.filter(function (f, i) { return !f.soap || i % 2; }); bad("Noch Schaum dran"); return; }
-      it.foam = it.foam.filter(function (f) { return !f.soap; });
+      it.foam = it.foam.filter(function (f) { return f.w; });   /* the rinse washes every bit of foam off the piece */
       if (hi) { S.wrong++; S.perfect = false; for (var k2 = 0; k2 < 20; k2++) S.fx.push({ x: ox + Math.random() * 60 - 30, y: oy, vx: (Math.random() - .5) * 90, vy: -30 - Math.random() * 40, life: .8, c: "#bfe8ff" }); bad("Übergelaufen!"); } else good("Blitzblank!");
-      S.drops = []; var tr2 = 0; while (S.drops.length < 12 && tr2++ < 800) { var qx = Math.round(Math.random() * 80 - 40), qy = Math.round(Math.random() * 60 - 30); if (d2Sh(it.k, qx, qy) >= 2 && S.drops.every(function (d) { return Math.hypot(d.x - qx, d.y - qy) > 7; })) S.drops.push({ x: qx, y: qy }); }
-      setTimeout(function () { if (d2S && d2S.drops) mBan(d2V, "Abtrocknen!"); }, 900); return; }
+      setTimeout(function () { if (d2S && d2S.step === "rinse") d2Adv(); }, 700); return; }
     d2Ready(); }
+  /* a real "schrubb": short bursts of filtered noise, alternately brighter and duller, as the sponge goes back and forth */
+  var d2ScrT = 0, d2ScrUp = false, d2NB = null;
+  function d2ScrubSnd(vol) {
+    var now = performance.now(); if (now - d2ScrT < 120) return; d2ScrT = now; d2ScrUp = !d2ScrUp;
+    try {
+      var a = actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (a.state === "suspended") a.resume();
+      if (!d2NB) { d2NB = a.createBuffer(1, a.sampleRate, a.sampleRate); var d = d2NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      var t0 = a.currentTime + .005, n = a.createBufferSource(), f = a.createBiquadFilter(), f2 = a.createBiquadFilter(), g = a.createGain(), f0 = d2ScrUp ? 2600 : 1500;
+      n.buffer = d2NB; f.type = "bandpass"; f.frequency.setValueAtTime(f0 + Math.random() * 400, t0); f.frequency.exponentialRampToValueAtTime(f0 * .55, t0 + .1); f.Q.value = .9;
+      f2.type = "highpass"; f2.frequency.value = 500;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .02); g.gain.setValueAtTime(vol * .8, t0 + .06); g.gain.exponentialRampToValueAtTime(.0001, t0 + .11);
+      n.connect(f); f.connect(f2); f2.connect(g); g.connect(a.destination); n.start(t0, Math.random() * .5); n.stop(t0 + .13);
+    } catch (e) { }
+  }
   function d2Rub(a, b) {
     var S = d2S, it = S.cur; if (!it || S.fly || S.hold) return; var ox = D2.cx, oy = D2.cy, n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))), moved = 0;
     for (var s = 0; s <= n; s++) { var x = a[0] + (b[0] - a[0]) * s / n - ox, y = a[1] + (b[1] - a[1]) * s / n - oy;
@@ -20832,14 +20881,15 @@ function recolorWallSvg(svg, grund, muster) {
         if (it.foam.some(function (f) { return !f.soap && Math.hypot(f.x - sp.x, f.y - sp.y) < f.r + 1; })) return;   /* still under foam */
         if (D2_DIRT[sp.ty].t !== S.tool) { if (sp.dst !== S.strokeId) { sp.dst = S.strokeId; sp.dwell = 0; } sp.dwell++; if (sp.dwell > 40 && !sp.warned) { sp.warned = true; S.wrong++; }   /* only scrubbing on and on with the wrong thing counts, not wiping over it */
           if (!S.strokeWrong) { S.strokeWrong = true; S.hint = { x: sp.x, y: sp.y, k: D2_DIRT[sp.ty].t, t1: performance.now() + 1600 }; S.face = "oops"; S.faceT = performance.now() + 700; beep([[200, .06], [160, .08]]); } return; }
-        if (S.level < 1) { if (!S.strokeWrong) { S.strokeWrong = true; mBan(d2V, S.empty ? "Erst Wasser einlassen" : "Das Wasser läuft noch"); } return; }
-        var am = .006 * (.15 + .85 * S.suds) * (S.dirt > .7 ? .25 : 1); sp.hp -= am; S.dirt = Math.min(1, S.dirt + am * .06); if (S.dirt > .7 && !S.dirtWarn) { S.dirtWarn = true; mBan(d2V, "Dreckiges Wasser! Stöpsel raus"); } S.suds = Math.max(0, S.suds - .0012); if (S.suds < .3 && !S.sudsWarn) { S.sudsWarn = true; mBan(d2V, "Im Wasser rühren!"); } if (Math.random() < .3) beep([[1300 + Math.random() * 500, .02]]);
+        if (S.step !== "scrub") { if (!S.strokeWrong) { S.strokeWrong = true; d2Nope(); } return; }
+        if (S.level < 1) return;
+        var am = .006 * (.15 + .85 * S.suds) * (S.dirt > .7 ? .25 : 1); sp.hp -= am; S.dirt = Math.min(1, S.dirt + am * .06); if (S.dirt > .7 && !S.dirtWarn) { S.dirtWarn = true; setTimeout(function () { if (d2S && d2S.step === "scrub") d2Insert(["drain", "fill", "soap", "foam"]); }, 50); } S.suds = Math.max(0, S.suds - .0004);   /* the suds last three times as long */ if (S.suds < .3 && !S.sudsWarn && S.soapIn) { S.sudsWarn = true; setTimeout(function () { if (d2S && d2S.step === "scrub") d2Insert(["foam"]); }, 50); } d2ScrubSnd(.13);
         if (Math.random() < .3) S.fx.push({ x: sp.x + ox, y: sp.y + oy, vx: (Math.random() - .5) * 20, vy: -16, life: .6, c: "#ffffff" });
         if (sp.hp <= 0) { beep([[660, .05], [880, .06]]); for (var k = 0; k < 6; k++) S.fx.push({ x: sp.x + ox, y: sp.y + oy, vx: (Math.random() - .5) * 40, vy: -20 - Math.random() * 20, life: .6, c: "#ffd34a" }); } }); }
-    if (moved && Math.random() < .3) beep([[900 + Math.random() * 300, .02]]);
+    if (moved) d2ScrubSnd(.06);
     var bx2 = b[0] - D2.cx - Math.round(22 * (S.rx || 0)), by2 = b[1] - D2.cy, onPiece = d2Sh(it.k, bx2, by2) > 0, seg = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (!onPiece && seg > 0 && S.level >= 1 && !S.soapIn) { if (!S.strokeWrong) { S.strokeWrong = true; mBan(d2V, "Erst Spüli ins Wasser"); S.hint = { x: 0, y: 0, k: "soap", t1: performance.now() + 2500, nob: 1 }; } }
-    if (!onPiece && seg > 0 && S.level >= 1 && S.soapIn) { var s0 = S.suds; S.suds = Math.min(1, S.suds + seg * .008);   /* stirring the water with Spüli in it whips up suds */ if (S.suds > .5) S.sudsWarn = false; if (s0 < .5 && S.suds >= .5) mBan(d2V, "Schön schaumig!");   /* swirling in the water whips up suds */
+    if (!onPiece && seg > 0 && S.step === "foam" && !S.soapIn) { if (!S.strokeWrong) { S.strokeWrong = true; d2Nope(); } }
+    if (!onPiece && seg > 0 && S.level >= 1 && S.soapIn) { var s0 = S.suds; S.suds = Math.min(1, S.suds + seg * .008);   /* stirring the water with Spüli in it whips up suds */ if (S.suds > .5) S.sudsWarn = false; if (S.step === "foam" && S.suds >= .8) { S.sudsWarn = false; mBan(d2V, "Schön schaumig!"); setTimeout(function () { if (d2S && d2S.step === "foam") d2Adv(); }, 500); }   /* swirling in the water whips up suds */
       if (Math.random() < seg * .2 && it.foam.length < 200) it.foam.push({ x: b[0] - D2.cx + Math.round(Math.random() * 16 - 8), y: b[1] - D2.cy + Math.round(Math.random() * 10 - 5), r: 2 + Math.floor(Math.random() * 2), w: 1, swirl: 1 }); }
     if (Math.random() < .25) S.fx.push({ x: b[0], y: b[1], vx: (Math.random() - .5) * 24, vy: -12 - Math.random() * 10, life: .4, c: "#e8f6ff" });   /* little splashes wherever the finger goes */
     if (it.find && !it.find.seen && !it.foam.some(function (f) { return !f.soap && Math.hypot(f.x - it.find.x, f.y - it.find.y) < f.r + 3; })) { it.find.seen = true; mBan(d2V, "Da ist was!"); beep([[1175, .05], [1568, .06]]); }
@@ -20852,17 +20902,25 @@ function recolorWallSvg(svg, grund, muster) {
     try { d2V.cv.setPointerCapture(e.pointerId); } catch (er) {}
     var it0 = S.cur; if (S.hold || S.fly || !it0) return;
     if (p[0] >= D2_BOT.x - 8 && p[0] <= D2_BOT.x + 8 && p[1] >= D2_BOT.y - 23 && p[1] <= D2_BOT.y + 2) { d2Squirt(); return; }
+    if (Math.hypot(p[0] - D2_PLUG.x, p[1] - D2_PLUG.y) < 9 && S.step !== "drain" && S.level >= 1) { d2Nope(); return; }
     if (Math.hypot(p[0] - D2_PLUG.x, p[1] - D2_PLUG.y) < 9 && S.level >= 1 && !S.drain && !S.filling) { S.drain = true; S.dirtWarn = false; mBan(d2V, "Gluck, gluck …"); beep([[180, .08], [140, .1]]); return; }
-    if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30 && S.empty) { S.empty = false; S.filling = true; S.water = 0; mBan(d2V, "Wasser läuft ein"); beep([[200, .05], [260, .05]]); return; }
+    if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30 && S.step !== "fill" && S.step !== "rinse" && !S.drain && !S.filling) { d2Nope(); return; }
+    if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30 && S.empty && S.step === "fill") { S.empty = false; S.filling = true; S.water = 0; mBan(d2V, "Wasser läuft ein"); beep([[200, .05], [260, .05]]); return; }
     if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30 && (S.drain || S.filling)) return;
-    if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30) { if (S.ready) d2HoldStart("water", null); else { mBan(d2V, "Erst sauber machen"); beep([[220, .06]]); } return; }
+    if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30) { if (S.step === "rinse") d2HoldStart("water", null); else d2Nope(); return; }
     for (var b = 0; b < S.bub.length; b++) { var bb = S.bub[b]; if (Math.hypot(bb.x - p[0], bb.y - p[1]) < bb.r + 3) { S.bub.splice(b, 1); S.popped++; beep([[1400 + rnd(0, 400), .03]]); for (var q = 0; q < 6; q++) S.fx.push({ x: bb.x, y: bb.y, vx: (Math.random() - .5) * 40, vy: (Math.random() - .5) * 40, life: .4, c: "#ffffff" }); return; } }
     var it = S.cur;
     for (var pi = 0; pi < S.pets.length; pi++) { var pt = S.pets[pi]; if (Math.hypot(pt.x - p[0], pt.y - p[1]) < 10) { d2PetTap(pt); return; } }
     if (it && it.find && it.find.seen && !it.got && Math.hypot(p[0] - D2.cx - it.find.x, p[1] - D2.cy - it.find.y) < 10) { it.got = true; d2FindGot(it.find.k, D2.cx + it.find.x, D2.cy + it.find.y); return; }
     if (S.drops && !S.fly) { S.towelAt = p; d2Dry(p); return; }
+    var onIt = it && d2Sh(it.k, p[0] - D2.cx, p[1] - D2.cy) > 0;
+    if (onIt && S.step === "soak" && !S.soak) { S.soak = now0(); mBan(d2V, "Einweichen …"); beep([[260, .06], [200, .08]]); return; }
+    if (onIt && S.step === "pour" && it.liq) { S.bounce = now0(); for (var q5 = 0; q5 < 26; q5++) S.fx.push({ x: D2.cx + Math.random() * 20 - 10, y: D2.cy - 6, vx: -40 - Math.random() * 50, vy: -30 - Math.random() * 40, life: .7, c: q5 % 2 ? "#7a4a28" : "#9a6a44" }); it.liq = null; beep([[300, .05], [220, .08]]); setTimeout(function () { if (d2S && d2S.step === "pour") d2Adv(); }, 400); return; }
+    if (onIt && S.step === "knock") { S.bounce = now0(); it.knocks++; d2ScrubSnd(.16); it.spots.forEach(function (s4) { if (s4.ty === "crumbs" && s4.hp > 0) { s4.hp = Math.max(0, s4.hp - s4.max * .4); for (var q6 = 0; q6 < 5; q6++) S.fx.push({ x: D2.cx + s4.x, y: D2.cy + s4.y, vx: (Math.random() - .5) * 60, vy: -30 - Math.random() * 30, life: .6, c: "#d8a860" }); } });
+      if (!it.spots.some(function (s5) { return s5.ty === "crumbs" && s5.hp > 0; })) setTimeout(function () { if (d2S && d2S.step === "knock") d2Adv(); }, 300); return; }
     if (p[1] > D2.y0 && p[1] < D2.y1 && p[0] > D2.x0 && p[0] < D2.x1) { S.rub = p; S.strokeWrong = false; S.strokeId = (S.strokeId || 0) + 1; d2Rub(p, p); }
   });
+  function now0() { return performance.now(); }
   function d2Dry(p) { var S = d2S, ox = D2.cx + Math.round(22 * (S.rx || 0)), oy = D2.cy, n0 = S.drops.length; S.drops = S.drops.filter(function (d) { if (Math.hypot(ox + d.x - p[0], oy + d.y - p[1]) > 12) return true; S.fx.push({ x: ox + d.x, y: oy + d.y, vx: (Math.random() - .5) * 20, vy: -10, life: .4, c: "#bfe8ff" }); return false; }); if (S.drops.length < n0) beep([[700 + Math.random() * 300, .02]]); }
   d2V.cv.addEventListener("pointermove", function (e) { if (d2S && d2S.towelAt) { var pp = mPt(d2V, e); d2S.towelAt = pp; if (d2S.drops) d2Dry(pp); return; } if (!d2S || !d2S.rub) return; var p = mPt(d2V, e), last = d2S.rub; d2S.rub = p; d2Rub(last, p); });
   function d2Up() { if (d2S) { d2S.rub = null; d2S.towelAt = null; d2S.strokeWrong = false; if (d2S.hold) d2Resolve(); } }
@@ -20890,7 +20948,7 @@ function recolorWallSvg(svg, grund, muster) {
     if (d2HamP) { var hp = d2HamP; d2HamP = null; hp.par.insertBefore(ham, hp.nxt && hp.nxt.parentNode === hp.par ? hp.nxt : null); ham.style.translate = hp.tr || ""; ham.style.zIndex = hp.z; H.dir = hp.dir; moveTo(hp.x, hp.y, 0); scene.classList.remove("pz-on", "hv-on"); settle(); } }
   d2V.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); d2Close(); });
   dwOpen = d2Open;   /* the café sink and the kitchen now open the new washing-up */
-  window.__dish2 = { open: d2Open, dirt: function (v) { d2S.dirt = v; }, suds: function (v) { d2S.suds = v; }, level: function (v) { d2S.level = v; }, st: function () { return d2S && { dirt: d2S.dirt, level: d2S.level, empty: d2S.empty, suds: d2S.suds, drops: d2S.drops && d2S.drops.length, hold: d2S.hold && { k: d2S.hold.kind, v: d2S.hold.v, z: d2S.hold.zone }, water: d2S.water, rx: d2S.rx, ready: d2S.ready, dry: d2S.cur && d2S.cur.spots.filter(function (s) { return s.dry; }).length, left: d2S.left.length, cur: d2S.cur && { k: d2S.cur.k, spots: d2S.cur.spots.map(function (s) { return [s.x, s.y, s.ty, s.hp]; }), foam: d2S.cur.foam.length, find: d2S.cur.find }, tool: d2S.tool, towel: d2S.towel.length, finds: d2S.finds.length, wrong: d2S.wrong, over: d2S.over }; }, rub: function (a, b) { d2Rub(a, b); }, tool: function (k) { d2S.tool = k; } };
+  window.__dish2 = { step: function () { return d2S && [d2S.step].concat(d2S.queue); }, adv: function () { d2Adv(); }, open: d2Open, dirt: function (v) { d2S.dirt = v; }, suds: function (v) { d2S.suds = v; }, level: function (v) { d2S.level = v; }, st: function () { return d2S && { dirt: d2S.dirt, level: d2S.level, empty: d2S.empty, suds: d2S.suds, drops: d2S.drops && d2S.drops.length, hold: d2S.hold && { k: d2S.hold.kind, v: d2S.hold.v, z: d2S.hold.zone }, water: d2S.water, rx: d2S.rx, ready: d2S.ready, dry: d2S.cur && d2S.cur.spots.filter(function (s) { return s.dry; }).length, left: d2S.left.length, cur: d2S.cur && { k: d2S.cur.k, spots: d2S.cur.spots.map(function (s) { return [s.x, s.y, s.ty, s.hp]; }), foam: d2S.cur.foam.length, find: d2S.cur.find }, tool: d2S.tool, towel: d2S.towel.length, finds: d2S.finds.length, wrong: d2S.wrong, over: d2S.over }; }, rub: function (a, b) { d2Rub(a, b); }, tool: function (k) { d2S.tool = k; } };
   if (window.__dish) window.__dish.open = d2Open;
   var _d2_int = interrupt; interrupt = function () { if (!window.__resume && d2S) d2Close(); return _d2_int.apply(this, arguments); };
   // ===================== planting and harvesting, different for every crop (preview) =====================
