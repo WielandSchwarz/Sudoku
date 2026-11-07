@@ -108,6 +108,11 @@ function mountObstsalat(root, ART, opts) {
     S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt }); sfx(k === "kastanie" ? "launchBomb" : "launch");
   }
   /* a chestnut on its own, between the volleys, where the least fruit is */
+  /* clover: chestnuts burst by themselves, harmless, for 5 points each */
+  function popBomb(it) {
+    it.cut = true; sliceItem(it, 1, -.4); addScore(points(5)); popText("+" + points(5), it.x, it.y, "#8ce070"); sfx("shieldhit");
+    for (var k = 0; k < 8; k++) S.bits.push({ x: it.x, y: it.y, vx: (Math.random() - .5) * 120, vy: -40 - Math.random() * 60, c: k % 2 ? "#5a3418" : "#8ce070", life: .6 });
+  }
   function bombLaunch() {
     var xs = S.items.map(function (it) { return it.x; }).concat(S.queue.map(function (q) { return q.x; })), best = 90, bd = -1;
     for (var c = 0; c < 8; c++) { var x = 20 + Math.random() * 140, d = xs.reduce(function (m, v) { return Math.min(m, Math.abs(v - x)); }, 999); if (d > bd) { bd = d; best = x; } }
@@ -192,6 +197,7 @@ function mountObstsalat(root, ART, opts) {
           for (var kc = 0; kc < 6; kc++) S.bits.push({ x: it.x, y: it.y, vx: (Math.random() - .5) * 90, vy: -30 - Math.random() * 50, c: kc % 2 ? "#7a4a26" : "#c8905a", life: .5 }); return; }
       }
       it.cut = true;
+      if (it.k === "kastanie" && S.magT > 0) return;   /* during the clover nobody can hit a chestnut */
       if (it.k === "kastanie" && S.shieldT > 0) {    /* Hamster-Mode: the chestnut just breaks, and even gives points */
         sliceItem(it, bx - ax, by - ay); addScore(points(2)); popText("+" + points(2), it.x, it.y, "#f8d850"); sfx("shieldhit"); cheer(1); return; }
       if (it.k === "kastanie") { boom(it); return; }
@@ -214,7 +220,7 @@ function mountObstsalat(root, ART, opts) {
     if (k === "sonnenblume") { S.doubleT = sp.t; x2El.hidden = false; }
     if (k === "honigwabe") { S.rainT = sp.t; S.rainSpawn = 0; }
     if (k === "pusteblume") S.floatT = sp.t;
-    if (k === "kleeblatt") S.magT = sp.t;
+    if (k === "kleeblatt") { S.magT = sp.t; S.items.forEach(function (it) { if (it.k === "kastanie" && !it.cut) popBomb(it); }); }
     if (k === "regenbogenerdbeere") { S.comboT = sp.t; S.chain = 0; }
     if (k === "gluehbeere") S.glowT = sp.t;
     if (k === "hamsterkern") S.shieldT = sp.t;
@@ -449,6 +455,7 @@ function mountObstsalat(root, ART, opts) {
         var fd = Math.exp(-2.5 * wdt); it.vx *= fd; it.vy = it.vy * fd + (-14) * (1 - fd);
       } else it.vy += G * wdt;
       it.x += it.vx * wdt; it.y += it.vy * wdt; if (it.knock) it.knock = Math.max(0, it.knock - dt);
+      if (S.magT > 0 && it.k === "kastanie" && !it.cut && it.y < H - 10) popBomb(it);
     });
     S.items = S.items.filter(function (it) { return !it.cut && it.y < H + 30 && it.y > -60 && it.x > -40 && it.x < W + 40; });
     S.halves.forEach(function (h) { h.vy += G * wdt; h.x += h.vx * wdt; h.y += h.vy * wdt; });
