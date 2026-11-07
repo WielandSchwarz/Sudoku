@@ -4,7 +4,8 @@
   // Sometimes something is hiding under the foam (a rubber duck, a marble, a toy fish, a button): tap it to keep it. Bubbles drift up and can be popped.
   // When a piece is clean it is rinsed for a moment and hops onto the tea towel at the back. No sorting, no clock.
   var d2V = mPov("mdw-pov d2-pov", "Abwasch beenden"), d2S = null, D2 = { x0: 6, x1: 174, y0: 26, y1: 114, cx: 90, cy: 70 };
-  var D2_TOOLS = [{ k: "sponge", x: 16, y: 30 }, { k: "soap", x: 16, y: 53 }, { k: "brush", x: 16, y: 76 }, { k: "water", x: 16, y: 99 }];   /* a column of trays on the left rim */
+  var D2_TOOLS = [{ k: "sponge", x: 16, y: 40 }, { k: "brush", x: 16, y: 64 }];   /* sponge and brush on trays at the left; the Spüli bottle stands on the counter, the tap is turned on by hand */
+  var D2_BOT = { x: 16, y: 25 };   /* a column of trays on the left rim */
   var D2_DIRT = {   /* what each kind of dirt looks like and which tool takes it off */
     ketchup: { t: "sponge", c: ["#d8302a", "#a81a1a"], hp: 1 }, jam: { t: "sponge", c: ["#9a4ac8", "#6a2a98"], hp: 1 }, cocoa: { t: "sponge", c: ["#7a4a28", "#5a3418"], hp: 1 },
     burnt: { t: "brush", c: ["#6a3e1e", "#2a1606"], hp: 1.8 }, dried: { t: "brush", c: ["#e8b040", "#b88020"], hp: 1.5 },
@@ -54,7 +55,7 @@
     d2S = { left: pool, total: pool.length, cur: null, tool: "sponge", towel: [], finds: [], popped: 0, wrong: 0, fx: [], bub: [], rub: null, hint: null, rinse: 0, fly: null, slide: 0, over: false, face: null, faceT: 0, lastFace: "" };
     d2V.card.hidden = true; d2Next();
   }
-  function d2Next() { var S = d2S; if (!S.left.length) { d2End(); return; } S.cur = d2Make(S.left.shift()); S.slide = 1; S.rx = 0; mBan(d2V, "Schrubben!"); }
+  function d2Next() { var S = d2S; if (!S.left.length) { d2End(); return; } S.cur = d2Make(S.left.shift()); S.slide = 1; S.rx = 0; S.ready = false; S.water = 0; S.wrun = 0; mBan(d2V, "Schrubben!"); }
   function d2Clean(it) { return it.spots.every(function (s) { return s.hp <= 0; }); }
   // ---- the kitchen behind: tiles, the tea towel on its rail, the tap; the counter with a sink nearly as wide as the screen ----
   var D2K = null;
@@ -110,6 +111,8 @@
       r: ["....oooooooooo....", "...oRRRRRRRRrro...", "...oRrrrrrrrrDo...", "..ooDDDDDDDDDDoo..", ".oWWWWWWWWWWWWWwo.", "oWWwwwwwwwwwwwwwbo", "owwwwwwwwwwwwwwwbo", "obbbbbbbbbbbbbbbbo", "oooooooooooooooooo", ".oFfFfFfFfFfFfFfo.", ".oFfFfFfFfFfFfFfo.", ".ofFfFfFfFfFfFfFo.", "..oooooooooooooo.."] },
     soap: { p: { o: "#3a2414", R: "#ff8a7a", r: "#e8463c", D: "#a82a22", G: "#c8f0a0", g: "#7ad050", d: "#3e9a2a", W: "#ffffff", L: "#fff8ec", l: "#e0d0b4" },
       r: ["....oooo....", "....oRro....", "....oRDo....", "...ooooo....", "..oGGggdo...", ".oGWGgggdo..", ".oGWggggdo..", ".oGGggggdo..", ".oLLLLLlldo.", ".oLrLLLLldo.", ".oLLLrLlldo.", ".oLLLLLlldo.", ".oGgggggddo.", ".oggggggddo.", ".oddddddddo.", "..oooooooo.."] },
+    bottle: { p: { o: "#3a2414", R: "#ff8a7a", r: "#e8463c", D: "#a82a22", G: "#c8f0a0", g: "#7ad050", d: "#3e9a2a", W: "#ffffff", L: "#fff8ec", l: "#e0d0b4" },
+      r: ["....ooo....", "....oRo....", "...ooRoo...", "...oRRDo...", "..ooooooo..", "..oGGggdo..", ".oGWGgggdo.", ".oGWggggdo.", ".oGWggggdo.", ".oLLLLLldo.", ".oLrLLLldo.", ".oLLrLLldo.", ".oLrLLLldo.", ".oLLLLLldo.", ".oGgggggdo.", ".oGgggggdo.", ".oggggggdo.", ".oggggggdo.", ".odddddddo.", "..ooooooo.."] },
     water: { p: { o: "#3a2414", B: "#c8ecff", b: "#6ac0f0", d: "#3a8ad0", W: "#ffffff" },
       r: ["......oo......", ".....oBBo.....", ".....oBbo.....", "....oBBbbo....", "....oBbbbo....", "...oBWbbbbo...", "..oBWWbbbbbo..", "..oBWbbbbbbo..", ".oBWbbbbbbbdo.", ".oBbbbbbbbbdo.", ".oBbbbbbbbbdo.", ".oBbbbbbbbddo.", "..obbbbbbbddo.", "..obbbbbbddo..", "...oddddddo...", "....oooooo...."] } };
   var D2_AC = {};
@@ -127,7 +130,11 @@
     // pegs on the towel rail, one for each piece; the clean ones hang below their peg
     for (var pg = 0; pg < S.total; pg++) { var gx2 = 62 + pg * 13; mR(c, gx2 - 1, 5, 3, 6, "#3a2414"); mR(c, gx2, 6, 1, 4, "#e0b07a"); }
     S.towel.forEach(function (k, i) { d2Mini(c, k, 62 + i * 13, 15); });
-    d2Tap(c, S.rinse > 0 || !!S.shower);
+    d2Tap(c, S.water > 0);
+    var bq = S.squeeze && now - S.squeeze < 180 ? 1 : 0, bw = d2Art("bottle");   /* the Spüli bottle on the counter, squashed for a moment when squeezed */
+    mR(c, D2_BOT.x - 6, D2_BOT.y - 1, 13, 2, "rgba(58,36,20,.25)"); c.drawImage(bw, D2_BOT.x - 5, D2_BOT.y - 20 + bq);
+    if (S.hint && now < S.hint.t1 && S.hint.k === "soap" && Math.floor(now / 200) % 2) dwArrow(c, D2_BOT.x + 16, D2_BOT.y - 10, t, "r");
+    if (((S.ready && !S.water) || (S.hint && now < S.hint.t1 && S.hint.k === "water")) && !S.fly) dwArrow(c, 156, 26, t, "d");   /* turn on the tap! */
     // the water: soapy, light ripples drifting
     var X0 = D2.x0 + 3, X1 = D2.x1 - 3, Y0 = D2.y0 + 3, Y1 = D2.y1 - 3;
     for (var y = Y0; y < Y1; y++) for (var x = X0; x < X1; x += 2) { var cx = Math.max(X0 + 5, Math.min(X1 - 6, x)), cy = Math.max(Y0 + 5, Math.min(Y1 - 6, y)); if (Math.hypot(x - cx, y - cy) > 5) continue;
@@ -136,8 +143,8 @@
     if (it) {
       var ox = D2.cx, oy = D2.cy;
       if (S.slide > 0) { S.slide = Math.max(0, S.slide - .04); oy += Math.round(S.slide * 8); }
-      if (S.rinse > 0 || S.shower) S.rx = Math.min(1, (S.rx || 0) + .06); else S.rx = Math.max(0, (S.rx || 0) - .06); var gx0 = D2.cx + Math.round(28 * (S.rx || 0) * (S.rx || 0) * (3 - 2 * (S.rx || 0))); ox = gx0;   /* the clean piece glides under the tap */
-      if (S.fly) { var u = Math.min(1, (now - S.fly.t0) / 650); ox = gx0 + (S.fly.tx - gx0) * u; oy = D2.cy + (S.fly.ty - D2.cy) * u - Math.sin(u * Math.PI) * 26; }
+      if (S.water > 0 && !S.fly) S.rx = Math.min(1, (S.rx || 0) + .04); else if (!S.fly) S.rx = Math.max(0, (S.rx || 0) - .04); var gx0 = D2.cx + Math.round(28 * (S.rx || 0) * (S.rx || 0) * (3 - 2 * (S.rx || 0))); ox = gx0;   /* the clean piece glides under the tap */
+      if (S.fly) { var u = Math.min(1, (now - S.fly.t0) / 650); ox = gx0 + (S.fly.tx - gx0) * u; if (u >= 1) S.rx = 0; oy = D2.cy + (S.fly.ty - D2.cy) * u - Math.sin(u * Math.PI) * 26; }
       // the find lies in the water beside the piece
       if (it.find && !it.got && !S.fly) d2Find(c, it.find.k, D2.cx + it.find.x, D2.cy + it.find.y, it.find.sq > 0 && (it.find.sq -= .05) > 0);
       if (!(S.fly && now - S.fly.t0 > 520)) {
@@ -147,7 +154,7 @@
           for (var yy = -s.r; yy <= s.r; yy++) for (var xx = -s.r; xx <= s.r; xx++) { var e = (xx * xx) / (s.r * s.r) + (yy * yy) / (s.r * s.r * .7), wob = (((xx + s.x) * 7 + (yy + s.y) * 13) % 5 - 2) * .06; if (e > 1 + wob) continue;
             if (f < .66 && (xx + yy) % 2) continue; if (f < .33 && (xx * 3 + yy) % 4) continue;   /* thins out, dithered, as it is scrubbed */
             mR(c, ox + s.x + xx, oy + s.y + yy, 1, 1, e > .7 + wob ? D.c[1] : D.c[0]); } });
-        if ((S.rinse > 0 || S.shower) && S.rx >= 1) { var sx = 117, sy0 = 24, sy1 = oy - 4;   /* water falls straight down from the tip of the tap */
+        if (S.water > 0) { var sx = 117, sy0 = 24, sy1 = S.rx >= 1 ? oy - 4 : 78;   /* water falls straight down from the tip of the tap */
           for (var yy4 = sy0; yy4 < sy1; yy4++) { var fl = (yy4 + Math.floor(t / 40)) % 5; mR(c, sx - 1, yy4, 3, 1, "#a8d8f0"); mR(c, sx, yy4, 1, 1, fl ? "#e8f6ff" : "#ffffff"); if (fl === 0) mR(c, sx + 1, yy4, 1, 1, "#ffffff"); }
           if (Math.random() < .6) S.fx.push({ x: sx, y: sy1, vx: (Math.random() - .5) * 50, vy: -15 - Math.random() * 25, life: .45, c: Math.random() < .5 ? "#bfe8ff" : "#ffffff" }); }
       }
@@ -159,17 +166,19 @@
       if (S.hint && now < S.hint.t1) { var hx = Math.round(ox + S.hint.x), hy = Math.round(oy + S.hint.y - 24); mR(c, hx - 11, hy - 10, 22, 20, "#3a2414"); mR(c, hx - 10, hy - 9, 20, 18, "#fff8ec"); mR(c, hx - 2, hy + 10, 4, 2, "#3a2414"); d2ToolIcon(c, S.hint.k, hx, hy); }
       if (S.fly && now - S.fly.t0 >= 650) { S.towel.push(it.k); S.fly = null; S.cur = null; S.face = "happy"; S.faceT = now + 800; beep([[1047, .04], [1319, .04], [1568, .08]]); for (var q = 0; q < 10; q++) S.fx.push({ x: 56 + (S.towel.length - 1) * 13 + 4, y: 10, vx: (Math.random() - .5) * 40, vy: -10 - Math.random() * 20, life: .7, c: "#ffd34a" }); setTimeout(d2Next, 250); }
     }
-    if (S.shower && it && S.rx >= 1) { S.shower.run += .016; if (S.shower.run > .8) {   /* the water washes off crumbs and suds */
-        var had = 0; it.spots.forEach(function (sp) { if (sp.ty === "crumbs" && sp.hp > 0) { sp.hp = 0; had++; } }); it.foam = it.foam.filter(function (f) { return !f.soap; }); S.shower = null;
-        if (had) { beep([[660, .05], [880, .06]]); for (var k2 = 0; k2 < 8; k2++) S.fx.push({ x: ox, y: oy, vx: (Math.random() - .5) * 50, vy: -20 - Math.random() * 20, life: .6, c: "#ffd34a" }); }
-        if (d2Clean(it)) { it.foam = it.foam.filter(function (f) { return f.w; }); S.rinse = .6; S.hint = null; mBan(d2V, "Blitzblank!"); } } }
+    if (S.water > 0) { S.water -= .016; if (S.water <= 0) { S.water = 0; S.wrun = 0; }   /* the tap runs: the piece glides under it, crumbs and suds wash away slowly */
+      if (it && S.rx >= 1 && !S.fly) { S.wrun = (S.wrun || 0) + .016; var washed = false;
+        it.spots.forEach(function (sp) { if (sp.ty === "crumbs" && sp.hp > 0) { sp.hp -= .006; if (sp.hp <= 0) washed = true; } });
+        if (Math.floor(now / 140) !== Math.floor((now - 16) / 140)) { var si = -1; it.foam.forEach(function (f, i) { if (f.soap && si < 0) si = i; }); if (si >= 0) it.foam.splice(si, 1); }
+        if (washed) { beep([[660, .05], [880, .06]]); for (var k2 = 0; k2 < 8; k2++) S.fx.push({ x: ox, y: oy, vx: (Math.random() - .5) * 50, vy: -20 - Math.random() * 20, life: .6, c: "#ffd34a" }); }
+        if (!S.ready && d2Clean(it) && !it.foam.some(function (f) { return f.soap; })) { S.ready = true; S.hint = null; mBan(d2V, "Blitzblank!"); }
+        if (S.ready && S.wrun > 1.2 && !it.foam.some(function (f) { return f.soap; })) { S.fly = { t0: now, tx: 62 + S.towel.length * 13, ty: 10 }; S.water = 0; S.wrun = 0; beep([[880, .05], [1175, .05]]); } } }
     if (S.squirt) { var su = (now - S.squirt.t0) / 450, sq = S.squirt;   /* a squirt of washing-up liquid flies in an arc onto the piece */
       if (su < 1) { for (var q2 = 0; q2 < 6; q2++) { var uu = su - q2 * .06; if (uu < 0) continue; mR(c, sq.x0 + (sq.tx - sq.x0) * uu - 1, sq.y0 + (sq.ty - sq.y0) * uu - Math.sin(uu * Math.PI) * 22 - 1, 3, 2, q2 ? "#8ae070" : "#c8f0a0"); } }
       else { S.squirt = null; if (it) { var tg = sq.spot; if (tg && tg.hp > 0) { tg.hp = 0; beep([[700, .05], [940, .06]]); }
         for (var k3 = 0; k3 < 7; k3++) it.foam.push({ x: sq.tx - D2.cx + Math.round(Math.random() * 12 - 6), y: sq.ty - D2.cy + Math.round(Math.random() * 8 - 4), r: 2 + Math.floor(Math.random() * 2), soap: 1 });
         for (var k4 = 0; k4 < 8; k4++) S.fx.push({ x: sq.tx, y: sq.ty, vx: (Math.random() - .5) * 40, vy: -15 - Math.random() * 20, life: .6, c: "#ffffff" });
-        if (d2Clean(it)) { it.foam = it.foam.filter(function (f) { return f.w; }); S.rinse = 1.1; S.rx = 0; S.hint = null; mBan(d2V, "Blitzblank!"); } } } }
-    if (S.rinse > 0) { S.rinse -= .016; if (S.rinse <= 0) { S.rinse = 0; S.fly = { t0: now, tx: 62 + S.towel.length * 13, ty: 10 }; beep([[880, .05], [1175, .05]]); } }
+        d2Ready(); } } }
     // bubbles drifting up, to be popped
     if (it && !S.fly && Math.random() < .025 && S.bub.length < 6) S.bub.push({ x: D2.cx + rnd(-70, 70), y: D2.cy + rnd(10, 36), r: 2 + Math.floor(Math.random() * 3), vy: -.22 - Math.random() * .25, ph: Math.random() * 6 });
     S.bub = S.bub.filter(function (b) { b.y += b.vy; b.x += Math.sin(t / 400 + b.ph) * .2; for (var a = 0; a < 16; a++) { var an = a / 16 * Math.PI * 2; mR(c, b.x + Math.cos(an) * b.r, b.y + Math.sin(an) * b.r, 1, 1, a % 4 === 1 ? "#ffffff" : "#8cc4e8"); } mR(c, b.x - b.r / 2, b.y - b.r / 2, 1, 1, "#ffffff"); return b.y > -6; });
@@ -188,32 +197,37 @@
     S.raf = requestAnimationFrame(d2Draw);
   }
   // ---- touching ----
-  function d2Squirt() {   /* Spüli: one squeeze, and a squirt lands on the greasy spot (or in the middle) */
-    var S = d2S, it = S.cur; if (!it || S.fly || S.rinse || S.shower || S.squirt) return;
+  function d2Ready() {   /* every spot is gone: now it only needs rinsing under the tap */
+    var S = d2S, it = S.cur; if (!it || S.ready || !d2Clean(it)) return; S.ready = true; S.rub = null; S.hint = null; it.foam = it.foam.filter(function (f) { return f.w || f.soap; }); mBan(d2V, "Jetzt abspülen!"); }
+  function d2Squirt() {   /* Spüli: squeeze the bottle, and a squirt flies onto the greasy spot (or into the middle) */
+    var S = d2S, it = S.cur; S.squeeze = performance.now(); if (!it || S.fly || S.squirt) return;
     var g = null; it.spots.forEach(function (sp) { if (!g && sp.ty === "grease" && sp.hp > 0) g = sp; });
-    S.squirt = { t0: performance.now(), x0: 22, y0: 58, tx: D2.cx + (g ? g.x : 0), ty: D2.cy + (g ? g.y : 0), spot: g }; beep([[500, .05], [300, .08]]); }
-  function d2Shower() {   /* water: the piece goes under the tap for a moment and the crumbs wash away */
-    var S = d2S, it = S.cur; if (!it || S.fly || S.rinse || S.shower) return; S.shower = { run: 0 }; S.rub = null; beep([[200, .05], [260, .05]]); }
+    var gx3 = S.water > 0 && S.rx > 0 ? 28 : 0;
+    S.squirt = { t0: performance.now(), x0: D2_BOT.x, y0: D2_BOT.y - 20, tx: D2.cx + gx3 + (g ? g.x : 0), ty: D2.cy + (g ? g.y : 0), spot: g }; beep([[500, .05], [300, .08]]); }
+  function d2TapOn() {   /* the hamster turns the tap on (or off again) */
+    var S = d2S; if (!S.cur || S.fly) return; if (S.water > 0) { S.water = 0; S.wrun = 0; beep([[260, .05], [200, .05]]); return; } S.water = 3.2; S.wrun = 0; S.rub = null; beep([[200, .05], [260, .05]]); }
   function d2Rub(a, b) {
-    var S = d2S, it = S.cur; if (!it || S.fly || S.rinse || S.shower) return; var ox = D2.cx, oy = D2.cy, n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))), moved = 0;
+    var S = d2S, it = S.cur; if (!it || S.fly || S.water > 0) return; var ox = D2.cx, oy = D2.cy, n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))), moved = 0;
     for (var s = 0; s <= n; s++) { var x = a[0] + (b[0] - a[0]) * s / n - ox, y = a[1] + (b[1] - a[1]) * s / n - oy;
       var nf = it.foam.length; it.foam = it.foam.filter(function (f) { return f.soap || Math.hypot(f.x - x, f.y - y) > f.r + 5; }); if (it.foam.length < nf) { moved++; if (Math.random() < .5) S.fx.push({ x: x + ox, y: y + oy, vx: (Math.random() - .5) * 30, vy: -14, life: .6, c: "#ffffff" }); }
       it.spots.forEach(function (sp) { if (sp.hp <= 0 || Math.hypot(sp.x - x, sp.y - y) > sp.r + 4) return;
         if (it.foam.some(function (f) { return !f.soap && Math.hypot(f.x - sp.x, f.y - sp.y) < f.r + 1; })) return;   /* still under foam */
         if (D2_DIRT[sp.ty].t !== S.tool) { if (sp.dst !== S.strokeId) { sp.dst = S.strokeId; sp.dwell = 0; } sp.dwell++; if (sp.dwell > 40 && !sp.warned) { sp.warned = true; S.wrong++; }   /* only scrubbing on and on with the wrong thing counts, not wiping over it */
           if (!S.strokeWrong) { S.strokeWrong = true; S.hint = { x: sp.x, y: sp.y, k: D2_DIRT[sp.ty].t, t1: performance.now() + 1600 }; S.face = "oops"; S.faceT = performance.now() + 700; beep([[200, .06], [160, .08]]); } return; }
-        sp.hp -= .045; if (Math.random() < .3) beep([[1300 + Math.random() * 500, .02]]);
+        sp.hp -= .012; if (Math.random() < .3) beep([[1300 + Math.random() * 500, .02]]);
         if (Math.random() < .3) S.fx.push({ x: sp.x + ox, y: sp.y + oy, vx: (Math.random() - .5) * 20, vy: -16, life: .6, c: S.tool === "water" ? "#bfe8ff" : "#ffffff" });
         if (sp.hp <= 0) { beep([[660, .05], [880, .06]]); for (var k = 0; k < 6; k++) S.fx.push({ x: sp.x + ox, y: sp.y + oy, vx: (Math.random() - .5) * 40, vy: -20 - Math.random() * 20, life: .6, c: "#ffd34a" }); } }); }
     if (moved && Math.random() < .3) beep([[900 + Math.random() * 300, .02]]);
     if (Math.random() < .25) S.fx.push({ x: b[0], y: b[1], vx: (Math.random() - .5) * 24, vy: -12 - Math.random() * 10, life: .4, c: "#e8f6ff" });   /* little splashes wherever the finger goes */
     if (it.find && !it.find.seen && !it.foam.some(function (f) { return !f.soap && Math.hypot(f.x - it.find.x, f.y - it.find.y) < f.r + 3; })) { it.find.seen = true; mBan(d2V, "Da ist was!"); beep([[1175, .05], [1568, .06]]); }
-    if (d2Clean(it)) { S.rub = null; it.foam = it.foam.filter(function (f) { return f.w; }); S.rinse = 1.1; S.rx = 0; S.hint = null; mBan(d2V, "Blitzblank!"); }
+    d2Ready();
   }
   d2V.cv.addEventListener("pointerdown", function (e) {
     if (!d2S || d2S.over) return; var hr = ham.getBoundingClientRect(); if (e.clientX >= hr.left && e.clientX <= hr.right && e.clientY >= hr.top && e.clientY <= hr.bottom) return;
     var S = d2S, p = mPt(d2V, e); try { d2V.cv.setPointerCapture(e.pointerId); } catch (er) {}
-    for (var i = 0; i < D2_TOOLS.length; i++) { var T = D2_TOOLS[i]; if (Math.abs(p[0] - T.x) <= 12 && p[1] >= T.y - 2 && p[1] <= T.y + 20) { S.press = { k: T.k, t: performance.now() }; if (T.k === "soap") d2Squirt(); else if (T.k === "water") d2Shower(); else if (S.tool !== T.k) { S.tool = T.k; beep([[520, .04], [700, .04]]); } return; } }
+    for (var i = 0; i < D2_TOOLS.length; i++) { var T = D2_TOOLS[i]; if (Math.abs(p[0] - T.x) <= 12 && p[1] >= T.y - 2 && p[1] <= T.y + 20) { if (S.tool !== T.k) { S.tool = T.k; beep([[520, .04], [700, .04]]); } return; } }
+    if (p[0] >= D2_BOT.x - 8 && p[0] <= D2_BOT.x + 8 && p[1] >= D2_BOT.y - 23 && p[1] <= D2_BOT.y + 2) { d2Squirt(); return; }
+    if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30) { d2TapOn(); return; }
     for (var b = 0; b < S.bub.length; b++) { var bb = S.bub[b]; if (Math.hypot(bb.x - p[0], bb.y - p[1]) < bb.r + 3) { S.bub.splice(b, 1); S.popped++; beep([[1400 + rnd(0, 400), .03]]); for (var q = 0; q < 6; q++) S.fx.push({ x: bb.x, y: bb.y, vx: (Math.random() - .5) * 40, vy: (Math.random() - .5) * 40, life: .4, c: "#ffffff" }); return; } }
     var it = S.cur;
     if (it && it.find && it.find.seen && !it.got && Math.hypot(p[0] - D2.cx - it.find.x, p[1] - D2.cy - it.find.y) < 9) {   /* a find: tap it and it is ours */
