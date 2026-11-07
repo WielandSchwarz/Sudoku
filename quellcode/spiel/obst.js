@@ -25,7 +25,7 @@
       try { renderCosy(); } catch (e) { }
     } else if (n % 5 === 0) {
       var g = seedOrFurn(null, 1, true);
-      if (g.seed) msg = "Eine Tüte " + CROPS[g.seed].name + "-Samen!"; else { s.treats = (s.treats || 0) + 3; msg = "Samenlager voll: 3 Leckerli!"; }
+      if (g.seed) msg = "Eine Tüte Samen: " + CROPS[g.seed].name + "!"; else { s.treats = (s.treats || 0) + 3; msg = "Samenlager voll: 3 Leckerli!"; }
     }
     try { if (window.SudokuSave) window.SudokuSave(); else if (typeof save === "function") save(); } catch (e) { }
     return msg;

@@ -2931,13 +2931,16 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .os-basket { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
 #ham-root .os-basket svg { display: block; width: 100%; height: auto; overflow: visible; }
 #ham-root .os-ban.rw { top: 17%; }
-#ham-root .os-pov .os-ban { top: 17%; }
-#ham-root .os-pov .os-ban.rw { top: 17%; }
 #ham-root .os-pop.os-pop-combo { font-size: 1.7rem; animation-duration: 1.1s; }
 #ham-root .os-pop-combo.c3 { color: #f8a060; }
 #ham-root .os-pop-combo.c4 { color: #f07a8a; }
 #ham-root .os-pop-combo.c5 { color: #b088e0; }
 #ham-root .os-pop-combo.c6 { color: #6ec0f0; }
+#ham-root .os-pov .os-ban:not(.rw) { left: auto; right: calc(2% + 36px); top: 2%; margin-top: 0; transform: none; font-size: .8rem; padding: 4px 9px 5px; }
+#ham-root .os-pov .os-ban:not(.rw).pop { animation: h-os-ban-r .35s steps(4); }
+#ham-root .os-pov .os-ban:not(.rw).away { transform: translateY(-30%); }
+@keyframes h-os-ban-r { from { transform: translateY(-40%); opacity: 0; } }
+#ham-root .os-pov .os-ban.rw { top: 22%; }
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
@@ -3131,7 +3134,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 109 · 07.11.2026</p>
+    <p class="opt-version">Version 110 · 07.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -23058,9 +23061,9 @@ function mountObstsalat(root, ART, opts) {
   function saveBest(v) { try { localStorage.setItem("obstsalat-rekord", String(v)); } catch (e) {} }
   function sfx(k, a) { if (opts.sfx) try { opts.sfx(k, a); } catch (e) {} }
   function addScore(n) { S.score = Math.max(0, S.score + n); }
-  function showBanner(text, secs, timed) {
+  function showBanner(text, secs, timed, mid) {         /* specials sit top right next to the timer; the reward (mid) sits in the middle */
     banT.textContent = text; banTime.style.display = timed ? "block" : "none"; banTime.style.transform = "scaleX(1)";
-    ban.classList.remove("pop", "away", "rw"); void ban.offsetWidth; ban.classList.add("pop");
+    ban.classList.remove("pop", "away", "rw"); if (mid) ban.classList.add("rw"); void ban.offsetWidth; ban.classList.add("pop");
     clearTimeout(banTimer); banTimer = setTimeout(function () { ban.classList.add("away"); }, secs * 1000);
   }
 
@@ -23261,7 +23264,7 @@ function mountObstsalat(root, ART, opts) {
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
-    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4); ban.classList.add("rw"); }, 700); }
+    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4, false, true); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
       Promise.resolve().then(function () { return opts.board.submit(mine.score); })
@@ -23279,7 +23282,7 @@ function mountObstsalat(root, ART, opts) {
     boardList.innerHTML = "";
     var b = S.board;
     if (!b) { boardList.appendChild(row("…", "", "", "wait")); return; }
-    var rows = b.rows.slice(0, 5), meIn = rows.some(function (r) { return r.me; });
+    var rows = b.rows.slice(0, 7), meIn = rows.some(function (r) { return r.me; });
     rows.forEach(function (r, i) { boardList.appendChild(row(i + 1, r.name, r.score, (r.me ? "me" : "") + (i < 3 ? " top" : ""))); });
     var mine = b.rows.filter(function (r) { return r.me; })[0];
     if (!meIn && (mine || b.offline)) {
@@ -23553,7 +23556,7 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
       try { renderCosy(); } catch (e) { }
     } else if (n % 5 === 0) {
       var g = seedOrFurn(null, 1, true);
-      if (g.seed) msg = "Eine Tüte " + CROPS[g.seed].name + "-Samen!"; else { s.treats = (s.treats || 0) + 3; msg = "Samenlager voll: 3 Leckerli!"; }
+      if (g.seed) msg = "Eine Tüte Samen: " + CROPS[g.seed].name + "!"; else { s.treats = (s.treats || 0) + 3; msg = "Samenlager voll: 3 Leckerli!"; }
     }
     try { if (window.SudokuSave) window.SudokuSave(); else if (typeof save === "function") save(); } catch (e) { }
     return msg;

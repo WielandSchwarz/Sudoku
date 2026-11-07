@@ -77,9 +77,9 @@ function mountObstsalat(root, ART, opts) {
   function saveBest(v) { try { localStorage.setItem("obstsalat-rekord", String(v)); } catch (e) {} }
   function sfx(k, a) { if (opts.sfx) try { opts.sfx(k, a); } catch (e) {} }
   function addScore(n) { S.score = Math.max(0, S.score + n); }
-  function showBanner(text, secs, timed) {
+  function showBanner(text, secs, timed, mid) {         /* specials sit top right next to the timer; the reward (mid) sits in the middle */
     banT.textContent = text; banTime.style.display = timed ? "block" : "none"; banTime.style.transform = "scaleX(1)";
-    ban.classList.remove("pop", "away", "rw"); void ban.offsetWidth; ban.classList.add("pop");
+    ban.classList.remove("pop", "away", "rw"); if (mid) ban.classList.add("rw"); void ban.offsetWidth; ban.classList.add("pop");
     clearTimeout(banTimer); banTimer = setTimeout(function () { ban.classList.add("away"); }, secs * 1000);
   }
 
@@ -280,7 +280,7 @@ function mountObstsalat(root, ART, opts) {
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
-    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4); ban.classList.add("rw"); }, 700); }
+    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4, false, true); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
       Promise.resolve().then(function () { return opts.board.submit(mine.score); })
@@ -298,7 +298,7 @@ function mountObstsalat(root, ART, opts) {
     boardList.innerHTML = "";
     var b = S.board;
     if (!b) { boardList.appendChild(row("…", "", "", "wait")); return; }
-    var rows = b.rows.slice(0, 5), meIn = rows.some(function (r) { return r.me; });
+    var rows = b.rows.slice(0, 7), meIn = rows.some(function (r) { return r.me; });
     rows.forEach(function (r, i) { boardList.appendChild(row(i + 1, r.name, r.score, (r.me ? "me" : "") + (i < 3 ? " top" : ""))); });
     var mine = b.rows.filter(function (r) { return r.me; })[0];
     if (!meIn && (mine || b.offline)) {

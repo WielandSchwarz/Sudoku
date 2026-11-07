@@ -70,8 +70,11 @@
 .os-basket { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
 .os-basket svg { display: block; width: 100%; height: auto; overflow: visible; }
 .os-ban.rw { top: 17%; }
-.os-pov .os-ban { top: 17%; }
-.os-pov .os-ban.rw { top: 17%; }
 /* combo bonus: just the number, bigger, in the combo colour */
 .os-pop.os-pop-combo { font-size: 1.7rem; animation-duration: 1.1s; }
 .os-pop-combo.c3 { color: #f8a060; } .os-pop-combo.c4 { color: #f07a8a; } .os-pop-combo.c5 { color: #b088e0; } .os-pop-combo.c6 { color: #6ec0f0; }
+.os-pov .os-ban:not(.rw) { left: auto; right: calc(2% + 36px); top: 2%; margin-top: 0; transform: none; font-size: .8rem; padding: 4px 9px 5px; }
+.os-pov .os-ban:not(.rw).pop { animation: os-ban-r .35s steps(4); }
+.os-pov .os-ban:not(.rw).away { transform: translateY(-30%); }
+@keyframes os-ban-r { from { transform: translateY(-40%); opacity: 0; } }
+.os-pov .os-ban.rw { top: 22%; }
