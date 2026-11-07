@@ -25,82 +25,148 @@ def uri(im):
 
 # ------------------------------------------------------------------ background
 SEASONS = {
-    'fruehling': dict(sky=('#a9d4ec', '#bfe0f0', '#d6eef6'), hill='#a6cf90', hedge=('#4e8e46', '#5fa252', '#7cbc68'),
-                      crown=('#5c9c4c', '#78b866', '#96cc7e'), dots=('#f4b4c0', '#fff6f8'), meadow=('#86c266', '#9ad07a', '#76b45a'),
-                      flowers=('#fff8ec', '#f8d850', '#f0a0b8'), nfl=36),
-    'sommer': dict(sky=('#9fcfee', '#b8def2', '#d2ecf8'), hill='#9cc888', hedge=('#447e3e', '#55944a', '#6fae5e'),
-                   crown=('#4a8a42', '#5ea050', '#78b866'), dots=('#d84a3c', '#f07060'), meadow=('#7ab858', '#8ec86a', '#6aa84e'),
-                   flowers=('#fff8ec', '#f8d850', '#e8705a'), nfl=24),
-    'herbst': dict(sky=('#b4d4e6', '#c8e0ec', '#dceaf0'), hill='#b8c888', hedge=('#6a8a3e', '#86a048', '#a8b860'),
-                   crown=('#c8702e', '#e0963c', '#f0bc58'), dots=('#b84a2a', '#f4d070'), meadow=('#a8b860', '#bac870', '#94a650'),
-                   flowers=('#e0963c', '#c8702e', '#f0bc58'), nfl=30),
-    'winter': dict(sky=('#c4d6e2', '#d4e2ea', '#e4eef2'), hill='#e4ecf0', hedge=('#4a6e50', '#5a7e5e', '#f4f8fa'),
-                   crown=None, dots=None, meadow=('#eef4f8', '#ffffff', '#d8e4ec'), flowers=(), nfl=0),
+    'fruehling': dict(sky=('#9ccff0', '#acd8f2', '#bde0f4', '#cfe8f6', '#e0f0f8'), far=('#b4d4c4', '#a6cbb2'), near=('#98c682', '#86b872'),
+                      hedge=('#3e7c3c', '#4e9046', '#64a852', '#84c06a'), crown=('#4a8a42', '#5ea050', '#78b866', '#9ad07e'),
+                      dots=('#f6c0cc', '#fff4f6'), meadow=('#7cbc5c', '#8cc86a', '#6aa84c', '#a6d886', '#4e8c3c'),
+                      flowers=('#fff8ec', '#f8d850', '#f0a0b8', '#b8a8e8'), nfl=42, fence='#f4ece0'),
+    'sommer': dict(sky=('#8ec8ee', '#a0d2f2', '#b2daf4', '#c6e4f6', '#daeef8'), far=('#a8ccbc', '#98c2a8'), near=('#8cbe76', '#7ab066'),
+                   hedge=('#346e34', '#44843e', '#5a9e4c', '#78b662'), crown=('#3e7c3a', '#4e9244', '#66aa56', '#86c06c'),
+                   dots=('#d84a3c', '#f07060'), meadow=('#70b050', '#80bc5e', '#5e9c44', '#9ccc7a', '#467e34'),
+                   flowers=('#fff8ec', '#f8d850', '#e8705a', '#9cc8f0'), nfl=30, fence='#f4ece0'),
+    'herbst': dict(sky=('#a8cce4', '#b6d4e8', '#c4dcea', '#d2e4ee', '#e0ecf2'), far=('#c4ccb0', '#b8c4a0'), near=('#b4bc80', '#a4b070'),
+                   hedge=('#5a7a36', '#6e8c40', '#8aa24c', '#a8b860'), crown=('#b85a26', '#d27a32', '#e8a040', '#f6c868'),
+                   dots=('#a83e22', '#f4d070'), meadow=('#9cae58', '#acbc66', '#8a9c4a', '#c0c878', '#6e7e38'),
+                   flowers=('#e0963c', '#c8702e', '#f0bc58', '#b84a2a'), nfl=34, fence='#ece2d2'),
+    'winter': dict(sky=('#bcd0de', '#c6d8e4', '#d0dee8', '#dae6ee', '#e6eef4'), far=('#dce6ee', '#d2dee8'), near=('#e6eef4', '#dae4ec'),
+                   hedge=('#3e5e46', '#4a6e52', '#5a7e60', '#f4f8fa'), crown=None, dots=None,
+                   meadow=('#eef4f8', '#f8fbfd', '#dae6ee', '#ffffff', '#c8d6e2'), flowers=(), nfl=0, fence='#efe8dc'),
 }
 
 
 def background(se):
+    """a calm garden, four depth layers: sky, far hills with little trees, hedge with a white picket fence, meadow"""
     s = SEASONS[se]
     rnd = random.Random(7)
     L = Layer(180, 135)
     sky = [hx(c) for c in s['sky']]
-    for y in range(0, 96):
-        band = 0 if y < 26 else 1 if y < 50 else 2
+    bands = [0, 14, 28, 40, 52, 96]
+    for y in range(0, 96):                                                 # sky in five soft bands, dithered seams
+        bi = max(i for i in range(5) if bands[i] <= y)
         for x in range(180):
-            c = sky[band]
-            if band < 2 and y in (25, 49) and (x + y) % 2 == 0:
-                c = sky[band + 1]                     # soft dithered seam
+            c = sky[bi]
+            nxt = bands[bi + 1] if bi < 4 else 999
+            if nxt - y <= 2 and bi < 4 and (x + y) % (2 if nxt - y == 1 else 4) == 0:
+                c = sky[bi + 1]
             L.px(x, y, c)
-    for cx, cy, w in ((42, 13, 22), (126, 22, 28), (92, 8, 14)):          # calm clouds
-        for y in range(cy - 3, cy + 3):
-            half = int(w / 2 * math.sqrt(max(0, 1 - ((y - cy + .5) / 3.4) ** 2)))
-            for x in range(cx - half, cx + half):
-                L.px(x, y, C('#fff8ec') if y < cy + 1 else C('#e8f0f2'))
-    for x in range(180):                                                   # distant hills
-        top = int(64 + 4 * math.sin(x / 23.0) + 3 * math.sin(x / 9.0 + 1))
+    def cloud(cx, cy, parts):                                              # puffy clouds: bumps on top, flat lit base
+        for (dx, dy, r) in parts:
+            for y in range(int(cy + dy - r), int(cy + dy + r) + 1):
+                for x in range(int(cx + dx - r - 1), int(cx + dx + r + 2)):
+                    ddx, ddy = (x + .5 - cx - dx) / (r + .8), (y + .5 - cy - dy) / r
+                    if ddx * ddx + ddy * ddy <= 1 and y <= cy + 2:
+                        L.px(x, y, C('#ffffff') if ddy < -.3 else (C('#f6f8fa') if y < cy + 1 else C('#dfe8ee')))
+    cloud(40, 14, [(-7, 0, 3), (-2, -2, 4), (4, -1, 3.5), (9, 1, 2.5)])
+    cloud(128, 24, [(-10, 1, 3), (-4, -2, 4.5), (3, -3, 5), (10, 0, 3.5), (15, 1, 2.5)])
+    cloud(90, 7, [(-4, 0, 2.5), (1, -1, 3), (5, 0, 2.2)])
+    far = [hx(c) for c in s['far']]
+    for x in range(180):                                                   # far hills, with tiny round trees on the ridge
+        top = int(60 + 3.5 * math.sin(x / 19.0) + 2 * math.sin(x / 7.0 + 1))
         for y in range(top, 96):
-            L.px(x, y, hx(s['hill']))
+            L.px(x, y, far[0] if y < top + 2 else far[1])
+    for tx in range(6, 180, 13):
+        top = int(60 + 3.5 * math.sin(tx / 19.0) + 2 * math.sin(tx / 7.0 + 1))
+        r = 2 + (tx * 7) % 2
+        for y in range(top - r - 1, top + 1):
+            for x in range(tx - r, tx + r + 1):
+                if (x - tx) ** 2 + (y - (top - r + 1)) ** 2 <= r * r + 1:
+                    L.px(x, y, far[1] if se != 'winter' else C('#c8d6e0'))
+    near = [hx(c) for c in s['near']]
+    for x in range(180):                                                   # nearer hills
+        top = int(70 + 4 * math.sin(x / 27.0 + 2) + 1.5 * math.sin(x / 9.0))
+        for y in range(top, 96):
+            L.px(x, y, near[0] if y < top + 2 else near[1])
     hd = [hx(c) for c in s['hedge']]
-    for x in range(180):                                                   # hedge
-        top = int(76 + 2.5 * math.sin(x / 5.0) + 1.5 * math.sin(x / 2.3 + 2))
-        for y in range(top, 98):
-            c = hd[1]
-            if y <= top + 1:
-                c = hd[2]
-            elif (x * 7 + y * 13) % 11 == 0:
-                c = hd[0]
-            elif (x * 5 + y * 3) % 17 == 0:
-                c = hd[2] if se != 'winter' else hd[1]
-            L.px(x, y, c)
-    # two fruit trees at the edges, only partly in the picture
-    for (tx, cy, r) in ((8, 28, 27), (172, 24, 25)):
-        for y in range(cy, 100):
-            for x in range(tx - 3, tx + 4):
-                L.px(x, y, C('#7a5234') if x < tx + 2 else C('#5e3e26'))
+    for x in range(180):                                                   # hedge: dark base, round leaf clusters lit from above
+        for y in range(84, 99):
+            L.px(x, y, hd[0])
+    for cx in range(-4, 186, 7):
+        cy = 83 + (cx * 5) % 3; r = 5 + (cx * 3) % 2
+        for y in range(cy - r, cy + r + 1):
+            for x in range(cx - r - 1, cx + r + 2):
+                dx, dy = (x + .5 - cx) / (r + .5), (y + .5 - cy) / r
+                if dx * dx + dy * dy <= 1:
+                    c = hd[1]
+                    if dy < -.45 and dx < .4:
+                        c = hd[3] if se != 'winter' else C('#ffffff')
+                    elif dy < -.1:
+                        c = hd[2]
+                    elif dx * .4 + dy > .5:
+                        c = hd[0]
+                    if se != 'winter' and (x * 7 + y * 3) % 13 == 0 and c != hd[0]:
+                        c = hd[0]
+                    L.px(x, y, c)
+    fc = hx(s['fence'])                                                    # white picket fence in front of the hedge
+    fsh = mul(fc, .86)
+    for y in (90, 95):
+        for x in range(180):
+            L.px(x, y, fsh); L.px(x, y + 1, mul(fc, .74))
+    for px0 in range(1, 180, 6):
+        for y in range(86, 100):
+            for x in range(px0, px0 + 4):
+                if y == 86 and x in (px0, px0 + 3):
+                    continue
+                c = fc if x < px0 + 3 else fsh
+                if x == px0:
+                    c = mul(fc, 1.02)
+                L.px(x, y, c)
+        L.px(px0 + 1, 85, fc); L.px(px0 + 2, 85, fsh)
+        if se == 'winter':
+            L.px(px0 + 1, 84, C('#ffffff')); L.px(px0 + 2, 84, C('#ffffff')); L.px(px0, 85, C('#ffffff')); L.px(px0 + 3, 85, C('#ffffff'))
+    # two fruit trees at the edges, partly in the picture
+    for (tx, cy, r) in ((9, 30, 27), (171, 26, 25)):
+        for y in range(cy, 101):
+            for x in range(tx - 4, tx + 5):
+                c = C('#7a5234')
+                if x >= tx + 2:
+                    c = C('#5e3e26')
+                elif x <= tx - 3:
+                    c = C('#946640')
+                if (y * 3 + x) % 9 == 0:
+                    c = C('#5e3e26')                                       # bark
+                L.px(x, y, c)
+        for k in range(1, 4):                                              # root flare
+            L.px(tx - 4 - k, 100 - k + 1, C('#7a5234')); L.px(tx + 4 + k, 100 - k + 1, C('#5e3e26'))
         if s['crown']:
             cr = [hx(c) for c in s['crown']]
-            blobs = [(0, -6, 13), (-11, 2, 11), (11, 1, 11), (-5, -16, 10), (7, -15, 10), (0, 8, 10), (-16, -8, 8), (16, -7, 8)]
-            for (bx, by, br) in blobs:                          # leaf clusters, back to front, each lit from the top left
+            blobs = [(0, 2, 12), (-11, 4, 10), (11, 3, 10), (0, -6, 13), (-11, 2, 11), (11, 1, 11), (-5, -16, 10), (7, -15, 10), (-16, -8, 8), (16, -7, 8)]
+            for bi, (bx, by, br) in enumerate(blobs):
                 for y in range(cy + by - br, cy + by + br + 1):
                     for x in range(tx + bx - br, tx + bx + br + 1):
                         ddx, ddy = (x + .5 - tx - bx) / br, (y + .5 - cy - by) / br
                         d = ddx * ddx + ddy * ddy
                         if d > 1:
                             continue
-                        c = cr[1]
-                        if (ddx + .45) ** 2 + (ddy + .5) ** 2 < .35:
-                            c = cr[2]
-                        elif ddx * .5 + ddy * .85 > .45:
-                            c = cr[0]
-                        if (x * 7 + y * 5) % 11 == 0 and c != cr[0]:
-                            c = cr[0]
+                        if bi < 3:
+                            c = cr[0]                                      # dark underside layer
+                        else:
+                            c = cr[1]
+                            if (ddx + .45) ** 2 + (ddy + .5) ** 2 < .3:
+                                c = cr[3]
+                            elif (ddx + .3) ** 2 + (ddy + .35) ** 2 < .6:
+                                c = cr[2]
+                            elif ddx * .5 + ddy * .85 > .5:
+                                c = cr[0]
+                            if (x * 7 + y * 5) % 11 == 0 and c != cr[0]:
+                                c = cr[0]
                         L.px(x, y, c)
             if s['dots']:
-                for _ in range(30):
-                    bx, by, br = blobs[rnd.randrange(len(blobs))]
+                for _ in range(32):
+                    bx, by, br = blobs[3 + rnd.randrange(len(blobs) - 3)]
                     a2 = rnd.uniform(0, 2 * math.pi); rr = rnd.uniform(.1, .8) * br
                     x, y = int(tx + bx + math.cos(a2) * rr), int(cy + by + math.sin(a2) * rr)
                     L.px(x, y, hx(s['dots'][0])); L.px(x + 1, y, hx(s['dots'][1]) if se == 'fruehling' else hx(s['dots'][0]))
+                    if se == 'sommer':
+                        L.px(x, y + 1, mul(hx(s['dots'][0]), .8)); L.px(x + 1, y + 1, mul(hx(s['dots'][0]), .8))
         else:                                                              # winter: bare branches with snow on top
             for k in range(6):
                 a2 = -math.pi / 2 + (k - 2.5) * .5
@@ -108,36 +174,47 @@ def background(se):
                 for t in range(int(length)):
                     bend = math.sin(t / length * 2.2) * 2
                     x, y = int(tx + math.cos(a2) * t + bend), int(cy + 8 + math.sin(a2) * t)
-                    L.px(x, y, C('#6a4a30')); L.px(x, y + 1, C('#5e3e26')) if t < 6 else None
+                    L.px(x, y, C('#6a4a30'))
+                    if t < 6:
+                        L.px(x, y + 1, C('#5e3e26'))
                     L.px(x, y - 1, C('#ffffff'))
-                    if t > 6 and t % 5 == 0:                               # twigs
+                    if t > 6 and t % 5 == 0:
                         for u in range(4):
                             L.px(x + u * (1 if k > 2 else -1), y - u, C('#6a4a30')); L.px(x + u * (1 if k > 2 else -1), y - u - 1, C('#ffffff'))
     md = [hx(c) for c in s['meadow']]
-    for y in range(98, 135):                                               # meadow, a bit darker in front
+    for y in range(99, 135):                                               # meadow: lighter at the back, grass tufts, darker in front
         for x in range(180):
-            c = md[0]
-            if y < 101:
-                c = md[1]
-            elif (x * 11 + y * 7) % 23 == 0:
-                c = md[2]
-            elif (x * 3 + y * 5) % 19 == 0 and y > 104:
-                c = md[1]
-            if y > 122 and (x + y) % 2 == 0 and se != 'winter':
-                c = mul(c, .96)
+            c = md[1] if y < 104 else md[0]
+            if y > 120:
+                c = mul(md[0], .95) if se != 'winter' else md[0]
             L.px(x, y, c)
-    for _ in range(s['nfl']):
-        x, y = rnd.randrange(14, 176), rnd.randrange(101, 133)
+    for _ in range(260 if se != 'winter' else 90):                          # little grass tufts (v shapes)
+        x, y = rnd.randrange(0, 180), rnd.randrange(102, 133)
+        c = md[2] if rnd.random() < .6 else md[3]
+        L.px(x, y, c); L.px(x - 1, y - 1, c); L.px(x + 1, y - 1, c)
+    for _ in range(s['nfl']):                                              # flowers: four petals around a centre
+        x, y = rnd.randrange(16, 166), rnd.randrange(102, 128)
         c = hx(rnd.choice(s['flowers']))
-        L.px(x, y, c); L.px(x, y + 1, md[2])
+        L.px(x, y + 2, md[4]); L.px(x, y + 1, md[4])
+        for (dx, dy) in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            L.px(x + dx, y + dy, c)
+        L.px(x, y, C('#f8d850') if c != C('#f8d850') else C('#e8902a'))
     if se == 'herbst':
-        for _ in range(26):
-            x, y = rnd.randrange(14, 176), rnd.randrange(100, 133)
+        for _ in range(40):
+            x, y = rnd.randrange(10, 176), rnd.randrange(100, 133)
             L.px(x, y, hx(rnd.choice(('#c8702e', '#e0963c', '#b84a2a')))); L.px(x + 1, y, hx('#e0963c'))
     if se == 'winter':
-        for _ in range(40):
-            x, y = rnd.randrange(0, 180), rnd.randrange(100, 133)
-            L.px(x, y, C('#d0dce6'))
+        for _ in range(60):
+            x, y = rnd.randrange(0, 180), rnd.randrange(101, 133)
+            L.px(x, y, md[2]); L.px(x + 1, y, md[2])
+    for x in range(0, 180):                                                # tall grass blades at the bottom edge frame the picture
+        hgt = [0, 3, 5, 2, 6, 4, 1, 5, 3, 7, 2, 4][(x * 7) % 12]
+        if se == 'winter':
+            hgt = hgt // 2
+        for k in range(hgt):
+            yy = 134 - k
+            lean = (k // 3) * (1 if (x // 5) % 2 else -1)
+            L.px(x + lean, yy, md[4] if k < hgt - 1 else md[2])
     return L.im
 
 
@@ -483,6 +560,43 @@ def hamster_faces():
     return out
 
 
+ICONS = {
+    'uhr': (["kkkkkkkkk",
+             "kwwwwwwwk",
+             " kyyyyyk ",
+             " kyyyyyk ",
+             "  kyyyk  ",
+             "   kyk   ",
+             "   kyk   ",
+             "  k y k  ",
+             " k  y  k ",
+             " k yyy k ",
+             " kyyyyyk ",
+             "kwwwwwwwk",
+             "kkkkkkkkk"], {'k': '#3a2414', 'w': '#b07a44', 'y': '#f0c060'}),
+    'apfel': (["    kk   ",
+               "   kgk   ",
+               " kkkkkkk ",
+               "krrwrrrdk",
+               "krwrrrrdk",
+               "krrrrrrdk",
+               "krrrrrddk",
+               " krrrddk ",
+               " kkkkkkk "], {'k': '#3a2414', 'g': '#5a9a3a', 'r': '#e04a3a', 'w': '#ffb8a8', 'd': '#a83028'}),
+}
+
+
+def icon(name):
+    rows, pal = ICONS[name]
+    from PIL import Image
+    im = Image.new('RGBA', (len(rows[0]), len(rows)), (0, 0, 0, 0))
+    for y, r in enumerate(rows):
+        for x, ch in enumerate(r):
+            if ch != ' ':
+                im.putpixel((x, y), hx(pal[ch]))
+    return im
+
+
 def build(out_dir):
     os.makedirs(out_dir, exist_ok=True)
     art = {'bg': {}, 'fruit': {}, 'bowl': [], 'ham': {}}
@@ -499,6 +613,9 @@ def build(out_dir):
     L = schuessel_gross(); art['bowl_big'] = dict(img=uri(L.im), w=L.w, h=L.h); L.im.save(os.path.join(out_dir, 'schuessel_gross.png'))
     for n, im in hamster_faces().items():
         art['ham'][n] = uri(im); im.save(os.path.join(out_dir, 'hamster_%s.png' % n))
+    art['icon'] = {}
+    for n in ICONS:
+        im = icon(n); art['icon'][n] = dict(img=uri(im), w=im.width, h=im.height); im.save(os.path.join(out_dir, 'icon_%s.png' % n))
     json.dump(art, open(os.path.join(out_dir, 'obstsalat_art.json'), 'w'))
     return art
 
