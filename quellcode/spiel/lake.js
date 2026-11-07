@@ -128,12 +128,17 @@
     for (var g = 0; g < 180; g++) { lP(g, 0, 1, 3 + ((g * 7) % 3), "#7ab84e"); lP(g, 132 - ((g * 5) % 2), 1, 4, "#7ab84e"); }
     // the jetty and the raft
     var jx = LK_JETTY[0], jy = LK_JETTY[1]; lP(jx - 10, jy - 2, 20, 16, LD); for (var pl = 0; pl < 5; pl++) { lP(jx - 9, jy - 1 + pl * 3, 18, 2, "#c8945a"); lP(jx - 9, jy + 1 + pl * 3, 18, 1, "#8a5a32"); }
-    var rx = jx + 22, ry = jy + 4; lP(rx - 9, ry - 6, 18, 12, LD); for (var lg = 0; lg < 4; lg++) { lP(rx - 8 + lg * 4, ry - 5, 3, 10, lg % 2 ? "#a06a3a" : "#b47a46"); }
-    if (lk.raft) lkIcon(lk.raft, rx - 4, ry - 4); else { lP(rx - 2, ry - 1, 4, 1, "#7a4a28"); }
-    // the islands, the animals, their wishes and what they have to give
+    var rx = jx + 34, ry = jy + 4; lP(rx - 9, ry - 6, 18, 12, LD); for (var lg = 0; lg < 4; lg++) { lP(rx - 8 + lg * 4, ry - 5, 3, 10, lg % 2 ? "#a06a3a" : "#b47a46"); }
+    // flat on the water first: the ground of every island; everything that stands up is drawn afterwards, the lower on screen the further in front
     lk.isl.forEach(function (I) {
       lDisc(I.x, I.y + 7, 19, 9, function (a, b, d) { return d > .85 ? "#c8b488" : "#e8d8a8"; });
       lDisc(I.x, I.y + 5, 16, 7, function (a, b, d) { return d > .85 ? "#4e8a34" : (a * 3 + b * 5 + 99) % 7 ? "#7ab84e" : "#5a9a3a"; });
+    });
+    if (B.go) for (var w = 1; w < 5; w++) lP(B.x - (B.go.tx - B.go.x0 > 0 ? 1 : -1) * (20 + w * 3), B.y + 4 + (w % 2), 2, 1, "#c8ecfa");
+    var lay = [];
+    lay.push({ y: ry + 5, f: function () { if (lk.raft) lkIcon(lk.raft, rx - 4, ry - 4); else lP(rx - 2, ry - 1, 4, 1, "#7a4a28"); } });
+    lk.isl.forEach(function (I) {
+      lay.push({ y: I.y + 4, f: function () {
       lP(I.x + 11, I.y - 1, 3, 6, "#6a3e22"); lDisc(I.x + 12, I.y - 4, 5, 4, function (a, b, d) { return d > .8 ? "#2e6a2e" : a + b < -2 ? "#86cc62" : "#4e9a44"; });   /* a little bush */
       var hop = I.hop && now - I.hop < 900 ? -Math.round(Math.abs(Math.sin((now - I.hop) / 900 * Math.PI * 3)) * 4) : 0;
       if (lk.party && now - lk.party < 4000) hop = -Math.round(Math.abs(Math.sin((now - lk.party) / 300 + I.x)) * 4);
@@ -141,10 +146,10 @@
       if (!I.happy) { var bx = I.x > 130 ? I.x - 19 : I.x + 6, by = I.y - 36; lP(bx, by, 13, 12, LD); lP(bx + 1, by + 1, 11, 10, "#fff8ec"); lP(bx + 1, by + 12, 2, 1, LD); lP(bx, by + 13, 1, 1, LD); if (I.want) lkIcon(I.want, bx + 2, by + 2); else { lP(bx + 3, by + 4, 7, 6, "#e8465a"); lP(bx + 6, by + 4, 1, 6, "#ffe08a"); lP(bx + 3, by + 6, 7, 1, "#ffe08a"); lP(bx + 4, by + 2, 2, 2, "#ffe08a"); lP(bx + 7, by + 2, 2, 2, "#ffe08a"); } }
       else { var hx0 = I.x + 10, hy0 = I.y - 30; [[1,0,2],[4,0,2],[0,1,7],[0,2,7],[1,3,5],[2,4,3],[3,5,1]].forEach(function (r) { lP(hx0 + r[0] - 1, hy0 + r[1] - 1, r[2] + 2, 3, LD); }); [[1,0,2],[4,0,2],[0,1,7],[0,2,7],[1,3,5],[2,4,3],[3,5,1]].forEach(function (r) { lP(hx0 + r[0], hy0 + r[1], r[2], 1, "#e8465a"); }); lP(hx0 + 1, hy0 + 1, 1, 1, "#ffb0bc"); }
       if (I.has) { lP(I.x - 22, I.y - 2, 11, 9, LD); lP(I.x - 21, I.y - 1, 9, 7, "#d8a070"); lkIcon(I.has, I.x - 21, I.y - 6); lP(I.x - 21, I.y + 3, 9, 1, "#a8703e"); }   /* what it has, in its basket */
+      } });
     });
-    // the boat
-    lkBoat(B.x, B.y, 0, t, !!B.go);
-    if (B.go) for (var w = 1; w < 5; w++) lP(B.x - (B.go.tx - B.go.x0 > 0 ? 1 : -1) * (20 + w * 3), B.y + 4 + (w % 2), 2, 1, "#c8ecfa");
+    lay.push({ y: B.y + 5, f: function () { lkBoat(B.x, B.y, 0, t, !!B.go); } });
+    lay.sort(function (p, q) { return p.y - q.y; }).forEach(function (L) { L.f(); });
     // hearts rising
     lk.hearts = lk.hearts.filter(function (h) { var u2 = (now - h.t0) / 1200; if (u2 < 0) return true; if (u2 > 1) return false; var hx = Math.round(h.x), hy = Math.round(h.y - u2 * 14); lP(hx - 2, hy, 2, 1, "#e8465a"); lP(hx + 1, hy, 2, 1, "#e8465a"); lP(hx - 2, hy + 1, 5, 1, "#e8465a"); lP(hx - 1, hy + 2, 3, 1, "#e8465a"); lP(hx, hy + 3, 1, 1, "#e8465a"); return true; });
     if (lk.party && now - lk.party < 4000) for (var c = 0; c < 20; c++) lP((c * 37 + (now - lk.party) / 6) % 180, ((c * 23) + (now - lk.party) / (8 + c % 5)) % 135, 2, 2, ["#ff9ab8", "#ffe08a", "#7ae05a", "#9ad8f0"][c % 4]);
