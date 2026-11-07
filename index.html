@@ -1197,6 +1197,11 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .fc-h i { width: 7px !important; height: 6px !important; clip-path: polygon(0 16.7%, 14.3% 16.7%, 14.3% 0, 42.9% 0, 42.9% 16.7%, 57.1% 16.7%, 57.1% 0, 85.7% 0, 85.7% 16.7%, 100% 16.7%, 100% 50%, 85.7% 50%, 85.7% 66.7%, 71.4% 66.7%, 71.4% 83.3%, 57.1% 83.3%, 57.1% 100%, 42.9% 100%, 42.9% 83.3%, 28.6% 83.3%, 28.6% 66.7%, 14.3% 66.7%, 14.3% 50%, 0 50%) !important; }
 #ham-root .fc-n { font-size: .75rem; line-height: 1; color: #a8463c; font-weight: 700; margin-left: 2px; align-self: center; }
 #ham-root #pov-svg { shape-rendering: crispEdges; }
+#ham-root .soundbtn { margin-right: 8px; }
+#ham-root .top-btns .soundbtn { margin-right: 0; }
+#ham-root .soundbtn svg path:first-child { fill: currentColor; stroke: currentColor; }
+#ham-root .soundbtn.off { opacity: .75; }
+#ham-root .top > .soundbtn + .mapbtn { margin-left: 0; }
 #ham-root .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
 #ham-root .need { display: flex; flex-direction: column; gap: 4px; }
 #ham-root .need-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; font-weight: 600; }
@@ -1905,6 +1910,12 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .p2-say::after { content: ""; position: absolute; right: 16%; bottom: -7px; border: 5px solid transparent; border-top-color: #3a2414; border-bottom: 0; }
 @keyframes h-p2-say-in { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 #ham-root .g-tree-hit { position: absolute; z-index: 501; cursor: pointer; }
+#ham-root .l-inbox { position: absolute; left: 2.5%; top: 3.5%; z-index: 700; width: 11%; aspect-ratio: 30 / 20; padding: 0; border: 0; background: none; cursor: pointer; animation: h-l-inbox-wob 1.6s steps(1) infinite; }
+#ham-root .l-inbox svg { display: block; width: 100%; height: 100%; image-rendering: pixelated; filter: drop-shadow(0 2px 0 rgba(58,36,20,.35)); }
+#ham-root .l-inbox b { position: absolute; right: -14%; top: -22%; min-width: 1.15em; padding: 0 .25em; border-radius: 1em; background: #e04a3a; color: #fff; font: 800 .72rem/1.15 system-ui, sans-serif; text-align: center; box-shadow: 0 0 0 2px #3a2414; }
+#ham-root .l-inbox.new { animation: h-l-inbox-in .5s steps(5), h-l-inbox-wob 1.6s steps(1) .5s infinite; }
+@keyframes h-l-inbox-wob { 0%, 70% { transform: none; } 75% { transform: rotate(-8deg); } 80% { transform: rotate(8deg); } 85% { transform: rotate(-6deg); } 90% { transform: rotate(5deg); } 95% { transform: rotate(-2deg); } }
+@keyframes h-l-inbox-in { from { transform: translateY(-120%) scale(.6); opacity: 0; } }
 #ham-root .va svg { overflow: visible; }
 #ham-root .visitor-g.va.moving .vb, #ham-root .l-visitor.va.moving svg, #ham-root .bs-guest.va.walking { animation: none !important; }
 #ham-root .visitor-g.va .wl, #ham-root .visitor-g.va .wr, #ham-root .visitor-g.va.moving .tail { animation: none !important; }
@@ -2941,6 +2952,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .os-pov .os-ban:not(.rw).away { transform: translateY(-30%); }
 @keyframes h-os-ban-r { from { transform: translateY(-40%); opacity: 0; } }
 #ham-root .os-pov .os-ban.rw { top: 22%; }
+#ham-root .os-pop.os-pop-bonus { font-size: 1.25rem; white-space: nowrap; animation-duration: 2.2s; color: #f8d850; }
 #ham-root .slot-front.rock > svg { transform-origin: 50% 100%; animation: h-rock 1.6s ease-in-out infinite alternate; }
 #ham-root .slot-front.sway > svg { transform-origin: 50% 100%; animation: h-sway2 2.4s ease-in-out infinite alternate; }
 
@@ -3134,7 +3146,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 115 · 07.11.2026</p>
+    <p class="opt-version">Version 116 · 07.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -4248,6 +4260,7 @@ window.__EXTRAS = true;
         if (!busy && !s.asleep) act("look", async function () { front({ eyes: "wide", ears: "up", mouth: "open" }); pulse("hop", 420); await wait(500); await nibbleNose(6); front({ eyes: "happy", mouth: "smile", blush: true }); await wait(500); });
       } else say(it.name + " wartet im Katalog unter „Zimmer einrichten“.");
       wrap.remove(); if (decor) { curCat = cat; renderCatalog(); }
+      setTimeout(function () { window.__giftBusy = 0; }, a === "place" ? 2600 : 600);   /* the other popups wait until he has sniffed his new furniture */
     });
   }
   function openPackage() {
@@ -4976,6 +4989,7 @@ window.__EXTRAS = true;
     if (s.asleep) { s.asleep = false; stopZzz(); syncButtons(); skyTime(); front({ blanket: null }); }
     if (busy && !interruptible()) return;
     if (busy) interrupt();
+    window.__giftBusy = Date.now();
     act("unwrap", async function () {
       if (place2 === "garden") await goInsideSeq();
       if (!home.pending.delivered) {
@@ -5117,6 +5131,7 @@ window.__EXTRAS = true;
     return uiBusyRaw(self);
   }
   function uiBusyRaw(self) {
+    if (window.__giftBusy && Date.now() - window.__giftBusy < 90000) return true;   /* the snail is bringing a present: everything else waits */
     var q = document.querySelectorAll(UI_POP);
     for (var i = 0; i < q.length; i++) if (q[i] !== self && !(self && self.contains && self.contains(q[i])) && q[i].getClientRects().length) return true;
     return false;
@@ -8396,7 +8411,7 @@ window.__EXTRAS = true;
   }
   async function letterArrives(force, from, kind) {
     if (!force && !letterOk()) return false;
-    var l = makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
+    var l = arguments[3] || makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
     var L = life(); L.lastLetter = Date.now();
     var an = ALLANI[l.from], fromLeft = Math.random() < 0.5;
     if (l.gift && l.gift.t === "seeds" && !l.gift.txt) l.gift.txt = "Als kleine Begrüßung lege ich dir zwei Tütchen " + CROPS[l.gift.k].name + "-Samen bei.";
@@ -8431,6 +8446,29 @@ window.__EXTRAS = true;
   /* safety net: if anything goes wrong while the letter flies in, it still opens fully and can be closed */
   var _lArrive = letterArrives;
   letterArrives = function () { var pr = _lArrive.apply(this, arguments); pr.catch(function () { if (letterOn) { letterEl.classList.add("landed", "open", "out", "unfold"); } }); return pr; };
+  /* letters no longer open by themselves: they land in the inbox top left, which wobbles; a tap opens the first one */
+  var inboxEl = lEl("button", "l-inbox", scene); inboxEl.type = "button"; inboxEl.hidden = true; inboxEl.setAttribute("aria-label", "Post");
+  function renderInbox() {
+    var L = life(), n = (L.inbox || []).length;
+    inboxEl.hidden = !n; if (!n) return;
+    inboxEl.innerHTML = '<svg viewBox="0 0 30 20" aria-hidden="true" shape-rendering="crispEdges">' + ENV0 + '</svg>' + (n > 1 ? '<b>' + n + '</b>' : "");
+  }
+  var _lArriveFull = letterArrives;
+  letterArrives = async function (force, from, kind) {
+    if (!force && !letterOk()) return false;
+    var l = makeLetter(from, kind); if (!l) { if (force) say("Noch keine Freunde, die schreiben könnten. Ab drei Herzen schreibt ein Tier Briefe."); return false; }
+    var L = life(); L.lastLetter = Date.now(); L.inbox = L.inbox || []; L.inbox.push(l);
+    if (window.SudokuSave) window.SudokuSave();
+    renderInbox(); inboxEl.classList.remove("new"); void inboxEl.offsetWidth; inboxEl.classList.add("new"); beep([[880, .05], [660, .05]]);
+    return true;
+  };
+  inboxEl.addEventListener("click", function (e) {
+    e.stopPropagation(); var L = life(); if (letterOn || !(L.inbox || []).length || decor) return;
+    var l = L.inbox.shift(); if (window.SudokuSave) window.SudokuSave(); renderInbox();
+    _lArriveFull(true, l.from, null, l);
+  });
+  renderInbox(); setInterval(renderInbox, 3000);
+  window.__inbox = { n: function () { return (life().inbox || []).length; }, test: function (id) { return letterArrives(true, id || Object.keys(ALLANI)[0], "hello"); } };
   letterEl.addEventListener("click", function (e) { if (e.target.closest("[data-a=ok]") || (letterEl.classList.contains("unfold") && e.target.classList.contains("lf-dim"))) closeLetter(); });
   // a letter every few hours of play, only when you are looking at the hamster
   // a new friend writes right away, but only once the hamster screen is open and nothing else is in the way
@@ -23237,7 +23275,7 @@ function mountObstsalat(root, ART, opts) {
     cheer(1);
   }
   function boom(it) {                                   // the chestnut husk: white flash, spines fly, minus 10 points
-    S.flash = .45; S.shake = .45; S.face = "schreck"; S.faceT = 1.4; S.hop = 0; S.hops = 0;
+    S.boomed = true; S.flash = .45; S.shake = .45; S.face = "schreck"; S.faceT = 1.4; S.hop = 0; S.hops = 0;
     addScore(-10); S.scoreHit = .6; sfx("bomb"); popText("−10", it.x, it.y, "#f08a7e");
     for (var k = 0; k < 40; k++) {
       var a = k / 40 * Math.PI * 2, sp = 50 + Math.random() * 70;
@@ -23299,16 +23337,22 @@ function mountObstsalat(root, ART, opts) {
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
   root.querySelector(".os-x").addEventListener("click", function () { if (opts.onClose) opts.onClose(); else reset(); });
 
-  function popText(t, x, y, col) {
+  function popText(t, x, y, col, ms) {
     var e = document.createElement("b"); e.className = "os-pop"; e.textContent = t; if (col) e.style.color = col;
     e.style.left = (x / W * 100) + "%"; e.style.top = (y / H * 100) + "%";
-    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1100);
+    pops.appendChild(e); setTimeout(function () { e.remove(); }, ms || 1100);
     return e;
   }
   function finish(title) {
     if (S.done) return;
     S.done = true; S.endT = 0; S.endTitle = title || "";
+    /* a combo still running when time is up still counts */
+    var openN = (S.comboT > 0 ? S.chain : 0) + (S.strokeHits || 0);
+    if (openN >= 3 && S.strokeCuts.length) { var lc = S.strokeCuts[S.strokeCuts.length - 1]; combo(openN, lc.x, lc.y); }
+    S.chain = 0; S.strokeHits = 0; S.comboT = 0;
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
+    /* no chestnut hit in the whole round: +50 */
+    if (!S.boomed && S.timeLeft <= 0) { addScore(50); var nb = popText("Ohne Kastanie +50", 90, 72, "#f8d850", 2300); nb.className = "os-pop os-pop-combo os-pop-bonus c6"; cheer(3); }
     S.local = S.score > 0 ? addRun(S.score) : null;
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
@@ -23691,6 +23735,38 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   }
   var _os_rgd = renderGardenDecor; renderGardenDecor = function () { osNoMeadow1(); _os_rgd(); osNoMeadow1(); };
   osNoMeadow1();
+  // ===================== sound on/off: a button beside the paw at the top; every sound of the game goes through one volume knob =====================
+  (function () {
+    var muted = false; try { muted = localStorage.getItem("ham-mute") === "1"; } catch (e) { }
+    var masters = [], media = new Set();
+    if (window.AudioNode && window.AudioDestinationNode) {
+      var _conn = AudioNode.prototype.connect;
+      AudioNode.prototype.connect = function (dest) {
+        if (dest instanceof AudioDestinationNode) {
+          var c = dest.context;
+          if (!c.__hamMaster) { c.__hamMaster = c.createGain(); c.__hamMaster.gain.value = muted ? 0 : 1; _conn.call(c.__hamMaster, dest); masters.push(c.__hamMaster); }
+          var args = Array.prototype.slice.call(arguments); args[0] = c.__hamMaster; return _conn.apply(this, args);
+        }
+        return _conn.apply(this, arguments);
+      };
+    }
+    if (window.HTMLMediaElement) {
+      var _play = HTMLMediaElement.prototype.play;
+      HTMLMediaElement.prototype.play = function () { media.add(this); if (muted) this.muted = true; else if (this.__hamMuted) this.muted = false; this.__hamMuted = muted; return _play.apply(this, arguments); };
+    }
+    function apply() {
+      masters.forEach(function (g) { try { g.gain.value = muted ? 0 : 1; } catch (e) { } });
+      media.forEach(function (m) { m.muted = muted; m.__hamMuted = muted; });
+      btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>' + (muted ? '<path d="M15 8.5l6 7M21 8.5l-6 7"/>' : '<path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11"/>') + '</svg>';
+      btn.setAttribute("aria-label", muted ? "Ton an" : "Ton aus"); btn.classList.toggle("off", muted);
+    }
+    var btn = document.createElement("button"); btn.type = "button"; btn.className = "close mapbtn soundbtn"; btn.id = "ham-sound-btn";
+    var anchor = document.getElementById("ham-album-btn") || document.getElementById("map-btn");
+    if (anchor) anchor.parentNode.insertBefore(btn, anchor);
+    btn.addEventListener("click", function (e) { e.stopPropagation(); muted = !muted; try { localStorage.setItem("ham-mute", muted ? "1" : "0"); } catch (er) { } apply(); });
+    apply();
+    window.__sound = { muted: function () { return muted; } };
+  })();
 
 
   
