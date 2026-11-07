@@ -69,7 +69,7 @@ function mountObstsalat(root, ART, opts) {
   var S, banTimer = 0;
   function reset() {
     S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .5, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
-      face: "normal", faceT: 0, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
+      face: "normal", faceT: 0, nib: 0, nibT: 4 + Math.random() * 3, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
       stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0 };
     endEl.hidden = true; boardEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
@@ -461,13 +461,17 @@ function mountObstsalat(root, ART, opts) {
     S.faceT -= dt; S.shake -= dt; S.blinkT -= dt; S.flash -= dt;
     S.hop -= dt; if (S.hop <= 0 && S.hops > 1) { S.hops--; S.hop = .18; }
     if (S.faceT <= 0) S.face = "normal";
+    /* now and then he reaches into the bowl beside him, nibbles and stuffs his cheeks */
+    if (!S.done) { S.nibT -= dt; if (S.nibT <= 0) { if (S.face === "normal" && S.shown > 2) S.nib = .001; S.nibT = 6 + Math.random() * 4; } }
+    if (S.nib > 0) { S.nib += dt; if (S.face !== "normal" || S.nib > 2.6) S.nib = 0;
+      else if (S.nib > .45 && S.nib < 1.4 && Math.random() < dt * 6) S.bits.push({ x: HB.x + 22 + (Math.random() - .5) * 6, y: HB.y + 24, vx: (Math.random() - .5) * 30, vy: -20 - Math.random() * 20, c: ["#f05a4a", "#f8d850", "#8cc86a", "#f8a040"][Math.floor(Math.random() * 4)], life: .5 }); }
     if (S.blinkT < -.12) S.blinkT = 2.5 + Math.random() * 3;
 
     var ox = S.shake > 0 ? (Math.floor(S.t * 40) % 2 ? 1 : -1) : 0;
     cx.setTransform(1, 0, 0, 1, ox, 0);
     var bg = BG[env.season]; if (bg.complete) cx.drawImage(bg, 0, 0);
     drawEnvBack(tm); drawTint(tm, false);
-    var hop = S.hop > 0 ? -3 : 0, face = S.face === "normal" && S.blinkT < 0 ? "blinzeln" : S.face;
+    var hop = S.hop > 0 ? -3 : 0, face = S.nib > 0 && S.face === "normal" ? (S.nib < .45 ? "greifen" : S.nib < 1.4 ? "kauen" : "backen") : S.face === "normal" && S.blinkT < 0 ? "blinzeln" : S.face;
     if (S.shieldT > 0 && HAMSIL[face] && (S.shieldT > 2 || Math.floor(S.t * 8) % 2)) {   /* Hamster-Mode: golden outline, blinking in the last 2 seconds */
       var hc = HAMSIL[face][Math.floor(S.t * 5) % 2 ? "#ffd850" : "#fff6c0"];
       [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(hc, HB.x + o[0], HB.y + hop + o[1]); });

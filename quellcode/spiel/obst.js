@@ -17,6 +17,7 @@
   var osBoard = typeof obstsalatBoard === "function" ? obstsalatBoard(OS_SYNC, osAccount, function () { return N(); }) : null;
   /* rewards: every 5th round played to the end = a random bag of seeds, every 20th = a piece of furniture */
   function osReward(r) {
+    if (r.score > 0) { s.food = clamp(s.food + Math.min(30, 6 + Math.round(r.score / 5))); try { renderNeeds(); } catch (e) { } }   /* fruit salad fills him up */
     if (!r.timeUp) return "";
     s.osRounds = (s.osRounds || 0) + 1; var n = s.osRounds, msg = "";
     if (n % 20 === 0) {

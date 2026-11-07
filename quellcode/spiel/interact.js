@@ -146,4 +146,26 @@
       else if (n > 1) setTimeout(function () { say(ALLANI[g.id].name + " bekommt einen Stempel (" + (n % 10) + "/10)."); }, 1200);
       if (window.SudokuSave) window.SudokuSave(); } catch (er) { } return r; };
   }
-  window.__ixFunSt = function (v) { if (v != null) s.fun = v; return { fun: s.fun, ixFun: s.ixFun }; };
+  window.__ixFunSt = function (v) { if (v != null) { s.fun = v; s.food = v; } return { fun: Math.round(s.fun), food: Math.round(s.food), ixFun: s.ixFun }; };
+
+  /* every mini game is fun for him: an overlay game that stayed open for at least 20 seconds lifts the fun bar when it closes (each game at most every 3 minutes) */
+  (function () {
+    var open = new Map(), last = {}, SKIP = /pc-pov|cf-bookv|cafe-pov/;
+    function isGame(el) { return el.nodeType === 1 && /(^|\s)([a-z0-9]+-pov|cf-game)(\s|$)/.test(el.className || "") && !SKIP.test(el.className); }
+    function key(el) { return String(el.className).replace(/\b(bee-pov|fi-pov|pixtext)\b/g, "").trim() || "game"; }
+    function closed(el) {
+      var t0 = open.get(el); open.delete(el); if (!t0 || Date.now() - t0 < 20000) return;
+      var k = key(el), now = Date.now(); if (now - (last[k] || 0) < 180000) return; last[k] = now;
+      s.fun = clamp(s.fun + 10); if (typeof renderNeeds === "function") renderNeeds(); if (window.SudokuSave) window.SudokuSave();
+    }
+    function check(el) { if (!isGame(el)) return; var vis = !el.hidden && el.isConnected; if (vis && !open.has(el)) open.set(el, Date.now()); else if (!vis && open.has(el)) closed(el); }
+    var mo = new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        if (m.type === "attributes") check(m.target);
+        m.addedNodes && m.addedNodes.forEach(function (n) { if (n.nodeType === 1) check(n); });
+        m.removedNodes && m.removedNodes.forEach(function (n) { if (n.nodeType === 1 && open.has(n)) closed(n); });
+      });
+    });
+    mo.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
+    window.__gameFun = { open: function () { return Array.from(open.keys()).map(key); } };
+  })();
