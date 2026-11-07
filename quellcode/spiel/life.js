@@ -234,10 +234,10 @@
   function swimOk() { var se = season(), w = weather.type; if (se === "winter") return "Im Winter ist das Wasser viel zu kalt zum Baden."; if (w === "rain" || w === "storm") return "Bei dem Wetter bleibt " + N() + " lieber an Land."; return ""; }
   function waterChoice() {
     var no = swimOk();
-    var pp = openLPop(pondEl, '<p class="ph">Was möchte ' + N() + ' am Wasser machen?</p><div class="l-wchoice"><button type="button" class="pbtn" data-w="skip">Steine flitschen</button><button type="button" class="pbtn" data-w="swim"' + (no ? " disabled" : "") + '>Baden</button></div>' + (no ? '<p class="pn">' + no + '</p>' : ""), 90, 30, "l-wpop");
+    var pp = openLPop(pondEl, '<p class="ph">Was möchte ' + N() + ' am Wasser machen?</p><div class="l-wchoice"><button type="button" class="pbtn" data-w="skip">Steine flitschen</button><button type="button" class="pbtn" data-w="swim"' + (no ? " disabled" : "") + '>Baden</button><button type="button" class="pbtn" data-w="boat">Bootstour</button></div>' + (no ? '<p class="pn">' + no + '</p>' : ""), 90, 30, "l-wpop");
     pp.addEventListener("click", function (ev) {
       var b = ev.target.closest("[data-w]"); if (!b || b.disabled) return; closeLPop(); if (busy) interrupt();
-      if (b.dataset.w === "skip") act("skip", skipStone); else act("swim", swimSeq);
+      if (b.dataset.w === "skip") act("skip", skipStone); else if (b.dataset.w === "boat") act("boat", async function () { await toJetty(PSPOT.jettyEnd.x); H.dir = 1; if (window.__lkOpen) window.__lkOpen(); }); else act("swim", swimSeq);
     });
   }
   // a swim in summer: cannonball off the jetty, paddle about, climb out on the bank and dry in the sun
