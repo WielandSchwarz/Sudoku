@@ -4,7 +4,7 @@
   // Sometimes something is hiding under the foam (a rubber duck, a marble, a toy fish, a button): tap it to keep it. Bubbles drift up and can be popped.
   // When a piece is clean it is rinsed for a moment and hops onto the tea towel at the back. No sorting, no clock.
   var d2V = mPov("mdw-pov d2-pov", "Abwasch beenden"), d2S = null, D2 = { x0: 6, x1: 174, y0: 26, y1: 114, cx: 90, cy: 70 };
-  var D2_TOOLS = [{ k: "sponge", x: 16 }, { k: "brush", x: 39 }, { k: "water", x: 62 }];
+  var D2_TOOLS = [{ k: "sponge", x: 14 }, { k: "brush", x: 39 }, { k: "water", x: 64 }];
   var D2_DIRT = {   /* what each kind of dirt looks like and which tool takes it off */
     ketchup: { t: "sponge", c: ["#d8302a", "#a81a1a"], hp: 1 }, jam: { t: "sponge", c: ["#9a4ac8", "#6a2a98"], hp: 1 }, cocoa: { t: "sponge", c: ["#7a4a28", "#5a3418"], hp: 1 },
     burnt: { t: "brush", c: ["#6a3e1e", "#2a1606"], hp: 1.8 }, dried: { t: "brush", c: ["#e8b040", "#b88020"], hp: 1.5 },
@@ -48,12 +48,12 @@
   function d2Start() {
     var pool = D2_PIECES.slice().sort(function () { return Math.random() - .5; }).slice(0, 4);
     if (window.__dishPool2) pool = window.__dishPool2.slice();   /* preview test hook */
-    d2S = { left: pool, cur: null, tool: "sponge", towel: [], finds: [], popped: 0, wrong: 0, fx: [], bub: [], rub: null, hint: null, rinse: 0, fly: null, slide: 0, over: false, face: null, faceT: 0, lastFace: "" };
+    d2S = { left: pool, total: pool.length, cur: null, tool: "sponge", towel: [], finds: [], popped: 0, wrong: 0, fx: [], bub: [], rub: null, hint: null, rinse: 0, fly: null, slide: 0, over: false, face: null, faceT: 0, lastFace: "" };
     d2V.card.hidden = true; d2Next();
   }
   function d2Next() { var S = d2S; if (!S.left.length) { d2End(); return; } S.cur = d2Make(S.left.shift()); S.slide = 1; mBan(d2V, "Schrubben!"); }
   function d2Clean(it) { return it.spots.every(function (s) { return s.hp <= 0; }); }
-  // ---- the kitchen behind: tiles, a little shelf with the dirty pile, the tea towel on its rail, the tap; the counter with a sink nearly as wide as the screen ----
+  // ---- the kitchen behind: tiles, the tea towel on its rail, the tap; the counter with a sink nearly as wide as the screen ----
   var D2K = null;
   function d2Kitchen() {
     if (D2K) return D2K; var cv = document.createElement("canvas"); cv.width = 180; cv.height = 135; var c = cv.getContext("2d"), P = function (x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); };
@@ -65,15 +65,29 @@
     var X0 = D2.x0, X1 = D2.x1, Y0 = D2.y0, Y1 = D2.y1;   /* the steel basin: a broad rim with light on the top and left */
     for (var yy = Y0; yy < Y1; yy++) for (var xx = X0; xx < X1; xx++) { var cx = Math.max(X0 + 6, Math.min(X1 - 7, xx)), cy = Math.max(Y0 + 6, Math.min(Y1 - 7, yy)), d = Math.hypot(xx - cx, yy - cy); if (d > 6.5) continue;
       P(xx, yy, 1, 1, d > 5.6 ? "#3a2414" : d > 3.6 ? (yy < Y0 + 4 || xx < X0 + 4 ? "#e8eef4" : "#b8c0c8") : "#5a646e"); }
-    P(2, 13, 34, 3, "#3a2414"); P(3, 13, 32, 2, "#c8945a"); P(3, 13, 32, 1, "#e0b07a");   /* the shelf for the dirty pile */
     P(48, 7, 64, 2, "#3a2414"); P(49, 7, 62, 1, "#b8c0c8"); P(47, 6, 3, 4, "#3a2414"); P(110, 6, 3, 4, "#3a2414");   /* the towel rail */
     P(52, 8, 56, 11, "#3a2414"); for (var s = 0; s < 54; s++) P(53 + s, 9, 1, 9, Math.floor(s / 6) % 2 ? "#fff8ec" : "#e8465a"); P(53, 17, 54, 1, "#c83a4a");
     D2K = cv; return cv; }
-  function d2Tap(c, on) {   /* base at the back right, an arched spout over the basin, a red lever */
-    mR(c, 132, 10, 12, 12, "#3a2414"); mR(c, 133, 11, 10, 10, "#b8c0c8"); mR(c, 133, 11, 3, 10, "#e8eef4"); mR(c, 130, 20, 16, 3, "#3a2414"); mR(c, 131, 20, 14, 2, "#a8b0b8");
-    for (var a = 0; a <= 16; a++) { var u = a / 16, x = Math.round(137 - u * 18), y = Math.round(10 - Math.sin(u * Math.PI) * 7 + (u > .8 ? (u - .8) * 40 : 0)); mR(c, x - 2, y - 2, 5, 5, "#3a2414"); }
-    for (var b = 0; b <= 16; b++) { var u2 = b / 16, x2 = Math.round(137 - u2 * 18), y2 = Math.round(10 - Math.sin(u2 * Math.PI) * 7 + (u2 > .8 ? (u2 - .8) * 40 : 0)); mR(c, x2 - 1, y2 - 1, 3, 3, "#b8c0c8"); mR(c, x2 - 1, y2 - 1, 3, 1, "#e8eef4"); }
-    var lv = on ? 3 : 0; mR(c, 144, 8 - lv, 10, 4, "#3a2414"); mR(c, 145, 9 - lv, 8, 2, "#d8463c"); mR(c, 145, 9 - lv, 8, 1, "#f06a5a"); }
+  var D2_CH = ["#3a2414", "#5a646e", "#8a949e", "#c8d0d8", "#f4f8fc"];   /* chrome: outline, darkest .. light */
+  function d2Tube(c, pts, r) {   /* a round chrome tube along a path: outline first, then the body lit from the top left */
+    pts.forEach(function (q) { for (var yy = -r - 1; yy <= r + 1; yy++) for (var xx = -r - 1; xx <= r + 1; xx++) if (xx * xx + yy * yy <= (r + 1) * (r + 1) + .5) mR(c, q[0] + xx, q[1] + yy, 1, 1, D2_CH[0]); });
+    pts.forEach(function (q) { for (var yy = -r; yy <= r; yy++) for (var xx = -r; xx <= r; xx++) { if (xx * xx + yy * yy > r * r + .5) continue; var l = -(xx * q[2] + yy * q[3]) / r; mR(c, q[0] + xx, q[1] + yy, 1, 1, l > .45 ? D2_CH[4] : l > -.2 ? D2_CH[3] : l > -.7 ? D2_CH[2] : D2_CH[1]); } }); }
+  function d2Tap(c, on) {   /* a chrome mixer tap at the back right: a round base, a tall gooseneck spout over the basin, a lever with a red dot */
+    c.save(); c.translate(0, 4); d2TapIn(c, on); c.restore(); }
+  function d2TapIn(c, on) {
+    var X = 140, i, pts = [];
+    for (i = 0; i <= 8; i++) pts.push([X, 20 - i * 2, -1, 0]);                       /* up out of the base */
+    for (i = 0; i <= 24; i++) { var a = i / 24 * Math.PI, x = X - 11 + Math.cos(a) * 11, y = 4 - Math.sin(a) * 4; pts.push([Math.round(x), Math.round(y), -Math.cos(a), -Math.sin(a) * .6 - .4]); }   /* the arch */
+    for (i = 1; i <= 6; i++) pts.push([X - 22, 4 + i * 2, -1, 0]);                     /* down towards the water */
+    d2Tube(c, pts, 2);
+    mR(c, X - 25, 15, 7, 4, D2_CH[0]); mR(c, X - 24, 16, 5, 2, D2_CH[2]); mR(c, X - 24, 16, 2, 2, D2_CH[3]); mR(c, X - 24, 18, 5, 1, D2_CH[1]);   /* the aerator at the tip */
+    for (var yy = 12; yy <= 23; yy++) for (var xx = -6; xx <= 6; xx++) { var e = Math.abs(xx) === 6 || yy === 23; mR(c, X + xx, yy, 1, 1, e ? D2_CH[0] : xx < -3 ? D2_CH[4] : xx < 1 ? D2_CH[3] : xx < 4 ? D2_CH[2] : D2_CH[1]); }   /* the base, a short cylinder */
+    for (var x2 = -5; x2 <= 5; x2++) mR(c, X + x2, 12, 1, 1, Math.abs(x2) > 3 ? D2_CH[2] : D2_CH[4]);
+    mR(c, X - 9, 22, 19, 3, D2_CH[0]); mR(c, X - 8, 22, 17, 1, D2_CH[3]); mR(c, X - 8, 23, 17, 1, D2_CH[2]);   /* its flange on the rim */
+    var lv = on ? -3 : 0, lp = []; for (i = 0; i <= 10; i++) lp.push([X + 3 + i, 12 - Math.round(i * (on ? .7 : .35)) + (i ? 0 : 0), 0, -1]);
+    d2Tube(c, lp, 1); var tx = X + 13, ty = 12 - Math.round(10 * (on ? .7 : .35));
+    for (var y3 = -2; y3 <= 2; y3++) for (var x3 = -2; x3 <= 2; x3++) { var d = x3 * x3 + y3 * y3; if (d > 5) continue; mR(c, tx + x3, ty + y3, 1, 1, d > 2 ? D2_CH[0] : x3 + y3 < 0 ? "#ff8a7a" : "#e8463c"); }   /* the red dot on the lever */
+  }
   function d2Find(c, k, x, y, sq) {   /* the little things under the foam */
     x = Math.round(x); y = Math.round(y);
     if (k === "duck") { dwSpr(c, sq ? "duck_sq" : "duck", x - 10, y - 9); return; }
@@ -90,14 +104,28 @@
     else if (k === "pan") { disc(5, "#7a7a86", "#5a5a64"); mR(c, x - 1, y + 5, 3, 4, O); mR(c, x, y + 6, 1, 2, "#8a5a32"); }
     else { mR(c, x - 4, y - 3, 8, 8, O); mR(c, x - 3, y - 2, 6, 6, k === "mug" ? "#6fae5a" : "#f8f4ec"); mR(c, x + 1, y - 2, 2, 6, k === "mug" ? "#3e8a3a" : "#d8d0c4"); mR(c, x + 4, y - 1, 2, 4, O); if (k === "cup") mR(c, x - 3, y + 1, 6, 1, "#e8650c"); if (k === "pot") mR(c, x - 3, y, 6, 1, "#6fae5a"); }
   }
-  function d2ToolIcon(c, k, x, y) { if (k === "sponge") dwSpr(c, "t_sponge", x - 10, y - 7); else if (k === "brush") { mR(c, x - 2, y - 9, 4, 9, "#3a2414"); mR(c, x - 1, y - 8, 2, 8, "#c8945a"); mR(c, x - 6, y, 12, 6, "#3a2414"); mR(c, x - 5, y + 1, 10, 3, "#e8465a"); for (var i = 0; i < 10; i += 2) mR(c, x - 5 + i, y + 4, 1, 2, "#f0e0a0"); }
-    else { mR(c, x - 6, y - 7, 12, 6, "#3a2414"); mR(c, x - 5, y - 6, 10, 4, "#b8c0c8"); mR(c, x - 5, y - 6, 10, 1, "#e8eef4"); for (var w = 0; w < 4; w++) { mR(c, x - 4 + w * 3, y - 1 + (w % 2), 1, 3, "#7ac8f0"); mR(c, x - 4 + w * 3, y + 3 + (w % 2), 1, 2, "#bfe8ff"); } } }
+  var D2_ART = {   /* the tools as little pictures: one pixel is one pixel, outline, three shades lit from the top left */
+    sponge: { p: { o: "#3a2414", G: "#a8e878", g: "#6fc04a", d: "#3e8a2a", Y: "#ffe888", y: "#f0c040", b: "#c89020", q: "#d8a830" },
+      r: ["..oooooooooooooo..", ".oGGGGGGGGGGGGGGo.", "oGGgGGGGgGGGGGgGgo", "oggggggggggggggggo", "oddddddddddddddddo", "oYYYYYYYYYYYYYYYyo", "oYYqYYYYYYqYYYYYyo", "oYYYYYYqYYYYYYqYyo", "oyYYqYYYYYYYYYYYyo", "oyyyyyyyyyyqyyyybo", "obbbbbbbbbbbbbbbbo", ".oooooooooooooooo."] },
+    brush: { p: { o: "#3a2414", W: "#f0c890", w: "#c8945a", b: "#8a5a32", R: "#ff7a6a", r: "#e8463c", D: "#a82a22", F: "#fff0c0", f: "#e0c880" },
+      r: ["....oooooooooo....", "...oRRRRRRRRrro...", "...oRrrrrrrrrDo...", "..ooDDDDDDDDDDoo..", ".oWWWWWWWWWWWWWwo.", "oWWwwwwwwwwwwwwwbo", "owwwwwwwwwwwwwwwbo", "obbbbbbbbbbbbbbbbo", "oooooooooooooooooo", ".oFfFfFfFfFfFfFfo.", ".oFfFfFfFfFfFfFfo.", ".ofFfFfFfFfFfFfFo.", "..oooooooooooooo.."] },
+    water: { p: { o: "#3a2414", B: "#c8ecff", b: "#6ac0f0", d: "#3a8ad0", W: "#ffffff" },
+      r: ["......oo......", ".....oBBo.....", ".....oBbo.....", "....oBBbbo....", "....oBbbbo....", "...oBWbbbbo...", "..oBWWbbbbbo..", "..oBWbbbbbbo..", ".oBWbbbbbbbdo.", ".oBbbbbbbbbdo.", ".oBbbbbbbbbdo.", ".oBbbbbbbbddo.", "..obbbbbbbddo.", "..obbbbbbddo..", "...oddddddo...", "....oooooo...."] } };
+  var D2_AC = {};
+  function d2Art(k) { if (D2_AC[k]) return D2_AC[k]; var d = D2_ART[k], cv = document.createElement("canvas"); cv.width = d.r[0].length; cv.height = d.r.length; var g = cv.getContext("2d");
+    d.r.forEach(function (row, y) { for (var x = 0; x < row.length; x++) { var col = d.p[row[x]]; if (col) { g.fillStyle = col; g.fillRect(x, y, 1, 1); } } }); return (D2_AC[k] = cv); }
+  function d2ToolIcon(c, k, x, y) { var cv = d2Art(k); c.drawImage(cv, Math.round(x - cv.width / 2), Math.round(y - cv.height / 2)); }
+  function d2Tile(c, x, y, on) {   /* a little wooden tray for each tool: a top face and a front edge, raised and golden when chosen */
+    var y0 = on ? y - 2 : y, top = on ? ["#fff4c0", "#ffe08a", "#f0c050"] : ["#fff8ec", "#f4ead8", "#e0d0b4"];
+    if (on) { mR(c, x - 11, y + 18, 23, 2, "rgba(58,36,20,.25)"); }
+    mR(c, x - 12, y0, 24, 21, "#3a2414"); mR(c, x - 11, y0 + 1, 22, 15, top[1]); mR(c, x - 11, y0 + 1, 22, 1, top[0]); mR(c, x - 11, y0 + 1, 1, 15, top[0]);
+    mR(c, x - 11, y0 + 16, 22, 4, on ? "#d8a040" : "#c8b490"); mR(c, x - 11, y0 + 16, 22, 1, on ? "#b88020" : "#a8946c"); return y0; }
   // ---- drawing ----
   function d2Draw(t) {
     if (!d2S) return; var c = d2V.c, S = d2S, now = performance.now(); c.clearRect(0, 0, 180, 135); c.drawImage(d2Kitchen(), 0, 0);
-    // the dirty pile on the shelf and what is already clean on the towel
-    for (var p = 0; p < S.left.length; p++) { var py = 11 - p * 3; mR(c, 6, py, 24, 3, "#3a2414"); mR(c, 7, py, 22, 2, "#f8f4ec"); mR(c, 9 + p * 3, py, 5, 1, p % 2 ? "#c86a3a" : "#7a4a28"); }
-    S.towel.forEach(function (k, i) { d2Mini(c, k, 62 + i * 13, 13); });
+    // pegs on the towel rail, one for each piece; the clean ones hang below their peg
+    for (var pg = 0; pg < S.total; pg++) { var gx2 = 62 + pg * 13; mR(c, gx2 - 1, 5, 3, 6, "#3a2414"); mR(c, gx2, 6, 1, 4, "#e0b07a"); }
+    S.towel.forEach(function (k, i) { d2Mini(c, k, 62 + i * 13, 15); });
     d2Tap(c, S.rinse > 0);
     // the water: soapy, light ripples drifting
     var X0 = D2.x0 + 3, X1 = D2.x1 - 3, Y0 = D2.y0 + 3, Y1 = D2.y1 - 3;
@@ -106,7 +134,7 @@
     var it = S.cur;
     if (it) {
       var ox = D2.cx, oy = D2.cy;
-      if (S.slide > 0) { S.slide = Math.max(0, S.slide - .05); ox -= S.slide * 70; oy -= S.slide * 40; }
+      if (S.slide > 0) { S.slide = Math.max(0, S.slide - .04); oy += Math.round(S.slide * 8); }
       if (S.fly) { var u = Math.min(1, (now - S.fly.t0) / 650); ox = D2.cx + (S.fly.tx - D2.cx) * u; oy = D2.cy + (S.fly.ty - D2.cy) * u - Math.sin(u * Math.PI) * 26; }
       // the find lies in the water beside the piece
       if (it.find && !it.got && !S.fly) d2Find(c, it.find.k, ox + it.find.x, oy + it.find.y, it.find.sq > 0 && (it.find.sq -= .05) > 0);
@@ -117,7 +145,7 @@
           for (var yy = -s.r; yy <= s.r; yy++) for (var xx = -s.r; xx <= s.r; xx++) { var e = (xx * xx) / (s.r * s.r) + (yy * yy) / (s.r * s.r * .7), wob = (((xx + s.x) * 7 + (yy + s.y) * 13) % 5 - 2) * .06; if (e > 1 + wob) continue;
             if (f < .66 && (xx + yy) % 2) continue; if (f < .33 && (xx * 3 + yy) % 4) continue;   /* thins out, dithered, as it is scrubbed */
             mR(c, ox + s.x + xx, oy + s.y + yy, 1, 1, e > .7 + wob ? D.c[1] : D.c[0]); } });
-        if (S.rinse > 0) { var sx = 119, sy0 = 18; for (var r = 0; r < 30; r++) { var u3 = r / 30, xx3 = sx + (ox - sx) * u3, yy3 = sy0 + (oy - 6 - sy0) * u3; mR(c, xx3 - 1, yy3, 3, 2, (r + Math.floor(t / 40)) % 4 ? "#a8d8f0" : "#ffffff"); }
+        if (S.rinse > 0) { var sx = 118, sy0 = 23; for (var r = 0; r < 30; r++) { var u3 = r / 30, xx3 = sx + (ox - sx) * u3, yy3 = sy0 + (oy - 6 - sy0) * u3; mR(c, xx3 - 1, yy3, 3, 2, (r + Math.floor(t / 40)) % 4 ? "#a8d8f0" : "#ffffff"); }
           if (Math.random() < .5) S.fx.push({ x: ox, y: oy - 4, vx: (Math.random() - .5) * 50, vy: -20 - Math.random() * 25, life: .5, c: Math.random() < .5 ? "#bfe8ff" : "#ffffff" }); }
       }
       // foam on top: white puffs with a soft blue edge
@@ -131,9 +159,10 @@
     if (it && !S.fly && Math.random() < .025 && S.bub.length < 6) S.bub.push({ x: D2.cx + rnd(-70, 70), y: D2.cy + rnd(10, 36), r: 2 + Math.floor(Math.random() * 3), vy: -.22 - Math.random() * .25, ph: Math.random() * 6 });
     S.bub = S.bub.filter(function (b) { b.y += b.vy; b.x += Math.sin(t / 400 + b.ph) * .2; for (var a = 0; a < 16; a++) { var an = a / 16 * Math.PI * 2; mR(c, b.x + Math.cos(an) * b.r, b.y + Math.sin(an) * b.r, 1, 1, a % 4 === 1 ? "#ffffff" : "#8cc4e8"); } mR(c, b.x - b.r / 2, b.y - b.r / 2, 1, 1, "#ffffff"); return b.y > -6; });
     // the tools on the front rim: the chosen one lifted and yellow
-    D2_TOOLS.forEach(function (T) { var on = S.tool === T.k, y0 = on ? 100 : 102; mR(c, T.x - 11, y0, 22, 19, "#3a2414"); mR(c, T.x - 10, y0 + 1, 20, 17, on ? "#ffe08a" : "#fff8ec"); if (on) mR(c, T.x - 10, y0 + 1, 20, 1, "#fff4c8"); d2ToolIcon(c, T.k, T.x, y0 + 9); });
+    D2_TOOLS.forEach(function (T) { var y0 = d2Tile(c, T.x, 100, S.tool === T.k); d2ToolIcon(c, T.k, T.x, y0 + 8); });
     // the tool under the finger while scrubbing
-    if (S.rub && it) { if (S.tool === "sponge") dwSpr(c, "t_sponge", S.rub[0] - 10, S.rub[1] - 7); else if (S.tool === "brush") dwSpr(c, "t_brush", S.rub[0] - 7, S.rub[1] - 26); else for (var dr = 0; dr < 5; dr++) mR(c, S.rub[0] - 4 + dr * 2, S.rub[1] - 6 + ((dr + Math.floor(t / 60)) % 3) * 2, 1, 2, "#7ac8f0"); }
+    if (S.rub && it) { var tk = S.tool, tw = d2Art(tk); c.drawImage(tw, Math.round(S.rub[0] - tw.width / 2), Math.round(S.rub[1] - tw.height / 2));
+      if (tk === "water") for (var dr = 0; dr < 4; dr++) mR(c, S.rub[0] - 5 + dr * 3, S.rub[1] + 9 + ((dr + Math.floor(t / 70)) % 3) * 2, 1, 2, "#6ac0f0"); }
     // what was found, top right beside the tap
     if (S.finds.length) { mR(c, 158, 24, 17, 11, "#3a2414"); mR(c, 159, 25, 15, 9, "#fff8ec"); d2Find(c, S.finds[S.finds.length - 1], 163, 29, false); if (typeof pcText === "function") pcText(c, 169, 27, String(S.finds.length), "#3a2414"); }
     S.fx = S.fx.filter(function (f) { f.life -= .016; f.x += f.vx * .016; f.y += f.vy * .016; f.vy += 30 * .016; c.globalAlpha = Math.min(1, f.life * 2); mR(c, f.x, f.y, 1, 1, f.c); c.globalAlpha = 1; return f.life > 0; });
@@ -160,7 +189,7 @@
   d2V.cv.addEventListener("pointerdown", function (e) {
     if (!d2S || d2S.over) return; var hr = ham.getBoundingClientRect(); if (e.clientX >= hr.left && e.clientX <= hr.right && e.clientY >= hr.top && e.clientY <= hr.bottom) return;
     var S = d2S, p = mPt(d2V, e); try { d2V.cv.setPointerCapture(e.pointerId); } catch (er) {}
-    for (var i = 0; i < D2_TOOLS.length; i++) { var T = D2_TOOLS[i]; if (Math.abs(p[0] - T.x) <= 11 && p[1] >= 98 && p[1] <= 122) { if (S.tool !== T.k) { S.tool = T.k; beep([[520, .04], [700, .04]]); } return; } }
+    for (var i = 0; i < D2_TOOLS.length; i++) { var T = D2_TOOLS[i]; if (Math.abs(p[0] - T.x) <= 12 && p[1] >= 98 && p[1] <= 122) { if (S.tool !== T.k) { S.tool = T.k; beep([[520, .04], [700, .04]]); } return; } }
     for (var b = 0; b < S.bub.length; b++) { var bb = S.bub[b]; if (Math.hypot(bb.x - p[0], bb.y - p[1]) < bb.r + 3) { S.bub.splice(b, 1); S.popped++; beep([[1400 + rnd(0, 400), .03]]); for (var q = 0; q < 6; q++) S.fx.push({ x: bb.x, y: bb.y, vx: (Math.random() - .5) * 40, vy: (Math.random() - .5) * 40, life: .4, c: "#ffffff" }); return; } }
     var it = S.cur;
     if (it && it.find && it.find.seen && !it.got && Math.hypot(p[0] - D2.cx - it.find.x, p[1] - D2.cy - it.find.y) < 9) {   /* a find: tap it and it is ours */

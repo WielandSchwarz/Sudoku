@@ -30,7 +30,12 @@
     act("fish", async function () { await walkTo(140, 118); H.dir = 1; front({ eyes: "wide", mouth: "open", paws: "up", ears: "up" }); await wait(350); aqOpen(); front({ eyes: "happy", mouth: "smile", paws: "down" }); });
   });
   // going to bed: first the teddy comes down from the chest, then both snuggle in
-  function teddyState() { var inBed = !!(s.asleep && H.where === "bed"); teddyShelf.hidden = inBed || teddyCarry || place2 !== "bedroom"; teddyBed.hidden = !inBed || place2 !== "bedroom"; }
+  var TEDDY_AT = [[30, 62], [18, 66], [16, 62], [18, 64], [12, 69], [22, 65], [18, 63]], teddyBedAt = -1;   /* where the teddy sits on each bed */
+  function teddyState() { var inBed = !!(s.asleep && H.where === "bed"), bi = home.bedroom ? home.bedroom.bed : 0, at = TEDDY_AT[bi] || TEDDY_AT[0];
+    if (teddyBedAt !== bi) { teddyBedAt = bi; TEDDY.x = at[0]; TEDDY.y = at[1]; teddyShelf.style.left = gx(at[0]); teddyShelf.style.top = gy(at[1]);
+      teddyBed.style.left = gx(bi === 0 ? 26 : at[0]); teddyBed.style.top = gy(bi === 0 ? 75 : at[1]);
+      var hit = bedEl.querySelector('.ix-hit[aria-label="Teddy"]'); if (hit) { hit.style.left = gx(at[0]); hit.style.top = gy(at[1]); } }
+    teddyShelf.hidden = inBed || teddyCarry || place2 !== "bedroom"; teddyBed.hidden = !inBed || place2 !== "bedroom"; }
   var teddyCarry = false;
   var _bx_bedSleep = bedSleep;
   bedSleep = async function () { try { await _bx_bedSleep(); } finally { teddyState(); } };

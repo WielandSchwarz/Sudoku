@@ -71,7 +71,7 @@
   // ---- bedroom: the teddy, the candle, a bedtime story ----
   if (typeof bedEl !== "undefined" && typeof TEDDY !== "undefined") {
     ixBtn(bedEl, TEDDY.x, TEDDY.y, 16, 22, "Teddy").addEventListener("click", ixAct(async function () {
-      await walkTo(52, 119); H.dir = -1; for (var i = 0; i < 4; i++) { standFrame(i % 2); await wait(190); }
+      await walkTo(TEDDY.x + 24, 119); H.dir = -1; for (var i = 0; i < 4; i++) { standFrame(i % 2); await wait(190); }
       teddyCarry = true; teddyShelf.hidden = true; front({ hold: "b_teddy", holdScale: 1, paws: "hold", eyes: "happy", mouth: "smile", blush: true }); pulse("hop", 300); say(N() + " kuschelt mit dem Teddy.");
       for (var k = 0; k < 5; k++) { await wait(380); fx("heart", H.x + rnd(-8, 8), headY() - 4, "up"); front({ eyes: k % 2 ? "happy" : "sleep", mouth: "smile" }); }
       await wait(500); for (var j = 0; j < 4; j++) { standFrame(j % 2); await wait(190); }
