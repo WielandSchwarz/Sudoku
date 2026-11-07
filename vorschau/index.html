@@ -22773,8 +22773,8 @@ function mountObstsalat(root, ART, opts) {
       if (segDist(it.x, it.y, ax, ay, bx, by) > f.r + 1) return;
       if (it.k === "kokosstueck" && S.wt - it.born < .35) return;   /* the pieces are not cut by the swipe that cracked the nut */
       if (it.k === "kokosnuss") {                      /* three swipes to crack it, then a shower of coconut pieces */
-        if (it.hitStroke === S.strokeId) return; it.hitStroke = S.strokeId; it.hits = (it.hits || 0) + 1;
-        if (it.hits < 3) { it.vy = Math.min(it.vy, 0) - 35; it.vx *= -.5; it.knock = .2; sfx("knock", it.hits);
+        if (S.wt - (it.hitT || -9) < .16) return; it.hitT = S.wt; it.hits = (it.hits || 0) + 1;   /* a zigzag in one swipe counts too */
+        if (it.hits < 3) { it.vy = Math.min(it.vy * .3, 0) - 45; it.vx *= .3; it.knock = .2; sfx("knock", it.hits);
           for (var kc = 0; kc < 6; kc++) S.bits.push({ x: it.x, y: it.y, vx: (Math.random() - .5) * 90, vy: -30 - Math.random() * 50, c: kc % 2 ? "#7a4a26" : "#c8905a", life: .5 }); return; }
       }
       it.cut = true;
@@ -23067,6 +23067,11 @@ function mountObstsalat(root, ART, opts) {
         [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(f.sil[gc], x0 + o[0], y0 + o[1]); });
       }
       sprite(f.im, x0, y0);
+      if (it.k === "kokosnuss" && it.hits) {           /* cracks show how close it is to breaking */
+        var cr = it.hits === 1 ? [[11, 4], [12, 5], [12, 6], [11, 7], [12, 8]] : [[11, 4], [12, 5], [12, 6], [11, 7], [12, 8], [13, 9], [12, 10], [12, 11], [11, 12], [12, 13], [13, 14], [9, 9], [10, 10], [14, 6], [15, 7]];
+        cr.forEach(function (q) { px(x0 + q[0], y0 + q[1], "#2e1a0c"); });
+        if (it.hits > 1) [[13, 5], [13, 11], [11, 9]].forEach(function (q) { px(x0 + q[0], y0 + q[1], "#fff8ec"); });
+      }
     });
     S.halves.forEach(function (h) { sprite(h.c, h.x - h.w / 2, h.y - h.h / 2); });
     S.drops.forEach(function (d) { px(d.x, d.y, d.c); });
