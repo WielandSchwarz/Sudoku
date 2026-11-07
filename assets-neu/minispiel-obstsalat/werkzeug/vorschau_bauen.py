@@ -38,7 +38,37 @@ var ART = ''' + art + ''';
 (function () {
   var m = new Date().getMonth(), season = m < 2 || m === 11 ? "winter" : m < 5 ? "fruehling" : m < 8 ? "sommer" : "herbst";
   var env = { season: season, time: "auto", weather: "sonne" };
-  var game = mountObstsalat(document.getElementById("game"), ART, env); window.__os = game;
+  // leaderboard in the preview: the page's shared database, one row per person (rekorde/<id> = { best, runs, at }), names from the viewer's profiles
+  var caps = window.claude && window.claude.use ? Promise.all([window.claude.use("db"), window.claude.use("user")]) : Promise.resolve([null, null]);
+  function withTimeout(p) { return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("timeout")); }, 10000); })]); }
+  var board = {
+    submit: function (score) {
+      return withTimeout(caps.then(function (c) {
+        var db = c[0], user = c[1]; if (!db || !user) throw new Error("offline");
+        return user.id().then(function (id) {
+          if (!id) throw new Error("no id");
+          var ref = db.collection("rekorde").doc(id);
+          return ref.get().then(function (snap) {
+            var old = snap.exists ? snap.data() : null, best = Math.max(old ? +old.best || 0 : 0, score);
+            if (!old && score <= 0) return;                // nothing to save yet
+            return ref.set({ best: best, runs: (old ? +old.runs || 0 : 0) + 1, at: old && best === +old.best ? +old.at || Date.now() : Date.now() });
+          }).then(function () {
+            return db.collection("rekorde").orderBy("best", "desc").limit(50).get();
+          }).then(function (q) {
+            var docs = q.docs.map(function (d) { var v = d.data() || {}; return { id: d.id, best: +v.best || 0, at: +v.at || 0 }; })
+              .filter(function (d) { return d.best > 0; })
+              .sort(function (a, b) { return b.best - a.best || a.at - b.at; });
+            return user.profiles(docs.map(function (d) { return d.id; })).then(function (ps) {
+              var rows = docs.map(function (d) { return { name: (ps[d.id] && ps[d.id].name) || "Jemand", score: d.best, me: d.id === id }; });
+              var rank = 0; rows.forEach(function (r, i) { if (r.me) rank = i + 1; });
+              return { rows: rows, rank: rank || null };
+            });
+          });
+        });
+      }));
+    }
+  };
+  var game = mountObstsalat(document.getElementById("game"), ART, Object.assign({ board: board }, env)); window.__os = game;
   function mark() { document.querySelectorAll(".row").forEach(function (r) { r.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", env[r.dataset.k] === b.dataset.v ? "true" : "false"); }); }); }
   document.querySelectorAll(".row button").forEach(function (b) {
     b.addEventListener("click", function () { var k = b.parentElement.dataset.k; env[k] = b.dataset.v; game.setEnv(env); mark(); });

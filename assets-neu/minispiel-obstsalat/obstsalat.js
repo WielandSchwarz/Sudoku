@@ -4,6 +4,8 @@
 // The spiky chestnut husk is the bomb: cutting it costs 10 points. Tap the hamster = done. =====================
 // mountObstsalat(root, ART, opts) -> { setEnv({season, time, weather}), restart(), destroy(), state() }
 // root: an element with position:relative and aspect-ratio 4/3. ART: obstsalat_art.json.
+// opts.board (optional): the leaderboard, { submit(score) -> Promise<{ rows: [{ name, score, me }], rank }> }.
+// It is called once at the end of every round; the board shows after the result (or on the first tap).
 function mountObstsalat(root, ART, opts) {
   opts = opts || {};
   var W = 180, H = 135, G = 150;                       // room pixels, gravity in px/s^2
@@ -18,7 +20,8 @@ function mountObstsalat(root, ART, opts) {
   root.innerHTML = '<canvas class="os-cv" width="180" height="135"></canvas>' +
     '<b class="os-ban"><span class="os-ban-t"></span><i class="os-ban-time"></i></b><button type="button" class="os-x" aria-label="Obstsalat beenden">×</button>' +
     '<div class="os-hud"><b class="os-hud-s"><img alt=""><span class="os-score">0</span></b><b class="os-hud-t"><img alt=""><span class="os-time">1:00</span></b></div>' +
-    '<b class="os-x2" hidden>×2</b><div class="os-pops"></div><div class="os-end" hidden><b class="os-end-n"></b><b class="os-end-t"></b></div>';
+    '<b class="os-x2" hidden>×2</b><div class="os-pops"></div><div class="os-end" hidden><b class="os-end-n"></b><b class="os-end-t"></b></div>' +
+    '<div class="os-board" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><img alt=""><b>Bestenliste</b></div><ol class="os-board-l"></ol></div></div>';
   var cv = root.querySelector(".os-cv"), cx = cv.getContext("2d");
   cx.imageSmoothingEnabled = false;
   var ban = root.querySelector(".os-ban"), banT = root.querySelector(".os-ban-t"), banTime = root.querySelector(".os-ban-time");
@@ -26,6 +29,9 @@ function mountObstsalat(root, ART, opts) {
   var hudS = root.querySelector(".os-hud-s"), hudT = root.querySelector(".os-hud-t"), scoreEl = root.querySelector(".os-score"), timeEl = root.querySelector(".os-time");
   hudS.querySelector("img").src = ART.icon.apfel.img; hudT.querySelector("img").src = ART.icon.uhr.img;
   var hudShown = { s: -1, t: -1 };
+  var boardEl = root.querySelector(".os-board"), boardList = root.querySelector(".os-board-l");
+  boardEl.querySelector(".os-board-h img").src = ART.icon.pokal.img;
+  var MEDAL = [ART.icon.gold.img, ART.icon.silber.img, ART.icon.bronze.img];
 
   // ---------- images
   function img(src) { var i = new Image(); i.src = src; return i; }
@@ -39,7 +45,7 @@ function mountObstsalat(root, ART, opts) {
     o.im.onload = function () {
       var c = document.createElement("canvas"); c.width = o.w; c.height = o.h; var g = c.getContext("2d"); g.drawImage(o.im, 0, 0); o.data = g.getImageData(0, 0, o.w, o.h);
       o.sil = {};                                       // silhouettes for the glow of special items, in two colours
-      ["#ffffff", "#bfe8ff", "#ffd8a0"].forEach(function (col) {
+      ["#ffffff", "#bfe8ff", "#ffd8a0", "#ff4a3a", "#9a1e14"].forEach(function (col) {
         var s = document.createElement("canvas"); s.width = o.w; s.height = o.h; var sg = s.getContext("2d"); sg.drawImage(o.im, 0, 0);
         sg.globalCompositeOperation = "source-in"; sg.fillStyle = col; sg.fillRect(0, 0, o.w, o.h); o.sil[col] = s;
       });
@@ -62,7 +68,7 @@ function mountObstsalat(root, ART, opts) {
     S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .8, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
       face: "normal", faceT: 0, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
       stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 9 + Math.random() * 4, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [] };
-    endEl.hidden = true; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
+    endEl.hidden = true; boardEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
   }
   function loadBest() { try { return +localStorage.getItem("obstsalat-rekord") || 0; } catch (e) { return 0; } }
@@ -91,14 +97,24 @@ function mountObstsalat(root, ART, opts) {
   function volley() {
     var t = S.t, n = Math.min(7, 1 + Math.floor(t / 10) + (Math.random() < .5 ? 1 : 0));
     var bombP = t < 6 ? 0 : Math.min(.2, .07 + t / 600);
-    var cluster = Math.random() < Math.min(.75, .25 + t / 80);          // fruit close together = combo chance
-    var baseX = 40 + Math.random() * 100, peak = 14 + Math.random() * 30;
-    for (var i = 0; i < n; i++) {
+    // most of a volley is spread over the whole width with its own height; only a small group of 3 or 4 flies close together for combos
+    var group = n >= 3 && Math.random() < Math.min(.5, .2 + t / 120) ? (n >= 5 && Math.random() < .4 ? 4 : 3) : 0;
+    var slots = [], rest = n - group, i;
+    for (i = 0; i < rest; i++) slots.push(14 + (i + .5) * 152 / rest + (Math.random() - .5) * 152 / rest * .6);
+    for (i = slots.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp; }
+    var gx = 34 + Math.random() * 112, gpeak = 16 + Math.random() * 28, at = S.wt;
+    for (i = 0; i < n; i++) {
       var k = Math.random() < bombP && i > 0 ? "kastanie" : Math.random() < .03 ? "goldapfel" : fruitKey();
-      var x = cluster ? baseX + (i - (n - 1) / 2) * 11 + (Math.random() - .5) * 4 : 26 + Math.random() * 128;
-      var pk = cluster ? peak + Math.random() * 8 : 14 + Math.random() * 34;
-      var drift = cluster ? (90 - baseX) / 100 * 22 + (i - (n - 1) / 2) * 6 : null;
-      S.queue.push({ at: S.wt + (cluster ? i * .06 : i * .16), k: k, x: Math.max(16, Math.min(164, x)), peak: pk, drift: drift });
+      var x, pk, drift;
+      if (i < group) {
+        x = gx + (i - (group - 1) / 2) * 15 + (Math.random() - .5) * 3; pk = gpeak + Math.random() * 8;
+        drift = (90 - gx) / 100 * 16 + (i - (group - 1) / 2) * 5; at = S.wt + i * .07;
+      } else {
+        x = slots[i - group]; pk = 12 + Math.random() * 46;
+        drift = (90 - x) / 100 * 6 + (Math.random() - .5) * 22;
+        at = S.wt + (group ? .3 : 0) + (i - group) * (.14 + Math.random() * .14);
+      }
+      S.queue.push({ at: at, k: k, x: Math.max(16, Math.min(164, x)), peak: pk, drift: drift });
     }
     if (S.t > S.nextSpecial) {
       var sk = ["frostbeere", "sonnenblume", "honigwabe"][Math.floor(Math.random() * 3)];
@@ -202,7 +218,11 @@ function mountObstsalat(root, ART, opts) {
   function pt(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H }; }
   var down = null;
   cv.addEventListener("pointerdown", function (ev) {
-    if (S.done) { if (S.endT > 1.4) reset(); return; }
+    if (S.done) {
+      if (S.endT < 1.4) return;
+      if (opts.board && !S.boardOn) showBoard(); else reset();
+      return;
+    }
     var p = pt(ev); down = { x: p.x, y: p.y, moved: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeCuts = [];
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     S.trail.push({ x: p.x, y: p.y, t: S.t });
@@ -237,7 +257,40 @@ function mountObstsalat(root, ART, opts) {
     S.done = true; S.endT = 0; S.endTitle = title || "";
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
+    if (opts.board) {
+      var mine = S;                                     // a restart before the answer must not mix up rounds
+      Promise.resolve().then(function () { return opts.board.submit(mine.score); })
+        .then(function (r) { if (S !== mine) return; S.board = r && r.rows ? r : { rows: [], offline: true }; if (S.boardOn) renderBoard(); },
+              function () { if (S !== mine) return; S.board = { rows: [], offline: true }; if (S.boardOn) renderBoard(); });
+    }
     hudT.classList.remove("hurry", "tick");
+  }
+  function showBoard() {
+    S.boardOn = true; endEl.hidden = true; boardEl.hidden = false;
+    boardEl.classList.remove("in"); void boardEl.offsetWidth; boardEl.classList.add("in");
+    renderBoard();
+  }
+  function renderBoard() {                              // top 5, and your own row below if you are further down
+    boardList.innerHTML = "";
+    var b = S.board;
+    if (!b) { boardList.appendChild(row("…", "", "", "wait")); return; }
+    var rows = b.rows.slice(0, 5), meIn = rows.some(function (r) { return r.me; });
+    rows.forEach(function (r, i) { boardList.appendChild(row(i + 1, r.name, r.score, (r.me ? "me" : "") + (i < 3 ? " top" : ""))); });
+    var mine = b.rows.filter(function (r) { return r.me; })[0];
+    if (!meIn && (mine || b.offline)) {
+      if (rows.length) boardList.appendChild(row("", "", "", "gap"));
+      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.playerName || "Du"), mine ? mine.score : Math.max(S.best, S.score), "me"));
+    }
+  }
+  function row(rank, name, score, cls) {
+    var li = document.createElement("li"); li.className = cls || "";
+    var r = document.createElement("span"); r.className = "r";
+    if (typeof rank === "number" && rank <= 3 && cls.indexOf("top") >= 0) { var im = document.createElement("img"); im.src = MEDAL[rank - 1]; im.alt = rank + "."; r.appendChild(im); }
+    else r.textContent = rank === "" ? "" : rank === "…" ? "…" : rank + (typeof rank === "number" ? "." : "");
+    var n = document.createElement("span"); n.className = "n"; n.textContent = name;
+    var sc = document.createElement("span"); sc.className = "s"; sc.textContent = score;
+    li.appendChild(r); li.appendChild(n); li.appendChild(sc);
+    return li;
   }
   function drawHud() {                                  // score and clock in the app font (DOM), changed only when the numbers change
     var t = Math.max(0, Math.ceil(S.timeLeft));
@@ -364,6 +417,10 @@ function mountObstsalat(root, ART, opts) {
       var f = FR[it.k]; if (!f.im.complete) return;
       var jx = it.k === "kastanie" ? (Math.floor(S.t * 20 + it.born * 7) % 3) - 1 : 0;        // the husk trembles a little
       var x0 = it.x - f.w / 2 + jx, y0 = it.y - f.h / 2;
+      if (it.k === "kastanie" && f.sil) {               // the husk warns with a red pulsing outline
+        var rc = Math.floor(S.t * 7) % 2 ? "#ff4a3a" : "#9a1e14";
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(f.sil[rc], x0 + o[0], y0 + o[1]); });
+      }
       if (SPECIALS[it.k] && f.sil) {                    // specials glow along their outline, blinking
         var gc = it.k === "frostbeere" ? "#bfe8ff" : it.k === "sonnenblume" ? "#ffd8a0" : "#ffffff";
         if (Math.floor(S.t * 5) % 2) gc = "#ffffff";
@@ -394,16 +451,17 @@ function mountObstsalat(root, ART, opts) {
     if (S.done && S.endT > .7) {
       var k2 = Math.min(1, (S.endT - .7) / .3);
       cx.fillStyle = "rgba(43,29,18," + (.45 * k2).toFixed(2) + ")"; cx.fillRect(0, 0, W, H);
-      if (BIG.im.complete) {                            // the big bowl is only as full as what was cut: the heap is cut off from the top
+      if (BIG.im.complete && !S.boardOn) {                            // the big bowl is only as full as what was cut: the heap is cut off from the top
         var heap = 20, frac = Math.min(1, S.score / FULL), sy = Math.round((1 - frac) * heap);
         var bx = Math.round((W - BIG.w) / 2), by = Math.round(58 - BIG.h / 2 + (1 - k2) * 10);
         cx.drawImage(BIG.im, 0, sy, BIG.w, BIG.h - sy, bx, by + sy, BIG.w, BIG.h - sy);
       }
-      if (endEl.hidden) {
+      if (endEl.hidden && !S.boardOn) {
         endT.textContent = S.record ? "Neuer Rekord!" : S.score >= FULL ? "Obstsalat!" : S.score >= FULL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
         endN.textContent = S.score;
         endEl.hidden = false;
       }
+      if (opts.board && !S.boardOn && S.endT > 3.2) showBoard();
     }
     drawHud();
     raf = requestAnimationFrame(frame);

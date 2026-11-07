@@ -44,7 +44,7 @@ SEASONS = {
 
 
 def background(se):
-    """a calm garden, four depth layers: sky, far hills with little trees, hedge with a white picket fence, meadow"""
+    """a calm garden, open to both sides: sky, far hills with little trees, hedge with a white picket fence, meadow"""
     s = SEASONS[se]
     rnd = random.Random(7)
     L = Layer(180, 135)
@@ -122,65 +122,6 @@ def background(se):
         L.px(px0 + 1, 85, fc); L.px(px0 + 2, 85, fsh)
         if se == 'winter':
             L.px(px0 + 1, 84, C('#ffffff')); L.px(px0 + 2, 84, C('#ffffff')); L.px(px0, 85, C('#ffffff')); L.px(px0 + 3, 85, C('#ffffff'))
-    # two fruit trees at the edges, partly in the picture
-    for (tx, cy, r) in ((9, 30, 27), (171, 26, 25)):
-        for y in range(cy, 101):
-            for x in range(tx - 4, tx + 5):
-                c = C('#7a5234')
-                if x >= tx + 2:
-                    c = C('#5e3e26')
-                elif x <= tx - 3:
-                    c = C('#946640')
-                if (y * 3 + x) % 9 == 0:
-                    c = C('#5e3e26')                                       # bark
-                L.px(x, y, c)
-        for k in range(1, 4):                                              # root flare
-            L.px(tx - 4 - k, 100 - k + 1, C('#7a5234')); L.px(tx + 4 + k, 100 - k + 1, C('#5e3e26'))
-        if s['crown']:
-            cr = [hx(c) for c in s['crown']]
-            blobs = [(0, 2, 12), (-11, 4, 10), (11, 3, 10), (0, -6, 13), (-11, 2, 11), (11, 1, 11), (-5, -16, 10), (7, -15, 10), (-16, -8, 8), (16, -7, 8)]
-            for bi, (bx, by, br) in enumerate(blobs):
-                for y in range(cy + by - br, cy + by + br + 1):
-                    for x in range(tx + bx - br, tx + bx + br + 1):
-                        ddx, ddy = (x + .5 - tx - bx) / br, (y + .5 - cy - by) / br
-                        d = ddx * ddx + ddy * ddy
-                        if d > 1:
-                            continue
-                        if bi < 3:
-                            c = cr[0]                                      # dark underside layer
-                        else:
-                            c = cr[1]
-                            if (ddx + .45) ** 2 + (ddy + .5) ** 2 < .3:
-                                c = cr[3]
-                            elif (ddx + .3) ** 2 + (ddy + .35) ** 2 < .6:
-                                c = cr[2]
-                            elif ddx * .5 + ddy * .85 > .5:
-                                c = cr[0]
-                            if (x * 7 + y * 5) % 11 == 0 and c != cr[0]:
-                                c = cr[0]
-                        L.px(x, y, c)
-            if s['dots']:
-                for _ in range(32):
-                    bx, by, br = blobs[3 + rnd.randrange(len(blobs) - 3)]
-                    a2 = rnd.uniform(0, 2 * math.pi); rr = rnd.uniform(.1, .8) * br
-                    x, y = int(tx + bx + math.cos(a2) * rr), int(cy + by + math.sin(a2) * rr)
-                    L.px(x, y, hx(s['dots'][0])); L.px(x + 1, y, hx(s['dots'][1]) if se == 'fruehling' else hx(s['dots'][0]))
-                    if se == 'sommer':
-                        L.px(x, y + 1, mul(hx(s['dots'][0]), .8)); L.px(x + 1, y + 1, mul(hx(s['dots'][0]), .8))
-        else:                                                              # winter: bare branches with snow on top
-            for k in range(6):
-                a2 = -math.pi / 2 + (k - 2.5) * .5
-                length = r * (.85 if k in (2, 3) else .65)
-                for t in range(int(length)):
-                    bend = math.sin(t / length * 2.2) * 2
-                    x, y = int(tx + math.cos(a2) * t + bend), int(cy + 8 + math.sin(a2) * t)
-                    L.px(x, y, C('#6a4a30'))
-                    if t < 6:
-                        L.px(x, y + 1, C('#5e3e26'))
-                    L.px(x, y - 1, C('#ffffff'))
-                    if t > 6 and t % 5 == 0:
-                        for u in range(4):
-                            L.px(x + u * (1 if k > 2 else -1), y - u, C('#6a4a30')); L.px(x + u * (1 if k > 2 else -1), y - u - 1, C('#ffffff'))
     md = [hx(c) for c in s['meadow']]
     for y in range(99, 135):                                               # meadow: lighter at the back, grass tufts, darker in front
         for x in range(180):
@@ -386,22 +327,29 @@ def zapfen():
 
 # ---------- bomb equivalent and specials
 def stachelkastanie():
-    """the bomb: a spiky green chestnut husk, split open a little so the shiny chestnut shows"""
-    w, h = 24, 24
+    """the bomb: a dark, very spiky husk, clearly different from every fruit; it is split open, a red-brown chestnut peeks out"""
+    w, h = 28, 28
     L = Layer(w, h)
-    cx = cy = 12
-    shaded(L, ellfn(cx, cy, 8.4, 8.4), ('#b8d870', '#8ab848', '#6a9a38', '#4a7a28'))
-    for k in range(16):                                   # spines all around
-        a = k * math.pi / 8 + .2
-        for t in range(9, 12):
-            L.px(int(cx + math.cos(a) * t), int(cy + math.sin(a) * t), C('#4a7a28') if t < 11 else C('#86a848'))
-    for y in range(5, 20):                                # spines on the surface
-        for x in range(5, 20):
-            if L.get(x, y)[3] and (x * 3 + y * 5) % 7 == 0:
-                L.px(x, y, C('#d8f0a0'))
-    for (x, y) in ((10, 9), (11, 8), (12, 8), (13, 9), (14, 10), (10, 10), (11, 9), (12, 9), (13, 10), (11, 10), (12, 10)):
-        L.px(x, y, C('#7a3a1e'))                          # chestnut peeking out
-    L.px(11, 8, C('#c86a3a')); L.px(12, 8, C('#c86a3a'))
+    cx = cy = 14
+    for k in range(20):                                   # long spines all around, alternately long and short, pale tips
+        a = k * math.pi / 10 + .1
+        top = 13 if k % 2 == 0 else 11
+        for t in range(7, top + 1):
+            c = C('#2a2018') if t < top - 1 else C('#e8dcc4')
+            L.px(int(round(cx - .5 + math.cos(a) * t)), int(round(cy - .5 + math.sin(a) * t)), c)
+            if k % 2 == 0 and t < top - 2:
+                L.px(int(round(cx - .5 + math.cos(a + .08) * t)), int(round(cy - .5 + math.sin(a + .08) * t)), C('#2a2018'))
+    shaded(L, ellfn(cx, cy, 8.2, 8.2), ('#7a6a5a', '#544638', '#3e3228', '#2a2018'))
+    for y in range(6, 23):                                # short pale spines on the surface
+        for x in range(6, 23):
+            if L.get(x, y)[3] and (x * 3 + y * 5) % 7 == 0 and (x - cx) ** 2 + (y - cy) ** 2 < 56:
+                L.px(x, y, C('#c8b8a0'))
+    for (x, y) in ((12, 11), (13, 10), (14, 10), (15, 11), (16, 12), (12, 12), (13, 11), (14, 11), (15, 12), (13, 12), (14, 12), (15, 13), (14, 13)):
+        L.px(x, y, C('#b03a26'))                          # the chestnut in the crack, warm red-brown
+    L.px(13, 10, C('#f07050')); L.px(14, 10, C('#f07050')); L.px(13, 11, C('#e05a3a'))
+    for (x, y) in ((11, 11), (11, 12), (12, 13), (13, 13), (14, 14), (16, 13), (16, 11), (15, 10), (12, 10)):
+        if not (x, y) in ((13, 10), (14, 10)):
+            L.px(x, y, C('#1a120c'))                      # dark rim of the crack
     return L.outline()
 
 
@@ -464,7 +412,7 @@ FRUITS = {   # name: (sprite, flesh colour, seed colour, radius for hit tests, w
 GOLD = (lambda: apfel(('#fff6c0', '#f8d850', '#e0b030', '#a87c20'), leaf=True), '#fff2b0', '#c89a3a', 10)
 CONE = (zapfen, '#d8a870', '#6a4024', 9)
 SPECIAL = {
-    'kastanie': (stachelkastanie, '#f4e4c0', '#7a3a1e', 11),
+    'kastanie': (stachelkastanie, '#f4e4c0', '#b03a26', 12),
     'frostbeere': (frostbeere, '#d8ecff', '#ffffff', 10),
     'sonnenblume': (sonnenblume, '#f8e080', '#5a3418', 11),
     'honigwabe': (honigwabe, '#fff0a0', '#f0b030', 10),
@@ -574,6 +522,49 @@ ICONS = {
              " kyyyyyk ",
              "kwwwwwwwk",
              "kkkkkkkkk"], {'k': '#3a2414', 'w': '#b07a44', 'y': '#f0c060'}),
+    'pokal': (["  kkkkkkkkk  ",
+               "kkkyyyyywykkk",
+               "k kyyyyywyk k",
+               "k kyyyyywyk k",
+               " kkdyyyyyykk ",
+               "   kdyyyyk   ",
+               "    kdyyk    ",
+               "     kdk     ",
+               "     kyk     ",
+               "    kdyyk    ",
+               "   kwwwwwk   ",
+               "   kbbbbbk   ",
+               "   kkkkkkk   "], {'k': '#3a2414', 'y': '#f0c040', 'w': '#fff0a0', 'd': '#c08a18', 'b': '#9a6634'}),
+    'gold': ([" kkk kkk ",
+             " krk kbk ",
+             "  krkbk  ",
+             "  kkkkk  ",
+             " kmlmmmk ",
+             "kmlmmmmdk",
+             "kmlmmmmdk",
+             "kmmmmmddk",
+             " kmmmddk ",
+             "  kkkkk  "], {'k': '#3a2414', 'r': '#e04a3a', 'b': '#4a7ad0', 'm': '#f0c040', 'l': '#fff0a0', 'd': '#c08a18'}),
+    'silber': ([" kkk kkk ",
+             " krk kbk ",
+             "  krkbk  ",
+             "  kkkkk  ",
+             " kmlmmmk ",
+             "kmlmmmmdk",
+             "kmlmmmmdk",
+             "kmmmmmddk",
+             " kmmmddk ",
+             "  kkkkk  "], {'k': '#3a2414', 'r': '#e04a3a', 'b': '#4a7ad0', 'm': '#c8d0d8', 'l': '#f4f8fa', 'd': '#8a96a2'}),
+    'bronze': ([" kkk kkk ",
+             " krk kbk ",
+             "  krkbk  ",
+             "  kkkkk  ",
+             " kmlmmmk ",
+             "kmlmmmmdk",
+             "kmlmmmmdk",
+             "kmmmmmddk",
+             " kmmmddk ",
+             "  kkkkk  "], {'k': '#3a2414', 'r': '#e04a3a', 'b': '#4a7ad0', 'm': '#d8905a', 'l': '#f8c8a0', 'd': '#a0603a'}),
     'apfel': (["    kk   ",
                "   kgk   ",
                " kkkkkkk ",
