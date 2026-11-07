@@ -20433,6 +20433,20 @@ function recolorWallSvg(svg, grund, muster) {
       S.drops = []; var tr2 = 0; while (S.drops.length < 12 && tr2++ < 800) { var qx = Math.round(Math.random() * 80 - 40), qy = Math.round(Math.random() * 60 - 30); if (d2Sh(it.k, qx, qy) >= 2 && S.drops.every(function (d) { return Math.hypot(d.x - qx, d.y - qy) > 7; })) S.drops.push({ x: qx, y: qy }); }
       setTimeout(function () { if (d2S && d2S.drops) mBan(d2V, "Abtrocknen!"); }, 900); return; }
     d2Ready(); }
+  /* a real "schrubb": short bursts of filtered noise, alternately brighter and duller, as the sponge goes back and forth */
+  var d2ScrT = 0, d2ScrUp = false, d2NB = null;
+  function d2ScrubSnd(vol) {
+    var now = performance.now(); if (now - d2ScrT < 120) return; d2ScrT = now; d2ScrUp = !d2ScrUp;
+    try {
+      var a = actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (a.state === "suspended") a.resume();
+      if (!d2NB) { d2NB = a.createBuffer(1, a.sampleRate, a.sampleRate); var d = d2NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      var t0 = a.currentTime + .005, n = a.createBufferSource(), f = a.createBiquadFilter(), f2 = a.createBiquadFilter(), g = a.createGain(), f0 = d2ScrUp ? 2600 : 1500;
+      n.buffer = d2NB; f.type = "bandpass"; f.frequency.setValueAtTime(f0 + Math.random() * 400, t0); f.frequency.exponentialRampToValueAtTime(f0 * .55, t0 + .1); f.Q.value = .9;
+      f2.type = "highpass"; f2.frequency.value = 500;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .02); g.gain.setValueAtTime(vol * .8, t0 + .06); g.gain.exponentialRampToValueAtTime(.0001, t0 + .11);
+      n.connect(f); f.connect(f2); f2.connect(g); g.connect(a.destination); n.start(t0, Math.random() * .5); n.stop(t0 + .13);
+    } catch (e) { }
+  }
   function d2Rub(a, b) {
     var S = d2S, it = S.cur; if (!it || S.fly || S.hold) return; var ox = D2.cx, oy = D2.cy, n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))), moved = 0;
     for (var s = 0; s <= n; s++) { var x = a[0] + (b[0] - a[0]) * s / n - ox, y = a[1] + (b[1] - a[1]) * s / n - oy;
@@ -20442,10 +20456,10 @@ function recolorWallSvg(svg, grund, muster) {
         if (D2_DIRT[sp.ty].t !== S.tool) { if (sp.dst !== S.strokeId) { sp.dst = S.strokeId; sp.dwell = 0; } sp.dwell++; if (sp.dwell > 40 && !sp.warned) { sp.warned = true; S.wrong++; }   /* only scrubbing on and on with the wrong thing counts, not wiping over it */
           if (!S.strokeWrong) { S.strokeWrong = true; S.hint = { x: sp.x, y: sp.y, k: D2_DIRT[sp.ty].t, t1: performance.now() + 1600 }; S.face = "oops"; S.faceT = performance.now() + 700; beep([[200, .06], [160, .08]]); } return; }
         if (S.level < 1) { if (!S.strokeWrong) { S.strokeWrong = true; mBan(d2V, S.empty ? "Erst Wasser einlassen" : "Das Wasser läuft noch"); } return; }
-        var am = .006 * (.15 + .85 * S.suds) * (S.dirt > .7 ? .25 : 1); sp.hp -= am; S.dirt = Math.min(1, S.dirt + am * .06); if (S.dirt > .7 && !S.dirtWarn) { S.dirtWarn = true; mBan(d2V, "Dreckiges Wasser! Stöpsel raus"); } S.suds = Math.max(0, S.suds - .0012); if (S.suds < .3 && !S.sudsWarn) { S.sudsWarn = true; mBan(d2V, "Im Wasser rühren!"); } if (Math.random() < .3) beep([[1300 + Math.random() * 500, .02]]);
+        var am = .006 * (.15 + .85 * S.suds) * (S.dirt > .7 ? .25 : 1); sp.hp -= am; S.dirt = Math.min(1, S.dirt + am * .06); if (S.dirt > .7 && !S.dirtWarn) { S.dirtWarn = true; mBan(d2V, "Dreckiges Wasser! Stöpsel raus"); } S.suds = Math.max(0, S.suds - .0004);   /* the suds last three times as long */ if (S.suds < .3 && !S.sudsWarn) { S.sudsWarn = true; mBan(d2V, "Im Wasser rühren!"); } d2ScrubSnd(.13);
         if (Math.random() < .3) S.fx.push({ x: sp.x + ox, y: sp.y + oy, vx: (Math.random() - .5) * 20, vy: -16, life: .6, c: "#ffffff" });
         if (sp.hp <= 0) { beep([[660, .05], [880, .06]]); for (var k = 0; k < 6; k++) S.fx.push({ x: sp.x + ox, y: sp.y + oy, vx: (Math.random() - .5) * 40, vy: -20 - Math.random() * 20, life: .6, c: "#ffd34a" }); } }); }
-    if (moved && Math.random() < .3) beep([[900 + Math.random() * 300, .02]]);
+    if (moved) d2ScrubSnd(.06);
     var bx2 = b[0] - D2.cx - Math.round(22 * (S.rx || 0)), by2 = b[1] - D2.cy, onPiece = d2Sh(it.k, bx2, by2) > 0, seg = Math.hypot(b[0] - a[0], b[1] - a[1]);
     if (!onPiece && seg > 0 && S.level >= 1 && !S.soapIn) { if (!S.strokeWrong) { S.strokeWrong = true; mBan(d2V, "Erst Spüli ins Wasser"); S.hint = { x: 0, y: 0, k: "soap", t1: performance.now() + 2500, nob: 1 }; } }
     if (!onPiece && seg > 0 && S.level >= 1 && S.soapIn) { var s0 = S.suds; S.suds = Math.min(1, S.suds + seg * .008);   /* stirring the water with Spüli in it whips up suds */ if (S.suds > .5) S.sudsWarn = false; if (s0 < .5 && S.suds >= .5) mBan(d2V, "Schön schaumig!");   /* swirling in the water whips up suds */
