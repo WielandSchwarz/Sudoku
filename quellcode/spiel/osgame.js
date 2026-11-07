@@ -231,7 +231,7 @@ function mountObstsalat(root, ART, opts) {
     cheer(1);
   }
   function boom(it) {                                   // the chestnut husk: white flash, spines fly, minus 10 points
-    S.flash = .45; S.shake = .45; S.face = "schreck"; S.faceT = 1.4; S.hop = 0; S.hops = 0;
+    S.boomed = true; S.flash = .45; S.shake = .45; S.face = "schreck"; S.faceT = 1.4; S.hop = 0; S.hops = 0;
     addScore(-10); S.scoreHit = .6; sfx("bomb"); popText("−10", it.x, it.y, "#f08a7e");
     for (var k = 0; k < 40; k++) {
       var a = k / 40 * Math.PI * 2, sp = 50 + Math.random() * 70;
@@ -293,16 +293,22 @@ function mountObstsalat(root, ART, opts) {
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
   root.querySelector(".os-x").addEventListener("click", function () { if (opts.onClose) opts.onClose(); else reset(); });
 
-  function popText(t, x, y, col) {
+  function popText(t, x, y, col, ms) {
     var e = document.createElement("b"); e.className = "os-pop"; e.textContent = t; if (col) e.style.color = col;
     e.style.left = (x / W * 100) + "%"; e.style.top = (y / H * 100) + "%";
-    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1100);
+    pops.appendChild(e); setTimeout(function () { e.remove(); }, ms || 1100);
     return e;
   }
   function finish(title) {
     if (S.done) return;
     S.done = true; S.endT = 0; S.endTitle = title || "";
+    /* a combo still running when time is up still counts */
+    var openN = (S.comboT > 0 ? S.chain : 0) + (S.strokeHits || 0);
+    if (openN >= 3 && S.strokeCuts.length) { var lc = S.strokeCuts[S.strokeCuts.length - 1]; combo(openN, lc.x, lc.y); }
+    S.chain = 0; S.strokeHits = 0; S.comboT = 0;
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
+    /* no chestnut hit in the whole round: +50 */
+    if (!S.boomed && S.timeLeft <= 0) { addScore(50); var nb = popText("Ohne Kastanie +50", 90, 72, "#f8d850", 2300); nb.className = "os-pop os-pop-combo os-pop-bonus c6"; cheer(3); }
     S.local = S.score > 0 ? addRun(S.score) : null;
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");

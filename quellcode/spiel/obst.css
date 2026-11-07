@@ -78,3 +78,4 @@
 .os-pov .os-ban:not(.rw).away { transform: translateY(-30%); }
 @keyframes os-ban-r { from { transform: translateY(-40%); opacity: 0; } }
 .os-pov .os-ban.rw { top: 22%; }
+.os-pop.os-pop-bonus { font-size: 1.25rem; white-space: nowrap; animation-duration: 2.2s; color: #f8d850; }
