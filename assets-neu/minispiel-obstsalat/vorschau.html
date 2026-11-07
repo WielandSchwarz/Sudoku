@@ -13,11 +13,13 @@ body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-
 .row > span { width: 92px; color: var(--muted); font-size: 13px; font-weight: 600; }
 .row button { all: unset; cursor: pointer; padding: 6px 10px; background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); font-size: 14px; font-weight: 600; }
 .row button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.row input { all: unset; padding: 6px 10px; background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); font-size: 14px; font-weight: 600; width: 180px; max-width: 60vw; }
+.row input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .row button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* Obstsalat: same look as the other mini games (banner and × like .bee-pov .bp-ban / .bp-x) */
 .os-root { --os-px: calc(100cqw / 180); container-type: inline-size; position: relative; aspect-ratio: 4 / 3; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #bfe0f0; }
 .os-cv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
-.os-ban { position: absolute; left: 50%; top: 3%; margin-top: 3px; transform: translateX(-50%); white-space: nowrap; z-index: 3; pointer-events: none;
+.os-ban { position: absolute; left: 50%; top: 17%; margin-top: 3px; transform: translateX(-50%); white-space: nowrap; z-index: 3; pointer-events: none;
   background: #fff8ec; color: #3a2414; box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .18), inset 0 -2px 0 0 #ecdcc4;
   font-family: var(--f-body, system-ui), -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 0.86rem; font-weight: 600; line-height: 1.25; padding: 5px 12px 7px; transition: opacity .4s steps(4), transform .4s steps(4); }
 .os-ban.pop { animation: os-ban .35s steps(4); }
@@ -54,23 +56,6 @@ body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-
   text-shadow: 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 2px 0 #3a2414, 0 -2px 0 #3a2414, 2px 2px 0 #3a2414; animation: os-x2 .6s steps(2) infinite; }
 .os-x2[hidden] { display: none; }
 @keyframes os-x2 { 50% { transform: translateY(-2px); } }
-/* combo: a badge that jumps up in steps, wobbles and floats away */
-.os-combo { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none;
-  font-family: var(--f-body, system-ui), sans-serif; animation: os-combo 1.3s steps(12) forwards; }
-.os-combo b { background: #fff8ec; color: #3a2414; font-weight: 800; font-size: 1rem; padding: 3px 10px 4px; white-space: nowrap;
-  box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .2), inset 0 -3px 0 0 var(--cc, #f8a060); }
-.os-combo i { font-style: normal; font-weight: 800; font-size: 1.35rem; color: var(--cc, #f8a060);
-  text-shadow: 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 2px 0 #3a2414, 0 -2px 0 #3a2414, 2px 2px 0 #3a2414; }
-.os-combo.c3 { --cc: #f8a060; } .os-combo.c4 { --cc: #f07a8a; } .os-combo.c5 { --cc: #b088e0; } .os-combo.c6 { --cc: #6ec0f0; }
-@keyframes os-combo {
-  0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; }
-  12% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
-  24% { transform: translate(-50%, -50%) scale(.95) translateX(-3px); }
-  36% { transform: translate(-50%, -50%) scale(1.05) translateX(2px); }
-  48%, 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -130%) scale(1); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .os-combo, .os-x2 { animation: none; } }
 /* leaderboard: a wooden board with nails, a paper list inside; medals for the top 3, your own row highlighted */
 .os-board[hidden] { display: none; }
 .os-board { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; pointer-events: none; }
@@ -98,6 +83,9 @@ body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-
 .os-board-l .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .os-board-l .s { font-weight: 800; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .os-board.in .os-board-in, .os-board-l li.me { animation: none; } }
+/* combo bonus: just the number, bigger, in the combo colour */
+.os-pop.os-pop-combo { font-size: 1.7rem; animation-duration: 1.1s; }
+.os-pop-combo.c3 { color: #f8a060; } .os-pop-combo.c4 { color: #f07a8a; } .os-pop-combo.c5 { color: #b088e0; } .os-pop-combo.c6 { color: #6ec0f0; }
 
 </style>
 <div class="wrap">
@@ -105,6 +93,7 @@ body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-
   <div class="ctl" aria-label="Vorschau-Einstellungen">
     <div class="row" data-k="season"><span>Jahreszeit</span><button type="button" data-v="fruehling">Frühling</button><button type="button" data-v="sommer">Sommer</button><button type="button" data-v="herbst">Herbst</button><button type="button" data-v="winter">Winter</button></div>
     <div class="row" data-k="time"><span>Tageszeit</span><button type="button" data-v="auto">Uhrzeit</button><button type="button" data-v="tag">Tag</button><button type="button" data-v="abend">Abend</button><button type="button" data-v="nacht">Nacht</button></div>
+    <label class="row name"><span>Hamstername</span><input id="hname" type="text" maxlength="20" autocomplete="off" placeholder="Name"></label>
     <div class="row" data-k="weather"><span>Wetter</span><button type="button" data-v="sonne">Sonne</button><button type="button" data-v="wolken">Wolken</button><button type="button" data-v="regen">Regen</button><button type="button" data-v="schnee">Schnee</button></div>
   </div>
 </div>
@@ -116,7 +105,8 @@ var ART = {"bg": {"fruehling": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL
 // The spiky chestnut husk is the bomb: cutting it costs 10 points. Tap the hamster = done. =====================
 // mountObstsalat(root, ART, opts) -> { setEnv({season, time, weather}), restart(), destroy(), state() }
 // root: an element with position:relative and aspect-ratio 4/3. ART: obstsalat_art.json.
-// opts.board (optional): the leaderboard, { submit(score) -> Promise<{ rows: [{ name, score, me }], rank }> }.
+// opts.board (optional): the leaderboard, { submit(score) -> Promise<{ rows: [{ name, score, me }], rank }> }; names are the hamsters' names.
+// opts.hamsterName (optional): the current hamster's name, for your own row when the board is offline.
 // It is called once at the end of every round; the board shows after the result (or on the first tap).
 function mountObstsalat(root, ART, opts) {
   opts = opts || {};
@@ -310,11 +300,9 @@ function mountObstsalat(root, ART, opts) {
   function combo(n, x, y) {
     var bonus = points(n - 1);
     addScore(bonus); cheer(2);
-    var e = document.createElement("div"); e.className = "os-combo c" + Math.min(6, n);
-    e.innerHTML = '<b></b><i></i>';
-    e.querySelector("b").textContent = n + "er-Kombi"; e.querySelector("i").textContent = "+" + bonus;
-    e.style.left = Math.max(22, Math.min(78, x / W * 100)) + "%"; e.style.top = Math.max(22, Math.min(70, y / H * 100)) + "%";
-    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1300);
+    // only the bonus number pops up, bigger and in the combo colour (no badge)
+    var e = popText("+" + bonus, Math.max(16, Math.min(164, x)), Math.max(18, Math.min(110, y - 6)));
+    e.className = "os-pop os-pop-combo c" + Math.min(6, n);
     S.strokeCuts.forEach(function (c) {
       for (var k = 0; k < 10; k++) {
         var a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 60;
@@ -362,7 +350,8 @@ function mountObstsalat(root, ART, opts) {
   function popText(t, x, y, col) {
     var e = document.createElement("b"); e.className = "os-pop"; e.textContent = t; if (col) e.style.color = col;
     e.style.left = (x / W * 100) + "%"; e.style.top = (y / H * 100) + "%";
-    pops.appendChild(e); setTimeout(function () { e.remove(); }, 900);
+    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1100);
+    return e;
   }
   function finish(title) {
     if (S.done) return;
@@ -391,7 +380,7 @@ function mountObstsalat(root, ART, opts) {
     var mine = b.rows.filter(function (r) { return r.me; })[0];
     if (!meIn && (mine || b.offline)) {
       if (rows.length) boardList.appendChild(row("", "", "", "gap"));
-      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.playerName || "Du"), mine ? mine.score : Math.max(S.best, S.score), "me"));
+      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.hamsterName || "Hamster"), mine ? mine.score : Math.max(S.best, S.score), "me"));
     }
   }
   function row(rank, name, score, cls) {
@@ -592,7 +581,12 @@ function mountObstsalat(root, ART, opts) {
 (function () {
   var m = new Date().getMonth(), season = m < 2 || m === 11 ? "winter" : m < 5 ? "fruehling" : m < 8 ? "sommer" : "herbst";
   var env = { season: season, time: "auto", weather: "sonne" };
-  // leaderboard in the preview: the page's shared database, one row per person (rekorde/<id> = { best, runs, at }), names from the viewer's profiles
+  // the hamster's name (in the app it is the name set for the hamster); here a field below the game, kept in this browser
+  var hname = document.getElementById("hname");
+  try { hname.value = localStorage.getItem("obstsalat-hamster") || ""; } catch (e) {}
+  hname.addEventListener("input", function () { try { localStorage.setItem("obstsalat-hamster", hname.value.trim()); } catch (e) {} });
+  function hamster() { return hname.value.trim().replace(/\s+/g, " ").slice(0, 20); }
+  // leaderboard in the preview: the page's shared database, one row per person (rekorde/<id> = { best, runs, at, hamster }); without a hamster name the profile name
   var caps = window.claude && window.claude.use ? Promise.all([window.claude.use("db"), window.claude.use("user")]) : Promise.resolve([null, null]);
   function withTimeout(p) { return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("timeout")); }, 10000); })]); }
   var board = {
@@ -605,15 +599,15 @@ function mountObstsalat(root, ART, opts) {
           return ref.get().then(function (snap) {
             var old = snap.exists ? snap.data() : null, best = Math.max(old ? +old.best || 0 : 0, score);
             if (!old && score <= 0) return;                // nothing to save yet
-            return ref.set({ best: best, runs: (old ? +old.runs || 0 : 0) + 1, at: old && best === +old.best ? +old.at || Date.now() : Date.now() });
+            return ref.set({ best: best, runs: (old ? +old.runs || 0 : 0) + 1, at: old && best === +old.best ? +old.at || Date.now() : Date.now(), hamster: hamster() || (old && old.hamster) || "" });
           }).then(function () {
             return db.collection("rekorde").orderBy("best", "desc").limit(50).get();
           }).then(function (q) {
-            var docs = q.docs.map(function (d) { var v = d.data() || {}; return { id: d.id, best: +v.best || 0, at: +v.at || 0 }; })
+            var docs = q.docs.map(function (d) { var v = d.data() || {}; return { id: d.id, best: +v.best || 0, at: +v.at || 0, hamster: typeof v.hamster === "string" ? v.hamster.slice(0, 20) : "" }; })
               .filter(function (d) { return d.best > 0; })
               .sort(function (a, b) { return b.best - a.best || a.at - b.at; });
             return user.profiles(docs.map(function (d) { return d.id; })).then(function (ps) {
-              var rows = docs.map(function (d) { return { name: (ps[d.id] && ps[d.id].name) || "Jemand", score: d.best, me: d.id === id }; });
+              var rows = docs.map(function (d) { return { name: d.hamster || (ps[d.id] && ps[d.id].name) || "Hamster", score: d.best, me: d.id === id }; });
               var rank = 0; rows.forEach(function (r, i) { if (r.me) rank = i + 1; });
               return { rows: rows, rank: rank || null };
             });
@@ -622,7 +616,7 @@ function mountObstsalat(root, ART, opts) {
       }));
     }
   };
-  var game = mountObstsalat(document.getElementById("game"), ART, Object.assign({ board: board }, env)); window.__os = game;
+  var game = mountObstsalat(document.getElementById("game"), ART, Object.assign({ board: board, get hamsterName() { return hamster(); } }, env)); window.__os = game;
   function mark() { document.querySelectorAll(".row").forEach(function (r) { r.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", env[r.dataset.k] === b.dataset.v ? "true" : "false"); }); }); }
   document.querySelectorAll(".row button").forEach(function (b) {
     b.addEventListener("click", function () { var k = b.parentElement.dataset.k; env[k] = b.dataset.v; game.setEnv(env); mark(); });

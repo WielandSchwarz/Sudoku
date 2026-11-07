@@ -1,7 +1,10 @@
 // Bestenliste in der App: Anbindung von mountObstsalat(…, { board }) an den Worker "sudoku-sync".
-// obstsalatBoard(SYNC_URL, getAccount) -> { submit(score) }; getAccount() liefert { name, pin } oder null (nicht angemeldet).
+// obstsalatBoard(SYNC_URL, getAccount, getHamsterName) -> { submit(score) }
+//   getAccount()     -> { name, pin } oder null (nicht angemeldet)
+//   getHamsterName() -> der aktuell eingestellte Hamstername (s.name in app.js); er steht in der Liste.
 // Ohne Konto wird nur die Liste geladen; die eigene Zeile zeigt dann den Bestwert auf diesem Gerät.
-function obstsalatBoard(SYNC_URL, getAccount) {
+// Beim Einbau zusätzlich mountObstsalat(…, { hamsterName: s.name }) übergeben (für die eigene Zeile ohne Verbindung).
+function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   function post(path, body) {
     var req = fetch(SYNC_URL + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (res) { return res.json(); });
@@ -9,12 +12,12 @@ function obstsalatBoard(SYNC_URL, getAccount) {
   }
   return {
     submit: function (score) {
-      var acc = getAccount && getAccount();
-      var call = acc && score > 0 ? post("/api/score", { game: "obstsalat", name: acc.name, pin: acc.pin, score: score })
+      var acc = getAccount && getAccount(), hamster = getHamsterName && getHamsterName();
+      var call = acc && score > 0 ? post("/api/score", { game: "obstsalat", name: acc.name, pin: acc.pin, score: score, hamster: hamster || undefined })
                                   : post("/api/top", { game: "obstsalat", name: acc ? acc.name : undefined });
       return call.then(function (r) {
         if (!r || !r.ok) throw new Error(r && r.error || "network");
-        var key = r.me ? r.me.name.toLowerCase() : null, rows = r.rows.map(function (x) { return { name: x.name, score: x.score, me: key !== null && x.name.toLowerCase() === key }; });
+        var rows = r.rows.map(function (x) { return { name: x.name, score: x.score, me: !!x.me }; });
         if (r.me && !rows.some(function (x) { return x.me; })) rows.push({ name: r.me.name, score: r.me.score, me: true });
         return { rows: rows, rank: r.me ? r.me.rank : null };
       });
