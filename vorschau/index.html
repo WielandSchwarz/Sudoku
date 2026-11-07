@@ -20267,7 +20267,7 @@ function recolorWallSvg(svg, grund, muster) {
     if (it) {
       var ox = D2.cx, oy = D2.cy;
       if (S.slide > 0) { S.slide = Math.max(0, S.slide - .04); oy += Math.round(S.slide * 8); }
-      if (S.water > 0 && !S.fly) S.rx = Math.min(1, (S.rx || 0) + .04); else if (!S.fly) S.rx = Math.max(0, (S.rx || 0) - .04); var gx0 = D2.cx + Math.round(22 * (S.rx || 0) * (S.rx || 0) * (3 - 2 * (S.rx || 0))); ox = gx0;   /* the clean piece glides under the tap */
+      if (S.water > 0 && !S.fly) S.rx = Math.min(1, (S.rx || 0) + .08); else if (!S.fly) S.rx = Math.max(0, (S.rx || 0) - .06); var gx0 = D2.cx + Math.round(22 * (S.rx || 0) * (S.rx || 0) * (3 - 2 * (S.rx || 0))); ox = gx0;   /* the clean piece glides under the tap */
       if (S.fly) { var u = Math.min(1, (now - S.fly.t0) / 650); ox = gx0 + (S.fly.tx - gx0) * u; if (u >= 1) S.rx = 0; oy = D2.cy + (S.fly.ty - D2.cy) * u - Math.sin(u * Math.PI) * 26; }
       // the find lies in the water beside the piece
       if (it.find && !it.got && !S.fly) d2Find(c, it.find.k, D2.cx + it.find.x, D2.cy + it.find.y, it.find.sq > 0 && (it.find.sq -= .05) > 0);
@@ -20404,7 +20404,7 @@ function recolorWallSvg(svg, grund, muster) {
     S.squirt = { t0: performance.now(), x0: D2_BOT.x, y0: D2_BOT.y - 20, tx: D2.cx + gx3 + (g ? g.x : 0), ty: D2.cy + (g ? g.y : 0), spot: g }; beep([[500, .05], [300, .08]]); }
   function d2HoldStart(kind, sp) {   /* a hold begins: scrubbing a spot, squeezing the bottle, or holding the tap open */
     var S = d2S, tough = sp && sp.tough, w = kind === "scrub" ? (tough ? .13 : .17) : .18, c0 = .5 + Math.random() * .26;
-    S.hold = { kind: kind, sp: sp, v: 0, zone: [c0, c0 + w], rate: kind === "scrub" ? (tough ? 1 / 2.3 : 1 / 1.8) : kind === "soap" ? 1 / 2 : 1 / 2.4 }; S.rub = null;
+    S.hold = { kind: kind, sp: sp, v: 0, zone: [c0, c0 + w], rate: kind === "scrub" ? (tough ? 1 / 2.3 : 1 / 1.8) : kind === "soap" ? 1 / 2 : 1 / 1.3 }   /* the rinse fills almost twice as fast */; S.rub = null;
     if (kind === "water") { S.water = 1; beep([[200, .05], [260, .05]]); } else if (kind === "soap") beep([[500, .05], [300, .08]]); }
   function d2Gauge(c, H2) {   /* the same wooden bar as at the coffee machine, standing at the right: it fills from the bottom */
     var X = 3, Y = 30, Wd = 12, Ht = 66, ih = Ht - 6, f = Math.max(0, Math.min(1, H2.v)), col = H2.kind === "water" ? ["#bfe8ff", "#6ac0f0"] : H2.kind === "soap" ? ["#c8f0a0", "#6fc04a"] : ["#ffe08a", "#d8a040"];
