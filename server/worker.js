@@ -87,27 +87,27 @@ function cleanHamster(n) {                                      // the hamster's
   return v;
 }
 
-async function topList(env, game, nameKey) {
-  const rows = (await env.DB.prepare("SELECT name_key, display_name, best FROM scores WHERE game = ? AND best > 0 ORDER BY best DESC, updated ASC LIMIT 10")
+async function topList(env, game, nameKey, runId) {     // the best single rounds of everybody (table "runs"), one account can appear several times
+  const rows = (await env.DB.prepare("SELECT id, name_key, hamster, score FROM runs WHERE game = ? AND score > 0 ORDER BY score DESC, created ASC LIMIT 10")
     .bind(game).all()).results || [];
-  const total = (await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE game = ? AND best > 0").bind(game).first()).n;
+  const total = (await env.DB.prepare("SELECT COUNT(*) AS n FROM runs WHERE game = ? AND score > 0").bind(game).first()).n;
   let me = null;
-  if (nameKey) {
-    const mine = await env.DB.prepare("SELECT display_name, best, updated FROM scores WHERE game = ? AND name_key = ?").bind(game, nameKey).first();
-    if (mine && mine.best > 0) {
-      const rank = (await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE game = ? AND (best > ? OR (best = ? AND updated < ?))")
-        .bind(game, mine.best, mine.best, mine.updated).first()).n + 1;
-      me = { name: mine.display_name, score: mine.best, rank };
+  if (runId) {
+    const mine = await env.DB.prepare("SELECT hamster, score, created FROM runs WHERE id = ?").bind(runId).first();
+    if (mine && mine.score > 0) {
+      const rank = (await env.DB.prepare("SELECT COUNT(*) AS n FROM runs WHERE game = ? AND (score > ? OR (score = ? AND created < ?))")
+        .bind(game, mine.score, mine.score, mine.created).first()).n + 1;
+      me = { name: mine.hamster, score: mine.score, rank };
     }
   }
-  return { ok: true, rows: rows.map(r => ({ name: r.display_name, score: r.best, me: !!nameKey && r.name_key === nameKey })), me, total };
+  return { ok: true, rows: rows.map(r => ({ name: r.hamster, score: r.score, me: !!runId && r.id === runId })), me, total };
 }
 
 async function scores(path, body, env, origin) {
   const game = typeof body.game === "string" && GAMES[body.game] ? body.game : null;
   if (!game) return reply(origin, 400, { ok: false, error: "bad_game" });
   const name = cleanName(body.name);
-  if (path === "/api/top") return reply(origin, 200, await topList(env, game, name && name.key));
+  if (path === "/api/top") return reply(origin, 200, await topList(env, game, name && name.key, null));
 
   if (!name) return reply(origin, 400, { ok: false, error: "bad_name" });
   if (!validPin(body.pin)) return reply(origin, 400, { ok: false, error: "bad_pin" });
@@ -120,14 +120,20 @@ async function scores(path, body, env, origin) {
   if (err) return reply(origin, err.status, { ok: false, error: err.error, until: err.until });
 
   const prev = await env.DB.prepare("SELECT best, last_at FROM scores WHERE game = ? AND name_key = ?").bind(game, name.key).first();
+  let runId = null;
   if (!prev || now - prev.last_at >= GAMES[game].gapMs) {                 // too many rounds in a row are ignored, the list still comes back
+    if (score > 0) {
+      const ins = await env.DB.prepare("INSERT INTO runs (game, name_key, hamster, score, created) VALUES (?, ?, ?, ?, ?)")
+        .bind(game, name.key, cleanHamster(body.hamster) || row.display_name, score, now).run();
+      runId = ins.meta && ins.meta.last_row_id || null;
+    }
     await env.DB.prepare(
       "INSERT INTO scores (game, name_key, display_name, best, runs, last_at, updated) VALUES (?, ?, ?, ?, 1, ?, ?) " +
       "ON CONFLICT (game, name_key) DO UPDATE SET display_name = excluded.display_name, runs = runs + 1, last_at = excluded.last_at, " +
       "updated = CASE WHEN excluded.best > best THEN excluded.updated ELSE updated END, best = MAX(best, excluded.best)")
       .bind(game, name.key, cleanHamster(body.hamster) || row.display_name, score, now, now).run();
   }
-  return reply(origin, 200, await topList(env, game, name.key));
+  return reply(origin, 200, await topList(env, game, name.key, runId));
 }
 
 export default {

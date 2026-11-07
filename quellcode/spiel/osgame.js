@@ -75,6 +75,15 @@ function mountObstsalat(root, ART, opts) {
   }
   function loadBest() { try { return +localStorage.getItem("obstsalat-rekord") || 0; } catch (e) { return 0; } }
   function saveBest(v) { try { localStorage.setItem("obstsalat-rekord", String(v)); } catch (e) {} }
+  /* every finished round on this device, best first (shown when the server cannot be reached) */
+  function loadRuns() { try { var a = JSON.parse(localStorage.getItem("obstsalat-liste") || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function addRun(score) {
+    var a = loadRuns(), me = { n: opts.hamsterName || "Hamster", s: score, t: Date.now() };
+    if (!a.length && S.best > 0 && S.best !== score) a.push({ n: me.n, s: S.best, t: 0 });   /* the old single record becomes the first entry */
+    a.push(me); a.sort(function (x, y) { return y.s - x.s || x.t - y.t; }); a = a.slice(0, 30);
+    try { localStorage.setItem("obstsalat-liste", JSON.stringify(a)); } catch (e) {}
+    return { rows: a.map(function (r) { return { name: r.n, score: r.s, me: r === me }; }), rank: a.indexOf(me) + 1 || null, offline: true };
+  }
   function sfx(k, a) { if (opts.sfx) try { opts.sfx(k, a); } catch (e) {} }
   function addScore(n) { S.score = Math.max(0, S.score + n); }
   function showBanner(text, secs, timed, mid) {         /* specials sit top right next to the timer; the reward (mid) sits in the middle */
@@ -278,14 +287,15 @@ function mountObstsalat(root, ART, opts) {
     if (S.done) return;
     S.done = true; S.endT = 0; S.endTitle = title || "";
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
+    S.local = S.score > 0 ? addRun(S.score) : null;
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
     if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4, false, true); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
       Promise.resolve().then(function () { return opts.board.submit(mine.score); })
-        .then(function (r) { if (S !== mine) return; S.board = r && r.rows ? r : { rows: [], offline: true }; if (S.boardOn) renderBoard(); },
-              function () { if (S !== mine) return; S.board = { rows: [], offline: true }; if (S.boardOn) renderBoard(); });
+        .then(function (r) { if (S !== mine) return; S.board = r && r.rows ? r : (mine.local || { rows: loadRuns().map(function (x) { return { name: x.n, score: x.s }; }), offline: true }); if (S.boardOn) renderBoard(); },
+              function () { if (S !== mine) return; S.board = mine.local || { rows: loadRuns().map(function (x) { return { name: x.n, score: x.s }; }), offline: true }; if (S.boardOn) renderBoard(); });
     }
     hudT.classList.remove("hurry", "tick");
   }
@@ -301,9 +311,9 @@ function mountObstsalat(root, ART, opts) {
     var rows = b.rows.slice(0, 7), meIn = rows.some(function (r) { return r.me; });
     rows.forEach(function (r, i) { boardList.appendChild(row(i + 1, r.name, r.score, (r.me ? "me" : "") + (i < 3 ? " top" : ""))); });
     var mine = b.rows.filter(function (r) { return r.me; })[0];
-    if (!meIn && (mine || b.offline)) {
+    if (!meIn && (mine || (b.offline && S.score > 0))) {
       if (rows.length) boardList.appendChild(row("", "", "", "gap"));
-      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.hamsterName || "Hamster"), mine ? mine.score : Math.max(S.best, S.score), "me"));
+      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.hamsterName || "Hamster"), mine ? mine.score : S.score, "me"));
     }
   }
   function row(rank, name, score, cls) {

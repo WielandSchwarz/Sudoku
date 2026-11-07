@@ -10,3 +10,14 @@ CREATE TABLE IF NOT EXISTS scores (
   PRIMARY KEY (game, name_key)
 );
 CREATE INDEX IF NOT EXISTS scores_top ON scores (game, best DESC, updated ASC);
+
+-- Jede einzelne Runde (für die Bestenliste der besten Runden aller Spieler).
+CREATE TABLE IF NOT EXISTS runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  game TEXT NOT NULL,
+  name_key TEXT NOT NULL,
+  hamster TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  created INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS runs_top ON runs (game, score DESC, created ASC);
