@@ -52,6 +52,14 @@
       else if (k === "frostbeere") { for (var j = 0; j < 7; j++) tone(2400 - j * 180, .25, .03, "sine", j * .05); tone(1200, .6, .02, "triangle", .1, 600); }
       else if (k === "sonnenblume") { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .16, .06, "square", i * .07); }); tone(1047, .35, .04, "triangle", .3); }
       else if (k === "honigwabe") { for (var h = 0; h < 6; h++) tone(300 + h * 60, .08, .05, "triangle", h * .05, 420 + h * 60); noise(.4, 600, 1400, 2, .03, .05); }
+      else if (k === "pusteblume") { for (var q = 0; q < 8; q++) tone(900 + q * 90, .3, .02, "sine", q * .06, 1400 + q * 90); noise(.6, 1800, 3000, 1.2, .025); }
+      else if (k === "kleeblatt") { tone(220, .5, .05, "triangle", 0, 660); tone(330, .5, .04, "sine", .1, 990); [784, 988, 1175].forEach(function (f, i) { tone(f, .14, .04, "square", .45 + i * .06); }); }
+      else if (k === "regenbogenerdbeere") { [523, 587, 659, 698, 784, 880, 988, 1047].forEach(function (f, i) { tone(f, .1, .045, "square", i * .045); }); }
+      else if (k === "uhrbluete") { for (var u = 0; u < 4; u++) { tone(1600, .04, .06, "square", u * .12); tone(1200, .04, .05, "square", u * .12 + .06); } tone(1568, .4, .05, "triangle", .5); }
+      else if (k === "gluehbeere") { [659, 831, 988, 1319].forEach(function (f, i) { tone(f, .5, .03, "sine", i * .09); }); }
+      else if (k === "knock") { tone(n > 1 ? 260 : 220, .08, .14, "triangle", 0, 120); noise(.06, 1400, 600, 2, .08); }
+      else if (k === "kokos") { noise(.18, 1800, 500, 1, .14); tone(180, .12, .1, "triangle", 0, 90); [1047, 1319, 1568].forEach(function (f, i) { tone(f, .16, .04, "triangle", .12 + i * .06); }); }
+      else if (k === "melone") { noise(.22, 1600, 300, .9, .16); tone(150, .16, .12, "sine", 0, 70); }
       else if (k === "bomb") { noise(.45, 600, 60, .8, .3, 0, "lowpass"); tone(120, .35, .14, "sine", 0, 40); noise(.2, 3000, 1500, 2, .08, .02); }
       else if (k === "tick") { tone(n <= 3 ? 1400 : 1100, .05, .06, "square"); }
       else if (k === "end") { [523, 659, 784].forEach(function (f, i) { tone(f, .2, .05, "square", i * .12); }); }

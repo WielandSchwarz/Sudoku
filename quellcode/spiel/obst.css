@@ -87,3 +87,5 @@
 .os-basket { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
 .os-basket svg { display: block; width: 100%; height: auto; overflow: visible; }
 .os-ban.rw { top: 17%; }
+.os-pov .os-ban { top: 13%; }
+.os-pov .os-ban.rw { top: 17%; }
