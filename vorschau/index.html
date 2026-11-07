@@ -22927,11 +22927,11 @@ function mountObstsalat(root, ART, opts) {
       for (var y = 0; y < 5; y++) { var half = Math.round(c.w / 2 * Math.sqrt(1 - Math.pow((y - 2) / 2.8, 2))); cx.fillRect(Math.round(x + c.w / 2 - half), c.y - 10 + y, half * 2, 1); }
     });
   }
-  function drawTint(tm) {
+  function drawTint(tm, front) {                       /* time of day and weather only tint the background; the front (fruit, hamster, bowl) stays bright */
     var cols = [];
-    if (tm === "abend") cols.push("#ffd2a8"); else if (tm === "nacht") cols.push("#6070a8");
-    if (env.weather === "regen") cols.push("#d4d8e0"); else if (env.weather === "wolken") cols.push("#eef0f2");
-    if (S.slowT > 0) cols.push("#d8ecff");
+    if (front) { if (S.slowT > 0) cols.push("#d8ecff"); }
+    else if (tm === "abend") cols.push("#ffd2a8"); else if (tm === "nacht") cols.push("#6070a8");
+    if (!front) { if (env.weather === "regen") cols.push("#d4d8e0"); else if (env.weather === "wolken") cols.push("#eef0f2"); }
     cx.globalCompositeOperation = "multiply";
     cols.forEach(function (c) { cx.fillStyle = c; cx.fillRect(0, 0, W, H); });
     cx.globalCompositeOperation = "source-over";
@@ -23010,7 +23010,7 @@ function mountObstsalat(root, ART, opts) {
     var ox = S.shake > 0 ? (Math.floor(S.t * 40) % 2 ? 1 : -1) : 0;
     cx.setTransform(1, 0, 0, 1, ox, 0);
     var bg = BG[env.season]; if (bg.complete) cx.drawImage(bg, 0, 0);
-    drawEnvBack(tm);
+    drawEnvBack(tm); drawTint(tm, false);
     var hop = S.hop > 0 ? -3 : 0, face = S.face === "normal" && S.blinkT < 0 ? "blinzeln" : S.face;
     if (HAM[face].complete) sprite(HAM[face], HB.x, HB.y + hop);
     cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(104, 131, 40, 2);
@@ -23046,7 +23046,7 @@ function mountObstsalat(root, ART, opts) {
       line(a.x, a.y, q.x, q.y, S.slowT > 0 ? "#e8f6ff" : "#fff8ec");
       cx.globalAlpha = 1;
     }
-    drawTint(tm);
+    drawTint(tm, true);
     if (S.slowT > 0) drawFrost();
     drawEnvFront(tm, dt);
     cx.setTransform(1, 0, 0, 1, 0, 0);
