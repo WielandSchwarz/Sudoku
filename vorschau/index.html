@@ -5300,7 +5300,7 @@ window.__EXTRAS = true;
   var fcard = xEl("div", "f-card", gEl("g-ui")); fcard.id = "f-card"; fcard.hidden = true;
   function renderFriendCard() {
     if (!visitor) { fcard.hidden = true; return; }
-    var id = visitor.id, h = garden.friends[id] || 0, full = h, an = visitor.an;
+    var id = visitor.id, h = garden.friends[id] || 0, full = Math.min(5, h), an = visitor.an;
     var dishes = simpleGifts();
     var hearts = heartIcons(h);
     fcard.innerHTML = '<span class="fc-pic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><span class="fc-name">' + an.name + '<span class="fc-h" aria-label="' + full + (full === 1 ? ' Herz' : ' Herzen') + '">' + hearts + '</span></span>' +
@@ -5319,10 +5319,10 @@ window.__EXTRAS = true;
       });
     }
   });
-  // every heart stays: five slots, and past five a small count next to them
+  // at most five hearts show; more are still counted behind the scenes
   function heartIcons(h) {
     var o = ""; for (var i = 0; i < 5; i++) o += '<i class="' + (i < h ? "on" : "") + '"></i>';
-    return o + (h > 5 ? '<b class="fc-n">' + h + '</b>' : "");
+    return o;
   }
   function addHeart(id, extra) {
     garden.friends[id] = (garden.friends[id] || 0) + 1;
@@ -10524,11 +10524,18 @@ window.__EXTRAS = true;
   var aqCard = aqEl.querySelector(".fi-card"), aqToast = aqEl.querySelector(".aq-toast");
   var aqBar = document.createElement("div"); aqBar.className = "aq-bar"; aqBar.style.display = "none"; scene.parentNode.insertBefore(aqBar, scene.nextSibling);   // the buttons sit under the picture, like the stoker's panel
   function aP(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); }
-  function aqSt() { var L = life(); if (!L.aq || L.aq.v !== 3) L.aq = { v: 3, s: AQ_DEF.slice(), kind: L.aq && L.aq.kind }; L.aq.s = AQ_DEF.slice(); return L.aq; }
+  function aqSt() { var L = life(); if (!L.aq || L.aq.v !== 3) L.aq = { v: 3, s: AQ_DEF.slice(), kind: L.aq && L.aq.kind }; L.aq.s = AQ_INT[AQ_INTER].s.slice(); return L.aq; }
   // ---- the tank: square glass that fills the picture. Three looks to choose from:
   // "klassik" a black-framed tank with a lid and a lamp on a wooden cabinet, "blick" seen a little from above and from the side so the water surface
   // and the right-hand pane show, "nano" a rimless glass cube with a white lid, a painted plant background and dark soil ----
   var AQ_STYLE = "klassik", AQ_G = null;
+  // three insides to choose from: "zen" calm and simple (sand, big stones, a green carpet, a slim white-and-red fish), "maerchen" colourful and busy
+  // (a little wreck, red plants, a chest, a toadstool house, a round chubby fish with big eyes), "dschungel" a nature tank (dark soil, a big root with moss and ferns, a long-finned fish)
+  var AQ_INTER = "zen", AQ_INT = {
+    zen: { s: ["", "fels", "", "felsk", "fels", ""].concat(["teppich", "teppich", "teppich", "", ""]), sub: "sand", deep: ["#d0f0f6", "#b8e8f2", "#a0dcec", "#8ad0e6", "#78c4de", "#68b6d6", "#5aa8cc", "#4e9ac2"], fish: "tancho" },
+    maerchen: { s: ["ludwig", "pest", "wrack", "seegras", "ludwig", "seegras"].concat(["muschel", "kiste", "pilz", "", "frosch"]), sub: "bunt", deep: AQ_DEEP0(), fish: "chibi" },
+    dschungel: { s: ["farn", "wurzel2", "", "pest", "seegras", "farn"].concat(["moos", "steine", "farn", "", ""]), sub: "erde", deep: ["#b0dcc8", "#98d0b8", "#80c2a8", "#6cb49a", "#5aa68c", "#4c9880", "#408a74", "#367c68"], fish: "ryukin" } };
+  function AQ_DEEP0() { return ["#c4ecf8", "#a8e0f4", "#8ed2ee", "#78c4e6", "#64b4dc", "#52a2d0", "#4490c2", "#3a7eb2"]; }
   var AQ_GEO = { klassik: { x0: 5, x1: 175, y0: 12, y1: 123, wl: 19, fb: 95 }, blick: { x0: 4, x1: 150, y0: 20, y1: 126, wl: 24, fb: 96, side: 26, up: 12 }, nano: { x0: 9, x1: 171, y0: 17, y1: 125, wl: 24, fb: 97 } };
   var aqBg = document.createElement("canvas"); aqBg.width = AQ_W; aqBg.height = AQ_H; var aqWater = new Uint8Array(AQ_W * AQ_H), aqGrav = new Uint8Array(AQ_W * AQ_H);
   var aqFront = document.createElement("canvas"); aqFront.width = AQ_W; aqFront.height = AQ_H;
@@ -10549,11 +10556,11 @@ window.__EXTRAS = true;
     // the water, gravel and back wall inside the front pane
     for (y = G.y0; y < G.y1; y++) for (x = G.x0; x < G.x1; x++) {
       var col, u = (x - G.x0) / (G.x1 - G.x0), ex = Math.min(u, 1 - u);
-      if (y >= aqFloorY(x)) { var cell = (x * 7 + y * 13 + x * y) % 7; col = AQ_STYLE === "nano" ? (y > G.y1 - 9 ? ["#e8d8b8", "#d8c4a0", "#f0e4cc", "#c8b490", "#e0d0b0", "#d0bc98", "#ecdcc0"][cell] : ["#3a2e26", "#2e241e", "#4a3a2e", "#342a22", "#40322a", "#2a221c", "#4e3e30"][cell]) : ["#d8bc90", "#c8a878", "#e4cca4", "#b8a080", "#e0c4a8", "#bc9c74", "#ecd8b4"][cell];
-        if (y - aqFloorY(x) < 2) col = AQ_STYLE === "nano" ? "#1e1814" : "#6a5440"; aqGrav[y * AQ_W + x] = 1; }
+      if (y >= aqFloorY(x)) { var cell = (x * 7 + y * 13 + x * y) % 7, IS = AQ_INT[AQ_INTER].sub; col = IS === "sand" ? ["#f0e4c8", "#e8d8b8", "#f6ecd4", "#e0d0ae", "#ecdcc0", "#e4d4b4", "#f8f0dc"][cell] : IS === "erde" ? (y > G.y1 - 8 ? ["#c8b490", "#b8a07c", "#d8c4a0", "#a8906c", "#c0a884", "#b09878", "#d0bc98"][cell] : ["#3a2e26", "#2e241e", "#4a3a2e", "#342a22", "#40322a", "#2a221c", "#4e3e30"][cell]) : IS === "bunt" ? ["#f0b8c8", "#a8d8f0", "#f8e08a", "#c8f0b8", "#e8c8f0", "#ffffff", "#f0d0a8"][cell] : AQ_STYLE === "nano" ? (y > G.y1 - 9 ? ["#e8d8b8", "#d8c4a0", "#f0e4cc", "#c8b490", "#e0d0b0", "#d0bc98", "#ecdcc0"][cell] : ["#3a2e26", "#2e241e", "#4a3a2e", "#342a22", "#40322a", "#2a221c", "#4e3e30"][cell]) : ["#d8bc90", "#c8a878", "#e4cca4", "#b8a080", "#e0c4a8", "#bc9c74", "#ecd8b4"][cell];
+        if (y - aqFloorY(x) < 2) col = AQ_INT[AQ_INTER].sub === "erde" || AQ_STYLE === "nano" ? "#1e1814" : AQ_INT[AQ_INTER].sub === "sand" ? "#c8b48c" : "#6a5440"; aqGrav[y * AQ_W + x] = 1; }
       else if (y < AQ_WL) col = AQ_STYLE === "klassik" ? ((x + y) % 2 ? "#3a3a40" : "#44444a") : ((x + y) % 2 ? "#eef8fc" : "#e4f3f9");
       else { var dv = (y - AQ_WL) / (AQ_FB - AQ_WL), v = dv * 4.2 + (ex < .08 ? (.08 - ex) * 18 : 0) - (AQ_STYLE === "nano" ? 1.6 : 0), i = Math.floor(v), f = v - i;
-        col = AQ_DEEP[Math.max(0, Math.min(7, i + (f > .5 + ((x + y) % 2) * .25 - .125 ? 1 : 0)))]; aqWater[y * AQ_W + x] = 1; }
+        col = AQ_INT[AQ_INTER].deep[Math.max(0, Math.min(7, i + (f > .5 + ((x + y) % 2) * .25 - .125 ? 1 : 0)))]; aqWater[y * AQ_W + x] = 1; }
       aP(c, x, y, 1, 1, col);
     }
     if (AQ_STYLE === "nano") { var seed = 3, R = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };   /* a painted plant background on the back glass */
@@ -10583,9 +10590,9 @@ window.__EXTRAS = true;
       for (y = G.y0 - 1; y <= G.y1; y++) { aP(c, G.x0 - 1, y, 1, 1, "#6aa8c0"); aP(c, G.x1, y, 1, 1, "#9ad0e4"); } aP(c, G.x0 - 1, G.y1, G.x1 - G.x0 + 2, 1, "#3a6a80"); aP(c, G.x0 - 1, G.y0 - 1, G.x1 - G.x0 + 2, 1, "#ffffff");
     }
     // round pebbles, bigger at the front
-    var sd = 7, R2 = function () { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; }, PB = AQ_STYLE === "nano" ? [["#f0e4cc", "#d8c4a0", "#a8946e"], ["#d8d2c4", "#aaa496", "#6e6a5e"]] : [["#f0e2c8", "#d0bc9c", "#9a8468"], ["#d8d2c4", "#aaa496", "#6e6a5e"], ["#f0c8a8", "#c89878", "#8a5e44"], ["#e4dccc", "#b4ac9c", "#7a7466"]];
+    var sd = 7, R2 = function () { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; }, PB = AQ_INT[AQ_INTER].sub === "sand" ? [["#fff8ec", "#ece0c8", "#c8b894"]] : AQ_INT[AQ_INTER].sub === "bunt" ? [["#ffd0dc", "#f0a0b8", "#b86078"], ["#d0f0ff", "#90c8e8", "#5888a8"], ["#fff0b0", "#f0d060", "#b89830"], ["#d8ffd0", "#a0e090", "#609850"]] : AQ_INT[AQ_INTER].sub === "erde" || AQ_STYLE === "nano" ? [["#f0e4cc", "#d8c4a0", "#a8946e"], ["#d8d2c4", "#aaa496", "#6e6a5e"]] : [["#f0e2c8", "#d0bc9c", "#9a8468"], ["#d8d2c4", "#aaa496", "#6e6a5e"], ["#f0c8a8", "#c89878", "#8a5e44"], ["#e4dccc", "#b4ac9c", "#7a7466"]];
     var pts = []; for (var n = 0; n < 200; n++) pts.push([G.x0 + R2() * (G.x1 - G.x0), AQ_FB + 2 + Math.pow(R2(), .8) * (G.y1 - AQ_FB), R2(), Math.floor(R2() * PB.length)]); pts.sort(function (a, b) { return a[1] - b[1]; });
-    pts.forEach(function (q) { var x2 = Math.round(q[0]), y2 = Math.round(q[1]); if (!aqGrav[y2 * AQ_W + x2]) return; if (AQ_STYLE === "nano" && y2 < G.y1 - 9 && q[2] < .7) return; var dep = (y2 - AQ_FB) / (G.y1 - AQ_FB), rx2 = .8 + dep * 2.4 + q[2] * .8, ry2 = Math.max(.7, rx2 * .6), P = PB[q[3]];
+    pts.forEach(function (q) { var x2 = Math.round(q[0]), y2 = Math.round(q[1]); if (!aqGrav[y2 * AQ_W + x2]) return; if ((AQ_STYLE === "nano" || AQ_INT[AQ_INTER].sub === "erde") && y2 < G.y1 - 9 && q[2] < .7) return; if (AQ_INT[AQ_INTER].sub === "sand" && q[2] < .8) return; var dep = (y2 - AQ_FB) / (G.y1 - AQ_FB), rx2 = .8 + dep * 2.4 + q[2] * .8, ry2 = Math.max(.7, rx2 * .6), P = PB[q[3]];
       aqDisc(c, x2, y2, rx2, ry2, function (a, b, d) { if (!aqGrav[(y2 + b) * AQ_W + x2 + a]) return null; return d > .7 ? P[2] : a + b * 1.5 < -1 ? P[0] : P[1]; }); });
     // the places for the plants and the things
     var X = function (u2) { return Math.round(G.x0 + (G.x1 - G.x0) * u2); };
@@ -10663,6 +10670,20 @@ window.__EXTRAS = true;
       aP(c, x + 2, by - 12, 3, 3, AD); aP(c, x + 3, by - 11, 1, 1, Math.floor(t / 900) % 3 ? "#ffe08a" : "#ffffff");
       aqDisc(c, x, by - 17, 12, 7, function (a, b, d) { return b > 2 ? null : d > .8 ? AD : (Math.abs(a + 5) < 2 && Math.abs(b + 2) < 2) || (Math.abs(a - 5) < 2 && Math.abs(b + 3) < 2) || (Math.abs(a) < 2 && Math.abs(b + 5) < 1.5) ? "#fff8ec" : b < -3 ? "#f05a48" : "#d8463c"; });
       aP(c, x - 12, by - 15, 24, 1, AD); aP(c, x - 9, by - 1, 3, 1, Ag); aP(c, x + 6, by - 1, 3, 1, Al); },
+    fels: function (c, x, by) { aqDisc(c, x + 2, by - 1, 14, 4, function (a, b, d) { return aqGrav[(by - 1 + b) * AQ_W + x + 2 + a] ? "rgba(40,30,20,.25)" : null; });
+      for (var yy = 0; yy < 26; yy++) { var w = Math.round(13 * Math.sqrt(1 - Math.pow(yy / 26, 1.6))), sk = Math.round(yy * .25); for (var xx = -w; xx <= w; xx++) { var e = xx === -w || xx === w || yy === 25; aP(c, x + xx + sk, by - yy, 1, 1, e ? "#4a463c" : xx + sk * .5 < -w * .3 ? "#d8d2c4" : xx > w * .45 ? "#7a756a" : (xx * 3 + yy * 7) % 13 === 0 ? "#8a8478" : "#aaa496"); } }
+      for (var m = 0; m < 9; m++) aP(c, x - 8 + m * 2, by - 1 - (m % 3), 2, 1, m % 2 ? "#5aa040" : "#86cc62"); },
+    felsk: function (c, x, by) { for (var yy = 0; yy < 12; yy++) { var w = Math.round(8 * Math.sqrt(1 - Math.pow(yy / 12, 1.5))); for (var xx = -w; xx <= w; xx++) aP(c, x + xx, by - yy, 1, 1, xx === -w || xx === w || yy === 11 ? "#4a463c" : xx < -w * .3 ? "#d8d2c4" : xx > w * .4 ? "#7a756a" : "#aaa496"); } },
+    teppich: function (c, x, by, t) { for (var xx = -24; xx <= 24; xx++) { var h = 2 + ((xx * 7 + 99) % 4), sw = Math.round(Math.sin(t / 800 + xx * .3) * .6); for (var k = 0; k < h; k++) aP(c, x + xx + (k === h - 1 ? sw : 0), by - k, 1, 1, k === h - 1 ? "#a8e070" : (xx + k) % 2 ? "#4e9a44" : "#68b450"); } },
+    wrack: function (c, x, by, t) { var x0 = x - 20;   /* a little sunken boat, tipped over in the gravel */
+      for (var yy = 0; yy < 16; yy++) { var l = Math.round(Math.max(0, 6 - yy * .6)), r = 40 - Math.round(Math.max(0, (yy - 4) * .9)); for (var xx = l; xx <= r; xx++) { var e = xx === l || xx === r || yy === 0 || yy === 15; aP(c, x0 + xx, by - 15 + yy + Math.round(xx * .12), 1, 1, e ? AD : yy % 4 === 1 ? "#6a4228" : xx < 14 ? "#9a6a44" : "#8a5a38"); } }
+      aP(c, x0 + 22, by - 30, 2, 18, AD); aP(c, x0 + 23, by - 29, 1, 16, "#8a5a38"); aP(c, x0 + 24, by - 28, 9, 6, "#e8e0d0"); aP(c, x0 + 24, by - 28, 9, 1, "#c8c0b0"); aP(c, x0 + 26, by - 25, 3, 2, "#d8463c");
+      aP(c, x0 + 10, by - 8, 3, 3, AD); aP(c, x0 + 11, by - 7, 1, 1, "#1e3a4e"); aP(c, x0 + 18, by - 7, 3, 3, AD); aP(c, x0 + 19, by - 6, 1, 1, "#1e3a4e"); if ((t % 3000) < 300 && Math.random() < .3) aqBub(x0 + 11, by - 10, 1);
+      [[3, -2], [30, 0], [16, -1]].forEach(function (q) { aP(c, x0 + q[0], by + q[1] - 2, 4, 2, "#5aa040"); aP(c, x0 + q[0] + 1, by + q[1] - 3, 2, 1, "#86cc62"); }); },
+    wurzel2: function (c, x, by, t) { var br = [[-26, 0, 22, -2, 4], [-6, -2, 4, -40, 3], [2, -18, 18, -46, 2], [-2, -14, -22, -38, 2], [6, -4, 26, -22, 3], [-14, -1, -28, -16, 2]];
+      br.forEach(function (b) { var n = Math.max(Math.abs(b[2] - b[0]), Math.abs(b[3] - b[1])); for (var i = 0; i <= n; i++) { var u = i / n, xx = Math.round(x + b[0] + (b[2] - b[0]) * u + Math.sin(u * 5) * 2), yy = Math.round(by + b[1] + (b[3] - b[1]) * u), w = Math.max(1, Math.round(b[4] * (1 - u * .6)));
+        aP(c, xx - 1, yy - w, w + 2, w + 1, AD); aP(c, xx, yy - w + 1, w, w, "#7a4e2c"); aP(c, xx, yy - w + 1, 1, 1, "#a87448"); if (i % 5 === 2) { aP(c, xx - 1, yy - w - 1, 3, 1, "#5aa040"); aP(c, xx, yy - w - 2, 1, 1, "#86cc62"); } } });
+      [[-6, -40], [18, -46], [-22, -38], [26, -22]].forEach(function (q, j) { for (var f = 0; f < 6; f++) { var s2 = aqSw(t, f, 6, j, 2); aP(c, x + q[0] - 3 + f + s2, q[1] + by - 2 - Math.round(Math.abs(f - 2.5)), 1, 2, f % 2 ? "#4e9a44" : "#86cc62"); } }); },
     steine: function (c, x, by) { [[-10, 6, 4, "#a8a294"], [0, 8, 6, "#8a8478"], [10, 5, 4, "#b8b2a4"], [-4, 3, 2, "#c8c2b4"], [6, 3, 2, "#9a9284"]].forEach(function (q) { aqDisc(c, x + q[0], by - q[2], q[1], q[2], function (a, b, d) { return d > .75 ? "#4a463c" : a + b < -q[2] ? "#e0dacc" : q[3]; }); }); },
     anker: function (c, x, by, t) { aP(c, x - 2, by - 22, 4, 20, AD); aP(c, x - 1, by - 21, 2, 18, "#8a6a5a"); aP(c, x - 1, by - 21, 1, 18, "#b08a78"); aqDisc(c, x, by - 25, 3, 3, function (a, b, d) { return d > .5 ? AD : null; }); aP(c, x - 7, by - 19, 14, 4, AD); aP(c, x - 6, by - 18, 12, 2, "#8a6a5a");
       for (var i = -9; i <= 9; i++) { var yy = by - 2 - Math.round((i / 9) * (i / 9) * 6); aP(c, x + i, yy - 1, 1, 4, AD); aP(c, x + i, yy, 1, 2, "#8a6a5a"); } aP(c, x - 11, by - 10, 3, 4, AD); aP(c, x + 9, by - 10, 3, 4, AD);
@@ -10698,25 +10719,35 @@ window.__EXTRAS = true;
     perl: { n: "Perlschupper", rx: 9, ry: 8, tail: "fan", tl: 8, df: 5, pearl: 1, P: ["#f8a040", "#ffd090", "#fff0d8", "#b8501a", "#ffc070", "#ffe0b0", "#fff6e6"] },
     komet: { n: "Komet", rx: 12, ry: 5, tail: "fork", tl: 17, df: 6, P: ["#f05a2a", "#ff8a50", "#ffd0b0", "#a0301a", "#ff9a6a", "#ffe8dc", "#d8401a"] },
     shubu: { n: "Shubunkin", rx: 11, ry: 6, tail: "fan", tl: 14, df: 7, spots: 1, P: ["#e4ecf4", "#ffffff", "#ffffff", "#4a5a70", "#c8d8e8", "#e8f0f8", "#b8c8dc"] },
+    tancho: { n: "Tancho", rx: 12, ry: 5, tail: "fork", tl: 16, df: 6, dot: 1, P: ["#f8f4ee", "#ffffff", "#ffffff", "#8a8070", "#f0ece4", "#ffffff", "#e8e0d4"] },
+    chibi: { n: "Kugelfisch-Goldie", rx: 9, ry: 8, tail: "fan", tl: 8, df: 4, big: 1, P: ["#ff8a3a", "#ffb070", "#fff0dc", "#c0401a", "#ffb070", "#ffd8b0", "#f06a2a"] },
+    ryukin: { n: "Ryukin", rx: 10, ry: 8, tail: "fan", tl: 12, df: 9, hump: 1, spots: 0, calico: 1, P: ["#f86a3a", "#ff9a6a", "#fff4ec", "#a8301a", "#ff9a7a", "#fff0e8", "#e0502a"] },
     oranda: { n: "Oranda", rx: 10, ry: 7, tail: "fan", tl: 12, df: 6, cap: 1, P: ["#f6eee2", "#ffffff", "#ffffff", "#8a7a6a", "#fff4e8", "#ffffff", "#e8dcc8"] }
   };
-  function aqKind() { var L = life(); return AQ_KINDS[(L.aq && L.aq.kind) || "perl"] || AQ_KINDS.perl; }
+  function aqKind() { return AQ_KINDS[AQ_INT[AQ_INTER].fish] || AQ_KINDS.perl; }
   function aqFish(c, F, t, K) {
     K = K || aqKind(); var P = K.P, rx = K.rx, ry = K.ry, dir = F.dir, X = Math.round(F.x), Y = Math.round(F.y + Math.sin(t / 700) * .6), sw = Math.sin(t / (F.fast ? 80 : 190)), px = function (dx, dy, col) { aP(c, X - dx * dir, Y + dy, 1, 1, col); };
     var hash = function (a, b) { return ((a * 73856093) ^ (b * 19349663)) >>> 0; };
     for (var i = 0; i < K.tl; i++) { var h = Math.round(2 + i * (K.tail === "fork" ? .55 : .7)), off = Math.round(sw * i * .35 + Math.sin(t / 300 + i * .4) * i * .08);   /* the tail */
-      for (var dy = -h; dy <= h; dy++) { if (K.tail === "fan" && i > K.tl * .6 && Math.abs(dy) < 2 && i < K.tl - 1) continue; if (K.tail === "fork" && i > 5 && Math.abs(dy) < h - 3) continue;
+      for (var dy = -h; dy <= h; dy++) { if (K.tail === "fan" && i > K.tl * .6 && Math.abs(dy) < 2 && i < K.tl - 1) continue; if (K.tail === "fork" && i > 5 && Math.abs(dy) < h - 4) continue;
         var edge = Math.abs(dy) === h || i === K.tl - 1, col = edge ? P[3] : i > K.tl * .65 ? P[5] : Math.abs(dy) > h - 2 ? P[4] : P[0];
         if (K.spots && !edge && hash(i, dy) % 5 === 0) col = hash(i, dy) % 2 ? "#f08a2a" : "#2a2a3a"; px(rx - 1 + i, dy + off, col); } }
     for (var dy2 = -ry; dy2 <= ry; dy2++) for (var dx = -rx; dx <= rx; dx++) { var d = (dx / (rx + .4)) * (dx / (rx + .4)) + (dy2 / (ry + .4)) * (dy2 / (ry + .4)); if (d > 1) continue;
       var col2 = d > .84 ? P[3] : dy2 < -ry * .55 ? P[1] : dy2 > ry * .45 ? P[2] : (dx * 2 + dy2 * 3 + 99) % 7 === 0 && dx > -rx * .5 ? P[6] : P[0];
+      if (K.hump && dy2 < 0 && dx > -2 && dx < 6) { /* the high back */ }
+      if (K.calico && d <= .84 && ((dx * 5 + dy2 * 3 + 99) % 11 < 3 || dy2 > 2)) col2 = dy2 > 2 ? P[2] : "#ffffff";
       if (K.pearl && d <= .84 && (dx + dy2 * 2 + 99) % 3 === 0 && dy2 % 2 === 0) col2 = P[6];
       if (K.spots && d <= .84) { var hh = hash(Math.floor((dx + 20) / 3), Math.floor((dy2 + 20) / 3)) % 7; if (hh === 0) col2 = "#f08a2a"; else if (hh === 1) col2 = "#2a2a3a"; else if (hh === 2) col2 = "#7a9ac8"; }
       px(dx, dy2, col2); }
+    if (K.hump) for (var hy = -ry - 3; hy < -ry + 1; hy++) for (var hx = -3; hx <= 6; hx++) { var hd = (hx - 1.5) / 5, hv = (hy + ry - 1) / 3.6; if (hd * hd + hv * hv <= 1) px(hx, hy, hd * hd + hv * hv > .65 ? P[3] : P[1]); }
+    if (K.dot) for (var dy3 = -ry; dy3 <= -ry + 4; dy3++) for (var dx3 = -rx + 1; dx3 <= -rx + 6; dx3++) { var dd3 = ((dx3 + rx - 3.5) / 2.8) * ((dx3 + rx - 3.5) / 2.8) + ((dy3 + ry - 2) / 2.4) * ((dy3 + ry - 2) / 2.4); if (dd3 <= 1) px(dx3, dy3, dd3 > .6 ? "#c82a1e" : "#f0463a"); }
     if (K.cap) for (var cy = -ry - 2; cy <= -ry + 4; cy++) for (var cx = -rx - 1; cx <= -2; cx++) { var cd = ((cx + rx * .55) / (rx * .55)) * ((cx + rx * .55) / (rx * .55)) + ((cy + ry - 1) / 3.6) * ((cy + ry - 1) / 3.6); if (cd > 1) continue; px(cx, cy, cd > .7 ? "#a8281e" : (cx + cy * 2 + 99) % 3 ? "#e8463c" : "#ff7a6a"); }   /* the oranda's red cap */
     for (var k = 0; k < K.df; k++) { var fh = k < K.df / 2 ? 2 + k : K.df + 1 - k; for (var q = 0; q < fh; q++) px(-2 + k, -ry - 1 - q + Math.round(sw * q * .3), q === fh - 1 ? P[3] : P[4]); }   /* the dorsal fin */
     var fl = Math.sin(t / 130) > 0 ? 1 : 0; px(-3, ry - 1 + fl, P[5]); px(-2, ry + fl, P[4]); px(-1, ry + fl, P[3]); px(-3, ry + fl, P[3]);
-    var ex = -rx + 3, eyY = K.cap ? -1 : -2;
+    var ex = -rx + 3, eyY = K.cap || K.dot ? -1 : -2;
+    if (K.big && !F.happy && !F.blink) { for (var by = -5; by <= 0; by++) for (var bx = -rx + 1; bx <= -rx + 6; bx++) { var bd = ((bx + rx - 3.5) / 3) * ((bx + rx - 3.5) / 3) + ((by + 2.5) / 3) * ((by + 2.5) / 3); if (bd <= 1) px(bx, by, bd > .75 ? P[3] : bd < .45 ? "#1e1410" : "#ffffff"); }
+      px(-rx + 2, -4, "#ffffff"); px(-rx + 3, -4, "#ffffff"); px(-rx + 2, -3, "#ffffff"); px(-rx + 5, -1, "#ffffff"); px(-rx + 4, 2, "#ff8a9a"); px(-rx + 5, 2, "#ff8a9a"); px(-rx + 6, 2, "#ff8a9a"); }
+    else
     if (F.happy || F.blink) { px(ex - 1, eyY + 1, AD); px(ex, eyY, AD); px(ex + 1, eyY, AD); px(ex + 2, eyY + 1, AD); }
     else { for (var ey = eyY - 2; ey <= eyY + 1; ey++) for (var exx = ex - 1; exx <= ex + 2; exx++) px(exx, ey, (ey === eyY - 2 || ey === eyY + 1) && (exx === ex - 1 || exx === ex + 2) ? P[0] : "#ffffff"); px(ex, eyY - 1, "#1e1410"); px(ex + 1, eyY - 1, "#1e1410"); px(ex, eyY, "#1e1410"); px(ex + 1, eyY, "#1e1410"); px(ex, eyY - 1, "#ffffff"); }
     if (F.blush || F.happy) { px(ex + 1, eyY + 3, "#ff8a9a"); px(ex + 2, eyY + 3, "#ff8a9a"); }
@@ -10856,7 +10887,7 @@ window.__EXTRAS = true;
     if (S.s[10]) { P(8, 6, 4, 1, "#5aa04e"); if (S.s[10] === "seerose") P(9, 5, 1, 1, "#ff9ab8"); }
     g.innerHTML = '<svg viewBox="0 0 24 21" shape-rendering="crispEdges">' + px + '</svg>'; }
   renderBowl();
-  window.__aq = { style: function (k) { aqBuild(k); }, open: aqOpen, close: aqClose, st: function () { return aq && { mode: aq.mode, fish: [Math.round(aq.fish.x), Math.round(aq.fish.y), aq.fish.dir], flakes: aq.flakes.length, slots: aqSt().s.slice() }; }, set: function (i, k) { aqSt().s[i] = k; }, kind: function (k) { life().aq.kind = k; }, variants: function () { aq.preview = true; aqc.drawImage(aqBg, 0, 0); var ks = Object.keys(AQ_KINDS), pos = [[45, 44], [118, 44], [45, 76], [118, 76], [82, 100]]; ks.forEach(function (k, i) { aqFish(aqc, { x: pos[i][0], y: pos[i][1], dir: -1 }, 400, AQ_KINDS[k]); }); return ks.map(function (k) { return AQ_KINDS[k].n; }); }, tap: function (x, y) { aqCv.dispatchEvent(new PointerEvent("pointerdown", { clientX: 0, clientY: 0 })); } };
+  window.__aq = { style: function (k) { aqBuild(k); }, inter: function (k) { AQ_INTER = k; aqBuild("klassik"); if (aq) { aqSt(); } }, open: aqOpen, close: aqClose, st: function () { return aq && { mode: aq.mode, fish: [Math.round(aq.fish.x), Math.round(aq.fish.y), aq.fish.dir], flakes: aq.flakes.length, slots: aqSt().s.slice() }; }, set: function (i, k) { aqSt().s[i] = k; }, kind: function (k) { life().aq.kind = k; }, variants: function () { aq.preview = true; aqc.drawImage(aqBg, 0, 0); var ks = Object.keys(AQ_KINDS), pos = [[45, 44], [118, 44], [45, 76], [118, 76], [82, 100]]; ks.forEach(function (k, i) { aqFish(aqc, { x: pos[i][0], y: pos[i][1], dir: -1 }, 400, AQ_KINDS[k]); }); return ks.map(function (k) { return AQ_KINDS[k].n; }); }, tap: function (x, y) { aqCv.dispatchEvent(new PointerEvent("pointerdown", { clientX: 0, clientY: 0 })); } };
   // ===================== friends (preview): one screen at a time, and a new pixel screen for a new friend =====================
   // nothing piles up: the item screen waits while a letter is open, and a letter waits while any screen is open (letterOk already checks .ip)
   var _so_ipNext = ipNext;
@@ -10880,13 +10911,14 @@ window.__EXTRAS = true;
     say(name + " schenkt " + N() + " " + got.join(", ") + ".");
     if (window.SudokuSave) window.SudokuSave();
   };
+  var _so_ip5 = itemPop; itemPop = function (o) { if (o && o.friend && o.hearts > 4) return; return _so_ip5.apply(this, arguments); };   /* no friendship card any more once an animal has five hearts or more */
   var _so_ipNext2 = ipNext;
   ipNext = function () {
     var o = ipQueue[0];
     if (!o || !o.friend || letterOn || document.querySelector(".gift-wrap")) return _so_ipNext2();
     ipQueue.shift(); ipOn = true;
     var an = ALLANI[o.friend] || ANIMALS[o.friend], el = ipEl = document.createElement("div"); el.className = "ip ipf"; scene.appendChild(el);
-    var n = Math.min(o.hearts, 9), hearts = "";
+    var n = Math.min(o.hearts, 5), hearts = "";
     for (var i = 0; i < n; i++) hearts += '<i class="ipf-h" style="animation-delay:' + (700 + i * 220) + 'ms">' + HEARTPX + '</i>';
     var floaters = ""; for (var k = 0; k < 7; k++) floaters += '<i class="ipf-fl" style="left:' + (8 + k * 13) + '%;animation-delay:-' + (k * 0.55).toFixed(2) + 's">' + HEARTPX + '</i>';
     var gifts = o.icons.map(function (s_) { return '<span class="ipf-gi">' + s_ + '</span>'; }).join("");
@@ -18436,7 +18468,7 @@ window.__EXTRAS = true;
   // ---- the disaster: rammed the iceberg. The bow goes down slowly, the lifeboats row away; then from the side, the whole ship sinks ----
   var kpCat = document.createElement("button"); kpCat.type = "button"; kpCat.className = "kp-cat"; kpCat.textContent = "Katastrophe"; kpCat.hidden = true; kpEl.appendChild(kpCat);
   kpCat.addEventListener("click", function (e) { e.stopPropagation(); if (!kp || !kp.sink) return; kpCat.hidden = true;
-    if (kp.sink.side) { if (!kp.done) { if (typeof rwStart === "function") { kp.done = true; rwStart(cpSky()); } else kpGameOver(); } return; }   /* "Weiter": into the lifeboat and row */   // the second time it says "Weiter": the lifeboat scene stays until you go on
+    if (kp.sink.side) { if (!kp.done) kpGameOver(); return; }   /* "Weiter": into the lifeboat and row */   // the second time it says "Weiter": the lifeboat scene stays until you go on
     kp.sink.side = { t0: performance.now(), bub: [] }; kpBk.style.visibility = "hidden"; kpToast.hidden = true;
     dzTone(52, 4, .22, "sawtooth", 0, 30); dzTone(78, 3, .1, "triangle", 1.5, 40); dzNoise(9, 380, .5, .22, 1, 3); setTimeout(function () { if (kp && kp.sink) dzWhistle(1.8); }, 1200); kpKick(); });
   function kpSinkReset() { kpCat.hidden = true; kpCat.textContent = "Katastrophe"; kpBk.style.visibility = ""; kpBk.style.transform = ""; }

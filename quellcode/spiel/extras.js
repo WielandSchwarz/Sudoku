@@ -675,7 +675,7 @@
   var fcard = xEl("div", "f-card", gEl("g-ui")); fcard.id = "f-card"; fcard.hidden = true;
   function renderFriendCard() {
     if (!visitor) { fcard.hidden = true; return; }
-    var id = visitor.id, h = garden.friends[id] || 0, full = h, an = visitor.an;
+    var id = visitor.id, h = garden.friends[id] || 0, full = Math.min(5, h), an = visitor.an;
     var dishes = simpleGifts();
     var hearts = heartIcons(h);
     fcard.innerHTML = '<span class="fc-pic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><span class="fc-name">' + an.name + '<span class="fc-h" aria-label="' + full + (full === 1 ? ' Herz' : ' Herzen') + '">' + hearts + '</span></span>' +
@@ -694,10 +694,10 @@
       });
     }
   });
-  // every heart stays: five slots, and past five a small count next to them
+  // at most five hearts show; more are still counted behind the scenes
   function heartIcons(h) {
     var o = ""; for (var i = 0; i < 5; i++) o += '<i class="' + (i < h ? "on" : "") + '"></i>';
-    return o + (h > 5 ? '<b class="fc-n">' + h + '</b>' : "");
+    return o;
   }
   function addHeart(id, extra) {
     garden.friends[id] = (garden.friends[id] || 0) + 1;

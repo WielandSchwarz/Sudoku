@@ -272,10 +272,9 @@ src = rep(src, '''    document.getElementById("album-count").textContent = n + "
 src = rep(src, '''        '<span>' + (got ? a.name.replace("Papageientaucher", "Papageien\\u00adtaucher") : "???") + '</span></div>';''', '''        '<span>' + (got ? a.name.replace("Papageientaucher", "Papageien\\u00adtaucher") : "???") + '</span>' + (fr && got && fr.visitors.indexOf(a.id) >= 0 ? heartsHTML(fr.friends[a.id] || 0) : "") + '</div>';''')
 src = rep(src, '''  var albumBtn = document.getElementById("album-btn"), albumPanel = document.getElementById("album");''', '''  var albumBtn = document.getElementById("album-btn"), albumPanel = document.getElementById("album");
   function heartsHTML(h) {
-    var row = "";   // every heart stays: five slots, and past five a small count
-    for (var i = 0; i < 5; i++) row += '<i' + (i < h ? "" : ' class="off"') + '>\u2665</i>';
-    if (h > 5) row += '<b>' + h + '</b>';
-    return '<span class="hearts" aria-label="' + h + (h === 1 ? ' Herz' : ' Herzen') + '">' + row + '</span>';
+    var row = "", hs = Math.min(5, h);   // at most five hearts show; more are still counted behind the scenes
+    for (var i = 0; i < 5; i++) row += '<i' + (i < hs ? "" : ' class="off"') + '>\u2665</i>';
+    return '<span class="hearts" aria-label="' + hs + (hs === 1 ? ' Herz' : ' Herzen') + '">' + row + '</span>';
   }''')
 # garden visitors only come once they are in the album
 src = rep(src, '  var SEEN_KEY = "sudoku-animals-seen";\n  var seen = {};\n', '  var SEEN_KEY = "sudoku-animals-seen";\n  var seen = {};\n  window.HamsterSeen = function () { return seen; };\n')   # the album's seen list (anchored, so no other 'var seen' is hit)

@@ -21,13 +21,14 @@
     say(name + " schenkt " + N() + " " + got.join(", ") + ".");
     if (window.SudokuSave) window.SudokuSave();
   };
+  var _so_ip5 = itemPop; itemPop = function (o) { if (o && o.friend && o.hearts > 4) return; return _so_ip5.apply(this, arguments); };   /* no friendship card any more once an animal has five hearts or more */
   var _so_ipNext2 = ipNext;
   ipNext = function () {
     var o = ipQueue[0];
     if (!o || !o.friend || letterOn || document.querySelector(".gift-wrap")) return _so_ipNext2();
     ipQueue.shift(); ipOn = true;
     var an = ALLANI[o.friend] || ANIMALS[o.friend], el = ipEl = document.createElement("div"); el.className = "ip ipf"; scene.appendChild(el);
-    var n = Math.min(o.hearts, 9), hearts = "";
+    var n = Math.min(o.hearts, 5), hearts = "";
     for (var i = 0; i < n; i++) hearts += '<i class="ipf-h" style="animation-delay:' + (700 + i * 220) + 'ms">' + HEARTPX + '</i>';
     var floaters = ""; for (var k = 0; k < 7; k++) floaters += '<i class="ipf-fl" style="left:' + (8 + k * 13) + '%;animation-delay:-' + (k * 0.55).toFixed(2) + 's">' + HEARTPX + '</i>';
     var gifts = o.icons.map(function (s_) { return '<span class="ipf-gi">' + s_ + '</span>'; }).join("");
