@@ -169,122 +169,137 @@ def ellfn(cx, cy, rx, ry):
     return f
 
 
+K = 1.5   # fruit is drawn with 1.5x as many pixels as the first draft (more pixels, never scaled)
+
+
 def apfel(cols=('#f8a090', '#e8584a', '#c83c34', '#962a26'), leaf=True):
-    L = Layer(15, 16)
+    w, h = 22, 23
+    L = Layer(w, h)
+    cx, cy, rx, ry = w / 2, 13.6, 10.2, 9.4
     def f(x, y):
-        dx, dy = (x + .5 - 7.5) / 6.6, (y + .5 - 9.5) / 6.4
-        dip = .25 * math.exp(-((x + .5 - 7.5) / 1.8) ** 2) if dy < -.6 else 0
-        return (dx, dy) if dx * dx + dy * dy <= 1 and dy > -1 + dip * 1.4 else None
+        dx, dy = (x + .5 - cx) / rx, (y + .5 - cy) / ry
+        dip = .22 * math.exp(-((x + .5 - cx) / 2.6) ** 2) if dy < -.55 else 0
+        return (dx, dy) if dx * dx + dy * dy <= 1 and dy > -1 + dip * 1.5 else None
     shaded(L, f, cols)
-    L.vl(7, 1, 3, C('#6a4428')); L.px(8, 1, C('#6a4428'))
+    L.vl(10, 1, 5, C('#6a4428')); L.vl(11, 1, 4, C('#5a3820'))
     if leaf:
-        L.px(9, 2, C('#6aa84e')); L.px(10, 2, C('#6aa84e')); L.px(10, 1, C('#8cc86a')); L.px(11, 1, C('#6aa84e'))
+        for (x, y) in ((13, 3), (14, 3), (15, 2), (16, 2), (14, 2), (15, 1), (16, 1), (17, 1), (13, 4)):
+            L.px(x, y, C('#6aa84e'))
+        L.px(15, 2, C('#8cc86a')); L.px(16, 1, C('#8cc86a'))
     return L.outline()
 
 
 def birne():
-    L = Layer(13, 17)
+    w, h = 19, 25
+    L = Layer(w, h)
     def f(x, y):
-        a = ellfn(6.5, 5.5, 3.6, 4)(x, y); b = ellfn(6.5, 11.5, 5.8, 5)(x, y)
+        a = ellfn(9.5, 8, 5.2, 5.6)(x, y); b = ellfn(9.5, 16.5, 8.6, 7.6)(x, y)
         if b:
             return b
         if a:
             return (a[0] * .6, a[1] * .6 - .5)
-        if 5 <= y <= 8:
-            w = 3.6 + (y - 5) * .7
-            if abs(x + .5 - 6.5) <= w:
-                return ((x + .5 - 6.5) / 6, -.4)
+        if 8 <= y <= 12:
+            ww = 4.4 + (y - 8) * .7
+            if abs(x + .5 - 9.5) <= ww:
+                return ((x + .5 - 9.5) / 9, -.4)
         return None
     shaded(L, f, ('#f4f6b0', '#d8dc60', '#b8c044', '#8a9230'))
-    L.vl(6, 0, 2, C('#6a4428')); L.px(7, 0, C('#6a4428'))
-    L.px(4, 12, C('#a8a83c')); L.px(9, 9, C('#a8a83c'))
+    L.vl(9, 0, 3, C('#6a4428')); L.px(10, 0, C('#6a4428'))
+    for (x, y) in ((6, 17), (13, 13), (11, 20), (5, 12)):
+        L.px(x, y, C('#a8a83c'))
     return L.outline()
 
 
 def pflaume():
-    L = Layer(12, 14)
-    shaded(L, ellfn(6, 7.5, 5.6, 6.4), ('#c8a8e0', '#8a5aac', '#6a3e8c', '#4a2866'))
-    for y in range(3, 12):
-        L.px(7 if y < 7 else 7, y, C('#58307a'))
-    L.px(6, 0, C('#6a4428')); L.px(6, 1, C('#6a4428'))
+    w, h = 18, 21
+    L = Layer(w, h)
+    shaded(L, ellfn(9, 11.4, 8.4, 9.4), ('#c8a8e0', '#8a5aac', '#6a3e8c', '#4a2866'))
+    for y in range(4, 18):
+        L.px(10 if y < 11 else 10, y, C('#58307a'))
+    L.px(9, 0, C('#6a4428')); L.px(9, 1, C('#6a4428')); L.px(9, 2, C('#6a4428'))
+    for (x, y) in ((5, 6), (6, 5), (4, 8)):
+        L.px(x, y, C('#d8c4ec'))
     return L.outline()
 
 
 def erdbeere():
-    L = Layer(13, 15)
-    widths = [0, 0, 0, 11, 13, 13, 13, 12, 11, 10, 9, 7, 5, 3, 1]
+    w, h = 19, 22
+    L = Layer(w, h)
+    widths = [0, 0, 0, 0, 15, 18, 19, 19, 19, 18, 17, 16, 15, 14, 12, 11, 9, 7, 5, 3, 1, 0]
     def f(x, y):
-        w = widths[y]
-        if w and abs(x + .5 - 6.5) <= w / 2:
-            return ((x + .5 - 6.5) / 6.5, (y - 8) / 7)
+        ww = widths[y] if y < len(widths) else 0
+        if ww and abs(x + .5 - 9.5) <= ww / 2:
+            return ((x + .5 - 9.5) / 9.5, (y - 11) / 10)
         return None
     shaded(L, f, ('#ff9a8a', '#f05a4a', '#d8343a', '#a82430'))
-    for (x, y) in ((3, 5), (7, 5), (10, 6), (5, 8), (9, 9), (3, 9), (6, 11), (8, 12), (4, 7)):
-        L.px(x, y, C('#f8d850'))
-    for (x, y) in ((3, 2), (4, 3), (5, 2), (6, 1), (6, 2), (7, 2), (8, 3), (9, 2), (5, 3), (7, 3), (6, 3)):
+    for (x, y) in ((4, 7), (9, 7), (14, 8), (6, 10), (12, 11), (3, 12), (9, 13), (15, 12), (6, 15), (11, 16), (8, 18), (5, 9), (13, 14)):
+        L.px(x, y, C('#f8d850')); L.px(x, y + 1, C('#c8303a'))
+    for (x, y) in ((4, 3), (5, 4), (6, 4), (7, 3), (8, 2), (9, 2), (10, 2), (11, 3), (12, 4), (13, 4), (14, 3), (6, 5), (9, 3), (9, 4), (12, 5), (8, 4), (10, 4)):
         L.px(x, y, C('#5aa04e'))
-    L.px(6, 0, C('#3e7c3c'))
+    L.vl(9, 0, 2, C('#3e7c3c'))
     return L.outline()
 
 
 def tomate():
-    L = Layer(15, 14)
-    shaded(L, ellfn(7.5, 8, 7, 5.8), ('#ff9a7a', '#f05a3c', '#d8402c', '#a82c22'))
-    for (x, y) in ((5, 2), (6, 3), (7, 2), (8, 3), (9, 2), (7, 1), (4, 3), (10, 3), (7, 3)):
+    w, h = 22, 20
+    L = Layer(w, h)
+    shaded(L, ellfn(11, 11.6, 10.4, 8.4), ('#ff9a7a', '#f05a3c', '#d8402c', '#a82c22'))
+    for (x, y) in ((7, 3), (8, 4), (9, 4), (10, 3), (11, 2), (12, 3), (13, 4), (14, 4), (15, 3), (6, 4), (16, 4), (11, 3), (11, 4), (10, 5), (12, 5)):
         L.px(x, y, C('#5aa04e'))
+    L.vl(11, 0, 2, C('#3e7c3c'))
     return L.outline()
 
 
 def moehre():
-    L = Layer(9, 20)
+    w, h = 13, 29
+    L = Layer(w, h)
     def f(x, y):
-        if y < 5:
+        if y < 8:
             return None
-        w = max(1, 7 - (y - 5) * .45)
-        if abs(x + .5 - 4.5) <= w / 2:
-            return ((x + .5 - 4.5) / 3.5, (y - 12) / 8)
+        ww = max(1, 10 - (y - 8) * .45)
+        if abs(x + .5 - 6.5) <= ww / 2:
+            return ((x + .5 - 6.5) / 5, (y - 17) / 11)
         return None
     shaded(L, f, ('#ffc890', '#f8963c', '#e8762a', '#b8561e'))
-    for y in (8, 11, 14):
-        L.px(3, y, C('#c8601e')); L.px(4, y, C('#c8601e'))
-    for (x, y) in ((2, 1), (3, 2), (3, 3), (4, 0), (4, 1), (4, 2), (4, 3), (5, 1), (5, 2), (6, 2), (5, 3), (4, 4)):
+    for y in (12, 16, 20, 24):
+        L.px(5, y, C('#c8601e')); L.px(6, y, C('#c8601e')); L.px(7, y - 1, C('#d86a24'))
+    for (x, y) in ((3, 1), (4, 2), (4, 3), (5, 4), (6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (7, 1), (7, 2), (8, 2), (9, 3), (8, 3), (7, 4), (5, 5), (6, 6), (7, 6), (5, 6)):
         L.px(x, y, C('#5aa04e'))
+    L.px(6, 2, C('#8cc86a')); L.px(4, 2, C('#8cc86a'))
     return L.outline()
 
 
 def kuerbis():
-    L = Layer(19, 16)
-    def f(x, y):
-        v = ellfn(9.5, 9.5, 9, 6.2)(x, y)
-        return v
-    shaded(L, f, ('#ffd08a', '#f8a03c', '#e8822a', '#b85e1e'))
-    for x in (5, 9, 13):
-        for y in range(5, 15):
+    w, h = 27, 23
+    L = Layer(w, h)
+    shaded(L, ellfn(13.5, 13.8, 13, 9), ('#ffd08a', '#f8a03c', '#e8822a', '#b85e1e'))
+    for x in (7, 13, 20):
+        for y in range(6, 22):
             if L.get(x, y)[3]:
                 L.px(x, y, C('#c8681e'))
-    L.rect(8, 1, 3, 3, C('#6a8a3e')); L.px(8, 1, C('#8aaa50'))
+    L.rect(12, 1, 3, 5, C('#6a8a3e')); L.vl(12, 1, 5, C('#8aaa50')); L.px(15, 1, C('#6a8a3e'))
     return L.outline()
 
 
 def kirschen():
-    L = Layer(14, 15)
-    for cx in (3.5, 10.5):
-        shaded(L, ellfn(cx, 10.5, 3.6, 3.6), ('#ff8a8a', '#e03c44', '#b82434', '#861826'))
-    for t in range(9):
-        L.px(int(3 + t * .45), 7 - int(t * .75), C('#6a8a3e'))
-        L.px(int(10 - t * .2), 7 - int(t * .75), C('#6a8a3e'))
-    L.px(6, 0, C('#5aa04e')); L.px(7, 0, C('#5aa04e')); L.px(8, 1, C('#5aa04e'))
+    w, h = 21, 22
+    L = Layer(w, h)
+    for cx in (5.2, 15.6):
+        shaded(L, ellfn(cx, 15.6, 5.2, 5.2), ('#ff8a8a', '#e03c44', '#b82434', '#861826'))
+    for t in range(14):
+        L.px(int(5 + t * .45), 11 - int(t * .75), C('#6a8a3e'))
+        L.px(int(15 - t * .25), 11 - int(t * .75), C('#6a8a3e'))
+    for (x, y) in ((9, 0), (10, 0), (11, 1), (12, 1), (13, 1), (12, 0)):
+        L.px(x, y, C('#5aa04e'))
     return L.outline()
 
 
 def zapfen():
-    """pine cone: the thing not to cut"""
-    L = Layer(11, 15)
-    def f(x, y):
-        return ellfn(5.5, 7.5, 5, 7)(x, y)
-    shaded(L, f, ('#c8925c', '#a87040', '#8a5630', '#6a4024'))
-    for y in range(2, 14):
-        for x in range(1, 10):
+    w, h = 16, 22
+    L = Layer(w, h)
+    shaded(L, ellfn(8, 11, 7.4, 10.4), ('#c8925c', '#a87040', '#8a5630', '#6a4024'))
+    for y in range(2, 21):
+        for x in range(1, 15):
             if L.get(x, y)[3] and ((x + (y // 2)) % 3 == 0) and y % 2 == 0:
                 L.px(x, y, C('#5a361e'))
             if L.get(x, y)[3] and ((x + (y // 2)) % 3 == 1) and y % 2 == 1:
@@ -292,18 +307,91 @@ def zapfen():
     return L.outline()
 
 
+# ---------- bomb equivalent and specials
+def stachelkastanie():
+    """the bomb: a spiky green chestnut husk, split open a little so the shiny chestnut shows"""
+    w, h = 24, 24
+    L = Layer(w, h)
+    cx = cy = 12
+    shaded(L, ellfn(cx, cy, 8.4, 8.4), ('#b8d870', '#8ab848', '#6a9a38', '#4a7a28'))
+    for k in range(16):                                   # spines all around
+        a = k * math.pi / 8 + .2
+        for t in range(9, 12):
+            L.px(int(cx + math.cos(a) * t), int(cy + math.sin(a) * t), C('#4a7a28') if t < 11 else C('#86a848'))
+    for y in range(5, 20):                                # spines on the surface
+        for x in range(5, 20):
+            if L.get(x, y)[3] and (x * 3 + y * 5) % 7 == 0:
+                L.px(x, y, C('#d8f0a0'))
+    for (x, y) in ((10, 9), (11, 8), (12, 8), (13, 9), (14, 10), (10, 10), (11, 9), (12, 9), (13, 10), (11, 10), (12, 10)):
+        L.px(x, y, C('#7a3a1e'))                          # chestnut peeking out
+    L.px(11, 8, C('#c86a3a')); L.px(12, 8, C('#c86a3a'))
+    return L.outline()
+
+
+def frostbeere():
+    """special: frosty blueberries -> slow motion"""
+    w, h = 20, 20
+    L = Layer(w, h)
+    for (bx, by) in ((6.5, 12.5), (13.5, 12.5), (10, 7)):
+        shaded(L, ellfn(bx, by, 5.4, 5.4), ('#e8f6ff', '#9cc8f0', '#5a8ad0', '#3a5aa0'))
+    for (x, y) in ((4, 9), (9, 4), (14, 10), (8, 14), (12, 6), (16, 14), (3, 13)):
+        L.px(x, y, C('#ffffff'))
+    for (x, y) in ((6, 12), (13, 12), (10, 7)):
+        L.px(x, y, C('#2a3a70')); L.px(x + 1, y, C('#2a3a70'))
+    return L.outline()
+
+
+def sonnenblume():
+    """special: sunflower head -> double points"""
+    w, h = 24, 24
+    L = Layer(w, h)
+    for k in range(12):
+        a = k * math.pi / 6
+        shaded(L, ellfn(12 + math.cos(a) * 7.4, 12 + math.sin(a) * 7.4, 3.2, 3.2), ('#fff2a0', '#f8d040', '#e8b020', '#c08a18'))
+    shaded(L, ellfn(12, 12, 6.2, 6.2), ('#a8703a', '#7a4a24', '#5a3418', '#3e2410'))
+    for y in range(7, 18):
+        for x in range(7, 18):
+            if (x + y) % 3 == 0 and ((x + .5 - 12) ** 2 + (y + .5 - 12) ** 2) < 30:
+                L.px(x, y, C('#2e1a0c'))
+    return L.outline()
+
+
+def honigwabe():
+    """special: a piece of honeycomb with a drip -> fruit rain"""
+    w, h = 22, 23
+    L = Layer(w, h)
+    cells = [(7, 5), (14, 5), (3.5, 11), (10.5, 11), (17.5, 11), (7, 17), (14, 17)]
+    for (cx, cy) in cells:
+        for y in range(int(cy - 4), int(cy + 4)):
+            for x in range(int(cx - 4), int(cx + 4)):
+                dx, dy = abs(x + .5 - cx), abs(y + .5 - cy)
+                d = max(dx * .87 + dy * .5, dy)               # hexagon distance
+                if d <= 3.6:
+                    L.px(x, y, C('#c88a28') if d > 2.7 else (C('#fff0a0') if dx + dy < 1.4 and x + .5 < cx else C('#f8c848')))
+    for y in range(20, 23):
+        L.px(14, y, C('#f0b030'))
+    L.px(14, 22, C('#f8d060'))
+    return L.outline()
+
+
 FRUITS = {   # name: (sprite, flesh colour, seed colour, radius for hit tests, weight per season)
-    'apfel': (apfel, '#f8ecc0', '#6a4428', 7, dict(fruehling=1, sommer=2, herbst=4, winter=3)),
-    'birne': (birne, '#f6f2c8', '#6a4428', 7, dict(fruehling=1, sommer=2, herbst=3, winter=2)),
-    'pflaume': (pflaume, '#f0b83c', '#b8862a', 6, dict(fruehling=0, sommer=2, herbst=3, winter=1)),
-    'erdbeere': (erdbeere, '#f8c4c0', '#ffffff', 6, dict(fruehling=3, sommer=4, herbst=1, winter=1)),
-    'tomate': (tomate, '#f07a5a', '#f8e090', 7, dict(fruehling=1, sommer=4, herbst=2, winter=1)),
-    'moehre': (moehre, '#f8b05a', '#ffd08a', 6, dict(fruehling=2, sommer=2, herbst=2, winter=2)),
-    'kuerbis': (kuerbis, '#f8c050', '#fff2c0', 9, dict(fruehling=0, sommer=1, herbst=4, winter=1)),
-    'kirschen': (kirschen, '#f07070', '#f8e8c0', 7, dict(fruehling=2, sommer=3, herbst=0, winter=0)),
+    'apfel': (apfel, '#f8ecc0', '#6a4428', 10, dict(fruehling=1, sommer=2, herbst=4, winter=3)),
+    'birne': (birne, '#f6f2c8', '#6a4428', 10, dict(fruehling=1, sommer=2, herbst=3, winter=2)),
+    'pflaume': (pflaume, '#f0b83c', '#b8862a', 9, dict(fruehling=0, sommer=2, herbst=3, winter=1)),
+    'erdbeere': (erdbeere, '#f8c4c0', '#ffffff', 9, dict(fruehling=3, sommer=4, herbst=1, winter=1)),
+    'tomate': (tomate, '#f07a5a', '#f8e090', 10, dict(fruehling=1, sommer=4, herbst=2, winter=1)),
+    'moehre': (moehre, '#f8b05a', '#ffd08a', 8, dict(fruehling=2, sommer=2, herbst=2, winter=2)),
+    'kuerbis': (kuerbis, '#f8c050', '#fff2c0', 12, dict(fruehling=0, sommer=1, herbst=4, winter=1)),
+    'kirschen': (kirschen, '#f07070', '#f8e8c0', 10, dict(fruehling=2, sommer=3, herbst=0, winter=0)),
 }
-GOLD = (lambda: apfel(('#fff6c0', '#f8d850', '#e0b030', '#a87c20'), leaf=True), '#fff2b0', '#c89a3a', 7)
-CONE = (zapfen, '#d8a870', '#6a4024', 6)
+GOLD = (lambda: apfel(('#fff6c0', '#f8d850', '#e0b030', '#a87c20'), leaf=True), '#fff2b0', '#c89a3a', 10)
+CONE = (zapfen, '#d8a870', '#6a4024', 9)
+SPECIAL = {
+    'kastanie': (stachelkastanie, '#f4e4c0', '#7a3a1e', 11),
+    'frostbeere': (frostbeere, '#d8ecff', '#ffffff', 10),
+    'sonnenblume': (sonnenblume, '#f8e080', '#5a3418', 11),
+    'honigwabe': (honigwabe, '#fff0a0', '#f0b030', 10),
+}
 
 
 # ------------------------------------------------------------------ bowl
@@ -403,7 +491,7 @@ def build(out_dir):
     for name, (f, flesh, seed, r, weights) in FRUITS.items():
         L = f(); art['fruit'][name] = dict(img=uri(L.im), w=L.w, h=L.h, flesh=flesh, seed=seed, r=r, weights=weights)
         L.im.save(os.path.join(out_dir, 'obst_%s.png' % name))
-    for name, (f, flesh, seed, r) in (('goldapfel', GOLD), ('zapfen', CONE)):
+    for name, (f, flesh, seed, r) in [('goldapfel', GOLD), ('zapfen', CONE)] + list(SPECIAL.items()):
         L = f(); art['fruit'][name] = dict(img=uri(L.im), w=L.w, h=L.h, flesh=flesh, seed=seed, r=r, weights={})
         L.im.save(os.path.join(out_dir, 'obst_%s.png' % name))
     for k in range(4):

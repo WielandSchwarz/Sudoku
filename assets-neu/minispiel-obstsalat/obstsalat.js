@@ -1,21 +1,25 @@
 // ===================== Obstsalat (mini game, preview): fruit flies up out of the meadow, swipe to cut it,
-// the pieces fill the salad bowl next to the hamster. Pine cones are not for cutting. Tap the hamster = done. =====================
-// mountObstsalat(root, ART, opts) -> { setEnv({season, time, weather}), restart(), destroy() }
+// the pieces fill the salad bowl next to the hamster. More and more fruit comes in volleys for big combos.
+// Specials: frost berries = slow motion, sunflower = double points, honeycomb = fruit rain.
+// The spiky chestnut husk is the bomb: cutting it ends the round. Tap the hamster = done. =====================
+// mountObstsalat(root, ART, opts) -> { setEnv({season, time, weather}), restart(), destroy(), state() }
 // root: an element with position:relative and aspect-ratio 4/3. ART: obstsalat_art.json.
 function mountObstsalat(root, ART, opts) {
   opts = opts || {};
   var W = 180, H = 135, G = 150;                       // room pixels, gravity in px/s^2
-  var GOAL = 40;                                        // bar units for a full bowl
+  var GOAL = 60;                                        // bar units for a full bowl
   var INK = "#3a2414";
+  var SPECIALS = { frostbeere: { t: 5, ban: "Zeitlupe" }, sonnenblume: { t: 7, ban: "Doppelte Punkte" }, honigwabe: { t: 4, ban: "Obstregen" } };
 
-  // ---------- DOM: canvas, banner, close button, little popups
+  // ---------- DOM
   root.classList.add("os-root");
   root.innerHTML = '<canvas class="os-cv" width="180" height="135"></canvas>' +
-    '<b class="os-ban"></b><button type="button" class="os-x" aria-label="Obstsalat beenden">×</button>' +
-    '<div class="os-pops"></div><div class="os-end" hidden><b class="os-end-t"></b></div>';
+    '<b class="os-ban"><span class="os-ban-t"></span><i class="os-ban-time"></i></b><button type="button" class="os-x" aria-label="Obstsalat beenden">×</button>' +
+    '<b class="os-x2" hidden>×2</b><div class="os-pops"></div><div class="os-end" hidden><b class="os-end-t"></b></div>';
   var cv = root.querySelector(".os-cv"), cx = cv.getContext("2d");
   cx.imageSmoothingEnabled = false;
-  var ban = root.querySelector(".os-ban"), pops = root.querySelector(".os-pops"), endEl = root.querySelector(".os-end"), endT = root.querySelector(".os-end-t");
+  var ban = root.querySelector(".os-ban"), banT = root.querySelector(".os-ban-t"), banTime = root.querySelector(".os-ban-time");
+  var pops = root.querySelector(".os-pops"), endEl = root.querySelector(".os-end"), endT = root.querySelector(".os-end-t"), x2El = root.querySelector(".os-x2");
 
   // ---------- images
   function img(src) { var i = new Image(); i.src = src; return i; }
@@ -25,8 +29,15 @@ function mountObstsalat(root, ART, opts) {
   var BIG = { im: img(ART.bowl_big.img), w: ART.bowl_big.w, h: ART.bowl_big.h };
   var FR = {};
   Object.keys(ART.fruit).forEach(function (k) {
-    var f = ART.fruit[k], o = { k: k, w: f.w, h: f.h, r: f.r, flesh: f.flesh, seed: f.seed, weights: f.weights, im: img(f.img), data: null };
-    o.im.onload = function () { var c = document.createElement("canvas"); c.width = o.w; c.height = o.h; var g = c.getContext("2d"); g.drawImage(o.im, 0, 0); o.data = g.getImageData(0, 0, o.w, o.h); };
+    var f = ART.fruit[k], o = { k: k, w: f.w, h: f.h, r: f.r, flesh: f.flesh, seed: f.seed, weights: f.weights, im: img(f.img), data: null, sil: null };
+    o.im.onload = function () {
+      var c = document.createElement("canvas"); c.width = o.w; c.height = o.h; var g = c.getContext("2d"); g.drawImage(o.im, 0, 0); o.data = g.getImageData(0, 0, o.w, o.h);
+      o.sil = {};                                       // silhouettes for the glow of special items, in two colours
+      ["#ffffff", "#bfe8ff", "#ffd8a0"].forEach(function (col) {
+        var s = document.createElement("canvas"); s.width = o.w; s.height = o.h; var sg = s.getContext("2d"); sg.drawImage(o.im, 0, 0);
+        sg.globalCompositeOperation = "source-in"; sg.fillStyle = col; sg.fillRect(0, 0, o.w, o.h); o.sil[col] = s;
+      });
+    };
     FR[k] = o;
   });
 
@@ -40,93 +51,152 @@ function mountObstsalat(root, ART, opts) {
   var CLOUDS = [{ x: 20, y: 30, w: 30 }, { x: 110, y: 40, w: 38 }, { x: 70, y: 52, w: 24 }];
 
   // ---------- game state
-  var S;
+  var S, banTimer = 0;
   function reset() {
-    S = { items: [], halves: [], drops: [], trail: [], fill: 0, shown: 0, spawnT: .9, t: 0, done: false, endT: 0, face: "normal", faceT: 0, hop: 0, shake: 0, barFlash: 0,
-      blinkT: 2 + Math.random() * 3, stroke: null, strokeHits: 0, strokeT: 0, cuts: 0 };
-    endEl.hidden = true; pops.innerHTML = "";
-    ban.textContent = "Obstsalat"; ban.classList.remove("pop", "away"); void ban.offsetWidth; ban.classList.add("pop");
-    setTimeout(function () { ban.classList.add("away"); }, 2200);
+    S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], fill: 0, shown: 0, spawnT: .8, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
+      face: "normal", faceT: 0, hop: 0, hops: 0, shake: 0, barFlash: 0, flash: 0, blinkT: 2 + Math.random() * 3,
+      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 9 + Math.random() * 4, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [] };
+    endEl.hidden = true; pops.innerHTML = ""; x2El.hidden = true;
+    showBanner("Obstsalat", 2.2);
+  }
+  function showBanner(text, secs, timed) {
+    banT.textContent = text; banTime.style.display = timed ? "block" : "none"; banTime.style.transform = "scaleX(1)";
+    ban.classList.remove("pop", "away"); void ban.offsetWidth; ban.classList.add("pop");
+    clearTimeout(banTimer); banTimer = setTimeout(function () { ban.classList.add("away"); }, secs * 1000);
   }
 
-  function pick() {
-    var r = Math.random(), lvl = Math.min(1, S.fill / GOAL);
-    if (S.t > 4 && r < .1 + lvl * .1) return "zapfen";
-    if (r > .965) return "goldapfel";
+  // ---------- spawning: volleys that grow with time
+  function fruitKey() {
     var keys = [], tot = 0;
     Object.keys(FR).forEach(function (k) { var w = (FR[k].weights || {})[env.season] || 0; if (w) { keys.push([k, w]); tot += w; } });
     var x = Math.random() * tot;
     for (var i = 0; i < keys.length; i++) { x -= keys[i][1]; if (x <= 0) return keys[i][0]; }
     return keys[0][0];
   }
-  function launch() {
-    var k = pick(), f = FR[k];
-    var x = 30 + Math.random() * 110;
-    var vx = (90 - x) / 100 * (25 + Math.random() * 20) + (Math.random() - .5) * 14;
-    var vy = -(152 + Math.random() * 30);
-    S.items.push({ k: k, x: x, y: H + f.h, vx: vx, vy: vy, cut: false });
+  function launch(k, x, peak, drift) {
+    var f = FR[k], y0 = H + f.h / 2 + 2;
+    var vy = -Math.sqrt(2 * G * (y0 - peak));
+    var vx = drift != null ? drift : (90 - x) / 100 * (20 + Math.random() * 20) + (Math.random() - .5) * 14;
+    S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt });
+  }
+  function volley() {
+    var t = S.t, n = Math.min(7, 1 + Math.floor(t / 10) + (Math.random() < .5 ? 1 : 0));
+    var bombP = t < 6 ? 0 : Math.min(.2, .07 + t / 600);
+    var cluster = Math.random() < Math.min(.75, .25 + t / 80);          // fruit close together = combo chance
+    var baseX = 40 + Math.random() * 100, peak = 14 + Math.random() * 30;
+    for (var i = 0; i < n; i++) {
+      var k = Math.random() < bombP && i > 0 ? "kastanie" : Math.random() < .03 ? "goldapfel" : fruitKey();
+      var x = cluster ? baseX + (i - (n - 1) / 2) * 11 + (Math.random() - .5) * 4 : 26 + Math.random() * 128;
+      var pk = cluster ? peak + Math.random() * 8 : 14 + Math.random() * 34;
+      var drift = cluster ? (90 - baseX) / 100 * 22 + (i - (n - 1) / 2) * 6 : null;
+      S.queue.push({ at: S.wt + (cluster ? i * .06 : i * .16), k: k, x: Math.max(16, Math.min(164, x)), peak: pk, drift: drift });
+    }
+    if (S.t > S.nextSpecial) {
+      var sk = ["frostbeere", "sonnenblume", "honigwabe"][Math.floor(Math.random() * 3)];
+      S.queue.push({ at: S.wt + .3, k: sk, x: 50 + Math.random() * 80, peak: 18 + Math.random() * 16, drift: null });
+      S.nextSpecial = S.t + 11 + Math.random() * 6;
+    }
   }
 
   // ---------- slicing
   function hash(x, y) { return ((x * 73856093) ^ (y * 19349663)) >>> 0; }
+  function hexRgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+  function sampleSkin(f) { var d = f.data.data, o = ((f.h >> 1) * f.w + (f.w >> 1)) * 4; return "rgb(" + d[o] + "," + d[o + 1] + "," + d[o + 2] + ")"; }
   function sliceItem(it, dx, dy) {
     var f = FR[it.k]; if (!f.data) return;
     var l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;
-    var halves = [document.createElement("canvas"), document.createElement("canvas")];
-    var ctxs = halves.map(function (c) { c.width = f.w; c.height = f.h; return c.getContext("2d"); });
+    var cs = [document.createElement("canvas"), document.createElement("canvas")];
+    var ctxs = cs.map(function (c) { c.width = f.w; c.height = f.h; return c.getContext("2d"); });
     var ids = ctxs.map(function (g) { return g.createImageData(f.w, f.h); });
     var src = f.data.data, flesh = hexRgb(f.flesh), seed = hexRgb(f.seed), ink = hexRgb(INK);
     for (var y = 0; y < f.h; y++) for (var x = 0; x < f.w; x++) {
       var o = (y * f.w + x) * 4; if (!src[o + 3]) continue;
       var s = (x + .5 - f.w / 2) * nx + (y + .5 - f.h / 2) * ny, side = s < 0 ? 0 : 1, d = Math.abs(s);
       var c = [src[o], src[o + 1], src[o + 2]];
-      if (d < .9) c = ink;                                                // new outline along the cut
-      else if (d < 2.8 && !(src[o] === ink[0] && src[o + 1] === ink[1] && src[o + 2] === ink[2])) c = hash(x, y) % 7 === 0 && d > 1.6 ? seed : flesh;
+      if (d < .9) c = ink;
+      else if (d < 3.4 && !(src[o] === ink[0] && src[o + 1] === ink[1] && src[o + 2] === ink[2])) c = hash(x, y) % 7 === 0 && d > 1.8 ? seed : flesh;
       var D = ids[side].data; D[o] = c[0]; D[o + 1] = c[1]; D[o + 2] = c[2]; D[o + 3] = 255;
     }
     ctxs.forEach(function (g, i) { g.putImageData(ids[i], 0, 0); });
-    var push = 26;
-    S.halves.push({ c: halves[0], x: it.x, y: it.y, vx: it.vx * .6 - nx * push, vy: it.vy * .3 - ny * push - 20, w: f.w, h: f.h });
-    S.halves.push({ c: halves[1], x: it.x, y: it.y, vx: it.vx * .6 + nx * push, vy: it.vy * .3 + ny * push - 20, w: f.w, h: f.h });
+    var push = 28;
+    S.halves.push({ c: cs[0], x: it.x, y: it.y, vx: it.vx * .6 - nx * push, vy: it.vy * .3 - ny * push - 20, w: f.w, h: f.h });
+    S.halves.push({ c: cs[1], x: it.x, y: it.y, vx: it.vx * .6 + nx * push, vy: it.vy * .3 + ny * push - 20, w: f.w, h: f.h });
     var skin = sampleSkin(f);
-    for (var k = 0; k < 10; k++) {
-      var a = Math.random() * Math.PI * 2, sp = 30 + Math.random() * 45;
+    for (var k = 0; k < 14; k++) {
+      var a = Math.random() * Math.PI * 2, sp = 30 + Math.random() * 55;
       S.drops.push({ x: it.x, y: it.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 25, c: k % 3 ? f.flesh : skin, life: .5 + Math.random() * .4 });
     }
+    return skin;
   }
-  function sampleSkin(f) { var d = f.data.data, o = ((f.h >> 1) * f.w + (f.w >> 1)) * 4; return "rgb(" + d[o] + "," + d[o + 1] + "," + d[o + 2] + ")"; }
-  function hexRgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
-
   function segDist(px, py, ax, ay, bx, by) {
     var vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy, t = l2 ? Math.max(0, Math.min(1, ((px - ax) * vx + (py - ay) * vy) / l2)) : 0;
     return Math.hypot(px - (ax + vx * t), py - (ay + vy * t));
   }
+  function points(n) { return S.doubleT > 0 ? n * 2 : n; }
   function cutAlong(ax, ay, bx, by) {
     if (S.done) return;
     var len = Math.hypot(bx - ax, by - ay); if (len < 1.2) return;
     S.items.forEach(function (it) {
-      if (it.cut) return;
+      if (it.cut || S.done) return;
       var f = FR[it.k];
-      if (segDist(it.x, it.y, ax, ay, bx, by) <= f.r + 1) {
-        it.cut = true; sliceItem(it, bx - ax, by - ay);
-        if (it.k === "zapfen") {
-          S.fill = Math.max(0, S.fill - 4); S.face = "schreck"; S.faceT = .9; S.shake = .3; S.barFlash = .5;
-        } else {
-          S.fill += it.k === "goldapfel" ? 4 : 1; S.strokeHits++; S.cuts++;
-          if (it.k === "goldapfel") { S.face = "froh"; S.faceT = .9; S.hop = .3; popText("+4", it.x, it.y); }
-        }
-      }
+      if (segDist(it.x, it.y, ax, ay, bx, by) > f.r + 1) return;
+      it.cut = true;
+      if (it.k === "kastanie") { boom(it); return; }
+      var skin = sliceItem(it, bx - ax, by - ay);
+      S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
+      S.fill += points(it.k === "goldapfel" ? 4 : 1);
+      if (it.k === "goldapfel") { cheer(1); popText(S.doubleT > 0 ? "+8" : "+4", it.x, it.y, "#f8d850"); }
+      if (SPECIALS[it.k]) special(it.k);
     });
   }
+  function special(k) {
+    var sp = SPECIALS[k];
+    if (k === "frostbeere") S.slowT = sp.t;
+    if (k === "sonnenblume") { S.doubleT = sp.t; x2El.hidden = false; }
+    if (k === "honigwabe") { S.rainT = sp.t; S.rainSpawn = 0; }
+    S.specialMax = sp.t; S.specialKey = k;
+    showBanner(sp.ban, sp.t, true);
+    cheer(1);
+  }
+  function boom(it) {                                   // the chestnut husk: white flash, spines fly, the round ends
+    S.flash = .6; S.shake = .45; S.face = "schreck"; S.faceT = 9;
+    for (var k = 0; k < 40; k++) {
+      var a = k / 40 * Math.PI * 2, sp = 50 + Math.random() * 70;
+      S.bits.push({ x: it.x, y: it.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, c: k % 3 ? "#6a9a38" : "#d8f0a0", life: .7 + Math.random() * .4 });
+    }
+    S.items.forEach(function (o) { if (!o.cut) { var dx = o.x - it.x, dy = o.y - it.y, d = Math.hypot(dx, dy) || 1; o.vx += dx / d * 60; o.vy = Math.max(o.vy, 0) + 20; } });
+    finish("Autsch!");
+  }
+  function cheer(n) { S.face = "froh"; S.faceT = .6 + n * .35; S.hop = .18; S.hops = n; }
 
-  // ---------- input: swipe to cut, tap the hamster to finish
+  // ---------- combo: badge, confetti, rays, a double hop
+  function combo(n, x, y) {
+    var bonus = points(n - 1);
+    S.fill += bonus; cheer(2);
+    var e = document.createElement("div"); e.className = "os-combo c" + Math.min(6, n);
+    e.innerHTML = '<b></b><i></i>';
+    e.querySelector("b").textContent = n + "er-Kombi"; e.querySelector("i").textContent = "+" + bonus;
+    e.style.left = Math.max(22, Math.min(78, x / W * 100)) + "%"; e.style.top = Math.max(22, Math.min(70, y / H * 100)) + "%";
+    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1300);
+    S.strokeCuts.forEach(function (c) {
+      for (var k = 0; k < 10; k++) {
+        var a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 60;
+        S.bits.push({ x: c.x, y: c.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, c: k % 2 ? c.c : c.f, life: .8 + Math.random() * .5, big: k % 4 === 0 });
+      }
+    });
+    for (var r = 0; r < 10; r++) S.rays.push({ x: x, y: y, a: r / 10 * Math.PI * 2 + Math.random() * .2, t: 0 });
+    if (n >= 5) S.flash = Math.max(S.flash, .18);
+  }
+
+  // ---------- input
   var HB = { x: 128, y: 91, w: 48, h: 46 };
   function pt(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H }; }
   var down = null;
   cv.addEventListener("pointerdown", function (ev) {
-    if (S.done) { if (S.endT > 1.2) reset(); return; }
-    var p = pt(ev); down = { x: p.x, y: p.y, t: performance.now(), moved: 0 }; S.stroke = p; S.strokeHits = 0;
-    cv.setPointerCapture(ev.pointerId); S.trail.push({ x: p.x, y: p.y, t: S.t });
+    if (S.done) { if (S.endT > 1.4) reset(); return; }
+    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeCuts = [];
+    try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
+    S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
   cv.addEventListener("pointermove", function (ev) {
     if (!down || !S.stroke) return;
@@ -139,26 +209,27 @@ function mountObstsalat(root, ART, opts) {
     if (!down) return;
     var p = pt(ev);
     if (down.moved < 3 && p.x >= HB.x && p.x < HB.x + HB.w && p.y >= HB.y + 4 && p.y < HB.y + HB.h) finish();
-    if (S.strokeHits >= 3) {
-      var bonus = S.strokeHits - 1; S.fill += bonus; S.face = "froh"; S.faceT = 1; S.hop = .35;
-      popText("+" + bonus, p.x, p.y);
+    if (S.strokeHits >= 3 && !S.done) {
+      var lc = S.strokeCuts[S.strokeCuts.length - 1];
+      combo(S.strokeHits, lc.x, lc.y);
     }
-    down = null; S.stroke = null; S.strokeHits = 0;
+    down = null; S.stroke = null; S.strokeHits = 0; S.strokeCuts = [];
   }
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
   root.querySelector(".os-x").addEventListener("click", function () { if (opts.onClose) opts.onClose(); else reset(); });
 
-  function popText(t, x, y) {
-    var e = document.createElement("b"); e.className = "os-pop"; e.textContent = t;
+  function popText(t, x, y, col) {
+    var e = document.createElement("b"); e.className = "os-pop"; e.textContent = t; if (col) e.style.color = col;
     e.style.left = (x / W * 100) + "%"; e.style.top = (y / H * 100) + "%";
     pops.appendChild(e); setTimeout(function () { e.remove(); }, 900);
   }
-  function finish() {
+  function finish(title) {
     if (S.done) return;
-    S.done = true; S.endT = 0;
+    S.done = true; S.endT = 0; S.endTitle = title || "";
+    S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
   }
 
-  // ---------- drawing helpers (always on whole room pixels)
+  // ---------- drawing helpers (whole room pixels)
   function px(x, y, c) { cx.fillStyle = c; cx.fillRect(Math.round(x), Math.round(y), 1, 1); }
   function line(x0, y0, x1, y1, c) {
     x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
@@ -171,46 +242,42 @@ function mountObstsalat(root, ART, opts) {
   function drawBar() {
     var x = 3, y = 12, w = 9, h = 110;
     cx.fillStyle = INK; cx.fillRect(x - 1, y - 1, w + 2, h + 2);
-    cx.fillStyle = "#9a6634"; cx.fillRect(x, y, w, h);                      // wooden frame
+    cx.fillStyle = "#9a6634"; cx.fillRect(x, y, w, h);
     cx.fillStyle = "#ba844a"; cx.fillRect(x, y, 1, h); cx.fillRect(x, y, w, 1);
     cx.fillStyle = "#764a22"; cx.fillRect(x + w - 1, y, 1, h); cx.fillRect(x, y + h - 1, w, 1);
     var ix = x + 2, iy = y + 2, iw = w - 4, ih = h - 4;
     cx.fillStyle = INK; cx.fillRect(ix, iy, iw, ih);
     cx.fillStyle = "#4e3018"; cx.fillRect(ix + 1, iy + 1, iw - 2, ih - 2);
-    var gold = Math.round(ih * .15);                                          // golden optimum at the top
+    var gold = Math.round(ih * .15);
     cx.fillStyle = "#c89a3a"; cx.fillRect(ix + 1, iy + 1, iw - 2, gold);
     var fh = Math.round((ih - 2) * Math.min(1, S.shown / GOAL));
     if (fh > 0) {
       var full = S.shown >= GOAL * .85;
-      cx.fillStyle = S.barFlash > 0 && Math.floor(S.barFlash * 10) % 2 ? "#f08a7e" : full ? "#f0c040" : "#e8763a";
+      cx.fillStyle = S.barFlash > 0 && Math.floor(S.barFlash * 10) % 2 ? "#f08a7e" : full ? "#f0c040" : S.doubleT > 0 ? "#f0904a" : "#e8763a";
       cx.fillRect(ix + 1, iy + ih - 1 - fh, iw - 2, fh);
       cx.fillStyle = full ? "#f8de78" : "#f8a060"; cx.fillRect(ix + 1, iy + ih - 1 - fh, 1, fh);
     }
-    for (var k = 0; k < 3; k++) {                                             // nails
+    for (var k = 0; k < 3; k++) {
       var ny = [y + 3, y + (h >> 1), y + h - 4][k];
       px(x + 1, ny, "#d4c8b2"); px(x + w - 2, ny, "#d4c8b2"); px(x + 1, ny + 1, "#7a7066"); px(x + w - 2, ny + 1, "#7a7066");
     }
   }
-
   function drawEnvBack(tm) {
-    if (tm === "nacht") {
-      STARS.forEach(function (s) { if (Math.sin(S.t * 2 + s[2]) > -.4) px(s[0], s[1], "#fff8d8"); });
-    }
-    if (env.weather === "wolken" || env.weather === "regen") {
-      CLOUDS.forEach(function (c, i) {
-        var x = ((c.x + S.t * (3 + i)) % 230) - 40;
-        cx.fillStyle = env.weather === "regen" ? "#c8ccd4" : "#f4f6f8";
-        for (var y = 0; y < 5; y++) { var half = Math.round(c.w / 2 * Math.sqrt(1 - Math.pow((y - 2) / 2.8, 2))); cx.fillRect(Math.round(x + c.w / 2 - half), c.y - 10 + y, half * 2, 1); }
-      });
-    }
+    if (tm === "nacht") STARS.forEach(function (s) { if (Math.sin(S.t * 2 + s[2]) > -.4) px(s[0], s[1], "#fff8d8"); });
+    if (env.weather === "wolken" || env.weather === "regen") CLOUDS.forEach(function (c, i) {
+      var x = ((c.x + S.t * (3 + i)) % 230) - 40;
+      cx.fillStyle = env.weather === "regen" ? "#c8ccd4" : "#f4f6f8";
+      for (var y = 0; y < 5; y++) { var half = Math.round(c.w / 2 * Math.sqrt(1 - Math.pow((y - 2) / 2.8, 2))); cx.fillRect(Math.round(x + c.w / 2 - half), c.y - 10 + y, half * 2, 1); }
+    });
   }
   function drawTint(tm) {
-    var col = null;
-    if (tm === "abend") col = "#ffd2a8"; else if (tm === "nacht") col = "#6070a8";
-    if (env.weather === "regen") col = col ? col : "#c8ced8"; else if (env.weather === "wolken" && !col) col = "#e8ecf0";
-    if (env.season === "winter" && env.weather === "schnee" && !col) col = "#eef2f8";
-    if (!col) return;
-    cx.globalCompositeOperation = "multiply"; cx.fillStyle = col; cx.fillRect(0, 0, W, H); cx.globalCompositeOperation = "source-over";
+    var cols = [];
+    if (tm === "abend") cols.push("#ffd2a8"); else if (tm === "nacht") cols.push("#6070a8");
+    if (env.weather === "regen") cols.push("#d4d8e0"); else if (env.weather === "wolken") cols.push("#eef0f2");
+    if (S.slowT > 0) cols.push("#d8ecff");
+    cx.globalCompositeOperation = "multiply";
+    cols.forEach(function (c) { cx.fillStyle = c; cx.fillRect(0, 0, W, H); });
+    cx.globalCompositeOperation = "source-over";
   }
   function drawEnvFront(tm, dt) {
     if (tm === "nacht" && env.season !== "winter") FLIES.forEach(function (f) {
@@ -226,31 +293,59 @@ function mountObstsalat(root, ART, opts) {
       px(d.x, d.y, "#ffffff");
     });
   }
+  function drawFrost() {                                // slow motion: frost creeps in from the edges, icicles on top
+    var k = Math.min(1, S.slowT / .4, (5 - S.slowT) / .3 + .2);
+    var depth = Math.round(4 * k);
+    for (var x = 0; x < W; x++) {
+      var d = depth + (hash(x, 1) % 3);
+      for (var y = 0; y < d; y++) px(x, y, y === d - 1 ? "#bfe0f6" : "#f2faff");
+      var ic = hash(x, 7) % 9 === 0 ? 3 + hash(x, 3) % 4 : 0;
+      for (y = 0; y < ic * k; y++) px(x, d + y, "#dff0fa");
+      var b = depth - 1 + (hash(x, 5) % 2);
+      for (y = 0; y < b; y++) px(x, H - 1 - y, "#f2faff");
+    }
+    for (var yy = 0; yy < H; yy++) {
+      var dd = depth - 1 + (hash(2, yy) % 3);
+      for (x = 0; x < dd; x++) { px(x, yy, "#f2faff"); px(W - 1 - x, yy, "#f2faff"); }
+    }
+  }
 
   // ---------- main loop
   var last = performance.now(), raf = 0;
   function frame(now) {
     var dt = Math.min(.05, (now - last) / 1000); last = now; S.t += dt;
+    var ts = S.slowT > 0 ? .38 : 1, wdt = dt * ts; S.wt += wdt;
     var tm = timeNow();
-    // spawn waves: faster as the bowl fills
     if (!S.done) {
       S.spawnT -= dt;
-      if (S.spawnT <= 0) {
-        var lvl = Math.min(1, S.fill / GOAL), n = 1 + (Math.random() < .25 + lvl * .4 ? 1 : 0) + (Math.random() < lvl * .3 ? 1 : 0);
-        for (var i = 0; i < n; i++) setTimeout(launch, i * 140);
-        S.spawnT = 1.25 - lvl * .45 + Math.random() * .3;
+      if (S.spawnT <= 0 && S.rainT <= 0) { volley(); S.spawnT = Math.max(.75, 1.7 - S.t / 45) + Math.random() * .35; }
+      if (S.rainT > 0) {                                // fruit rain from both sides
+        S.rainSpawn -= dt;
+        if (S.rainSpawn <= 0) {
+          S.rainSpawn = .11;
+          var left = Math.random() < .5, k = fruitKey(), f = FR[k];
+          S.items.push({ k: k, x: left ? -f.w : W + f.w, y: 50 + Math.random() * 60, vx: (left ? 1 : -1) * (85 + Math.random() * 40), vy: -(70 + Math.random() * 50), cut: false, born: S.wt });
+        }
       }
-      if (S.fill >= GOAL) finish();
+      S.queue = S.queue.filter(function (q) { if (S.wt >= q.at) { launch(q.k, q.x, q.peak, q.drift); return false; } return true; });
+      if (S.fill >= GOAL) finish("Obstsalat!");
     } else S.endT += dt;
-    S.items.forEach(function (it) { it.vy += G * dt; it.x += it.vx * dt; it.y += it.vy * dt; });
-    S.items = S.items.filter(function (it) { return !it.cut && it.y < H + 24; });
-    S.halves.forEach(function (h) { h.vy += G * dt; h.x += h.vx * dt; h.y += h.vy * dt; });
-    S.halves = S.halves.filter(function (h) { return h.y < H + 24; });
-    S.drops.forEach(function (d) { d.vy += G * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.life -= dt; });
-    S.drops = S.drops.filter(function (d) { return d.life > 0; });
+    if (S.slowT > 0) S.slowT -= dt;
+    if (S.doubleT > 0) { S.doubleT -= dt; if (S.doubleT <= 0) x2El.hidden = true; }
+    if (S.rainT > 0) S.rainT -= dt;
+    if (S.specialMax && (S.slowT > 0 || S.doubleT > 0 || S.rainT > 0)) banTime.style.transform = "scaleX(" + Math.max(0, Math.max(S.slowT, S.doubleT, S.rainT) / S.specialMax).toFixed(3) + ")";
+
+    S.items.forEach(function (it) { it.vy += G * wdt; it.x += it.vx * wdt; it.y += it.vy * wdt; });
+    S.items = S.items.filter(function (it) { return !it.cut && it.y < H + 30 && it.x > -40 && it.x < W + 40; });
+    S.halves.forEach(function (h) { h.vy += G * wdt; h.x += h.vx * wdt; h.y += h.vy * wdt; });
+    S.halves = S.halves.filter(function (h) { return h.y < H + 30; });
+    [S.drops, S.bits].forEach(function (arr) { arr.forEach(function (d) { d.vy += G * wdt * .8; d.x += d.vx * wdt; d.y += d.vy * wdt; d.life -= dt; }); });
+    S.drops = S.drops.filter(function (d) { return d.life > 0; }); S.bits = S.bits.filter(function (d) { return d.life > 0; });
+    S.rays.forEach(function (r) { r.t += dt; }); S.rays = S.rays.filter(function (r) { return r.t < .3; });
     S.trail = S.trail.filter(function (p) { return S.t - p.t < .14; });
     S.shown += (S.fill - S.shown) * Math.min(1, dt * 8);
-    S.faceT -= dt; S.hop -= dt; S.shake -= dt; S.barFlash -= dt; S.blinkT -= dt;
+    S.faceT -= dt; S.shake -= dt; S.barFlash -= dt; S.blinkT -= dt; S.flash -= dt;
+    S.hop -= dt; if (S.hop <= 0 && S.hops > 1) { S.hops--; S.hop = .18; }
     if (S.faceT <= 0) S.face = "normal";
     if (S.blinkT < -.12) S.blinkT = 2.5 + Math.random() * 3;
 
@@ -258,33 +353,55 @@ function mountObstsalat(root, ART, opts) {
     cx.setTransform(1, 0, 0, 1, ox, 0);
     var bg = BG[env.season]; if (bg.complete) cx.drawImage(bg, 0, 0);
     drawEnvBack(tm);
-    // the hamster and his bowl sit in the front right
-    var hop = S.hop > 0 ? -2 : 0, face = S.face === "normal" && S.blinkT < 0 ? "blinzeln" : S.face;
+    var hop = S.hop > 0 ? -3 : 0, face = S.face === "normal" && S.blinkT < 0 ? "blinzeln" : S.face;
     if (HAM[face].complete) sprite(HAM[face], HB.x, HB.y + hop);
     cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(104, 131, 40, 2);
     var lv = S.shown < GOAL * .08 ? 0 : S.shown < GOAL * .4 ? 1 : S.shown < GOAL * .75 ? 2 : 3, b = BOWL[lv];
     if (b.im.complete) sprite(b.im, 107, 133 - b.h);
-    // flying things
-    S.items.forEach(function (it) { var f = FR[it.k]; if (f.im.complete) sprite(f.im, it.x - f.w / 2, it.y - f.h / 2); });
+    S.items.forEach(function (it) {
+      var f = FR[it.k]; if (!f.im.complete) return;
+      var jx = it.k === "kastanie" ? (Math.floor(S.t * 20 + it.born * 7) % 3) - 1 : 0;        // the husk trembles a little
+      var x0 = it.x - f.w / 2 + jx, y0 = it.y - f.h / 2;
+      if (SPECIALS[it.k] && f.sil) {                    // specials glow along their outline, blinking
+        var gc = it.k === "frostbeere" ? "#bfe8ff" : it.k === "sonnenblume" ? "#ffd8a0" : "#ffffff";
+        if (Math.floor(S.t * 5) % 2) gc = "#ffffff";
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(f.sil[gc], x0 + o[0], y0 + o[1]); });
+      }
+      sprite(f.im, x0, y0);
+    });
     S.halves.forEach(function (h) { sprite(h.c, h.x - h.w / 2, h.y - h.h / 2); });
     S.drops.forEach(function (d) { px(d.x, d.y, d.c); });
-    // the cut: a short bright line along the swipe
+    S.bits.forEach(function (d) { px(d.x, d.y, d.c); if (d.big) { px(d.x + 1, d.y, d.c); px(d.x, d.y + 1, d.c); } });
+    S.rays.forEach(function (r) {                        // combo: short bright rays shooting outward
+      var a = 6 + r.t * 90, bb = a + 6;
+      cx.globalAlpha = Math.max(0, 1 - r.t / .3);
+      line(r.x + Math.cos(r.a) * a, r.y + Math.sin(r.a) * a, r.x + Math.cos(r.a) * bb, r.y + Math.sin(r.a) * bb, "#fff8ec");
+      cx.globalAlpha = 1;
+    });
     for (i = 1; i < S.trail.length; i++) {
       var a = S.trail[i - 1], q = S.trail[i], age = S.t - q.t;
       cx.globalAlpha = Math.max(0, 1 - age / .14);
-      line(a.x, a.y, q.x, q.y, "#fff8ec");
+      line(a.x, a.y, q.x, q.y, S.slowT > 0 ? "#e8f6ff" : "#fff8ec");
       cx.globalAlpha = 1;
     }
     drawTint(tm);
+    if (S.slowT > 0) drawFrost();
     drawEnvFront(tm, dt);
     drawBar();
     cx.setTransform(1, 0, 0, 1, 0, 0);
-    // result: dim the scene, the big bowl in the middle, one big title
-    if (S.done && S.endT > .6) {
-      var k2 = Math.min(1, (S.endT - .6) / .3);
+    if (S.flash > 0) { cx.fillStyle = "rgba(255,252,244," + Math.min(1, S.flash / .35).toFixed(2) + ")"; cx.fillRect(0, 0, W, H); }
+    if (S.done && S.endT > .7) {
+      var k2 = Math.min(1, (S.endT - .7) / .3);
       cx.fillStyle = "rgba(43,29,18," + (.45 * k2).toFixed(2) + ")"; cx.fillRect(0, 0, W, H);
-      if (BIG.im.complete) sprite(BIG.im, (W - BIG.w) / 2, 58 - BIG.h / 2 + Math.round((1 - k2) * 10));
-      if (endEl.hidden) { endT.textContent = S.fill >= GOAL ? "Obstsalat!" : S.fill >= GOAL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen"; endEl.hidden = false; }
+      if (BIG.im.complete) {                            // the big bowl is only as full as what was cut: the heap is cut off from the top
+        var heap = 20, frac = Math.min(1, S.fill / GOAL), sy = Math.round((1 - frac) * heap);
+        var bx = Math.round((W - BIG.w) / 2), by = Math.round(58 - BIG.h / 2 + (1 - k2) * 10);
+        cx.drawImage(BIG.im, 0, sy, BIG.w, BIG.h - sy, bx, by + sy, BIG.w, BIG.h - sy);
+      }
+      if (endEl.hidden) {
+        endT.textContent = S.endTitle === "Autsch!" ? "Autsch!" : S.fill >= GOAL ? "Obstsalat!" : S.fill >= GOAL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
+        endEl.hidden = false;
+      }
     }
     raf = requestAnimationFrame(frame);
   }

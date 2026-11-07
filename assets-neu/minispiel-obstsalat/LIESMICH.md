@@ -2,16 +2,23 @@
 
 Wunsch von Wieland: ein Minispiel ähnlich Fruit Ninja, passend zum Hamster-Spiel.
 
-**Status:** spielbare Vorschau. Bitte erst einbauen, wenn Wieland sie freigegeben hat.
+**Status:** spielbare Vorschau, Runde 2 (höher, größer, mehr Obst, Kombo-Animation, Sonder-Früchte, Stachelkastanie als Bombe). Bitte erst einbauen, wenn Wieland sie freigegeben hat.
 
-## Spielablauf
-- Obst und Gemüse fliegen von unten aus der Wiese hoch. Mit einem Wisch wird es zerschnitten: Das Stück teilt sich entlang der Wischrichtung in zwei Hälften mit Fruchtfleisch an der Schnittkante, dazu ein paar Saftspritzer.
-- Jede Frucht füllt die Salatschüssel neben dem Hamster und den Fortschrittsbalken. Der Balken ist ein Holzrahmen mit Nägeln, senkrecht am linken Rand, mit durchgehender Füllung und goldenem Optimalbereich oben, ohne Beschriftung.
-- Mehrere Früchte in einem Wisch geben einen Bonus (+1 je Frucht ab der dritten), der Hamster freut sich und hüpft. Der goldene Apfel ist selten und bringt +4.
-- Tannenzapfen soll man nicht schneiden: Ein Schnitt kostet 4, der Balken blinkt, das Bild wackelt kurz, der Hamster erschrickt. Herunterfallendes Obst kostet nichts.
-- Je voller die Schüssel, desto mehr fliegt gleichzeitig.
-- Ist der Balken voll, ist der Obstsalat fertig: Das Bild wird abgedunkelt, eine große, eigens gezeichnete Schüssel erscheint mit einem großen Titel. Wer den Hamster antippt, beendet die Runde früher. Der Titel richtet sich dann nach der Füllung („Kleiner Obstsalat“, „Ein paar Stückchen“).
-- Es gibt keine Knöpfe im Spiel außer dem ×, keine Erklärtexte, nur das Banner „Obstsalat“ am Anfang. Es gibt keine Hand- oder Pfotenanimation, der Hamster reagiert mit dem Gesicht und einem kleinen Hüpfer des ganzen Körpers.
+## Spielablauf (Runde 2)
+- Obst und Gemüse fliegen von unten aus der Wiese bis weit nach oben (Scheitelpunkt bei y=14 bis 48). Mit einem Wisch wird es zerschnitten: Das Stück teilt sich entlang der Wischrichtung in zwei Hälften mit Fruchtfleisch und Kernen an der Schnittkante, dazu Saftspritzer.
+- Die Früchte sind größer und mit mehr Pixeln neu gezeichnet (18 bis 29 px), nicht vergrößert.
+- **Immer mehr:** Das Obst kommt in Salven. Die Salven werden mit der Zeit größer (1 bis 7 Stück) und kommen schneller. Immer öfter fliegen die Früchte dicht beieinander, damit große Kombos möglich sind.
+- Jede Frucht füllt die Salatschüssel neben dem Hamster und den Fortschrittsbalken (Holzrahmen mit Nägeln, senkrecht links, goldener Bereich oben, keine Beschriftung). Ziel: 60 Punkte.
+- **Kombo** (3 oder mehr Früchte in einem Wisch): Bonus von Anzahl − 1 Punkten. Ein Abzeichen „3er-Kombi“ mit „+2“ springt in Stufen auf, wackelt und schwebt weg, die Farbe hängt von der Größe ab (orange, rosa, lila, blau). Bunte Pixel-Konfetti in den Farben der geschnittenen Früchte fliegen, helle Strahlen schießen vom letzten Treffer aus, der Hamster freut sich mit Doppelsprung. Ab 5 Früchten blitzt das Bild kurz hell auf.
+- **Sonder-Früchte** (etwa alle 11 bis 17 Sekunden eine, mit blinkendem Leuchtrand entlang des Umrisses):
+  - Frostbeeren: **Zeitlupe** für 5 Sekunden. Alles fliegt langsamer, an den Rändern zieht Frost mit Eiszapfen auf, das Bild wird kühler.
+  - Sonnenblume: **doppelte Punkte** für 7 Sekunden, „×2“ neben dem Balken.
+  - Honigwabe: **Obstregen** für 4 Sekunden. Von links und rechts fliegt Obst quer durchs Bild.
+  - Der aktive Effekt steht als Banner oben, mit kleiner Zeitleiste darin.
+- Der goldene Apfel ist selten und bringt +4.
+- **Bombe = Stachelkastanie:** Sie zittert leicht in der Luft. Wer sie zerschneidet, löst einen weißen Blitz aus, Stacheln fliegen, das übrige Obst wird weggestoßen, der Hamster erschrickt, und die Runde endet mit „Autsch!“. Ab 6 Sekunden taucht sie auf, mit der Zeit etwas häufiger (bis 20 % pro Stück einer Salve). Herunterfallendes Obst kostet weiterhin nichts. Der Tannenzapfen aus Runde 1 kommt nicht mehr vor.
+- **Ende:** Balken voll („Obstsalat!“), Hamster angetippt oder Kastanie geschnitten. Die große Ergebnis-Schüssel ist so voll, wie geschnitten wurde.
+- Es gibt keine Knöpfe im Spiel außer dem ×, keine Erklärtexte, keine Hand- oder Pfotenanimation.
 
 ## Umgebung
 - Gartenszene in vier Jahreszeiten (`grafik/bg_*.png`): Himmel, Hügel, Hecke, zwei Obstbäume am Rand, Wiese. Frühling mit Blüten, Sommer mit Äpfeln, Herbst mit buntem Laub, Winter mit Schnee auf Hecke und kahlen Ästen.
@@ -23,7 +30,7 @@ Wunsch von Wieland: ein Minispiel ähnlich Fruit Ninja, passend zum Hamster-Spie
 - `obstsalat.js`: das Spiel als eine Funktion `mountObstsalat(root, ART, opts)` → `{ setEnv, restart, destroy, state }`. Es zeichnet auf ein Canvas mit 180×135 Raumpixeln, alle Positionen auf ganze Pixel gerundet, nichts wird gedreht oder skaliert.
 - `obstsalat.css`: Banner und × im Stil von `.bee-pov .bp-ban` / `.bp-x`.
 - `grafik/`: alle Grafiken einzeln als PNG und gebündelt in `obstsalat_art.json` (Data-URIs).
-  - Früchte, neu gezeichnet und größer als die Beet-Sprites (12 bis 19 px, 1px-Umriss): Apfel, Birne, Pflaume, Erdbeere, Tomate, Möhre, Kürbis, Kirschen, dazu Goldapfel und Tannenzapfen. Je Frucht Fruchtfleisch- und Kernfarbe für die Schnittkante.
+  - Früchte, neu gezeichnet (18 bis 29 px, 1px-Umriss): Apfel, Birne, Pflaume, Erdbeere, Tomate, Möhre, Kürbis, Kirschen, Goldapfel. Sonder-Früchte: Frostbeeren, Sonnenblume, Honigwabe. Bombe: Stachelkastanie. Je Stück Fruchtfleisch- und Kernfarbe für die Schnittkante. Der Tannenzapfen liegt noch bei, wird aber nicht mehr benutzt.
   - Salatschüssel in 4 Füllständen, große Schüssel für das Ergebnis.
   - Hamster aus den Ebenen von `ham2.json` zusammengesetzt (normal, froh, Schreck, blinzeln), 48×46 in Originalpixeln.
 - `werkzeug/obstsalat_assets.py` erzeugt `grafik/`, `werkzeug/vorschau_bauen.py` baut `vorschau.html`.

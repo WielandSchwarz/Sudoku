@@ -17,3 +17,27 @@
 .os-end-t { background: #fff8ec; color: #3a2414; box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .18);
   font-family: var(--f-body, system-ui), sans-serif; font-size: 1.15rem; font-weight: 700; padding: 6px 16px 8px; animation: os-ban .35s steps(4); }
 @media (prefers-reduced-motion: reduce) { .os-ban.pop, .os-pop, .os-end-t { animation: none; } }
+/* special effects: a thin time bar inside the banner, the ×2 sign next to the bar */
+.os-ban-t { display: block; }
+.os-ban-time { display: none; height: 3px; margin-top: 4px; background: #e8961a; transform-origin: left center; box-shadow: 0 0 0 1px #3a2414; }
+.os-x2 { position: absolute; left: 8.5%; top: 6%; z-index: 3; pointer-events: none; color: #fff8ec; font-family: var(--f-body, system-ui), sans-serif; font-weight: 800; font-size: 1.1rem;
+  text-shadow: 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 2px 0 #3a2414, 0 -2px 0 #3a2414, 2px 2px 0 #3a2414; animation: os-x2 .6s steps(2) infinite; }
+.os-x2[hidden] { display: none; }
+@keyframes os-x2 { 50% { transform: translateY(-2px); } }
+/* combo: a badge that jumps up in steps, wobbles and floats away */
+.os-combo { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none;
+  font-family: var(--f-body, system-ui), sans-serif; animation: os-combo 1.3s steps(12) forwards; }
+.os-combo b { background: #fff8ec; color: #3a2414; font-weight: 800; font-size: 1rem; padding: 3px 10px 4px; white-space: nowrap;
+  box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .2), inset 0 -3px 0 0 var(--cc, #f8a060); }
+.os-combo i { font-style: normal; font-weight: 800; font-size: 1.35rem; color: var(--cc, #f8a060);
+  text-shadow: 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 2px 0 #3a2414, 0 -2px 0 #3a2414, 2px 2px 0 #3a2414; }
+.os-combo.c3 { --cc: #f8a060; } .os-combo.c4 { --cc: #f07a8a; } .os-combo.c5 { --cc: #b088e0; } .os-combo.c6 { --cc: #6ec0f0; }
+@keyframes os-combo {
+  0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; }
+  12% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+  24% { transform: translate(-50%, -50%) scale(.95) translateX(-3px); }
+  36% { transform: translate(-50%, -50%) scale(1.05) translateX(2px); }
+  48%, 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -130%) scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .os-combo, .os-x2 { animation: none; } }
