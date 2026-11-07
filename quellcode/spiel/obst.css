@@ -38,23 +38,6 @@
   text-shadow: 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 2px 0 #3a2414, 0 -2px 0 #3a2414, 2px 2px 0 #3a2414; animation: os-x2 .6s steps(2) infinite; }
 .os-x2[hidden] { display: none; }
 @keyframes os-x2 { 50% { transform: translateY(-2px); } }
-/* combo: a badge that jumps up in steps, wobbles and floats away */
-.os-combo { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none;
-  font-family: var(--f-body, system-ui), sans-serif; animation: os-combo 1.3s steps(12) forwards; }
-.os-combo b { background: #fff8ec; color: #3a2414; font-weight: 800; font-size: 1rem; padding: 3px 10px 4px; white-space: nowrap;
-  box-shadow: 0 -3px 0 0 #3a2414, 0 3px 0 0 #3a2414, -3px 0 0 0 #3a2414, 3px 0 0 0 #3a2414, 0 6px 0 0 rgba(43, 29, 18, .2), inset 0 -3px 0 0 var(--cc, #f8a060); }
-.os-combo i { font-style: normal; font-weight: 800; font-size: 1.35rem; color: var(--cc, #f8a060);
-  text-shadow: 2px 0 0 #3a2414, -2px 0 0 #3a2414, 0 2px 0 #3a2414, 0 -2px 0 #3a2414, 2px 2px 0 #3a2414; }
-.os-combo.c3 { --cc: #f8a060; } .os-combo.c4 { --cc: #f07a8a; } .os-combo.c5 { --cc: #b088e0; } .os-combo.c6 { --cc: #6ec0f0; }
-@keyframes os-combo {
-  0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; }
-  12% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
-  24% { transform: translate(-50%, -50%) scale(.95) translateX(-3px); }
-  36% { transform: translate(-50%, -50%) scale(1.05) translateX(2px); }
-  48%, 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -130%) scale(1); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .os-combo, .os-x2 { animation: none; } }
 /* leaderboard: a wooden board with nails, a paper list inside; medals for the top 3, your own row highlighted */
 .os-board[hidden] { display: none; }
 .os-board { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; pointer-events: none; }
@@ -87,5 +70,8 @@
 .os-basket { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
 .os-basket svg { display: block; width: 100%; height: auto; overflow: visible; }
 .os-ban.rw { top: 17%; }
-.os-pov .os-ban { top: 13%; }
+.os-pov .os-ban { top: 17%; }
 .os-pov .os-ban.rw { top: 17%; }
+/* combo bonus: just the number, bigger, in the combo colour */
+.os-pop.os-pop-combo { font-size: 1.7rem; animation-duration: 1.1s; }
+.os-pop-combo.c3 { color: #f8a060; } .os-pop-combo.c4 { color: #f07a8a; } .os-pop-combo.c5 { color: #b088e0; } .os-pop-combo.c6 { color: #6ec0f0; }

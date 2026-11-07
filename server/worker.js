@@ -2,7 +2,8 @@
 // POST /api/login  { name, pin, create }        -> { ok, name, seen, state, stateUpdated }
 // POST /api/save   { name, pin, seen, state, stateUpdated } -> same shape, merged
 // POST /api/top    { game, name? }              -> { ok, rows, me, total }   (Bestenliste der Minispiele, siehe unten)
-// POST /api/score  { game, name, pin, score }   -> same shape as /api/top, after saving the score
+// POST /api/score  { game, name, pin, score, hamster } -> same shape as /api/top, after saving the score
+//                  (the board shows the hamster's name; without one the account name)
 // The PIN is stored only as a salted PBKDF2 hash. After 8 wrong PINs the account locks for 15 minutes.
 
 const ALLOWED_ORIGINS = ["https://wielandschwarz.github.io", "http://localhost:8765"];
@@ -79,8 +80,15 @@ async function checkAccount(env, row, pin, now) {
 // ---------- Bestenliste der Minispiele (Tabelle "scores", siehe schema.sql)
 const GAMES = { obstsalat: { max: 3000, gapMs: 40000 } };   // höchster glaubwürdiger Wert, Mindestabstand zwischen zwei Runden
 
+function cleanHamster(n) {                                      // the hamster's name as shown on the board
+  if (typeof n !== "string") return null;
+  const v = n.trim().replace(/\s+/g, " ");
+  if (v.length < 1 || v.length > 20 || !/^[\p{L}\p{N} _.'-]+$/u.test(v)) return null;
+  return v;
+}
+
 async function topList(env, game, nameKey) {
-  const rows = (await env.DB.prepare("SELECT display_name, best FROM scores WHERE game = ? AND best > 0 ORDER BY best DESC, updated ASC LIMIT 10")
+  const rows = (await env.DB.prepare("SELECT name_key, display_name, best FROM scores WHERE game = ? AND best > 0 ORDER BY best DESC, updated ASC LIMIT 10")
     .bind(game).all()).results || [];
   const total = (await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE game = ? AND best > 0").bind(game).first()).n;
   let me = null;
@@ -92,7 +100,7 @@ async function topList(env, game, nameKey) {
       me = { name: mine.display_name, score: mine.best, rank };
     }
   }
-  return { ok: true, rows: rows.map(r => ({ name: r.display_name, score: r.best })), me, total };
+  return { ok: true, rows: rows.map(r => ({ name: r.display_name, score: r.best, me: !!nameKey && r.name_key === nameKey })), me, total };
 }
 
 async function scores(path, body, env, origin) {
@@ -117,7 +125,7 @@ async function scores(path, body, env, origin) {
       "INSERT INTO scores (game, name_key, display_name, best, runs, last_at, updated) VALUES (?, ?, ?, ?, 1, ?, ?) " +
       "ON CONFLICT (game, name_key) DO UPDATE SET display_name = excluded.display_name, runs = runs + 1, last_at = excluded.last_at, " +
       "updated = CASE WHEN excluded.best > best THEN excluded.updated ELSE updated END, best = MAX(best, excluded.best)")
-      .bind(game, name.key, row.display_name, score, now, now).run();
+      .bind(game, name.key, cleanHamster(body.hamster) || row.display_name, score, now, now).run();
   }
   return reply(origin, 200, await topList(env, game, name.key));
 }

@@ -14,7 +14,7 @@
     return { season: se, time: ph === "night" ? "nacht" : ph === "twilight" ? "abend" : "tag", weather: w === "rain" || w === "storm" ? "regen" : w === "snow" ? "schnee" : w === "clouds" ? "wolken" : "sonne" };
   }
   function osAccount() { try { return window.__sudokuAccount ? window.__sudokuAccount() : null; } catch (e) { return null; } }
-  var osBoard = typeof obstsalatBoard === "function" ? obstsalatBoard(OS_SYNC, osAccount) : null;
+  var osBoard = typeof obstsalatBoard === "function" ? obstsalatBoard(OS_SYNC, osAccount, function () { return N(); }) : null;
   /* rewards: every 5th round played to the end = a random bag of seeds, every 20th = a piece of furniture */
   function osReward(r) {
     if (!r.timeUp) return "";
@@ -70,7 +70,7 @@
   function osOpen() {
     var e = osEnv(), acc = osAccount();
     osEl.hidden = false; osEl.innerHTML = '<div class="os-in"></div>';
-    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, sfx: OS_SFX, season: e.season, time: e.time, weather: e.weather, board: osBoard, playerName: acc ? acc.name : N(), onClose: osClose });
+    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, sfx: OS_SFX, season: e.season, time: e.time, weather: e.weather, board: osBoard, hamsterName: N(), onClose: osClose });
   }
   function osClose() {
     var st = osGame && osGame.state ? osGame.state() : null;

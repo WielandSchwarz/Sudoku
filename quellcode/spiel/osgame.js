@@ -220,11 +220,9 @@ function mountObstsalat(root, ART, opts) {
   function combo(n, x, y) {
     var bonus = points(n - 1);
     addScore(bonus); cheer(2); sfx("combo", n);
-    var e = document.createElement("div"); e.className = "os-combo c" + Math.min(6, n);
-    e.innerHTML = '<b></b><i></i>';
-    e.querySelector("b").textContent = n + "er-Kombi"; e.querySelector("i").textContent = "+" + bonus;
-    e.style.left = Math.max(22, Math.min(78, x / W * 100)) + "%"; e.style.top = Math.max(22, Math.min(70, y / H * 100)) + "%";
-    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1300);
+    // only the bonus number pops up, bigger and in the combo colour (no badge)
+    var e = popText("+" + bonus, Math.max(16, Math.min(164, x)), Math.max(18, Math.min(110, y - 6)));
+    e.className = "os-pop os-pop-combo c" + Math.min(6, n);
     S.strokeCuts.forEach(function (c) {
       for (var k = 0; k < 10; k++) {
         var a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 60;
@@ -273,7 +271,8 @@ function mountObstsalat(root, ART, opts) {
   function popText(t, x, y, col) {
     var e = document.createElement("b"); e.className = "os-pop"; e.textContent = t; if (col) e.style.color = col;
     e.style.left = (x / W * 100) + "%"; e.style.top = (y / H * 100) + "%";
-    pops.appendChild(e); setTimeout(function () { e.remove(); }, 900);
+    pops.appendChild(e); setTimeout(function () { e.remove(); }, 1100);
+    return e;
   }
   function finish(title) {
     if (S.done) return;
@@ -304,7 +303,7 @@ function mountObstsalat(root, ART, opts) {
     var mine = b.rows.filter(function (r) { return r.me; })[0];
     if (!meIn && (mine || b.offline)) {
       if (rows.length) boardList.appendChild(row("", "", "", "gap"));
-      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.playerName || "Du"), mine ? mine.score : Math.max(S.best, S.score), "me"));
+      boardList.appendChild(row(b.rank || "–", mine ? mine.name : (opts.hamsterName || "Hamster"), mine ? mine.score : Math.max(S.best, S.score), "me"));
     }
   }
   function row(rank, name, score, cls) {
