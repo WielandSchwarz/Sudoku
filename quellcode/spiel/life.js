@@ -1219,7 +1219,7 @@
       gcls = cat === "plant" ? "ip-tall" : cat === "meadow" ? "ip-plant" : "";
       where = ["meadow", "deco", "bed"].indexOf(cat) >= 0 ? "Garten einrichten" : "Zimmer einrichten";
       place = function () {
-        if (cat === "meadow") { var sp = [0, 1, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
+        if (cat === "meadow") { var sp = [0, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
         renderRoom(); say(it.name + (["meadow", "deco", "bed"].indexOf(cat) >= 0 ? " steht jetzt im Garten." : " steht jetzt im Zimmer."));
         if (window.SudokuSave) window.SudokuSave();
       };

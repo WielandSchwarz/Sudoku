@@ -73,6 +73,7 @@ function mountObstsalat(root, ART, opts) {
   }
   function loadBest() { try { return +localStorage.getItem("obstsalat-rekord") || 0; } catch (e) { return 0; } }
   function saveBest(v) { try { localStorage.setItem("obstsalat-rekord", String(v)); } catch (e) {} }
+  function sfx(k, a) { if (opts.sfx) try { opts.sfx(k, a); } catch (e) {} }
   function addScore(n) { S.score = Math.max(0, S.score + n); }
   function showBanner(text, secs, timed) {
     banT.textContent = text; banTime.style.display = timed ? "block" : "none"; banTime.style.transform = "scaleX(1)";
@@ -92,7 +93,7 @@ function mountObstsalat(root, ART, opts) {
     var f = FR[k], y0 = H + f.h / 2 + 2;
     var vy = -Math.sqrt(2 * G * (y0 - peak));
     var vx = drift != null ? drift : (90 - x) / 100 * (20 + Math.random() * 20) + (Math.random() - .5) * 14;
-    S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt });
+    S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt }); sfx(k === "kastanie" ? "launchBomb" : "launch");
   }
   function volley() {
     var t = S.t, n = Math.min(7, 1 + Math.floor(t / 10) + (Math.random() < .5 ? 1 : 0));
@@ -168,7 +169,7 @@ function mountObstsalat(root, ART, opts) {
       it.cut = true;
       if (it.k === "kastanie") { boom(it); return; }
       var skin = sliceItem(it, bx - ax, by - ay);
-      S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
+      sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
       addScore(points(it.k === "goldapfel" ? 4 : 1));
       if (it.k === "goldapfel") { cheer(1); popText(S.doubleT > 0 ? "+8" : "+4", it.x, it.y, "#f8d850"); }
       if (SPECIALS[it.k]) special(it.k);
@@ -179,13 +180,13 @@ function mountObstsalat(root, ART, opts) {
     if (k === "frostbeere") S.slowT = sp.t;
     if (k === "sonnenblume") { S.doubleT = sp.t; x2El.hidden = false; }
     if (k === "honigwabe") { S.rainT = sp.t; S.rainSpawn = 0; }
-    S.specialMax = sp.t; S.specialKey = k;
+    S.specialMax = sp.t; S.specialKey = k; sfx(k);
     showBanner(sp.ban, sp.t, true);
     cheer(1);
   }
   function boom(it) {                                   // the chestnut husk: white flash, spines fly, minus 10 points
     S.flash = .45; S.shake = .45; S.face = "schreck"; S.faceT = 1.4; S.hop = 0; S.hops = 0;
-    addScore(-10); S.scoreHit = .6; popText("−10", it.x, it.y, "#f08a7e");
+    addScore(-10); S.scoreHit = .6; sfx("bomb"); popText("−10", it.x, it.y, "#f08a7e");
     for (var k = 0; k < 40; k++) {
       var a = k / 40 * Math.PI * 2, sp = 50 + Math.random() * 70;
       S.bits.push({ x: it.x, y: it.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, c: k % 3 ? "#6a9a38" : "#d8f0a0", life: .7 + Math.random() * .4 });
@@ -197,7 +198,7 @@ function mountObstsalat(root, ART, opts) {
   // ---------- combo: badge, confetti, rays, a double hop
   function combo(n, x, y) {
     var bonus = points(n - 1);
-    addScore(bonus); cheer(2);
+    addScore(bonus); cheer(2); sfx("combo", n);
     var e = document.createElement("div"); e.className = "os-combo c" + Math.min(6, n);
     e.innerHTML = '<b></b><i></i>';
     e.querySelector("b").textContent = n + "er-Kombi"; e.querySelector("i").textContent = "+" + bonus;
@@ -223,14 +224,14 @@ function mountObstsalat(root, ART, opts) {
       if (opts.board && !S.boardOn) showBoard(); else reset();
       return;
     }
-    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeCuts = [];
+    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0, sw: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeCuts = [];
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
   cv.addEventListener("pointermove", function (ev) {
     if (!down || !S.stroke) return;
     var p = pt(ev), q = S.stroke;
-    down.moved += Math.hypot(p.x - q.x, p.y - q.y);
+    down.moved += Math.hypot(p.x - q.x, p.y - q.y); if (down.moved - down.sw > 40) { down.sw = down.moved; sfx("swish"); }
     cutAlong(q.x, q.y, p.x, p.y);
     S.stroke = p; S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
@@ -257,6 +258,7 @@ function mountObstsalat(root, ART, opts) {
     S.done = true; S.endT = 0; S.endTitle = title || "";
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
+    sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
     if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4); ban.classList.add("rw"); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
@@ -302,7 +304,7 @@ function mountObstsalat(root, ART, opts) {
     }
     if (t !== hudShown.t) {
       timeEl.textContent = Math.floor(t / 60) + ":" + (t % 60 < 10 ? "0" : "") + (t % 60);
-      if (!S.done && t <= HURRY && t > 0) { hudT.classList.add("hurry"); hudT.classList.remove("tick"); void hudT.offsetWidth; hudT.classList.add("tick"); }
+      if (!S.done && t <= HURRY && t > 0) { hudT.classList.add("hurry"); sfx("tick", t); hudT.classList.remove("tick"); void hudT.offsetWidth; hudT.classList.add("tick"); }
       hudShown.t = t;
     }
   }

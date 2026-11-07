@@ -328,7 +328,7 @@
         else if (F.trick.k === "wiggle") { F.x = F.trick.x + Math.round(Math.sin(tu * 40) * 1.5); F.tx = F.x; F.ty = F.y; if (Math.random() < .08) aqHeart(F.x, F.y - 10); }
         else if (F.trick.k === "jump") { var jy = Math.sin(tu * Math.PI); F.y = F.trick.y - jy * (F.trick.y - AQ_WL + 8); F.tx = F.x; F.ty = F.y; if (!F.trick.sp && F.y < AQ_WL + 2) { F.trick.sp = 1; for (var sp2 = 0; sp2 < 10; sp2++) aqBub(F.x - 8 + sp2 * 2, AQ_WL + 3, 1); beep([[520, .05], [780, .06]]); } } } }
     if (aq.mode === "play" && aq.hoop) { var H2 = aq.hoop; if (Math.abs(F.x - H2.x) < 3 && Math.abs(F.y - H2.y) < 6 && now > (H2.cool || 0)) { H2.cool = now + 800; aq.plays++; beep([[660, .04], [880, .04], [1175, .06]]); for (var hb = 0; hb < 6; hb++) aqBub(H2.x, H2.y - 6 + hb * 2, 1); F.happy = 1; setTimeout(function () { if (aq) aq.fish.happy = 0; }, 500);
-        if (aq.plays >= 4) { aq.hoop = null; aq.mode = ""; aq.ptr = null; aqSay("Super! Vier Mal durch den Ring!"); F.trick = { k: "loop", t0: now, dur: 900, x: F.x, y: F.y, dir: F.dir }; s.love = clamp(s.love + 2); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); aqBarDraw(); }
+        if (aq.plays >= 4) { aq.hoop = null; aq.mode = ""; aq.ptr = null; aqSay("Super! Vier Mal durch den Ring!"); F.trick = { k: "loop", t0: now, dur: 900, x: F.x, y: F.y, dir: F.dir }; s.love = clamp(s.love + 2); if (typeof ixFun === "function") ixFun("aqring", 6); else s.fun = clamp(s.fun + 6); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); aqBarDraw(); }
         else { aqSay(aq.plays + " von 4"); H2.x = 40 + Math.random() * 100; H2.y = 42 + Math.random() * 44; } } }
   }
   function aqFeedDone() { aq.mode = ""; aq.fish.fast = 0; var L = life();

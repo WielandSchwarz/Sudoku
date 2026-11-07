@@ -180,7 +180,7 @@
     wrap.addEventListener("click", function (e) {
       var a = e.target.dataset && e.target.dataset.a; if (!a) return;
       if (a === "place") {
-        if (cat === "meadow") { var sp = [0, 1, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
+        if (cat === "meadow") { var sp = [0, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
         renderRoom(); say(it.name + (["meadow", "deco", "bed"].indexOf(cat) >= 0 ? " steht jetzt im Garten." : " steht jetzt im Zimmer. " + N() + " schnuppert neugierig daran."));
         if (!busy && !s.asleep) act("look", async function () { front({ eyes: "wide", ears: "up", mouth: "open" }); pulse("hop", 420); await wait(500); await nibbleNose(6); front({ eyes: "happy", mouth: "smile", blush: true }); await wait(500); });
       } else say(it.name + " wartet im Katalog unter „Zimmer einrichten“.");

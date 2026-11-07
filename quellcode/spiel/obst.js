@@ -30,10 +30,39 @@
     try { if (window.SudokuSave) window.SudokuSave(); else if (typeof save === "function") save(); } catch (e) { }
     return msg;
   }
+  /* sounds: a soft pop when fruit flies up, a swish for the swipe, a juicy squish for a cut (higher with every hit in one swipe),
+     chimes for gold and combos, a magic glissando per special, a thump for the chestnut, ticks in the last seconds, a fanfare at the end */
+  var OS_SFX = (function () {
+    var noiseBuf = null, lastLaunch = 0;
+    function A() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; }
+    function nb(a) { if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate, a.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return noiseBuf; }
+    function noise(dur, f0, f1, q, g, at, type) { try { var a = A(), t0 = a.currentTime + .01 + (at || 0), n = a.createBufferSource(), fl = a.createBiquadFilter(), gn = a.createGain();
+      n.buffer = nb(a); fl.type = type || "bandpass"; fl.frequency.setValueAtTime(f0, t0); fl.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t0 + dur); fl.Q.value = q;
+      gn.gain.setValueAtTime(.0001, t0); gn.gain.exponentialRampToValueAtTime(g, t0 + Math.min(.02, dur / 3)); gn.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+      n.connect(fl); fl.connect(gn); gn.connect(a.destination); n.start(t0, Math.random() * .5); n.stop(t0 + dur + .02); } catch (e) { } }
+    function tone(f, dur, g, type, at, f2) { try { var a = A(), t0 = a.currentTime + .01 + (at || 0), o = a.createOscillator(), gn = a.createGain(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+      gn.gain.setValueAtTime(.0001, t0); gn.gain.exponentialRampToValueAtTime(g, t0 + .008); gn.gain.exponentialRampToValueAtTime(.0001, t0 + dur); o.connect(gn); gn.connect(a.destination); o.start(t0); o.stop(t0 + dur + .02); } catch (e) { } }
+    var NOTES = [523, 587, 659, 784, 880, 1047, 1175, 1319];
+    return function (k, n) {
+      if (k === "launch" || k === "launchBomb") { var now = Date.now(); if (now - lastLaunch < 90) return; lastLaunch = now; tone(k === "launch" ? 240 + Math.random() * 60 : 140, .09, .05, "sine", 0, k === "launch" ? 520 : 220); noise(.08, 900, 400, 1.2, .03); }
+      else if (k === "swish") noise(.11, 900, 3200, 1.6, .045);
+      else if (k === "cut") { var p = Math.min(n || 0, 6); noise(.09, 2400, 700, 1.4, .09); tone(330 * Math.pow(1.12, p), .07, .07, "triangle", .01, 160 * Math.pow(1.12, p)); noise(.05, 5000, 3000, 3, .03, .04); }
+      else if (k === "gold") { noise(.08, 2400, 700, 1.4, .08); [1319, 1568, 2093].forEach(function (f, i) { tone(f, .22, .05, "triangle", .03 + i * .06); }); }
+      else if (k === "combo") { var c = Math.min(n || 3, 8); for (var i = 0; i < c; i++) tone(NOTES[i], .12, .06, "square", i * .055); tone(NOTES[Math.min(c, 7)] * 2, .3, .04, "triangle", c * .055); }
+      else if (k === "frostbeere") { for (var j = 0; j < 7; j++) tone(2400 - j * 180, .25, .03, "sine", j * .05); tone(1200, .6, .02, "triangle", .1, 600); }
+      else if (k === "sonnenblume") { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .16, .06, "square", i * .07); }); tone(1047, .35, .04, "triangle", .3); }
+      else if (k === "honigwabe") { for (var h = 0; h < 6; h++) tone(300 + h * 60, .08, .05, "triangle", h * .05, 420 + h * 60); noise(.4, 600, 1400, 2, .03, .05); }
+      else if (k === "bomb") { noise(.45, 600, 60, .8, .3, 0, "lowpass"); tone(120, .35, .14, "sine", 0, 40); noise(.2, 3000, 1500, 2, .08, .02); }
+      else if (k === "tick") { tone(n <= 3 ? 1400 : 1100, .05, .06, "square"); }
+      else if (k === "end") { [523, 659, 784].forEach(function (f, i) { tone(f, .2, .05, "square", i * .12); }); }
+      else if (k === "full") { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .2, .06, "square", i * .11); }); tone(1047, .5, .04, "triangle", .5); }
+      else if (k === "record") { [523, 659, 784, 1047, 784, 1047, 1319].forEach(function (f, i) { tone(f, i === 6 ? .6 : .14, .06, "square", i * .1); }); [2093, 2637].forEach(function (f, i) { tone(f, .3, .03, "triangle", .7 + i * .08); }); }
+    };
+  })();
   function osOpen() {
     var e = osEnv(), acc = osAccount();
     osEl.hidden = false; osEl.innerHTML = '<div class="os-in"></div>';
-    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, season: e.season, time: e.time, weather: e.weather, board: osBoard, playerName: acc ? acc.name : N(), onClose: osClose });
+    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, sfx: OS_SFX, season: e.season, time: e.time, weather: e.weather, board: osBoard, playerName: acc ? acc.name : N(), onClose: osClose });
   }
   function osClose() {
     var st = osGame && osGame.state ? osGame.state() : null;
@@ -52,3 +81,11 @@
     act("obst", osSeq);
   });
   window.__obst = { rounds: function (v) { if (v != null) s.osRounds = v; return s.osRounds || 0; }, open: osOpen, close: osClose, game: function () { return osGame; }, env: osEnv };
+  /* the meadow spot right in front of the basket (meadow1) is gone: whatever stood there moves to a free spot, or back into the catalogue */
+  function osNoMeadow1() {
+    var id = home.placed.meadow1; if (id) { var fr = [0, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; if (fr !== undefined) home.placed["meadow" + fr] = id; home.placed.meadow1 = null; }
+    var el = document.getElementById("slot-meadow1"); if (el) { el.hidden = true; el.style.display = "none"; }
+    var hit = document.getElementById("g-tree-hit1"); if (hit) hit.remove();
+  }
+  var _os_rgd = renderGardenDecor; renderGardenDecor = function () { osNoMeadow1(); _os_rgd(); osNoMeadow1(); };
+  osNoMeadow1();

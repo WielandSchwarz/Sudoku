@@ -3859,7 +3859,7 @@ window.__EXTRAS = true;
     wrap.addEventListener("click", function (e) {
       var a = e.target.dataset && e.target.dataset.a; if (!a) return;
       if (a === "place") {
-        if (cat === "meadow") { var sp = [0, 1, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
+        if (cat === "meadow") { var sp = [0, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
         renderRoom(); say(it.name + (["meadow", "deco", "bed"].indexOf(cat) >= 0 ? " steht jetzt im Garten." : " steht jetzt im Zimmer. " + N() + " schnuppert neugierig daran."));
         if (!busy && !s.asleep) act("look", async function () { front({ eyes: "wide", ears: "up", mouth: "open" }); pulse("hop", 420); await wait(500); await nibbleNose(6); front({ eyes: "happy", mouth: "smile", blush: true }); await wait(500); });
       } else say(it.name + " wartet im Katalog unter „Zimmer einrichten“.");
@@ -8621,7 +8621,7 @@ window.__EXTRAS = true;
       gcls = cat === "plant" ? "ip-tall" : cat === "meadow" ? "ip-plant" : "";
       where = ["meadow", "deco", "bed"].indexOf(cat) >= 0 ? "Garten einrichten" : "Zimmer einrichten";
       place = function () {
-        if (cat === "meadow") { var sp = [0, 1, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
+        if (cat === "meadow") { var sp = [0, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; home.placed["meadow" + (sp === undefined ? 0 : sp)] = it.id; } else home.placed[cat] = it.id;
         renderRoom(); say(it.name + (["meadow", "deco", "bed"].indexOf(cat) >= 0 ? " steht jetzt im Garten." : " steht jetzt im Zimmer."));
         if (window.SudokuSave) window.SudokuSave();
       };
@@ -10937,7 +10937,7 @@ window.__EXTRAS = true;
         else if (F.trick.k === "wiggle") { F.x = F.trick.x + Math.round(Math.sin(tu * 40) * 1.5); F.tx = F.x; F.ty = F.y; if (Math.random() < .08) aqHeart(F.x, F.y - 10); }
         else if (F.trick.k === "jump") { var jy = Math.sin(tu * Math.PI); F.y = F.trick.y - jy * (F.trick.y - AQ_WL + 8); F.tx = F.x; F.ty = F.y; if (!F.trick.sp && F.y < AQ_WL + 2) { F.trick.sp = 1; for (var sp2 = 0; sp2 < 10; sp2++) aqBub(F.x - 8 + sp2 * 2, AQ_WL + 3, 1); beep([[520, .05], [780, .06]]); } } } }
     if (aq.mode === "play" && aq.hoop) { var H2 = aq.hoop; if (Math.abs(F.x - H2.x) < 3 && Math.abs(F.y - H2.y) < 6 && now > (H2.cool || 0)) { H2.cool = now + 800; aq.plays++; beep([[660, .04], [880, .04], [1175, .06]]); for (var hb = 0; hb < 6; hb++) aqBub(H2.x, H2.y - 6 + hb * 2, 1); F.happy = 1; setTimeout(function () { if (aq) aq.fish.happy = 0; }, 500);
-        if (aq.plays >= 4) { aq.hoop = null; aq.mode = ""; aq.ptr = null; aqSay("Super! Vier Mal durch den Ring!"); F.trick = { k: "loop", t0: now, dur: 900, x: F.x, y: F.y, dir: F.dir }; s.love = clamp(s.love + 2); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); aqBarDraw(); }
+        if (aq.plays >= 4) { aq.hoop = null; aq.mode = ""; aq.ptr = null; aqSay("Super! Vier Mal durch den Ring!"); F.trick = { k: "loop", t0: now, dur: 900, x: F.x, y: F.y, dir: F.dir }; s.love = clamp(s.love + 2); if (typeof ixFun === "function") ixFun("aqring", 6); else s.fun = clamp(s.fun + 6); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); aqBarDraw(); }
         else { aqSay(aq.plays + " von 4"); H2.x = 40 + Math.random() * 100; H2.y = 42 + Math.random() * 44; } } }
   }
   function aqFeedDone() { aq.mode = ""; aq.fish.fast = 0; var L = life();
@@ -22295,6 +22295,8 @@ function recolorWallSvg(svg, grund, muster) {
   function ixBtn(parent, x, y, w, h, label) { var b = document.createElement("button"); b.type = "button"; b.className = "ix-hit"; b.setAttribute("aria-label", label); place(b, x, y, w); b.style.height = gy(h); parent.appendChild(b); return b; }
   function ixAct(fn) { return function (e) { e.stopPropagation(); if (decor || s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt(); act("ix", fn); }; }
   function ixOver(parent, x, y, w, h, svg, cls) { var d = document.createElement("div"); d.className = "ix-over " + (cls || ""); place(d, x, y, w); d.style.height = gy(h); d.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges" style="display:block;width:100%;height:100%">' + svg + '</svg>'; parent.appendChild(d); return d; }
+  /* fun: each of these little things lifts the fun bar, each one at most once in 10 minutes, so variety pays more than tapping the same thing */
+  function ixFun(k, n) { s.ixFun = s.ixFun || {}; var now = Date.now(); if (now - (s.ixFun[k] || 0) < 600000) return; s.ixFun[k] = now; s.fun = clamp(s.fun + n); if (typeof renderNeeds === "function") renderNeeds(); if (window.SudokuSave) window.SudokuSave(); }
   function ixR(x, y, w, h, c) { return '<path fill="' + c + '" d="M' + x + ' ' + y + 'h' + w + 'v' + h + 'h-' + w + 'z"/>'; }
 
   // ---- living room: the gramophone has three records now, each with its own little dance ----
@@ -22318,7 +22320,7 @@ function recolorWallSvg(svg, grund, muster) {
         await wait(R.t[i][1] * 1000 + 110);
       }
       if (R.d === "sleepy") { front({ eyes: "sleep", mouth: "yawn" }); await wait(900); }
-      front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); await wait(700); settle();
+      front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); ixFun("gram", 6); await wait(700); settle();
     };
   }
   // ---- living room: winding the plain wall clock (the cuckoo clock and the alarm clock keep their own tricks) ----
@@ -22327,7 +22329,7 @@ function recolorWallSvg(svg, grund, muster) {
     for (var i = 0; i < 8; i++) { standFrame(i % 2); beep([[260 + (i % 2) * 70, .03]]); await wait(180); }
     slotAnim("clock", "wobble", 1000); front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300);
     for (var k = 0; k < 4; k++) { beep([[1900, .02]]); await wait(320); beep([[1500, .02]]); await wait(320); }
-    say("Tick, tack! Die Uhr läuft wieder."); settle();
+    say("Tick, tack! Die Uhr läuft wieder."); ixFun("clock", 4); settle();
   }
   var _ix_tapF = tapFurniture;
   tapFurniture = function (cat) { var id = home.placed[cat];
@@ -22352,7 +22354,7 @@ function recolorWallSvg(svg, grund, muster) {
     for (var k = 0; k < 4; k++) { H.dir = k % 2 ? 1 : -1; front({ eyes: k % 2 ? "look_r" : "look_l", mouth: "smile", paws: k % 2 ? "side_r" : "side_l" }); await wait(420); }
     fx("heart", H.x, headY() - 6, "up"); front({ eyes: "happy", mouth: "grin", paws: "up", blush: true }); pulse("hop", 300); await wait(1400);
     for (var j = 0; j < 4; j++) { standFrame(j % 2); await wait(200); }
-    ixWear = null; front(mood()); say(which === "hat" ? "Der Hut hängt wieder am Haken." : "Der Schal hängt wieder an der Garderobe."); settle(); }; }
+    ixWear = null; ixFun(which, 5); front(mood()); say(which === "hat" ? "Der Hut hängt wieder am Haken." : "Der Schal hängt wieder an der Garderobe."); settle(); }; }
   if (typeof wLay !== "undefined") wLay.addEventListener("click", function (e) {
     var b = e.target.closest(".wide-hit"); if (!b || (b.dataset.w !== "hat" && b.dataset.w !== "coat")) return; e.stopPropagation();
     ixAct(ixTry(b.dataset.w === "hat" ? "hat" : "scarf"))(e); }, true);
@@ -22364,20 +22366,20 @@ function recolorWallSvg(svg, grund, muster) {
       teddyCarry = true; teddyShelf.hidden = true; front({ hold: "b_teddy", holdScale: 1, paws: "hold", eyes: "happy", mouth: "smile", blush: true }); pulse("hop", 300); say(N() + " kuschelt mit dem Teddy.");
       for (var k = 0; k < 5; k++) { await wait(380); fx("heart", H.x + rnd(-8, 8), headY() - 4, "up"); front({ eyes: k % 2 ? "happy" : "sleep", mouth: "smile" }); }
       await wait(500); for (var j = 0; j < 4; j++) { standFrame(j % 2); await wait(190); }
-      teddyCarry = false; front({ hold: null }); teddyState(); settle(); }));
+      teddyCarry = false; front({ hold: null }); teddyState(); ixFun("teddy", 6); settle(); }));
     var ixCandleSmoke = function () { var o = ""; [[2, 6], [3, 5], [2, 4], [1, 3], [2, 2], [3, 1], [2, 0]].forEach(function (q, i) { o += ixR(q[0], q[1], 1, 1, i < 3 ? "#9a9a9a" : "#c8c8c8"); }); return o; };
     ixBtn(bedEl, 108, 63, 13, 17, "Kerze").addEventListener("click", ixAct(async function () {
       await walkTo(114, 120); H.dir = 1; front({ eyes: "wide", mouth: "open" }); await wait(300);
       say("Pfff! " + N() + " pustet die Kerze an."); beep([[220, .15]]); var sm = ixOver(bedEl, 112, 58, 5, 8, ixCandleSmoke(), "ix-smoke"); pulse("hop", 300);
       await wait(1300); sm.remove(); front({ eyes: "happy", mouth: "grin" }); fx("spark", 115, 66, "sparkle", 1); beep([[1047, .04], [1319, .05]]);
-      say("Und schwupp, sie flackert wieder."); await wait(700); settle(); }));
+      say("Und schwupp, sie flackert wieder."); ixFun("candle", 3); await wait(700); settle(); }));
     ixBtn(bedEl, 103, 80, 22, 15, "Gute-Nacht-Buch").addEventListener("click", ixAct(async function () {
       await walkTo(100, 120); H.dir = 1; for (var i = 0; i < 3; i++) { standFrame(i % 2); await wait(200); }
       bookColor = pick(BOOK_COLORS); front({ hold: "book", eyes: "happy", mouth: "smile", paws: "hold" }); pulse("hop", 300); say(N() + " liest eine Gute-Nacht-Geschichte."); await wait(600);
       front({ hold: "book_open", eyes: "down", mouth: "flat" }); await wait(1200);
       for (var p = 0; p < 4; p++) { await wait(1300); front({ hold: "book_flip" }); beep([[900, .02]]); await wait(200); front({ hold: "book_open", eyes: p > 1 ? "half" : "down" }); }
       front({ hold: "book_open", eyes: "sleep", mouth: "yawn" }); fx("zz", H.x + 8, headY() - 4, "up"); await wait(1100);
-      front({ hold: null, eyes: "happy", mouth: "smile" }); say(daylight() === "day" ? "Schön war die Geschichte." : "Gähn, jetzt wird " + N() + " müde."); await wait(700); settle(); }));
+      front({ hold: null, eyes: "happy", mouth: "smile" }); say(daylight() === "day" ? "Schön war die Geschichte." : "Gähn, jetzt wird " + N() + " müde."); ixFun("book", 4); await wait(700); settle(); }));
   }
 
   // ---- bath: drawing a heart on the misted mirror, washing paws at the tap ----
@@ -22390,13 +22392,13 @@ function recolorWallSvg(svg, grund, muster) {
       var heart = [[4, 6], [5, 5], [6, 6], [7, 5], [8, 6], [9, 7], [9, 8], [8, 9], [7, 10], [6, 11], [5, 10], [4, 9], [3, 8], [3, 7]], svg = fogEl.querySelector("svg");
       for (var k = 0; k < heart.length; k++) { standFrame(k % 2); svg.insertAdjacentHTML("beforeend", ixR(heart[k][0], heart[k][1], 1, 1, "#a8d4e8")); beep([[1400 + k * 30, .015]]); await wait(120); }
       front({ eyes: "happy", mouth: "grin", paws: "up", blush: true }); pulse("hop", 300); say("Ein Herz im Spiegel!"); await wait(1600);
-      fogEl.classList.add("ix-fade"); await wait(900); fogEl.remove(); settle(); }));
+      ixFun("mirror", 5); fogEl.classList.add("ix-fade"); await wait(900); fogEl.remove(); settle(); }));
     ixBtn(bathEl, 96, 58, 18, 18, "Wasserhahn").addEventListener("click", ixAct(async function () {
       await walkTo(104, 120); H.dir = 1; for (var i = 0; i < 2; i++) { standFrame(i % 2); await wait(200); }
       var w = ""; for (var y = 0; y < 8; y++) w += ixR(1, y, 1, 1, y % 2 ? "#8cc8ec" : "#c8ecfa"); var stream = ixOver(bathEl, 104, 66, 3, 8, w, "ix-stream"); beep([[600, .05]]);
       say(N() + " wäscht sich die Pfötchen.");
-      for (var k = 0; k < 8; k++) { front({ paws: k % 2 ? "wash_l" : "wash_r", eyes: "happy", mouth: "smile" }); if (k % 2) fx("drop", H.x + rnd(-6, 6), headY() + 18, "fall", 0.6); await wait(260); }
-      stream.remove(); fx("spark", H.x, headY() + 10, "sparkle", 1); front({ paws: "up", eyes: "happy", mouth: "grin" }); say("Blitzsauber!"); await wait(700); settle(); }));
+      for (var k = 0; k < 8; k++) { front({ paws: k % 2 ? "wash_l" : "wash_r", eyes: "happy", mouth: "smile" }); if (k % 2) fx("drop", H.x + rnd(-6, 6), headY() + 18, "fall", 0.6); else fx("bubble", H.x + rnd(-10, 10), headY() + 12, "up", 0.8); await wait(260); }
+      stream.remove(); fx("spark", H.x, headY() + 10, "sparkle", 1); front({ paws: "up", eyes: "happy", mouth: "grin" }); say("Blitzsauber!"); ixFun("tap", 3); await wait(700); settle(); }));
   }
 
   // ---- kitchen: the herb garland under the ceiling ----
@@ -22406,7 +22408,7 @@ function recolorWallSvg(svg, grund, muster) {
       for (var i = 0; i < 8; i++) { standFrame(i % 2); await wait(170); }
       front({ eyes: "sleep", mouth: "open" }); await wait(350); pulse("shake", 400); beep([[880, .05], [330, .12]]); say("Hatschi!");
       for (var k = 0; k < 4; k++) fx("spark", 90 + rnd(-16, 16), rnd(8, 18), "fall", 1);
-      await wait(600); front({ eyes: "happy", mouth: "grin", blush: true }); await wait(600); settle(); }));
+      await wait(600); front({ eyes: "happy", mouth: "grin", blush: true }); ixFun("herbs", 3); await wait(600); settle(); }));
   }
 
   // ---- café: watering the plants, wiping a free table, stoking the fire ----
@@ -22420,11 +22422,11 @@ function recolorWallSvg(svg, grund, muster) {
       if (guests.some(function (q) { return q.state !== "gone" && Math.abs(q.x - x) < 16 && y > 54 && y < 135; })) return;
       if (Math.abs(x - CFH.x) < 15 && y > CFH.y - 36) return;
       var pl = (CF_PDEF[CF_THEME_NOW] || CF_PDEF.wood || []), hitP = -1; CF_PSLOT.forEach(function (p, i) { if (pl[i] !== null && Math.abs(x - p[0]) < 13 && y > p[1] - 36 && y < p[1] + 3) hitP = i; });
-      if (hitP >= 0) { var P = CF_PSLOT[hitP]; say(N() + " gießt die Pflanze."); cfHamJob(function () { return cfHamGo([P[0] + 14, 114]).then(function () { cfHamSet({ paws: "up", eyes: "happy", mouth: "smile" }); beep([[523, .04], [659, .05]]); ixCfFx(P[0], P[1] - 18, "#8cc8ec", 10); setTimeout(function () { ixCfFx(P[0], P[1] - 26, "#7ae05a", 6); cfHamSet({}); say("Die Pflanze reckt sich zufrieden."); }, 900); return new Promise(function (res) { setTimeout(res, 1200); }); }); }); return; }
+      if (hitP >= 0) { var P = CF_PSLOT[hitP]; say(N() + " gießt die Pflanze."); ixFun("cfplant", 3); cfHamJob(function () { return cfHamGo([P[0] + 14, 114]).then(function () { cfHamSet({ paws: "up", eyes: "happy", mouth: "smile" }); beep([[523, .04], [659, .05]]); ixCfFx(P[0], P[1] - 18, "#8cc8ec", 10); setTimeout(function () { ixCfFx(P[0], P[1] - 26, "#7ae05a", 6); cfHamSet({}); say("Die Pflanze reckt sich zufrieden."); }, 900); return new Promise(function (res) { setTimeout(res, 1200); }); }); }); return; }
       for (var ti = 0; ti < TABLES.length; ti++) { var T = TABLES[ti]; if (Math.abs(x - T.top[0]) < 14 && Math.abs(y - T.top[1]) < 10) {
         if (guests.some(function (q) { return q.table === ti && q.state !== "gone"; })) return;
-        say(N() + " wischt den Tisch ab."); (function (T) { cfHamJob(function () { return cfHamGo([T.top[0] + 10, 114]).then(function () { var n = 0; return new Promise(function (res) { var iv = setInterval(function () { n++; cfHamSet({ paws: n % 2 ? "side_l" : "side_r", eyes: "happy", mouth: "smile" }); beep([[1200 + (n % 2) * 200, .02]]); if (n >= 6) { clearInterval(iv); ixCfFx(T.top[0], T.top[1] - 2, "#ffffff", 8); cfHamSet({}); say("Blitzblank!"); res(); } }, 220); }); }); }); })(T); return; } }
-      if (x > 160 && x < 192 && y > 48 && y < 104) { say(N() + " legt Holz nach. Das Feuer prasselt."); cfHamJob(function () { return cfHamGo([176, 116]).then(function () { cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); for (var k = 0; k < 3; k++) setTimeout(function () { ixCfFx(176, 84, "#ffb030", 8); beep([[200 + Math.random() * 80, .05]]); }, k * 260); return new Promise(function (res) { setTimeout(function () { cfHamSet({}); say("Wie gemütlich es jetzt ist."); res(); }, 1100); }); }); }); return; }
+        say(N() + " wischt den Tisch ab."); ixFun("cftable", 3); (function (T) { cfHamJob(function () { return cfHamGo([T.top[0] + 10, 114]).then(function () { var n = 0; return new Promise(function (res) { var iv = setInterval(function () { n++; cfHamSet({ paws: n % 2 ? "side_l" : "side_r", eyes: "happy", mouth: "smile" }); beep([[1200 + (n % 2) * 200, .02]]); if (n >= 6) { clearInterval(iv); ixCfFx(T.top[0], T.top[1] - 2, "#ffffff", 8); cfHamSet({}); say("Blitzblank!"); res(); } }, 220); }); }); }); })(T); return; } }
+      if (x > 160 && x < 192 && y > 48 && y < 104) { say(N() + " legt Holz nach. Das Feuer prasselt."); ixFun("cffire", 4); cfHamJob(function () { return cfHamGo([176, 116]).then(function () { cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); for (var k = 0; k < 3; k++) setTimeout(function () { ixCfFx(176, 84, "#ffb030", 8); beep([[200 + Math.random() * 80, .05]]); }, k * 260); return new Promise(function (res) { setTimeout(function () { cfHamSet({}); say("Wie gemütlich es jetzt ist."); res(); }, 1100); }); }); }); return; }
     });
     // ---- the stamp card: every visit after a meal is a stamp; the tenth brings a little present ----
     var _ix_gPay = gPay;
@@ -22433,6 +22435,7 @@ function recolorWallSvg(svg, grund, muster) {
       else if (n > 1) setTimeout(function () { say(ALLANI[g.id].name + " bekommt einen Stempel (" + (n % 10) + "/10)."); }, 1200);
       if (window.SudokuSave) window.SudokuSave(); } catch (er) { } return r; };
   }
+  window.__ixFunSt = function (v) { if (v != null) s.fun = v; return { fun: s.fun, ixFun: s.ixFun }; };
   // ===================== the boat trip on the lake: a trading chain =====================
   // Seen from above. Little islands, an animal on each. Every animal has something and wishes for something else, and only swaps when it gets its wish.
   // The hamster starts at the jetty with one thing from home; the boat carries one thing at a time; the raft by the jetty can hold one more.
@@ -22668,6 +22671,7 @@ function mountObstsalat(root, ART, opts) {
   }
   function loadBest() { try { return +localStorage.getItem("obstsalat-rekord") || 0; } catch (e) { return 0; } }
   function saveBest(v) { try { localStorage.setItem("obstsalat-rekord", String(v)); } catch (e) {} }
+  function sfx(k, a) { if (opts.sfx) try { opts.sfx(k, a); } catch (e) {} }
   function addScore(n) { S.score = Math.max(0, S.score + n); }
   function showBanner(text, secs, timed) {
     banT.textContent = text; banTime.style.display = timed ? "block" : "none"; banTime.style.transform = "scaleX(1)";
@@ -22687,7 +22691,7 @@ function mountObstsalat(root, ART, opts) {
     var f = FR[k], y0 = H + f.h / 2 + 2;
     var vy = -Math.sqrt(2 * G * (y0 - peak));
     var vx = drift != null ? drift : (90 - x) / 100 * (20 + Math.random() * 20) + (Math.random() - .5) * 14;
-    S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt });
+    S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt }); sfx(k === "kastanie" ? "launchBomb" : "launch");
   }
   function volley() {
     var t = S.t, n = Math.min(7, 1 + Math.floor(t / 10) + (Math.random() < .5 ? 1 : 0));
@@ -22763,7 +22767,7 @@ function mountObstsalat(root, ART, opts) {
       it.cut = true;
       if (it.k === "kastanie") { boom(it); return; }
       var skin = sliceItem(it, bx - ax, by - ay);
-      S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
+      sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
       addScore(points(it.k === "goldapfel" ? 4 : 1));
       if (it.k === "goldapfel") { cheer(1); popText(S.doubleT > 0 ? "+8" : "+4", it.x, it.y, "#f8d850"); }
       if (SPECIALS[it.k]) special(it.k);
@@ -22774,13 +22778,13 @@ function mountObstsalat(root, ART, opts) {
     if (k === "frostbeere") S.slowT = sp.t;
     if (k === "sonnenblume") { S.doubleT = sp.t; x2El.hidden = false; }
     if (k === "honigwabe") { S.rainT = sp.t; S.rainSpawn = 0; }
-    S.specialMax = sp.t; S.specialKey = k;
+    S.specialMax = sp.t; S.specialKey = k; sfx(k);
     showBanner(sp.ban, sp.t, true);
     cheer(1);
   }
   function boom(it) {                                   // the chestnut husk: white flash, spines fly, minus 10 points
     S.flash = .45; S.shake = .45; S.face = "schreck"; S.faceT = 1.4; S.hop = 0; S.hops = 0;
-    addScore(-10); S.scoreHit = .6; popText("−10", it.x, it.y, "#f08a7e");
+    addScore(-10); S.scoreHit = .6; sfx("bomb"); popText("−10", it.x, it.y, "#f08a7e");
     for (var k = 0; k < 40; k++) {
       var a = k / 40 * Math.PI * 2, sp = 50 + Math.random() * 70;
       S.bits.push({ x: it.x, y: it.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, c: k % 3 ? "#6a9a38" : "#d8f0a0", life: .7 + Math.random() * .4 });
@@ -22792,7 +22796,7 @@ function mountObstsalat(root, ART, opts) {
   // ---------- combo: badge, confetti, rays, a double hop
   function combo(n, x, y) {
     var bonus = points(n - 1);
-    addScore(bonus); cheer(2);
+    addScore(bonus); cheer(2); sfx("combo", n);
     var e = document.createElement("div"); e.className = "os-combo c" + Math.min(6, n);
     e.innerHTML = '<b></b><i></i>';
     e.querySelector("b").textContent = n + "er-Kombi"; e.querySelector("i").textContent = "+" + bonus;
@@ -22818,14 +22822,14 @@ function mountObstsalat(root, ART, opts) {
       if (opts.board && !S.boardOn) showBoard(); else reset();
       return;
     }
-    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeCuts = [];
+    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0, sw: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeCuts = [];
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
   cv.addEventListener("pointermove", function (ev) {
     if (!down || !S.stroke) return;
     var p = pt(ev), q = S.stroke;
-    down.moved += Math.hypot(p.x - q.x, p.y - q.y);
+    down.moved += Math.hypot(p.x - q.x, p.y - q.y); if (down.moved - down.sw > 40) { down.sw = down.moved; sfx("swish"); }
     cutAlong(q.x, q.y, p.x, p.y);
     S.stroke = p; S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
@@ -22852,6 +22856,7 @@ function mountObstsalat(root, ART, opts) {
     S.done = true; S.endT = 0; S.endTitle = title || "";
     S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
+    sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
     if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4); ban.classList.add("rw"); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
@@ -22897,7 +22902,7 @@ function mountObstsalat(root, ART, opts) {
     }
     if (t !== hudShown.t) {
       timeEl.textContent = Math.floor(t / 60) + ":" + (t % 60 < 10 ? "0" : "") + (t % 60);
-      if (!S.done && t <= HURRY && t > 0) { hudT.classList.add("hurry"); hudT.classList.remove("tick"); void hudT.offsetWidth; hudT.classList.add("tick"); }
+      if (!S.done && t <= HURRY && t > 0) { hudT.classList.add("hurry"); sfx("tick", t); hudT.classList.remove("tick"); void hudT.offsetWidth; hudT.classList.add("tick"); }
       hudShown.t = t;
     }
   }
@@ -23127,10 +23132,39 @@ function obstsalatBoard(SYNC_URL, getAccount) {
     try { if (window.SudokuSave) window.SudokuSave(); else if (typeof save === "function") save(); } catch (e) { }
     return msg;
   }
+  /* sounds: a soft pop when fruit flies up, a swish for the swipe, a juicy squish for a cut (higher with every hit in one swipe),
+     chimes for gold and combos, a magic glissando per special, a thump for the chestnut, ticks in the last seconds, a fanfare at the end */
+  var OS_SFX = (function () {
+    var noiseBuf = null, lastLaunch = 0;
+    function A() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; }
+    function nb(a) { if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate, a.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return noiseBuf; }
+    function noise(dur, f0, f1, q, g, at, type) { try { var a = A(), t0 = a.currentTime + .01 + (at || 0), n = a.createBufferSource(), fl = a.createBiquadFilter(), gn = a.createGain();
+      n.buffer = nb(a); fl.type = type || "bandpass"; fl.frequency.setValueAtTime(f0, t0); fl.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t0 + dur); fl.Q.value = q;
+      gn.gain.setValueAtTime(.0001, t0); gn.gain.exponentialRampToValueAtTime(g, t0 + Math.min(.02, dur / 3)); gn.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+      n.connect(fl); fl.connect(gn); gn.connect(a.destination); n.start(t0, Math.random() * .5); n.stop(t0 + dur + .02); } catch (e) { } }
+    function tone(f, dur, g, type, at, f2) { try { var a = A(), t0 = a.currentTime + .01 + (at || 0), o = a.createOscillator(), gn = a.createGain(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+      gn.gain.setValueAtTime(.0001, t0); gn.gain.exponentialRampToValueAtTime(g, t0 + .008); gn.gain.exponentialRampToValueAtTime(.0001, t0 + dur); o.connect(gn); gn.connect(a.destination); o.start(t0); o.stop(t0 + dur + .02); } catch (e) { } }
+    var NOTES = [523, 587, 659, 784, 880, 1047, 1175, 1319];
+    return function (k, n) {
+      if (k === "launch" || k === "launchBomb") { var now = Date.now(); if (now - lastLaunch < 90) return; lastLaunch = now; tone(k === "launch" ? 240 + Math.random() * 60 : 140, .09, .05, "sine", 0, k === "launch" ? 520 : 220); noise(.08, 900, 400, 1.2, .03); }
+      else if (k === "swish") noise(.11, 900, 3200, 1.6, .045);
+      else if (k === "cut") { var p = Math.min(n || 0, 6); noise(.09, 2400, 700, 1.4, .09); tone(330 * Math.pow(1.12, p), .07, .07, "triangle", .01, 160 * Math.pow(1.12, p)); noise(.05, 5000, 3000, 3, .03, .04); }
+      else if (k === "gold") { noise(.08, 2400, 700, 1.4, .08); [1319, 1568, 2093].forEach(function (f, i) { tone(f, .22, .05, "triangle", .03 + i * .06); }); }
+      else if (k === "combo") { var c = Math.min(n || 3, 8); for (var i = 0; i < c; i++) tone(NOTES[i], .12, .06, "square", i * .055); tone(NOTES[Math.min(c, 7)] * 2, .3, .04, "triangle", c * .055); }
+      else if (k === "frostbeere") { for (var j = 0; j < 7; j++) tone(2400 - j * 180, .25, .03, "sine", j * .05); tone(1200, .6, .02, "triangle", .1, 600); }
+      else if (k === "sonnenblume") { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .16, .06, "square", i * .07); }); tone(1047, .35, .04, "triangle", .3); }
+      else if (k === "honigwabe") { for (var h = 0; h < 6; h++) tone(300 + h * 60, .08, .05, "triangle", h * .05, 420 + h * 60); noise(.4, 600, 1400, 2, .03, .05); }
+      else if (k === "bomb") { noise(.45, 600, 60, .8, .3, 0, "lowpass"); tone(120, .35, .14, "sine", 0, 40); noise(.2, 3000, 1500, 2, .08, .02); }
+      else if (k === "tick") { tone(n <= 3 ? 1400 : 1100, .05, .06, "square"); }
+      else if (k === "end") { [523, 659, 784].forEach(function (f, i) { tone(f, .2, .05, "square", i * .12); }); }
+      else if (k === "full") { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .2, .06, "square", i * .11); }); tone(1047, .5, .04, "triangle", .5); }
+      else if (k === "record") { [523, 659, 784, 1047, 784, 1047, 1319].forEach(function (f, i) { tone(f, i === 6 ? .6 : .14, .06, "square", i * .1); }); [2093, 2637].forEach(function (f, i) { tone(f, .3, .03, "triangle", .7 + i * .08); }); }
+    };
+  })();
   function osOpen() {
     var e = osEnv(), acc = osAccount();
     osEl.hidden = false; osEl.innerHTML = '<div class="os-in"></div>';
-    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, season: e.season, time: e.time, weather: e.weather, board: osBoard, playerName: acc ? acc.name : N(), onClose: osClose });
+    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, sfx: OS_SFX, season: e.season, time: e.time, weather: e.weather, board: osBoard, playerName: acc ? acc.name : N(), onClose: osClose });
   }
   function osClose() {
     var st = osGame && osGame.state ? osGame.state() : null;
@@ -23149,6 +23183,14 @@ function obstsalatBoard(SYNC_URL, getAccount) {
     act("obst", osSeq);
   });
   window.__obst = { rounds: function (v) { if (v != null) s.osRounds = v; return s.osRounds || 0; }, open: osOpen, close: osClose, game: function () { return osGame; }, env: osEnv };
+  /* the meadow spot right in front of the basket (meadow1) is gone: whatever stood there moves to a free spot, or back into the catalogue */
+  function osNoMeadow1() {
+    var id = home.placed.meadow1; if (id) { var fr = [0, 2].filter(function (i) { return !home.placed["meadow" + i]; })[0]; if (fr !== undefined) home.placed["meadow" + fr] = id; home.placed.meadow1 = null; }
+    var el = document.getElementById("slot-meadow1"); if (el) { el.hidden = true; el.style.display = "none"; }
+    var hit = document.getElementById("g-tree-hit1"); if (hit) hit.remove();
+  }
+  var _os_rgd = renderGardenDecor; renderGardenDecor = function () { osNoMeadow1(); _os_rgd(); osNoMeadow1(); };
+  osNoMeadow1();
 
 
   /*TESTHOOK*/
