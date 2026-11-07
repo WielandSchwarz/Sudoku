@@ -1,6 +1,8 @@
 // Sudoku account sync – Cloudflare Worker with a D1 database bound as "DB".
 // POST /api/login  { name, pin, create }        -> { ok, name, seen, state, stateUpdated }
 // POST /api/save   { name, pin, seen, state, stateUpdated } -> same shape, merged
+// POST /api/top    { game, name? }              -> { ok, rows, me, total }   (Bestenliste der Minispiele, siehe unten)
+// POST /api/score  { game, name, pin, score }   -> same shape as /api/top, after saving the score
 // The PIN is stored only as a salted PBKDF2 hash. After 8 wrong PINs the account locks for 15 minutes.
 
 const ALLOWED_ORIGINS = ["https://wielandschwarz.github.io", "http://localhost:8765"];
@@ -74,18 +76,65 @@ async function checkAccount(env, row, pin, now) {
   return null;
 }
 
+// ---------- Bestenliste der Minispiele (Tabelle "scores", siehe schema.sql)
+const GAMES = { obstsalat: { max: 3000, gapMs: 40000 } };   // höchster glaubwürdiger Wert, Mindestabstand zwischen zwei Runden
+
+async function topList(env, game, nameKey) {
+  const rows = (await env.DB.prepare("SELECT display_name, best FROM scores WHERE game = ? AND best > 0 ORDER BY best DESC, updated ASC LIMIT 10")
+    .bind(game).all()).results || [];
+  const total = (await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE game = ? AND best > 0").bind(game).first()).n;
+  let me = null;
+  if (nameKey) {
+    const mine = await env.DB.prepare("SELECT display_name, best, updated FROM scores WHERE game = ? AND name_key = ?").bind(game, nameKey).first();
+    if (mine && mine.best > 0) {
+      const rank = (await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE game = ? AND (best > ? OR (best = ? AND updated < ?))")
+        .bind(game, mine.best, mine.best, mine.updated).first()).n + 1;
+      me = { name: mine.display_name, score: mine.best, rank };
+    }
+  }
+  return { ok: true, rows: rows.map(r => ({ name: r.display_name, score: r.best })), me, total };
+}
+
+async function scores(path, body, env, origin) {
+  const game = typeof body.game === "string" && GAMES[body.game] ? body.game : null;
+  if (!game) return reply(origin, 400, { ok: false, error: "bad_game" });
+  const name = cleanName(body.name);
+  if (path === "/api/top") return reply(origin, 200, await topList(env, game, name && name.key));
+
+  if (!name) return reply(origin, 400, { ok: false, error: "bad_name" });
+  if (!validPin(body.pin)) return reply(origin, 400, { ok: false, error: "bad_pin" });
+  const score = Number(body.score);
+  if (!Number.isInteger(score) || score < 0 || score > GAMES[game].max) return reply(origin, 400, { ok: false, error: "bad_score" });
+  const now = Date.now();
+  const row = await env.DB.prepare("SELECT * FROM accounts WHERE name_key = ?").bind(name.key).first();
+  if (!row) return reply(origin, 404, { ok: false, error: "no_account" });
+  const err = await checkAccount(env, row, body.pin, now);
+  if (err) return reply(origin, err.status, { ok: false, error: err.error, until: err.until });
+
+  const prev = await env.DB.prepare("SELECT best, last_at FROM scores WHERE game = ? AND name_key = ?").bind(game, name.key).first();
+  if (!prev || now - prev.last_at >= GAMES[game].gapMs) {                 // too many rounds in a row are ignored, the list still comes back
+    await env.DB.prepare(
+      "INSERT INTO scores (game, name_key, display_name, best, runs, last_at, updated) VALUES (?, ?, ?, ?, 1, ?, ?) " +
+      "ON CONFLICT (game, name_key) DO UPDATE SET display_name = excluded.display_name, runs = runs + 1, last_at = excluded.last_at, " +
+      "updated = CASE WHEN excluded.best > best THEN excluded.updated ELSE updated END, best = MAX(best, excluded.best)")
+      .bind(game, name.key, row.display_name, score, now, now).run();
+  }
+  return reply(origin, 200, await topList(env, game, name.key));
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
     const url = new URL(request.url);
-    if (request.method !== "POST" || !["/api/login", "/api/save"].includes(url.pathname)) {
+    if (request.method !== "POST" || !["/api/login", "/api/save", "/api/top", "/api/score"].includes(url.pathname)) {
       return reply(origin, 404, { ok: false, error: "not_found" });
     }
     const raw = await request.text();
     if (raw.length > MAX_BODY) return reply(origin, 413, { ok: false, error: "too_large" });
     let body;
     try { body = JSON.parse(raw); } catch (e) { return reply(origin, 400, { ok: false, error: "bad_json" }); }
+    if (url.pathname === "/api/top" || url.pathname === "/api/score") return scores(url.pathname, body, env, origin);
 
     const name = cleanName(body.name);
     if (!name) return reply(origin, 400, { ok: false, error: "bad_name" });
