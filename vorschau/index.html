@@ -20126,20 +20126,20 @@ function recolorWallSvg(svg, grund, muster) {
     if (S.ready && !S.water && !S.fly && !S.drops && S.level >= 1) dwArrow(c, 156, 26, t, "d");   /* turn on the tap! */
     // the water: soapy, light ripples drifting
     var X0 = D2.x0 + 3, X1 = D2.x1 - 3, Y0 = D2.y0 + 3, Y1 = D2.y1 - 3;
-    if (S.drain) { S.level = Math.max(0, S.level - .01); if (Math.floor(now / 160) !== Math.floor((now - 16) / 160)) beep([[140 + Math.random() * 60, .04]]);
+    if (S.drain) { S.level = Math.max(0, S.level - .006); if (Math.floor(now / 160) !== Math.floor((now - 16) / 160)) beep([[140 + Math.random() * 60, .04]]);
       if (S.level <= 0) { S.drain = false; S.empty = true; S.dirt = 0; S.suds = 0; if (S.cur) { S.cur.foam = S.cur.foam.filter(function (f) { return !f.w; }); if (S.cur.find) S.cur.find.seen = true; } mBan(d2V, "Jetzt frisches Wasser!"); } }
-    if (S.filling) { S.level = Math.min(1, S.level + .008); if (S.level >= 1) { S.filling = false; mBan(d2V, "Spüli rein!"); S.hint = { x: 0, y: 0, k: "soap", t1: now + 4000, nob: 1 }; } }
-    var wtop = Y0 + Math.round((1 - S.level) * (Y1 - Y0 - 4)), dk = Math.min(1, S.dirt);
+    if (S.filling) { S.level = Math.min(1, S.level + .006); if (S.level >= 1) { S.filling = false; mBan(d2V, "Spüli rein!"); S.hint = { x: 0, y: 0, k: "soap", t1: now + 4000, nob: 1 }; } }
+    var dk = Math.min(1, S.dirt), WL = S.level;   /* seen from above: as the water goes down it draws back from the sloping walls towards the drain, gets shallower and lets the steel show through */
     for (var y = Y0; y < Y1; y++) for (var x = X0; x < X1; x += 2) { var cx = Math.max(X0 + 5, Math.min(X1 - 6, x)), cy = Math.max(Y0 + 5, Math.min(Y1 - 6, y)); if (Math.hypot(x - cx, y - cy) > 5) continue;
-      if (y < wtop) { mR(c, x, y, 2, 1, y < Y0 + 8 ? "#7a848e" : (x + y) % 9 ? "#9aa4ae" : "#8a949e"); continue; }   /* the empty steel basin */
-      var w = Math.sin((x + t / 90) / 5) + Math.sin((y * 1.7 + t / 140) / 4), sd = S.suds, col = y < wtop + 3 ? "#7aa8c4" : w > 1.6 - sd * .5 ? (sd > .5 ? "#eef8fc" : "#d4ecf8") : w > .4 + (1 - sd) * .4 ? "#b4dcf0" : sd < .3 ? "#94c6e2" : "#a4d2ea";
-      mR(c, x, y, 2, 1, dk > .05 ? d2Mix(col, "#8a7a58", dk * .75) : col); }
+      var dW = d2WaterIn(x, y, X0, X1, Y0, Y1, WL); if (dW < 0) { var wet = dW > -3 && WL > 0; mR(c, x, y, 2, 1, wet ? "#6a7680" : (x + y) % 9 ? "#9aa4ae" : "#8a949e"); continue; }   /* dry steel; a wet dark rim where the water just was */
+      var w = Math.sin((x + t / 90) / 5) + Math.sin((y * 1.7 + t / 140) / 4), sd = S.suds, col = dW < 2 ? "#8ab8d0" : w > 1.6 - sd * .5 ? (sd > .5 ? "#eef8fc" : "#d4ecf8") : w > .4 + (1 - sd) * .4 ? "#b4dcf0" : sd < .3 ? "#94c6e2" : "#a4d2ea";
+      if (dk > .05) col = d2Mix(col, "#8a7a58", dk * .75); if (WL < 1) col = d2Mix(col, (x + y) % 9 ? "#a8b4be" : "#98a4ae", Math.min(.7, (1 - WL) * .9)); mR(c, x, y, 2, 1, col); }
     // the plug and its chain at the front right of the basin
     var PG = D2_PLUG; if (S.level > 0 && !S.drain) { for (var ch = 0; ch < 8; ch++) mR(c, PG.x + 4 + ch, PG.y - 9 + ch, 1, 1, ch % 2 ? "#8a949e" : "#c8d0d8"); mR(c, PG.x - 4, PG.y - 2, 9, 5, "#3a2414"); mR(c, PG.x - 3, PG.y - 1, 7, 3, "#c83a3a"); mR(c, PG.x - 3, PG.y - 1, 7, 1, "#f06a5a"); mR(c, PG.x - 1, PG.y - 3, 3, 2, "#3a2414"); }
     else { mR(c, PG.x - 3, PG.y - 1, 7, 3, "#3a2414"); mR(c, PG.x - 2, PG.y, 5, 1, "#5a646e"); if (S.drain) for (var sw = 0; sw < 10; sw++) { var an = now / 120 + sw * .63, rr = 3 + (sw % 3) * 3; mR(c, PG.x + Math.cos(an) * rr, PG.y + Math.sin(an) * rr * .5, 1, 1, "#ffffff"); } mR(c, PG.x + 10, PG.y - 12, 7, 4, "#3a2414"); mR(c, PG.x + 11, PG.y - 11, 5, 2, "#c83a3a"); }
     if (S.dirt > .7 && S.level >= 1 && !S.drain && Math.floor(now / 250) % 2) dwArrow(c, PG.x, PG.y - 6, t, "d");
     if (S.empty && !S.filling) dwArrow(c, 156, 26, t, "d");
-    if (S.filling) { for (var yf = 24; yf < Math.max(30, wtop); yf++) { mR(c, 116, yf, 3, 1, "#a8d8f0"); mR(c, 117, yf, 1, 1, (yf + Math.floor(t / 40)) % 5 ? "#e8f6ff" : "#ffffff"); } }
+    if (S.filling) { if (Math.random() < .5) S.fx.push({ x: 117, y: 62, vx: (Math.random() - .5) * 40, vy: -12 - Math.random() * 15, life: .4, c: "#ffffff" }); for (var yf = 24; yf < 62; yf++) { mR(c, 116, yf, 3, 1, "#a8d8f0"); mR(c, 117, yf, 1, 1, (yf + Math.floor(t / 40)) % 5 ? "#e8f6ff" : "#ffffff"); } }
     var it = S.cur;
     if (it) {
       var ox = D2.cx, oy = D2.cy;
@@ -20187,8 +20187,8 @@ function recolorWallSvg(svg, grund, muster) {
       S.drops.forEach(function (d) { var x = ox + d.x, y = oy + d.y; mR(c, x - 1, y - 2, 3, 5, "#3a5a78"); mR(c, x, y - 3, 1, 1, "#3a5a78"); mR(c, x, y - 1, 1, 3, "#a8d8f0"); mR(c, x, y - 1, 1, 1, "#ffffff"); });
       if (S.towelAt) dwSpr(c, "t_towel", S.towelAt[0] - 18, S.towelAt[1] - 12);
       if (!S.drops.length) { S.drops = null; S.towelAt = null; S.fly = { t0: now, tx: 62 + S.towel.length * 13, ty: 10 }; d2Burst(ox, oy, 12); beep([[1047, .04], [1319, .04], [1568, .08]]); } }
-    if (S.level > .3) { var nF = Math.round(Math.pow(S.suds, 1.1) * D2_FOAMPTS.length), pox = D2.cx + Math.round(22 * (S.rx || 0)), wt2 = Y0 + Math.round((1 - S.level) * (Y1 - Y0 - 4));   /* the suds on the water */
-      for (var fi = 0; fi < nF; fi++) { var fp = D2_FOAMPTS[fi], fxp = fp[0], fyp = fp[1] + Math.round(Math.sin(now / 900 + fi) * 1); if (fyp < wt2 + 3) continue; if (it && d2Sh(it.k, fxp - pox, fyp - D2.cy) > 0) continue;
+    if (S.level > .3) { var nF = Math.round(Math.pow(S.suds, 1.1) * D2_FOAMPTS.length), pox = D2.cx + Math.round(22 * (S.rx || 0)), wt2 = 0;   /* the suds on the water */
+      for (var fi = 0; fi < nF; fi++) { var fp = D2_FOAMPTS[fi], fxp = fp[0], fyp = fp[1] + Math.round(Math.sin(now / 900 + fi) * 1); if (d2WaterIn(fxp, fyp, X0, X1, Y0, Y1, S.level) < 3) continue; if (it && d2Sh(it.k, fxp - pox, fyp - D2.cy) > 0) continue;
         for (var yy5 = -fp[2]; yy5 <= fp[2]; yy5++) for (var xx5 = -fp[2]; xx5 <= fp[2]; xx5++) { var d5 = Math.hypot(xx5, yy5 * 1.25); if (d5 > fp[2] + .3) continue; mR(c, fxp + xx5, fyp + yy5, 1, 1, d5 > fp[2] - .8 ? (S.dirt > .5 ? "#c8c0a8" : "#c8dcea") : xx5 + yy5 < -1 ? "#ffffff" : (S.dirt > .5 ? "#e8e2d0" : "#eef6fa")); } } }
     d2Pets(c, t, now);
     // bubbles drifting up, to be popped
@@ -20251,6 +20251,10 @@ function recolorWallSvg(svg, grund, muster) {
   }
   var D2_PLUG = { x: 150, y: 104 }, D2_FOAMPTS = [];
   (function () { var n = 0, t = 0; while (n < 260 && t++ < 4000) { var x = D2.x0 + 6 + Math.random() * (D2.x1 - D2.x0 - 12), y = D2.y0 + 8 + Math.random() * (D2.y1 - D2.y0 - 14); D2_FOAMPTS.push([Math.round(x), Math.round(y), 2 + Math.floor(Math.random() * 3)]); n++; } })();
+  function d2WaterIn(x, y, X0, X1, Y0, Y1, L) {   /* how far inside the water a point is (negative: dry); full: the whole basin, then shrinking in from the walls, last a puddle at the plug */
+    if (L <= 0) return -9; var ins = Math.round((1 - L) * 18), a0 = X0 + ins, a1 = X1 - ins, b0 = Y0 + ins, b1 = Y1 - ins;
+    var dRect = Math.min(x - a0, a1 - x, y - b0, b1 - y), pr = L < .35 ? (L / .35) * 70 : 999, dPud = pr - Math.hypot(x - D2_PLUG.x, (y - D2_PLUG.y) * 1.4);
+    return Math.min(dRect, dPud); }
   function d2Mix(a, b, k) { var p = function (h, i) { return parseInt(h.substr(1 + i * 2, 2), 16); }, o = "#"; for (var i = 0; i < 3; i++) { var v = Math.round(p(a, i) + (p(b, i) - p(a, i)) * k); o += (v < 16 ? "0" : "") + v.toString(16); } return o; }
   function d2Basket(c) {   /* everything found goes into a little wicker basket on the counter: the last few peep out over the rim */
     var S = d2S, X = 128, Y = 118, list = S.finds.filter(function (k) { return D2_FINDART[k]; }).slice(-3);
