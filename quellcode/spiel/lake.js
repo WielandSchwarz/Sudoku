@@ -34,22 +34,25 @@
   var LK_JETTY = [90, 120];
   // ---- the animals drawn at their own size from their own pictures ----
   var lkAni = {};
-  function lkAniImg(id) { if (lkAni[id]) return lkAni[id]; var an = ALLANI[id]; if (!an) return null; var vb = an.vb.split(" ").map(Number), im = new Image(), o = { c: null };
-    im.onload = function () { var W = vb[2], H = vb[3], c1 = document.createElement("canvas"); c1.width = W; c1.height = H; var x1 = c1.getContext("2d"); x1.drawImage(im, 0, 0, W, H); var d = x1.getImageData(0, 0, W, H).data,
+  function lkShrink(inner, W, H) { var im = new Image(), o = { c: null };   /* a sprite drawn again at half size: one pixel stays one pixel, outlines kept */
+    im.onload = function () { var c1 = document.createElement("canvas"); c1.width = W; c1.height = H; var x1 = c1.getContext("2d"); x1.drawImage(im, 0, 0, W, H); var d = x1.getImageData(0, 0, W, H).data,
         w = Math.ceil(W / 2), h = Math.ceil(H / 2), c2 = document.createElement("canvas"); c2.width = w; c2.height = h; var x2 = c2.getContext("2d"), od = x2.createImageData(w, h);
-      for (var yy = 0; yy < h; yy++) for (var xx = 0; xx < w; xx++) { var cols = [], dark = null, nd = 0;   /* each new pixel takes the outline if the block has much of it, otherwise its most common colour */
+      for (var yy = 0; yy < h; yy++) for (var xx = 0; xx < w; xx++) { var cols = [], dark = null, nd = 0;
         for (var j = 0; j < 2; j++) for (var i = 0; i < 2; i++) { var X = xx * 2 + i, Y = yy * 2 + j; if (X >= W || Y >= H) continue; var q = (Y * W + X) * 4; if (d[q + 3] < 128) continue; var k = d[q] + "," + d[q + 1] + "," + d[q + 2]; cols.push(k); if (d[q] + d[q + 1] + d[q + 2] < 200) { nd++; dark = k; } }
         if (cols.length < 2) continue; var pick = nd >= 2 ? dark : null; if (!pick) { var cnt = {}; cols.forEach(function (k) { if (nd < 2 && dark === k) return; cnt[k] = (cnt[k] || 0) + 1; }); var best = 0; for (var k2 in cnt) if (cnt[k2] > best) { best = cnt[k2]; pick = k2; } if (!pick) pick = cols[0]; }
         var rgb = pick.split(",").map(Number), r = (yy * w + xx) * 4; od.data[r] = rgb[0]; od.data[r + 1] = rgb[1]; od.data[r + 2] = rgb[2]; od.data[r + 3] = 255; }
       x2.putImageData(od, 0, 0); o.c = c2; };
-    im.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + an.vb + '" width="' + vb[2] + '" height="' + vb[3] + '" shape-rendering="crispEdges">' + an.svg + '</svg>'); lkAni[id] = o; return o; }
+    im.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" shape-rendering="crispEdges">' + inner + '</svg>'); return o; }
+  function lkAniImg(id) { if (lkAni[id]) return lkAni[id]; var an = ALLANI[id]; if (!an) return null; var vb = an.vb.split(" ").map(Number); return (lkAni[id] = lkShrink(an.svg, vb[2], vb[3])); }
+  var lkHam = {};   /* our own hamster, sitting in the boat: two faces, rowing and happy */
+  function lkHamImg(k) { if (lkHam[k]) return lkHam[k]; var A0 = HAM.art, keys = ["body", "ears_up", k === "row" ? "eyes_open" : "eyes_happy", "nose", k === "row" ? "mouth_smile" : "mouth_grin", "whisk0", "paws_hold"]; return (lkHam[k] = lkShrink(keys.map(function (q) { return A0[q] || ""; }).join(""), 48, 46)); }
   function lkName(id) { return (typeof ANAME !== "undefined" && ANAME[id]) || (ALLANI[id] && ALLANI[id].name) || "Das Tier"; }
   // ---- start, end ----
   function lkSt() { var L = life(); L.lake = L.lake || { lv: 0, stars: [] }; return L.lake; }
   function lkStart(li) {
     var S = lkSt(), D = LK_LV[li]; if (!D) return;
     lk = { li: li, D: D, cargo: D.start, raft: "", trips: 0, isl: D.a.map(function (q, i) { lkAniImg(q[0]); return { id: q[0], want: q[1], has: q[2], happy: false, x: LK_POS[D.a.length][i][0], y: LK_POS[D.a.length][i][1], hop: 0 }; }),
-      boat: { x: LK_JETTY[0], y: LK_JETTY[1] - 8, tx: null, ty: null, dir: 0, go: null }, at: "jetty", done: false, last: 0, hearts: [], party: 0 };
+      boat: { x: LK_JETTY[0], y: LK_JETTY[1] - 10, tx: null, ty: null, dir: 0, go: null }, at: "jetty", done: false, last: 0, hearts: [], party: 0 };
     lkCard.hidden = true; lkSay(li === 0 ? "Tippe auf eine Insel." : D.n); if (!lkRaf) lkRaf = requestAnimationFrame(lkDraw);
   }
   function lkOpen() { var S = lkSt(); lkEl.hidden = false; lkStart(Math.min(S.lv, LK_LV.length - 1)); }
@@ -65,7 +68,7 @@
     if (hit === null && Math.hypot(p[0] - LK_JETTY[0], p[1] - LK_JETTY[1]) < 22) hit = "jetty";
     if (hit === null) return;
     if (hit === lk.at) { lkArrive(hit); return; }
-    var tx = hit === "jetty" ? LK_JETTY[0] : lk.isl[hit].x, ty = hit === "jetty" ? LK_JETTY[1] - 8 : lk.isl[hit].y + 19;
+    var tx = hit === "jetty" ? LK_JETTY[0] : lk.isl[hit].x, ty = hit === "jetty" ? LK_JETTY[1] - 10 : lk.isl[hit].y + 22;
     lk.boat.go = { k: hit, x0: lk.boat.x, y0: lk.boat.y, tx: tx, ty: ty, t0: performance.now(), dur: Math.max(500, Math.hypot(tx - lk.boat.x, ty - lk.boat.y) * 16) }; lk.trips++; beep([[300, .04]]); });
   function lkArrive(k) {
     lk.at = k;
@@ -105,12 +108,17 @@
   lkCard.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b || !lk) return; e.stopPropagation(); var a = b.dataset.a; if (a === "close") lkClose(); else if (a === "next") lkStart(lk.li + 1); else lkStart(lk.li); });
   // ---- drawing ----
   function lkBoat(x, y, dir, t, rowing) { x = Math.round(x); y = Math.round(y);
-    var ow = rowing ? Math.round(Math.sin(t / 110) * 3) : 0;
-    lP(x - 13, y - 1 + ow, 5, 1, "#a87448"); lP(x - 15, y - 2 + ow, 3, 3, "#c8945a"); lP(x + 9, y - 1 - ow, 5, 1, "#a87448"); lP(x + 13, y - 2 - ow, 3, 3, "#c8945a");   /* the oars */
-    lDisc(x, y, 9, 5, function (a, b, d) { return d > .8 ? LD : d > .55 ? "#c8945a" : b < 0 ? "#a06a3a" : "#8a5a32"; }); lP(x - 6, y, 13, 1, "#6a3e22");
-    lDisc(x - 3, y - 1, 3.5, 3, function (a, b, d) { return d > .7 ? LD : a + b < -1 ? "#f7c47e" : "#e9a44c"; }); lP(x - 6, y - 4, 2, 2, LD); lP(x - 1, y - 4, 2, 2, LD); lP(x - 5, y - 3, 1, 1, "#f4a3b4"); lP(x - 1, y - 3, 1, 1, "#f4a3b4");
-    lP(x - 4, y - 2, 1, 1, "#24160c"); lP(x - 2, y - 2, 1, 1, "#24160c");
-    if (lk.cargo) lkIcon(lk.cargo, x + 1, y - 5); }
+    var ow = rowing ? Math.round(Math.sin(t / 120) * 2) : 0, gl = lk.isl.some(function (I) { return I.hop && performance.now() - I.hop < 1200; }) || lk.party;
+    for (var r = -19; r <= 19; r += 2) lP(x + r, y + 6 + (Math.abs(r) > 14 ? -1 : 0), 2, 1, "#c8ecfa");   /* a light ring on the water round the boat */
+    lDisc(x, y - 3, 16, 3, function (a, b, d) { return d > .8 ? LD : b < 0 ? "#6a3e22" : "#7a4a28"; });   /* inside of the boat, seen a little from above */
+    var hm = lkHamImg(gl ? "joy" : "row").c; if (hm) lkc.drawImage(hm, x - 17, y - 21 + (rowing && Math.sin(t / 120) > .3 ? 1 : 0));
+    if (lk.cargo) { lP(x + 6, y - 7, 11, 5, LD); lP(x + 7, y - 6, 9, 3, "#d8a070"); lkIcon(lk.cargo, x + 7, y - 11); }   /* what we carry, in a little crate at the back */
+    for (var yy = -2; yy <= 5; yy++) { var hw = Math.round(17 * Math.sqrt(Math.max(0, 1 - Math.pow((yy + 2) / 8, 2)))); if (yy === -2) hw = 17;   /* the front of the hull hides the hamster's lower half */
+      lP(x - hw, y + yy, hw * 2 + 1, 1, LD); if (hw > 1 && yy < 5) lP(x - hw + 1, y + yy, hw * 2 - 1, 1, yy === -2 ? "#c8945a" : yy === -1 ? "#a87448" : yy === 2 ? "#6a3e22" : yy % 2 ? "#9a6438" : "#8a5a32"); }
+    lP(x - 10, y + 1, 2, 2, "#e8465a"); lP(x + 9, y + 1, 2, 2, "#e8465a");   /* two little painted dots on the hull */
+    [[-1, -17], [1, 17]].forEach(function (q) { var sx = x + q[1], o2 = q[0] < 0 ? ow : -ow; for (var k = 1; k <= 8; k++) lP(sx + q[0] * k, y - 2 + Math.round(k * (2 + o2) / 8), 1, 1, "#8a5a32");
+      var bx2 = sx + q[0] * 9, by2 = y + o2; lP(bx2 - (q[0] < 0 ? 3 : 0), by2 - 1, 4, 4, LD); lP(bx2 - (q[0] < 0 ? 2 : 0) + (q[0] < 0 ? 0 : 0), by2, 3, 2, "#c8945a"); });   /* the oars with their blades */
+  }
   function lkDraw(t) {
     lkRaf = 0; if (!lk || lkEl.hidden) return; lkRaf = requestAnimationFrame(lkDraw);
     var now = performance.now(), B = lk.boat;
@@ -136,7 +144,7 @@
     });
     // the boat
     lkBoat(B.x, B.y, 0, t, !!B.go);
-    if (B.go) for (var w = 1; w < 5; w++) lP(B.x - (B.go.tx - B.go.x0 > 0 ? 1 : -1) * (10 + w * 3), B.y + 2 + (w % 2), 2, 1, "#c8ecfa");
+    if (B.go) for (var w = 1; w < 5; w++) lP(B.x - (B.go.tx - B.go.x0 > 0 ? 1 : -1) * (20 + w * 3), B.y + 4 + (w % 2), 2, 1, "#c8ecfa");
     // hearts rising
     lk.hearts = lk.hearts.filter(function (h) { var u2 = (now - h.t0) / 1200; if (u2 < 0) return true; if (u2 > 1) return false; var hx = Math.round(h.x), hy = Math.round(h.y - u2 * 14); lP(hx - 2, hy, 2, 1, "#e8465a"); lP(hx + 1, hy, 2, 1, "#e8465a"); lP(hx - 2, hy + 1, 5, 1, "#e8465a"); lP(hx - 1, hy + 2, 3, 1, "#e8465a"); lP(hx, hy + 3, 1, 1, "#e8465a"); return true; });
     if (lk.party && now - lk.party < 4000) for (var c = 0; c < 20; c++) lP((c * 37 + (now - lk.party) / 6) % 180, ((c * 23) + (now - lk.party) / (8 + c % 5)) % 135, 2, 2, ["#ff9ab8", "#ffe08a", "#7ae05a", "#9ad8f0"][c % 4]);
