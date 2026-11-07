@@ -96,8 +96,8 @@ function mountObstsalat(root, ART, opts) {
     S.items.push({ k: k, x: x, y: y0, vx: vx, vy: vy, cut: false, born: S.wt }); sfx(k === "kastanie" ? "launchBomb" : "launch");
   }
   function volley() {
-    var t = S.t, n = Math.min(7, 1 + Math.floor(t / 10) + (Math.random() < .5 ? 1 : 0));
-    var bombP = t < 6 ? 0 : Math.min(.2, .07 + t / 600);
+    var t = S.t, n = Math.min(5, 1 + Math.floor(t / 14) + (Math.random() < .4 ? 1 : 0));
+    var bombP = t < 8 || S.slowT > 0 || S.doubleT > 0 ? 0 : Math.min(.1, .04 + t / 1500), bombs = 0;   /* at most one chestnut per volley, none while a special runs */
     // most of a volley is spread over the whole width with its own height; only a small group of 3 or 4 flies close together for combos
     var group = n >= 3 && Math.random() < Math.min(.5, .2 + t / 120) ? (n >= 5 && Math.random() < .4 ? 4 : 3) : 0;
     var slots = [], rest = n - group, i;
@@ -105,7 +105,7 @@ function mountObstsalat(root, ART, opts) {
     for (i = slots.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp; }
     var gx = 34 + Math.random() * 112, gpeak = 16 + Math.random() * 28, at = S.wt;
     for (i = 0; i < n; i++) {
-      var k = Math.random() < bombP && i > 0 ? "kastanie" : Math.random() < .03 ? "goldapfel" : fruitKey();
+      var k = !bombs && i > 0 && Math.random() < bombP && ++bombs ? "kastanie" : Math.random() < .03 ? "goldapfel" : fruitKey();
       var x, pk, drift;
       if (i < group) {
         x = gx + (i - (group - 1) / 2) * 15 + (Math.random() - .5) * 3; pk = gpeak + Math.random() * 8;
@@ -117,7 +117,7 @@ function mountObstsalat(root, ART, opts) {
       }
       S.queue.push({ at: at, k: k, x: Math.max(16, Math.min(164, x)), peak: pk, drift: drift });
     }
-    if (S.t > S.nextSpecial) {
+    if (S.t > S.nextSpecial && S.slowT <= 0 && S.doubleT <= 0 && S.rainT <= 0) {
       var sk = ["frostbeere", "sonnenblume", "honigwabe"][Math.floor(Math.random() * 3)];
       S.queue.push({ at: S.wt + .3, k: sk, x: 50 + Math.random() * 80, peak: 18 + Math.random() * 16, drift: null });
       S.nextSpecial = S.t + 11 + Math.random() * 6;
@@ -171,7 +171,7 @@ function mountObstsalat(root, ART, opts) {
       var skin = sliceItem(it, bx - ax, by - ay);
       sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
       addScore(points(it.k === "goldapfel" ? 4 : 1));
-      if (it.k === "goldapfel") { cheer(1); popText(S.doubleT > 0 ? "+8" : "+4", it.x, it.y, "#f8d850"); }
+      if (it.k === "goldapfel") { cheer(1); popText(S.doubleT > 0 ? "+8" : "+4", it.x, it.y, "#f8d850"); } else if (S.doubleT > 0) popText("+2", it.x, it.y, "#f8d850");
       if (SPECIALS[it.k]) special(it.k);
     });
   }
@@ -375,11 +375,11 @@ function mountObstsalat(root, ART, opts) {
     var tm = timeNow();
     if (!S.done) {
       S.spawnT -= dt;
-      if (S.spawnT <= 0 && S.rainT <= 0) { volley(); S.spawnT = Math.max(.75, 1.7 - S.t / 45) + Math.random() * .35; }
+      if (S.spawnT <= 0 && S.rainT <= 0) { volley(); S.spawnT = Math.max(1.1, 1.8 - S.t / 60) + Math.random() * .35; }
       if (S.rainT > 0) {                                // fruit rain from both sides
         S.rainSpawn -= dt;
         if (S.rainSpawn <= 0) {
-          S.rainSpawn = .11;
+          S.rainSpawn = .16;
           var left = Math.random() < .5, k = fruitKey(), f = FR[k];
           S.items.push({ k: k, x: left ? -f.w : W + f.w, y: 50 + Math.random() * 60, vx: (left ? 1 : -1) * (85 + Math.random() * 40), vy: -(70 + Math.random() * 50), cut: false, born: S.wt });
         }

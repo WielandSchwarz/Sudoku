@@ -1118,7 +1118,9 @@
     if (!wasMove) return;
     // never leave the hamster faded out or half outside the picture
     ham.style.transition = "opacity .2s"; ham.style.opacity = "1";
-    if (H.x < 10 || H.x > 170) moveTo(Math.max(16, Math.min(164, H.x)), Math.max(112, Math.min(130, H.y)), 0);
+    /* in the long living room the picture reaches from the hall to the kitchen door: only pull him back when he is really outside it */
+    var wideR = place2 === "room" && typeof RX0 !== "undefined", lo = wideR ? RX0 + 12 : 16, hi = wideR ? RX1 - 12 : 164;
+    if (H.x < lo - 6 || H.x > hi + 6) moveTo(Math.max(lo, Math.min(hi, H.x)), Math.max(112, Math.min(130, H.y)), 0);
     if (typeof mealOnTable !== "undefined" && mealOnTable) { mealOnTable = null; try { renderTable(); } catch (e) {} }
     front({ hold: null, paws: "down", eyes: "open", mouth: "smile" }); body("");
   };
