@@ -135,6 +135,7 @@ src = open(H + 'sudoku.src.html').read()
 src = rep(src, '<p class="opt-version">Version 20 · 29.10.2026</p>', '<p class="opt-version">Version ' + VERSION + ' · ' + DATE + '</p>')
 # home button and hidden sudoku screen at start
 src = rep(src, '<div class="app" id="app">', '<div class="app" id="app" hidden>')
+src = rep(src, '.cel {\n  position: absolute; inset: 0;', '.cel {\n  position: absolute; inset: 0; z-index: 5;')   # the celebrating animal sits above the killer cage lines
 src = rep(src, '  var account = null, syncing = false, syncTimer = null, lastSync = 0;', '  var account = null, syncing = false, syncTimer = null, lastSync = 0;\n  window.__sudokuAccount = function () { return account; };')
 src = rep(src, '''    <h1>Sudoku</h1>''', '''    <div class="title-row"><button type="button" class="iconbtn homebtn" id="home-btn" aria-label="Zum Spielzimmer"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10.5 19.5v-5h3v5"/></svg></button><h1>Sudoku</h1></div>''')
 src = rep(src, '''      <p id="result-line"></p>

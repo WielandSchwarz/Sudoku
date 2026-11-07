@@ -14,7 +14,7 @@
     return uiBusyRaw(self);
   }
   function uiBusyRaw(self) {
-    if (window.__giftBusy && Date.now() - window.__giftBusy < 90000) return true;   /* the snail is bringing a present: everything else waits */
+    if (window.__giftBusy && Date.now() < window.__giftBusy) return true;   /* the snail is bringing a present: everything else waits (until the time stored there) */
     var q = document.querySelectorAll(UI_POP);
     for (var i = 0; i < q.length; i++) if (q[i] !== self && !(self && self.contains && self.contains(q[i])) && q[i].getClientRects().length) return true;
     return false;

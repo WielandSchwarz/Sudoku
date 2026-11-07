@@ -660,7 +660,8 @@
     void el.offsetWidth; el.classList.add("crawl"); el.style.left = gx(PKG.x - 30);
     setTimeout(function () { el.classList.add("talk"); }, 4200);
     setTimeout(function () { el.classList.remove("talk"); el.querySelector(".sn-box").remove(); if (home.pending) home.pending.delivered = true; renderPackage(); el.classList.add("back"); el.style.left = gx(-40); }, 7600);
-    setTimeout(function () { el.remove(); snailBusy = false; if (then) then(); }, 11800);
+    setTimeout(function () { if (then) then(); }, 8200);   /* he opens it while the snail is still crawling away */
+    setTimeout(function () { el.remove(); snailBusy = false; }, 11800);
   }
 
   // ---- hooks into the room code ----
@@ -686,7 +687,7 @@
     if (s.asleep) { s.asleep = false; stopZzz(); syncButtons(); skyTime(); front({ blanket: null }); }
     if (busy && !interruptible()) return;
     if (busy) interrupt();
-    window.__giftBusy = Date.now();
+    window.__giftBusy = Date.now() + 90000;
     act("unwrap", async function () {
       if (place2 === "garden") await goInsideSeq();
       if (!home.pending.delivered) {
@@ -812,3 +813,4 @@
     if (!OUTFIT || !home || !outfitOn()) return "";
     var c = scarfCol(); return OUTFIT[part].split("#0b0001").join(c[2]).split("#0b0002").join(c[3]);
   }
+  window.__giftTest = { pend: function () { var p = pickGift(); return p; }, open: function () { openPackage(); }, busy: function () { return [busy, cur, window.__giftBusy]; } };

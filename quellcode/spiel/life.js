@@ -1249,8 +1249,9 @@
         if (window.SudokuSave) window.SudokuSave();
       };
     }
+    window.__giftBusy = 0;   /* the present itself must not wait for the present */
     itemPop({ unwrap: true, art: art, cls: gcls, title: "Neu: " + it.name + "!", sub: "Findest du auch später unter „" + where + "“.",
-      buttons: [{ label: "Später", cb: function () { say(it.name + " wartet unter „" + where + "“."); } }, { label: "Gleich aufstellen", primary: true, cb: place }] });
+      buttons: [{ label: "Später", cb: function () { window.__giftBusy = Date.now() + 600; say(it.name + " wartet unter „" + where + "“."); } }, { label: "Gleich aufstellen", primary: true, cb: function () { window.__giftBusy = Date.now() + 2600; place(); } }] });
   };
 
   // ---------- going to bed always counts, even if the app is closed while he is still on his way ----------
