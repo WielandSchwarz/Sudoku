@@ -3134,7 +3134,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 112 · 07.11.2026</p>
+    <p class="opt-version">Version 113 · 07.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -23052,9 +23052,9 @@ function mountObstsalat(root, ART, opts) {
   // ---------- game state
   var S, banTimer = 0;
   function reset() {
-    S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .8, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
+    S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .5, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
       face: "normal", faceT: 0, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
-      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 9 + Math.random() * 4, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0 };
+      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0 };
     endEl.hidden = true; boardEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
   }
@@ -23098,7 +23098,7 @@ function mountObstsalat(root, ART, opts) {
     S.queue.push({ at: S.wt + .2, k: "kastanie", x: best, peak: 16 + Math.random() * 36, drift: (90 - best) / 100 * 8 + (Math.random() - .5) * 16 });
   }
   function volley() {
-    var t = S.t, n = Math.min(5, 1 + Math.floor(t / 14) + (Math.random() < .4 ? 1 : 0));
+    var t = S.t, n = Math.min(5, 2 + Math.floor(t / 15) + (Math.random() < .5 ? 1 : 0));
     var bombP = 0, bombs = 0;                          /* chestnuts no longer fly with the fruit, they come on their own (bombLaunch) */
     // most of a volley is spread over the whole width with its own height; only a small group of 3 or 4 flies close together for combos
     var group = n >= 3 && Math.random() < Math.min(.5, .2 + t / 120) ? (n >= 5 && Math.random() < .4 ? 4 : 3) : 0;
@@ -23123,7 +23123,7 @@ function mountObstsalat(root, ART, opts) {
       var SK = ["frostbeere", "sonnenblume", "honigwabe", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete", "hamsterkern"]; if (timeNow() === "nacht") SK.push("gluehbeere", "gluehbeere");
       var sk = SK[Math.floor(Math.random() * SK.length)];
       S.queue.push({ at: S.wt + .3, k: sk, x: 50 + Math.random() * 80, peak: 18 + Math.random() * 16, drift: null });
-      S.nextSpecial = S.t + 9 + Math.random() * 5;
+      S.nextSpecial = S.t + 5 + Math.random() * 3;
     }
   }
 
@@ -23402,7 +23402,7 @@ function mountObstsalat(root, ART, opts) {
       S.spawnT -= dt;
       S.bombT -= dt;
       if (S.bombT <= 0) { if (S.slowT <= 0 && S.doubleT <= 0 && S.floatT <= 0 && S.magT <= 0 && S.rainT <= 0 && S.spawnT > .5) bombLaunch(); S.bombT = S.bombT <= 0 && S.spawnT <= .5 ? .3 : Math.max(3.5, 7 - S.t / 15) + Math.random() * 2; }
-      if (S.spawnT <= 0 && S.rainT <= 0) { volley(); S.spawnT = Math.max(1.1, 1.8 - S.t / 60) + Math.random() * .35; }
+      if (S.spawnT <= 0 && S.rainT <= 0) { volley(); S.spawnT = Math.max(1.1, 1.45 - S.t / 90) + Math.random() * .35; }
       if (S.rainT > 0) {                                // fruit rain from both sides
         S.rainSpawn -= dt;
         if (S.rainSpawn <= 0) {
