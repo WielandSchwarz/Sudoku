@@ -20279,9 +20279,10 @@ function recolorWallSvg(svg, grund, muster) {
     d2Ready();
   }
   d2V.cv.addEventListener("pointerdown", function (e) {
-    if (!d2S || d2S.over) return; var hr = ham.getBoundingClientRect(); if (e.clientX >= hr.left && e.clientX <= hr.right && e.clientY >= hr.top && e.clientY <= hr.bottom) return;
-    var S = d2S, p = mPt(d2V, e); try { d2V.cv.setPointerCapture(e.pointerId); } catch (er) {}
-    for (var i = 0; i < D2_TOOLS.length; i++) { var T = D2_TOOLS[i]; if (Math.abs(p[0] - T.x) <= 12 && p[1] >= T.y - 2 && p[1] <= T.y + 20) { if (S.tool !== T.k) { S.tool = T.k; beep([[520, .04], [700, .04]]); } return; } }
+    if (!d2S || d2S.over) return; var S = d2S, p = mPt(d2V, e);
+    for (var i = 0; i < D2_TOOLS.length; i++) { var T = D2_TOOLS[i]; if (Math.abs(p[0] - T.x) <= 12 && p[1] >= T.y - 2 && p[1] <= T.y + 20) { if (S.tool !== T.k) { S.tool = T.k; beep([[520, .04], [700, .04]]); } return; } }   /* the tools first: the hamster's box must not swallow these taps */
+    var hr = ham.getBoundingClientRect(); if (e.clientX >= hr.left && e.clientX <= hr.right && e.clientY >= hr.top && e.clientY <= hr.bottom && p[1] > 96) return;
+    try { d2V.cv.setPointerCapture(e.pointerId); } catch (er) {}
     var it0 = S.cur; if (S.hold || S.fly || !it0) return;
     if (p[0] >= D2_BOT.x - 8 && p[0] <= D2_BOT.x + 8 && p[1] >= D2_BOT.y - 23 && p[1] <= D2_BOT.y + 2) { d2Squirt(); return; }
     if (p[0] >= 112 && p[0] <= 158 && p[1] >= 0 && p[1] <= 30) { if (S.ready) d2HoldStart("water", null); else { mBan(d2V, "Erst sauber machen"); beep([[220, .06]]); } return; }
