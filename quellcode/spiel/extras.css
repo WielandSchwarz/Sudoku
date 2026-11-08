@@ -483,3 +483,8 @@
 .soundbtn svg path:first-child { fill: currentColor; stroke: currentColor; }
 .soundbtn.off { opacity: .75; }
 .top > .soundbtn + .mapbtn { margin-left: 0; }
+
+/* the words now sit below the game window, above the needs bars; the space is kept so nothing jumps */
+.say-box { position: relative !important; left: auto !important; top: auto !important; transform: none !important; display: block; z-index: 1; width: auto !important; max-width: none !important; margin: 10px 3px 2px !important; height: calc(2.6em + 10px) !important; min-height: 0 !important; box-sizing: border-box; visibility: visible !important; display: flex !important; align-items: center; justify-content: center; overflow: hidden; }
+.say-box.on { opacity: 1; }
+.say-box::after { display: none; }

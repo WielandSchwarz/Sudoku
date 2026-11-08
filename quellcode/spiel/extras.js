@@ -1073,8 +1073,8 @@
   $g("d-harvest").addEventListener("click", function () { Object.keys(CROPS).forEach(function (c) { garden.harvest[c] = (garden.harvest[c] || 0) + 2; garden.seeds[c] = (garden.seeds[c] || 0) + 1; }); renderFoods(); say("Je 2 Ernte und 1 Samen von jeder Pflanze dazu."); });
   kEnter.hidden = false;
 
-  // ---------- the hamster's words: a little pixel box at the top of the game window ----------
-  statusEl.classList.add("say-box"); scene.appendChild(statusEl);
+  // ---------- the hamster's words: a little pixel box right below the game window ----------
+  statusEl.classList.add("say-box"); (function () { var nd = document.getElementById("needs"); if (nd && nd.parentNode) nd.parentNode.insertBefore(statusEl, nd); else scene.appendChild(statusEl); })();   /* below the game window, above the bars */
   var sayTimer = null;
   say = function (t) {
     statusEl.textContent = t || ""; statusEl.classList.toggle("on", !!t);

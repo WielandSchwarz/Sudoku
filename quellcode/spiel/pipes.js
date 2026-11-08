@@ -5,7 +5,8 @@
   var RP_LEVELS = /*RPLEVELS*/;
   var RPG = { x: 18, y: 8, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
   var RP_TYPES = ["S1", "S2", "S3", "B", "T"], RP_SLOTW = { S1: 20, S2: 28, S3: 34, B: 20, T: 20 }, RP_LOS = { x: 143, y: 107, w: 34, h: 25 };
-  var rpV = mPov("rp-pov", "Werkbank verlassen"), rpS = null, rpCache = {};
+  var rpV = mPov("rp-pov", "Werkbank verlassen"), rpS = null, rpCache = {}; rpV.ban.style.display = "none";
+  function rpSay(t) { say(t); }   /* the texts go into the line below the game window, never over the pipes */
   function rpR(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); }
   function rpSpr(k, w, h, fn) { if (!rpCache[k]) { var cv = document.createElement("canvas"); cv.width = w; cv.height = h; var c = cv.getContext("2d"); fn(c); rpCache[k] = cv; } return rpCache[k]; }
   function rpH(c, x0, x1, y) { var w = x1 - x0; if (w <= 0) return; rpR(c, x0, y - 3, w, 1, RP_INK); rpR(c, x0, y + 3, w, 1, RP_INK); rpR(c, x0, y - 2, w, 1, RP_CU[0]); rpR(c, x0, y - 1, w, 2, RP_CU[1]); rpR(c, x0, y + 1, w, 1, RP_CU[2]); rpR(c, x0, y + 2, w, 1, RP_CU[3]); }
@@ -265,8 +266,8 @@
       S.t += dt / RP_CELL_T;
       if (S.leak && S.t >= S.leak.t) { S.t = S.leak.t; S.mode = "leak"; S.lt = 0; rpLeakStart(); }
       else if (!S.leak && S.t >= S.endT + 4) {
-        if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); mBan(rpV, "Geschafft!"); }
-        else { S.mode = "build"; S.f = null; S.leaks++; mBan(rpV, "Da kommt noch nicht überall Wasser hin."); }
+        if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); rpSay("Geschafft!"); }
+        else { S.mode = "build"; S.f = null; S.leaks++; rpSay("Da kommt noch nicht überall Wasser hin."); }
       }
     } else if (S.mode === "leak") {
       S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
@@ -277,12 +278,12 @@
   function rpLeakStart() {
     var S = rpS, e = rpLeakPt(), x = S.L.mouse; S.leaks++;
     beep([[220, .08], [180, .12]]);
-    if (x != null && e[0] + 8 >= x - 4 && e[0] - 6 <= x + 16) { S.catWet = true; beep([[1320, .04], [1560, .06]]); mBan(rpV, "Piep! Die Maus ist nass geworden."); }
-    else mBan(rpV, S.leak.src ? "Das Wasser läuft gleich vorne raus!" : "Leck! Da fehlt noch ein Stück.");
+    if (x != null && e[0] + 8 >= x - 4 && e[0] - 6 <= x + 16) { S.catWet = true; beep([[1320, .04], [1560, .06]]); rpSay("Piep! Die Maus ist nass geworden."); }
+    else rpSay(S.leak.src ? "Das Wasser läuft gleich vorne raus!" : "Leck! Da fehlt noch ein Stück.");
   }
   function rpRun() {
     var S = rpS; if (S.mode !== "build") return;
-    S.f = PL.flow(S.L, S.pcs); S.t = 0; mBan(rpV, (S.lv + 1) + ". " + S.L.name); S.leak = S.f.leaks[0] || null; S.mode = "run";
+    S.f = PL.flow(S.L, S.pcs); S.t = 0; rpSay((S.lv + 1) + ". " + S.L.name); S.leak = S.f.leaks[0] || null; S.mode = "run";
     var e = 0; Object.keys(S.f.dist).forEach(function (k) { e = Math.max(e, S.f.dist[k]); }); Object.keys(S.f.hit).forEach(function (k) { e = Math.max(e, S.f.hit[k]); }); S.endT = e;
     beep([[392, .05], [523, .08]]);
   }
@@ -344,7 +345,7 @@
   function rpStart(lv) {
     var L = RP_LEVELS[lv];
     rpS = Object.assign(rpS || {}, { lv: lv, L: L, pcs: [], tray: Object.assign({}, L.tray), mode: "build", t: 0, clk: 0, leaks: 0, drag: null, f: null, leak: null, catWet: false, nope: 0 });
-    rpV.card.hidden = true; mBan(rpV, (lv + 1) + ". " + L.name);
+    rpV.card.hidden = true; rpSay((lv + 1) + ". " + L.name);
   }
   function rpWinCard() {
     var S = rpS, M = mL("pipes"), used = S.pcs.length, par = S.L.par, st = 1 + (S.leaks ? 0 : 1) + (used <= par ? 1 : 0);
@@ -364,7 +365,7 @@
       var n = st[i] || 0, o = ""; for (var k = 0; k < 3; k++) o += k < n ? "★" : "<i>★</i>";
       return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b><span class="fi-st">' + o + '</span></button>';
     }).join("") + '</div></div>';
-    rpV.card.hidden = false; mBan(rpV, "Rohr-Rätsel");
+    rpV.card.hidden = false; rpSay("Rohr-Rätsel");
   }
   rpV.card.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"); if (!b || b.disabled) return;
