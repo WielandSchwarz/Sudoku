@@ -23581,12 +23581,12 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     if (con.indexOf("d") >= 0) rpFV(c, x, y + 7);
   }
   var RP_DIG = ["111101101101111", "010110010010111", "111001111100111", "111001111001111", "101101111001001", "111100111001111", "111100111101111", "111001010010010", "111101111101111", "111101111001111"];
-  var RP_LET = { L: "100100100100111", O: "111101101101111", S: "111100111001111", "!": "1110" };
+  var RP_LET = { L: "100100100100111", O: "111101101101111", S: "111100111001111", "!": "1110", W: "1000110001101011010101010", E: "111100110100111", I: "111010010010111", T: "111010010010010", R: "110101110101101" }, RP_LW = { "!": 1, W: 5 };
   function rpGlyph(c, pat, x, y, col, w) { w = w || 3; for (var i = 0; i < pat.length; i++) if (pat[i] === "1") rpR(c, x + i % w, y + Math.floor(i / w), 1, 1, col); }
   function rpText(c, s, x, y, col, sh) {   /* tiny 3x5 pixel letters with a 1px dark edge */
     var cx = x;
     for (var i = 0; i < s.length; i++) {
-      var ch = s[i], pat = /\d/.test(ch) ? RP_DIG[+ch] : RP_LET[ch], w = ch === "!" ? 1 : 3;
+      var ch = s[i], pat = /\d/.test(ch) ? RP_DIG[+ch] : RP_LET[ch], w = RP_LW[ch] || 3;
       if (ch === "!") pat = "11101";
       if (pat) { if (sh) for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) rpGlyph(c, pat, cx + dx, y + dy, sh, w); rpGlyph(c, pat, cx, y, col, w); }
       cx += w + 1;
@@ -23705,10 +23705,11 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
       c.globalAlpha = 1;
       rpText(c, String(n), sl.x + sl.w - 5, 126, n ? "#fff8ec" : "#c8aa82", RP_INK);
     });
-    var b = RP_LOS, on = S.mode === "build";
+    var b = RP_LOS, on = S.mode === "build", go = S.finished;   /* after the finale the button turns orange: "Weiter" */
     rpR(c, b.x, b.y, b.w, b.h, RP_INK);
-    rpR(c, b.x + 1, b.y + 1, b.w - 2, b.h - 2, on ? "#5aa84e" : "#8a8a7a"); rpR(c, b.x + 1, b.y + 1, b.w - 2, 2, on ? "#7cc86a" : "#a4a494"); rpR(c, b.x + 1, b.y + b.h - 3, b.w - 2, 2, on ? "#3e8434" : "#6a6a5a");
-    rpText(c, "LOS!", b.x + 11, b.y + 10, "#fff8ec", on ? "#2e6a26" : "#5a5a4a");
+    var C3 = go ? ["#e8650c", "#f6904a", "#b84a08", "#8a3606"] : on ? ["#5aa84e", "#7cc86a", "#3e8434", "#2e6a26"] : ["#8a8a7a", "#a4a494", "#6a6a5a", "#5a5a4a"];
+    rpR(c, b.x + 1, b.y + 1, b.w - 2, b.h - 2, C3[0]); rpR(c, b.x + 1, b.y + 1, b.w - 2, 2, C3[1]); rpR(c, b.x + 1, b.y + b.h - 3, b.w - 2, 2, C3[2]);
+    if (go) rpText(c, "WEITER", b.x + 5, b.y + 10, "#fff8ec", C3[3]); else rpText(c, "LOS!", b.x + 11, b.y + 10, "#fff8ec", C3[3]);
   }
 
   // ---------------------------------------------------------------- frame
@@ -23809,7 +23810,7 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     } else if (S.mode === "leak") {
       S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
     } else if (S.mode === "win") {
-      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > RP_CU0 + RP_CUT * S.L.st.length + .2 && rpV.card.hidden) rpWinCard();
+      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > RP_CU0 + RP_CUT * S.L.st.length + .2 && !S.finished) rpWinDone();
     }
   }
   function rpLeakStart() {
@@ -23847,7 +23848,12 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     S.nope = .6; S.nopeAt = [c, r]; beep([[160, .08]]);
   }
   rpV.cv.addEventListener("pointerdown", function (e) {
-    var S = rpS; if (S && S.mode === "win" && rpV.card.hidden) { var ci = Math.floor((S.wt - RP_CU0) / RP_CUT); S.wt = RP_CU0 + Math.max(0, ci + 1) * RP_CUT; return; }
+    var S = rpS;
+    if (S && S.mode === "win" && rpV.card.hidden) {
+      var q0 = mPt(rpV, e), bb = RP_LOS;
+      if (S.finished) { if (q0[0] >= bb.x && q0[0] < bb.x + bb.w && q0[1] >= bb.y && q0[1] < bb.y + bb.h) { beep([[523, .04], [659, .06]]); rpNext(); } return; }
+      var ci = Math.floor((S.wt - RP_CU0) / RP_CUT); S.wt = RP_CU0 + Math.max(0, ci + 1) * RP_CUT; return;
+    }
     if (!S || S.mode !== "build" || !rpV.card.hidden) return;
     var q = mPt(rpV, e), x = q[0], y = q[1], b = RP_LOS;
     if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) { rpRun(); return; }
@@ -23884,21 +23890,24 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   // ---------------------------------------------------------------- levels, stars and cards
   function rpStart(lv) {
     var L = RP_LEVELS[lv];
-    rpS = Object.assign(rpS || {}, { lv: lv, L: L, pcs: [], tray: Object.assign({}, L.tray), mode: "build", t: 0, clk: 0, leaks: 0, drag: null, f: null, leak: null, catWet: false, nope: 0 });
+    rpS = Object.assign(rpS || {}, { lv: lv, L: L, pcs: [], tray: Object.assign({}, L.tray), mode: "build", t: 0, clk: 0, leaks: 0, finished: false, stars: 0, drag: null, f: null, leak: null, catWet: false, nope: 0 });
     rpV.card.hidden = true; rpSay((lv + 1) + ". " + L.name);
   }
-  function rpWinCard() {
+  /* the solved level stays on screen (the stations keep celebrating); stars and reward go into the line below, the button says "Weiter" */
+  function rpWinDone() {
     var S = rpS, M = mL("pipes"), used = S.pcs.length, par = S.L.par, st = 1 + (S.leaks ? 0 : 1) + (used <= par ? 1 : 0);
     M.st = M.st || {}; var first = !M.st[S.lv];
     M.st[S.lv] = Math.max(M.st[S.lv] || 0, st); M.lvl = Math.max(M.lvl || 0, S.lv + 1);
     if (first) s.treats = (s.treats || 0) + 3;
     if (window.SudokuSave) window.SudokuSave();
-    var hint = st === 3 ? "" : used > par ? "Es geht auch mit " + par + " Teilen." : "Ohne Leck gibt es einen Stern mehr.";
-    var next = S.lv + 1 < RP_LEVELS.length;
-    rpV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Alles läuft!</p>' + mStars(st) + '<p class="fi-s">' + (first ? "+3 Leckerli · " : "") + used + " Teile" + (hint ? "<br>" + hint : "") + '</p>' +
-      '<div class="fi-row"><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (next ? '<button type="button" class="fi-b" data-a="next">Weiter</button>' : '<button type="button" class="fi-b" data-a="pick">Rätsel</button>') + '</div></div>';
-    rpV.card.hidden = false;
+    S.finished = true; S.stars = st;
+    var stars = ""; for (var k = 0; k < 3; k++) stars += k < st ? "★" : "☆";
+    var hint = st === 3 ? (first ? "+3 Leckerli" : "") : used > par ? "Es geht auch mit " + par + " Teilen." : "Ohne Leck gibt es einen Stern mehr.";
+    rpSayLong(stars + (hint ? " · " + hint : "") + (first && st < 3 ? " · +3 Leckerli" : ""));
+    beep([[784, .06], [1047, .1]]);
   }
+  function rpSayLong(t) { say(t); try { clearTimeout(sayTimer); } catch (e) { } }   /* stays until the next text */
+  function rpNext() { var S = rpS; if (S.lv + 1 < RP_LEVELS.length) rpStart(S.lv + 1); else rpPick(); }
   function rpPick() {
     var M = mL("pipes"), st = M.st || {}, open = Math.min(RP_LEVELS.length - 1, M.lvl || 0);
     rpV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Rohr-Rätsel</p><div class="rp-sel">' + RP_LEVELS.map(function (L, i) {
