@@ -185,6 +185,7 @@
     rpWater(c); rpSpray(c);
     if (S.nope > 0) { S.nope -= dt; var q = S.nopeAt; c.globalAlpha = Math.min(1, S.nope * 3); rpR(c, RPG.x + q[0] * 16, RPG.y + q[1] * 16, 16, 1, "#e8650c"); rpR(c, RPG.x + q[0] * 16, RPG.y + q[1] * 16 + 15, 16, 1, "#e8650c"); rpR(c, RPG.x + q[0] * 16, RPG.y + q[1] * 16, 1, 16, "#e8650c"); rpR(c, RPG.x + q[0] * 16 + 15, RPG.y + q[1] * 16, 1, 16, "#e8650c"); c.globalAlpha = 1; }
     rpTray(c);
+    rpCloseup(c);
     var g = S.drag; if (g && (g.from < 0 || g.moved)) {
       var sp = rpPieceSpr(g.p), sn = rpSnap(g);
       if (sn.ok) { c.globalAlpha = .45; rpR(c, RPG.x + sn.c * 16, RPG.y + sn.r * 16, sp.width, sp.height, "#fff8ec"); c.globalAlpha = 1; c.drawImage(sp, RPG.x + sn.c * 16, RPG.y + sn.r * 16); }
@@ -193,44 +194,58 @@
     S.raf = requestAnimationFrame(rpDraw);
   }
 
-  // ---------------------------------------------------------------- the mice's voices: a giggly "tihihi" when it works, a grumpy mumble when it does not
+  // ---------------------------------------------------------------- the mice's voices: a little vocal synth (buzz through two vowel filters, a breath of "h")
   function rpAC() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; }
-  function rpGiggle(base, at) {
+  var RP_VOW = { i: [380, 2250], e: [520, 1850], a: [750, 1250], o: [480, 850], u: [360, 720], m: [300, 900] };
+  /* syl: [f0 from, f0 to, duration, vowel, loudness, breath before (s), r-roll Hz] */
+  function rpVoice(syls, at, gap) {
     try {
-      var a = rpAC(), t = a.currentTime + .02 + (at || 0);
-      [[1, .08, 1.35], [1.2, .065, 1.15], [1.14, .065, 1.15], [1.08, .07, 1.15], [1.02, .1, 1.12]].forEach(function (sy, i) {
-        var o = a.createOscillator(), g = a.createGain(), f = base * sy[0], d = sy[1];
-        o.type = "triangle"; o.frequency.setValueAtTime(f * .92, t); o.frequency.linearRampToValueAtTime(f * sy[2], t + d * .3); o.frequency.linearRampToValueAtTime(f * .9, t + d);
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(i ? .1 : .13, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + d);
-        o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + d + .02);
-        if (i) { var n = a.createBufferSource(), b = a.createBuffer(1, Math.floor(a.sampleRate * .03), a.sampleRate), ch = b.getChannelData(0); for (var k = 0; k < ch.length; k++) ch[k] = (Math.random() * 2 - 1) * (1 - k / ch.length);   /* the breathy "h" */
-          var fl = a.createBiquadFilter(), ng = a.createGain(); fl.type = "highpass"; fl.frequency.value = 3000; ng.gain.value = .05; n.buffer = b; n.connect(fl); fl.connect(ng); ng.connect(a.destination); n.start(t - .025); }
-        t += d + .03;
+      var a = rpAC(), t = a.currentTime + .03 + (at || 0);
+      syls.forEach(function (q) {
+        var f0 = q[0], f1 = q[1], d = q[2], v = RP_VOW[q[3]], amp = q[4] || .2, br = q[5] || 0, rr = q[6] || 0;
+        if (br) {   /* the "h" or "t" in front */
+          var n = a.createBufferSource(), b = a.createBuffer(1, Math.floor(a.sampleRate * br), a.sampleRate), ch = b.getChannelData(0);
+          for (var k = 0; k < ch.length; k++) ch[k] = (Math.random() * 2 - 1) * Math.sin(Math.PI * k / ch.length);
+          var nf = a.createBiquadFilter(), ng = a.createGain(); nf.type = "bandpass"; nf.frequency.value = v[1]; nf.Q.value = 1.2; ng.gain.value = amp * .5;
+          n.buffer = b; n.connect(nf); nf.connect(ng); ng.connect(a.destination); n.start(t); t += br * .8;
+        }
+        var o = a.createOscillator(), out = a.createGain(), vib = a.createOscillator(), vg = a.createGain();
+        o.type = "sawtooth"; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime((f0 + f1) / 2 * 1.06, t + d * .35); o.frequency.linearRampToValueAtTime(f1, t + d);
+        vib.frequency.value = 6.5; vg.gain.value = f0 * .025; vib.connect(vg); vg.connect(o.frequency);
+        [[v[0], 6, 1], [v[1], 9, .5]].forEach(function (fm) { var bp = a.createBiquadFilter(), g = a.createGain(); bp.type = "bandpass"; bp.frequency.value = fm[0]; bp.Q.value = fm[1]; g.gain.value = fm[2] * 3; o.connect(bp); bp.connect(g); g.connect(out); });
+        out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(amp, t + Math.min(.03, d * .3)); out.gain.setValueAtTime(amp, t + d * .6); out.gain.linearRampToValueAtTime(0, t + d);
+        if (rr) { var tr = a.createOscillator(), tg = a.createGain(), mix = a.createGain(); tr.frequency.value = rr; tg.gain.value = .5; mix.gain.value = .5; tr.connect(tg); tg.connect(mix.gain); out.connect(mix); mix.connect(a.destination); tr.start(t); tr.stop(t + d + .02); }
+        else out.connect(a.destination);
+        o.start(t); vib.start(t); o.stop(t + d + .02); vib.stop(t + d + .02);
+        t += d + (gap == null ? .035 : gap);
       });
     } catch (e) { }
   }
-  function rpGrumble(at, pitch) {
-    try {
-      var a = rpAC(), t0 = a.currentTime + .02 + (at || 0), p = pitch || 1, o = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), t = t0;
-      o.type = "sawtooth"; fl.type = "lowpass"; fl.Q.value = 5; g.gain.setValueAtTime(0, t0);
-      o.connect(fl); fl.connect(g); g.connect(a.destination);
-      var syl = 5 + Math.floor(Math.random() * 2);
-      for (var i = 0; i < syl; i++) {   /* "mrm, mrmm, hmm-mrr": wobbling pitch, a vowel that moves, little pauses */
-        var d = .1 + Math.random() * .12, f = (300 + Math.random() * 90 - i * 12) * p;
-        o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * (.82 + Math.random() * .12), t + d);
-        fl.frequency.setValueAtTime(500 + Math.random() * 500, t); fl.frequency.linearRampToValueAtTime(380 + Math.random() * 300, t + d);
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.07, t + .025); g.gain.linearRampToValueAtTime(.05, t + d * .7); g.gain.linearRampToValueAtTime(0, t + d);
-        t += d + .03 + Math.random() * .05;
-      }
-      o.start(t0); o.stop(t + .05);
-      var n = a.createBufferSource(), b = a.createBuffer(1, Math.floor(a.sampleRate * .14), a.sampleRate), ch = b.getChannelData(0); for (var k = 0; k < ch.length; k++) ch[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / ch.length, 2);   /* and a little "pfff" at the end */
-      var nf = a.createBiquadFilter(), ng = a.createGain(); nf.type = "bandpass"; nf.frequency.value = 1400; nf.Q.value = .8; ng.gain.value = .06; n.buffer = b; n.connect(nf); nf.connect(ng); ng.connect(a.destination); n.start(t + .02);
-    } catch (e) { }
-  }
-  function rpSqueak(at) {
-    try { var a = rpAC(), t = a.currentTime + .02 + (at || 0), o = a.createOscillator(), g = a.createGain();
-      o.type = "triangle"; o.frequency.setValueAtTime(2400, t); o.frequency.exponentialRampToValueAtTime(3600, t + .07); o.frequency.exponentialRampToValueAtTime(2800, t + .16);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.13, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + .18); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + .2); } catch (e) { }
+  var RP_GIGGLE = {
+    A: [[560, 640, .1, "i", .22, .03], [620, 540, .085, "i", .2, .035], [600, 520, .085, "i", .19, .035], [570, 480, .09, "i", .18, .035], [540, 430, .14, "i", .16, .035]],
+    B: [[760, 880, .07, "i", .18, .02], [820, 700, .06, "i", .16, .03], [800, 690, .06, "i", .15, .03], [780, 660, .06, "i", .14, .03], [740, 620, .06, "i", .13, .03], [700, 560, .1, "i", .12, .03]],
+    C: [[430, 520, .11, "e", .24, .035], [480, 420, .1, "e", .22, .04], [470, 400, .1, "e", .2, .04], [440, 360, .16, "e", .18, .04]]
+  };
+  var RP_GRUMBLE = {
+    A: [[190, 170, .16, "m", .26], [210, 180, .2, "o", .26], [180, 165, .14, "m", .22], [200, 160, .28, "o", .24], [170, 140, .22, "u", .2]],
+    B: [[230, 200, .18, "o", .24, 0, 28], [210, 190, .12, "m", .2], [240, 190, .26, "a", .24, 0, 30], [200, 170, .2, "o", .2, 0, 26], [180, 150, .16, "m", .18]],
+    C: [[260, 200, .32, "m", .24], [180, 150, .3, "o", .24, .04], [160, 130, .2, "u", .2], [150, 140, .22, "m", .15, .12]]
+  };
+  function rpGiggle(i) { var v = RP_GIGGLE[["A", "C", "A"][i % 3]], k = [1, 1, 1.12][i % 3]; rpVoice(v.map(function (q) { return [q[0] * k, q[1] * k, q[2], q[3], q[4] * 1.8, q[5]]; }), 0); }
+  function rpGrumble(at, high) { var v = RP_GRUMBLE.A; rpVoice(high ? v.map(function (q) { return [q[0] * 1.25, q[1] * 1.25, q[2], q[3], q[4]]; }) : v, at, .04); }
+  function rpSqueak(at) { rpVoice([[640, 900, .16, "i", .35, .025]], at); }
+  /* the finale: one big close-up per station, the mouse at her real size */
+  var RP_CLU = /*RPCLOSEUPS*/, RP_CUI = {}; Object.keys(RP_CLU).forEach(function (k) { var im = new Image(); im.src = RP_CLU[k]; RP_CUI[k] = im; });
+  var RP_CUSAY = { shower: "Die Maus duscht.", tub: "Ein Schaumbad!", coffee: "Die Maus kocht Kaffee.", sink: "Zähneputzen!", plant: "Die Blume blüht." };
+  var RP_CU0 = 1.2, RP_CUT = 2.6;
+  function rpCloseup(c) {
+    var S = rpS; if (S.mode !== "win") return;
+    var i = Math.floor((S.wt - RP_CU0) / RP_CUT); if (i < 0 || i >= S.L.st.length) return;
+    var t = S.L.st[i], u = S.wt - RP_CU0 - i * RP_CUT, im = RP_CUI["cu_" + t.k + (Math.floor(S.clk * 4) % 4)];
+    if (S.cuSeen !== i) { S.cuSeen = i; rpSay(RP_CUSAY[t.k]); rpGiggle(i); beep([[660, .04], [880, .05]]); }
+    c.globalAlpha = Math.min(1, u * 5, (RP_CUT - u) * 5) * .4; rpR(c, 0, 0, 180, 104, "#2b1d12"); c.globalAlpha = 1;
+    var sc = Math.min(1, u * 6), y = 7 + Math.round((1 - sc) * 30);
+    if (im && im.complete) { c.globalAlpha = Math.min(1, u * 6, (RP_CUT - u) * 6); c.drawImage(im, 30, y); c.globalAlpha = 1; rpR(c, 30, y + 90, 120, 2, "rgba(43,29,18,.25)"); }
   }
   var RP_CELL_T = .085;
   function rpStep(dt) {
@@ -239,13 +254,13 @@
       S.t += dt / RP_CELL_T;
       if (S.leak && S.t >= S.leak.t) { S.t = S.leak.t; S.mode = "leak"; S.lt = 0; rpLeakStart(); }
       else if (!S.leak && S.t >= S.endT + 4) {
-        if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); rpSay("Geschafft!"); S.L.st.slice(0, 3).forEach(function (q, i) { rpGiggle([2300, 2750, 2050][i], .75 + i * .45); }); }
+        if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); rpSay("Geschafft!"); S.cuSeen = -1; }
         else { S.mode = "build"; S.f = null; S.leaks++; rpSay("Da kommt noch nicht überall Wasser hin."); rpGrumble(.1); }
       }
     } else if (S.mode === "leak") {
       S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
     } else if (S.mode === "win") {
-      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > 3.6 && rpV.card.hidden) rpWinCard();
+      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > RP_CU0 + RP_CUT * S.L.st.length + .2 && rpV.card.hidden) rpWinCard();
     }
   }
   function rpLeakStart() {
@@ -283,7 +298,8 @@
     S.nope = .6; S.nopeAt = [c, r]; beep([[160, .08]]);
   }
   rpV.cv.addEventListener("pointerdown", function (e) {
-    var S = rpS; if (!S || S.mode !== "build" || !rpV.card.hidden) return;
+    var S = rpS; if (S && S.mode === "win" && rpV.card.hidden) { var ci = Math.floor((S.wt - RP_CU0) / RP_CUT); S.wt = RP_CU0 + Math.max(0, ci + 1) * RP_CUT; return; }
+    if (!S || S.mode !== "build" || !rpV.card.hidden) return;
     var q = mPt(rpV, e), x = q[0], y = q[1], b = RP_LOS;
     if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) { rpRun(); return; }
     if (y >= 104) {
