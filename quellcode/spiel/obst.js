@@ -16,17 +16,24 @@
   function osAccount() { try { return window.__sudokuAccount ? window.__sudokuAccount() : null; } catch (e) { return null; } }
   var osBoard = typeof obstsalatBoard === "function" ? obstsalatBoard(OS_SYNC, osAccount, function () { return N(); }) : null;
   /* rewards: every 5th round played to the end = a random bag of seeds, every 20th = a piece of furniture */
+  function osFurnPop(f) {
+    var cat = f.cat, it = f.it, art, cls = "";
+    try {
+      art = (cat === "wall" || cat === "floor") ? '<div class="ip-swatch" style="background-image:' + tileURL(it.tile).replace(/"/g, "'") + ';background-size:' + (it.w * 1.6) + 'px"></div>' : itemSVG(cat, it, "", "");
+      if (cat === "meadow" && MBIG["mb_" + it.id]) art = '<svg viewBox="0 0 52 52" aria-hidden="true" shape-rendering="crispEdges">' + tint(MBIG["mb_" + it.id].svg) + '</svg>';
+      cls = cat === "plant" ? "ip-tall" : cat === "meadow" ? "ip-plant" : "";
+    } catch (e) { art = ""; }
+    if (osGame && osGame.pause) osGame.pause(true);
+    itemPop({ unwrap: true, force: true, art: art, cls: cls, title: "Neu: " + f.name + "!", onClose: function () { if (osGame && osGame.pause) osGame.pause(false); } });
+  }
   function osReward(r) {
     if (r.score > 0) { s.food = clamp(s.food + Math.min(30, 6 + Math.round(r.score / 5))); try { renderNeeds(); } catch (e) { } }   /* fruit salad fills him up */
     if (!r.timeUp) return "";
     s.osRounds = (s.osRounds || 0) + 1; var n = s.osRounds, msg = "";
-    if (n % 20 === 0) {
+    if (n % 5 === 0) {   /* every 5th finished round: a new piece of furniture, shown big while the game waits behind it */
       var f = typeof furnNow === "function" ? furnNow() : null;
-      if (f) msg = "Neu: " + f.name + "!"; else { s.treats = (s.treats || 0) + 5; msg = "5 Leckerli!"; }
+      if (f) setTimeout(function () { osFurnPop(f); }, 900); else { s.treats = (s.treats || 0) + 5; msg = "5 Leckerli!"; }
       try { renderCosy(); } catch (e) { }
-    } else if (n % 5 === 0) {
-      var g = seedOrFurn(null, 1, true);
-      if (g.seed) msg = "Eine Tüte Samen: " + CROPS[g.seed].name + "!"; else { s.treats = (s.treats || 0) + 3; msg = "Samenlager voll: 3 Leckerli!"; }
     }
     try { if (window.SudokuSave) window.SudokuSave(); else if (typeof save === "function") save(); } catch (e) { }
     return msg;

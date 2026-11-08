@@ -1166,7 +1166,7 @@
   var ipQueue = [], ipOn = false, ipEl = null;
   function itemPop(o) { ipQueue.push(o); if (!ipOn) ipNext(); }
   function ipNext() {
-    if (ipQueue.length && uiBusy()) { ipOn = true; setTimeout(function () { ipOn = false; ipNext(); }, 450); return; }   // wait until no other popup is open
+    if (ipQueue.length && !ipQueue[0].force && uiBusy()) { ipOn = true; setTimeout(function () { ipOn = false; ipNext(); }, 450); return; }   // wait until no other popup is open
     var o = ipQueue.shift(); if (!o) { ipOn = false; return; }
     ipOn = true;
     var el = ipEl = document.createElement("div"); el.className = "ip"; scene.appendChild(el);

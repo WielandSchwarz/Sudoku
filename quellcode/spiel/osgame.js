@@ -423,6 +423,7 @@ function mountObstsalat(root, ART, opts) {
   // ---------- main loop
   var last = performance.now(), raf = 0;
   function frame(now) {
+    if (S.paused) { last = now; raf = requestAnimationFrame(frame); return; }   /* a present is being shown on top: everything waits */
     var dt = Math.min(.05, (now - last) / 1000); last = now; S.t += dt;
     var ts = S.slowT > 0 ? .38 : 1, wdt = dt * ts; S.wt += wdt;
     var tm = timeNow();
@@ -560,6 +561,7 @@ function mountObstsalat(root, ART, opts) {
     spawn: function (k, x, peak) { launch(k, x || 90, peak || 30, 0); }, special: function (k) { special(k); },
     setEnv: function (e) { Object.keys(e).forEach(function (k) { env[k] = e[k]; }); },
     restart: reset,
+    pause: function (b) { S.paused = !!b; },
     destroy: function () { cancelAnimationFrame(raf); root.innerHTML = ""; }
   };
 }
