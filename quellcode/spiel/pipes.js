@@ -274,15 +274,22 @@
   /* the finale: one big close-up per station, the mouse at her real size */
   var RP_CLU = /*RPCLOSEUPS*/, RP_CUI = {}; Object.keys(RP_CLU).forEach(function (k) { var im = new Image(); im.src = RP_CLU[k]; RP_CUI[k] = im; });
   var RP_CUSAY = { shower: "Die Maus duscht.", tub: "Ein Schaumbad!", coffee: "Die Maus kocht Kaffee.", sink: "Zähneputzen!", plant: "Die Blume blüht." };
-  var RP_CU0 = 1.2, RP_CUT = 2.6;
+  var RP_CU0 = 1.2, RP_CUT = 2.6, RP_STORY = { coffee: 8, sink: 8 };   /* coffee and basin tell a little story in 8 pictures and get more time */
+  function rpCuDur(k) { return RP_STORY[k] ? 4.2 : RP_CUT; }
+  function rpCuAt(S) {   /* which close-up is showing at S.wt: [index, time into it, its length] */
+    var t = S.wt - RP_CU0; if (t < 0) return [-1, 0, 0];
+    for (var i = 0; i < S.L.st.length; i++) { var d = rpCuDur(S.L.st[i].k); if (t < d) return [i, t, d]; t -= d; }
+    return [S.L.st.length, 0, 0];
+  }
+  function rpCuEnd(S, upto) { var t = RP_CU0; for (var i = 0; i < Math.min(upto, S.L.st.length); i++) t += rpCuDur(S.L.st[i].k); return t; }
   function rpCloseup(c) {
     var S = rpS; if (S.mode !== "win") return;
-    var i = Math.floor((S.wt - RP_CU0) / RP_CUT); if (i < 0 || i >= S.L.st.length) return;
-    var t = S.L.st[i], u = S.wt - RP_CU0 - i * RP_CUT, im = RP_CUI["cu_" + t.k + (Math.floor(S.clk * 4) % 4)];
+    var at = rpCuAt(S), i = at[0]; if (i < 0 || i >= S.L.st.length) return;
+    var t = S.L.st[i], u = at[1], D = at[2], n = RP_STORY[t.k], im = RP_CUI["cu_" + t.k + (n ? Math.min(n - 1, Math.floor(u / (D * .92) * n)) : Math.floor(S.clk * 4) % 4)];
     if (S.cuSeen !== i) { S.cuSeen = i; rpSay(RP_CUSAY[t.k]); rpGiggle(i); beep([[660, .04], [880, .05]]); }
-    c.globalAlpha = Math.min(1, u * 5, (RP_CUT - u) * 5) * .4; rpR(c, 0, 0, 180, 104, "#2b1d12"); c.globalAlpha = 1;
+    c.globalAlpha = Math.min(1, u * 5, (D - u) * 5) * .4; rpR(c, 0, 0, 180, 104, "#2b1d12"); c.globalAlpha = 1;
     var sc = Math.min(1, u * 6), y = 7 + Math.round((1 - sc) * 30);
-    if (im && im.complete) { c.globalAlpha = Math.min(1, u * 6, (RP_CUT - u) * 6); c.drawImage(im, 30, y); c.globalAlpha = 1; rpR(c, 30, y + 90, 120, 2, "rgba(43,29,18,.25)"); }
+    if (im && im.complete) { c.globalAlpha = Math.min(1, u * 6, (D - u) * 6); c.drawImage(im, 30, y); c.globalAlpha = 1; rpR(c, 30, y + 90, 120, 2, "rgba(43,29,18,.25)"); }
   }
   var RP_CELL_T = .085;
   function rpStep(dt) {
@@ -297,7 +304,7 @@
     } else if (S.mode === "leak") {
       S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
     } else if (S.mode === "win") {
-      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > RP_CU0 + RP_CUT * S.L.st.length + .2 && !S.finished) rpWinDone();
+      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > rpCuEnd(S, 99) + .2 && !S.finished) rpWinDone();
     }
   }
   function rpLeakStart() {
@@ -339,7 +346,7 @@
     if (S && S.mode === "win" && rpV.card.hidden) {
       var q0 = mPt(rpV, e), bb = RP_LOS;
       if (S.finished) { if (q0[0] >= bb.x && q0[0] < bb.x + bb.w && q0[1] >= bb.y && q0[1] < bb.y + bb.h) { beep([[523, .04], [659, .06]]); rpNext(); } return; }
-      var ci = Math.floor((S.wt - RP_CU0) / RP_CUT); S.wt = RP_CU0 + Math.max(0, ci + 1) * RP_CUT; return;
+      var ci = rpCuAt(S)[0]; S.wt = rpCuEnd(S, Math.max(0, ci + 1)); return;
     }
     if (!S || S.mode !== "build" || !rpV.card.hidden) return;
     var q = mPt(rpV, e), x = q[0], y = q[1], b = RP_LOS;
