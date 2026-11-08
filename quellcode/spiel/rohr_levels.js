@@ -1,10 +1,22 @@
-var RP_LEVELS = [
-  { name: "Um die Ecke", src: { c: 0, r: 1, d: "l" }, targets: [{ c: 5, r: 4, d: "d", k: "pot" }], blocks: [], tray: { S3: 1, S2: 2, S1: 2, B: 1 } },
-  { name: "Der Balken", src: { c: 0, r: 1, d: "l" }, targets: [{ c: 8, r: 1, d: "r", k: "sink" }], blocks: [[3, 0], [3, 1], [3, 2]], beam: [3, 0, 3], tray: { S3: 1, S2: 2, S1: 3, B: 4 } },
-  { name: "Zwei Durstige", src: { c: 0, r: 2, d: "l" }, targets: [{ c: 8, r: 1, d: "r", k: "sink" }, { c: 4, r: 4, d: "d", k: "pot" }], blocks: [[6, 2], [6, 3], [2, 3]], crates: 1, tray: { S3: 2, S2: 2, S1: 3, B: 3, T: 1 } },
-  { name: "Der Wasserhahn", src: { c: 4, r: 0, d: "u" }, targets: [{ c: 0, r: 3, d: "l", k: "cup" }, { c: 8, r: 3, d: "r", k: "sink" }], blocks: [[4, 2], [4, 3], [4, 4]], beam: [4, 2, 3], mouse: 30, tray: { S3: 2, S2: 2, S1: 2, B: 4, T: 1 } },
-  { name: "Drei Töpfe", src: { c: 0, r: 0, d: "l" }, targets: [{ c: 1, r: 4, d: "d", k: "pot" }, { c: 4, r: 4, d: "d", k: "coffee" }, { c: 7, r: 4, d: "d", k: "pot" }], blocks: [[2, 2], [3, 2], [5, 1], [6, 1]], crates: 1, mouse: 57, tray: { S3: 2, S2: 3, S1: 3, B: 3, T: 2 } },
-  { name: "Die Dusche", src: { c: 0, r: 3, d: "l" }, targets: [{ c: 8, r: 1, d: "r", k: "sink" }, { c: 6, r: 3, d: "d", k: "shower" }], blocks: [[2, 0], [2, 1], [2, 2], [5, 2], [5, 3], [5, 4], [6, 4]], space: [[6, 4]], beam: [2, 0, 3], post: [5, 2, 3], mouse: 20, tray: { S3: 1, S2: 3, S1: 4, B: 4, T: 1 } },
-  { name: "Knapp bemessen", src: { c: 8, r: 0, d: "u" }, targets: [{ c: 0, r: 1, d: "l", k: "cup" }, { c: 3, r: 4, d: "d", k: "pot" }, { c: 8, r: 4, d: "r", k: "sink" }], blocks: [[1, 2], [2, 2], [5, 0], [5, 1], [6, 3]], crates: 1, tray: { S2: 4, S1: 6, B: 4, T: 2 } },
-  { name: "Die große Anlage", src: { c: 2, r: 0, d: "u" }, targets: [{ c: 0, r: 2, d: "l", k: "cup" }, { c: 8, r: 1, d: "r", k: "sink" }, { c: 4, r: 4, d: "d", k: "coffee" }, { c: 7, r: 3, d: "d", k: "shower" }], blocks: [[3, 0], [3, 1], [3, 2], [6, 2], [6, 3], [6, 4], [1, 3], [7, 4]], space: [[7, 4]], beam: [3, 0, 3], post: [6, 2, 3], mouse: 26, tray: { S3: 2, S2: 3, S1: 4, B: 5, T: 3 } }
+var RP_SRC = [
+  { name: "Blumen gießen", src: { c: 0, r: 1, d: "l" }, st: [{ k: "plant", sc: 6, side: "l" }], blocks: [], bed: [2, 4], tray: { S3: 1, S2: 2, S1: 2, B: 1 } },
+  { name: "Die Dusche", src: { c: 0, r: 0, d: "l" }, st: [{ k: "shower", sc: 6, side: "l" }], blocks: [[3, 0], [3, 1]], beam: [3, 0, 2], bed: [1, 4], tray: { S3: 1, S2: 2, S1: 3, B: 4 } },
+  { name: "Kaffee und Blume", src: { c: 4, r: 0, d: "u" }, st: [{ k: "coffee", sc: 0, side: "r" }, { k: "plant", sc: 7, side: "l" }], blocks: [[4, 2]], bed: [4, 4], tray: { S3: 1, S2: 3, S1: 3, B: 3, T: 1 } },
+  { name: "Die Badewanne", src: { c: 7, r: 0, d: "u" }, st: [{ k: "tub", sc: 0, side: "l" }, { k: "sink", sc: 6, side: "r" }], blocks: [[4, 0], [4, 1], [4, 2]], beam: [4, 0, 3], bed: [8, 4], tray: { S3: 2, S2: 3, S1: 4, B: 6, T: 1 } },
+  { name: "Badetag", src: { c: 0, r: 0, d: "l" }, st: [{ k: "shower", sc: 0, side: "l" }, { k: "tub", sc: 5, side: "l" }, { k: "plant", sc: 8, side: "l" }], blocks: [[3, 1], [4, 1]], bed: [3, 4], tray: { S3: 2, S2: 3, S1: 3, B: 3, T: 2 } },
+  { name: "Morgenroutine", src: { c: 0, r: 1, d: "l" }, st: [{ k: "coffee", sc: 3, side: "l" }, { k: "sink", sc: 7, side: "l" }], blocks: [[2, 0], [2, 1], [5, 1], [5, 2], [5, 3], [5, 4]], beam: [2, 0, 2], post: [5, 1, 4], bed: [1, 4], tray: { S3: 1, S2: 3, S1: 4, B: 4, T: 1 } },
+  { name: "Knapp bemessen", src: { c: 2, r: 0, d: "u" }, st: [{ k: "coffee", sc: 0, side: "l" }, { k: "plant", sc: 4, side: "l" }, { k: "shower", sc: 7, side: "r" }], blocks: [[3, 1], [5, 1], [6, 2], [1, 2]], bed: [3, 4], tray: { S2: 4, S1: 6, B: 4, T: 2 } },
+  { name: "Die große Anlage", src: { c: 5, r: 0, d: "u" }, st: [{ k: "sink", sc: 0, side: "l" }, { k: "coffee", sc: 2, side: "r" }, { k: "plant", sc: 5, side: "l" }, { k: "tub", sc: 6, side: "r" }], blocks: [[4, 0], [4, 1], [2, 1], [7, 2], [1, 1]], beam: [4, 0, 2], bed: [4, 4], tray: { S3: 2, S2: 3, S1: 4, B: 5, T: 3 } }
 ];
+var RP_SIZE = { shower: [2, 2], tub: [3, 2], coffee: [2, 2], sink: [2, 2], plant: [1, 2] };
+function rpNorm(S) {
+  var L = JSON.parse(JSON.stringify(S)); L.targets = []; L.space = [];
+  L.st.forEach(function (t) {
+    var w = RP_SIZE[t.k][0], h = RP_SIZE[t.k][1]; t.w = w; t.h = h; t.sr = 5 - h;
+    for (var x = 0; x < w; x++) for (var y = 0; y < h; y++) { L.blocks.push([t.sc + x, t.sr + y]); L.space.push([t.sc + x, t.sr + y]); }
+    L.targets.push({ c: t.side === "l" ? t.sc : t.sc + w - 1, r: t.sr - 1, d: "d", k: t.k });
+  });
+  if (L.bed) { L.blocks.push(L.bed); L.space.push(L.bed); }
+  return L;
+}
+var RP_LEVELS = RP_SRC.map(rpNorm);

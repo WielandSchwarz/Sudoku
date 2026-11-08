@@ -3,7 +3,8 @@
   // All targets full and no leak = solved. Stars: solved, no leaky run before, no more pieces than needed.
   /*PIPELOGIC*/
   var RP_LEVELS = /*RPLEVELS*/;
-  var RPG = { x: 18, y: 8, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
+  var RP_ST = /*RPSTATIONS*/, RP_STI = {}; Object.keys(RP_ST).forEach(function (k) { var im = new Image(); im.src = RP_ST[k]; RP_STI[k] = im; });
+  var RPG = { x: 18, y: 20, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
   var RP_TYPES = ["S1", "S2", "S3", "B", "T"], RP_SLOTW = { S1: 20, S2: 28, S3: 34, B: 20, T: 20 }, RP_LOS = { x: 143, y: 107, w: 34, h: 25 };
   var rpV = mPov("rp-pov", "Werkbank verlassen"), rpS = null, rpCache = {}; rpV.ban.style.display = "none";
   function rpSay(t) { say(t); }   /* the texts go into the line below the game window, never over the pipes */
@@ -100,96 +101,28 @@
         rpVp(c, gx, 0, RPG.y); rpFV(c, gx, 3);
         rpR(c, gx + 4, 2, 7, 3, RP_INK); rpR(c, gx + 5, 3, 5, 1, "#c8463c"); rpR(c, gx + 7, 1, 1, 5, RP_INK);
       }
-      L.targets.forEach(function (t) {
-        var p = rpCC(t.c, t.r);
-        if (t.k === "pot") { var x0 = p[0] - 10; rpR(c, x0 + 1, 89, 18, 11, RP_INK); rpR(c, x0 + 2, 90, 16, 10, "#c8643c"); rpR(c, x0 + 2, 90, 3, 10, "#e08454"); rpR(c, x0 + 14, 90, 4, 10, "#a84a2c"); rpR(c, x0, 88, 20, 3, RP_INK); rpR(c, x0 + 1, 89, 18, 1, "#e8946a"); rpR(c, x0 + 3, 89, 14, 1, "#5a3418"); }
-        if (t.k === "coffee") {   /* a little espresso machine; the cup stands next to it */
-          var cx = p[0]; rpR(c, cx - 8, 88, 16, 12, RP_INK); rpR(c, cx - 7, 89, 14, 10, "#c8463c"); rpR(c, cx - 7, 89, 14, 1, "#e8706a"); rpR(c, cx + 4, 90, 3, 9, "#a03a32"); rpR(c, cx - 7, 96, 14, 3, "#8a8a84"); rpR(c, cx - 7, 96, 14, 1, "#b4b4ac");
-          rpR(c, cx - 4, 91, 5, 4, RP_INK); rpR(c, cx - 3, 92, 3, 2, "#fff8ec"); rpR(c, cx - 2, 92, 1, 1, RP_INK);
-          rpR(c, cx + 8, 92, 4, 2, RP_INK); rpR(c, cx + 10, 94, 1, 1, RP_INK);
-          rpR(c, cx + 9, 95, 6, 5, RP_INK); rpR(c, cx + 10, 96, 4, 3, "#fff8ec"); rpR(c, cx + 15, 96, 2, 3, RP_INK);
-        }
-        if (t.k === "shower") { var sx = p[0], sy = p[1] + 8; rpR(c, sx - 6, sy, 13, 3, RP_INK); rpR(c, sx - 5, sy + 1, 11, 1, RP_CU[1]); rpR(c, sx - 5, sy, 11, 1, RP_CU[0]); for (var k2 = -4; k2 <= 4; k2 += 2) rpR(c, sx + k2, sy + 3, 1, 1, RP_INK); rpR(c, sx - 9, 98, 19, 2, RP_INK); rpR(c, sx - 8, 98, 17, 1, "#cfe4ee"); }
-        if (t.k === "sink") { var y2 = p[1]; rpR(c, 163, y2 + 2, 17, 8, RP_INK); rpR(c, 164, y2 + 3, 16, 6, "#f8f8f4"); rpR(c, 164, y2 + 8, 16, 1, "#d8dde2"); rpR(c, 165, y2 + 3, 14, 2, "#c8d0d4"); rpR(c, 168, y2 + 10, 9, 2, RP_INK); rpR(c, 169, y2 + 10, 7, 1, "#e8e8e4"); rpR(c, 171, y2 + 12, 3, 5, RP_INK); rpR(c, 172, y2 + 12, 1, 5, "#e8e8e4"); }
-        if (t.k === "cup") { var y3 = p[1]; rpR(c, 0, y3 + 10, 15, 3, RP_INK); rpR(c, 0, y3 + 10, 14, 1, "#f8f8f4"); rpR(c, 0, y3 + 11, 14, 1, "#d8dde2"); rpR(c, 8, y3 + 13, 3, 3, RP_INK); rpR(c, 3, y3 + 2, 9, 8, RP_INK); rpR(c, 4, y3 + 3, 7, 7, "#8cc4ec"); rpR(c, 4, y3 + 3, 2, 7, "#cce6f8"); rpR(c, 9, y3 + 3, 2, 7, "#5a9ad0"); rpR(c, 1, y3 + 4, 2, 4, RP_INK); rpR(c, 4, y3 + 3, 7, 1, "#3a74a8"); }
-      });
     });
   }
 
   // ---------------------------------------------------------------- live parts: targets filling up, the little mouse, the water
   function rpHit(i) { var S = rpS; return S.f && S.mode !== "build" && S.f.hit[i] != null && S.f.hit[i] <= S.t ? S.t - S.f.hit[i] : -1; }
+  /* every station is a little scene with the mouse: waiting, busy once the water arrives, celebrating when all is solved */
   function rpTargets(c) {
-    var S = rpS, L = S.L, clk = S.clk, win = S.mode === "win", wt = S.wt || 0;
-    L.targets.forEach(function (t, i) {
-      var p = rpCC(t.c, t.r), h = rpHit(i), on = h >= 0;
-      if (t.k === "pot") {
-        var x = p[0] + 5, g = win ? 8 : on ? Math.min(8, h * 1.2) : 0, st = Math.round(3 + g);
-        rpR(c, x - 1, 88 - st, 2, st, RP_INK); rpR(c, x, 88 - st, 1, st, "#4e8c3c");
-        if (st > 5) { rpR(c, x - 4, 88 - st + 4, 4, 2, RP_INK); rpR(c, x - 3, 88 - st + 4, 3, 1, "#6aa84e"); rpR(c, x + 1, 88 - st + 2, 4, 2, RP_INK); rpR(c, x + 1, 88 - st + 2, 3, 1, "#6aa84e"); }
-        if (win) { var fy = 88 - st - 2; rpR(c, x - 3, fy - 2, 7, 5, RP_INK); rpR(c, x - 2, fy - 1, 5, 3, "#f08ab0"); rpR(c, x - 1, fy - 3, 3, 7, RP_INK); rpR(c, x - 1, fy - 2, 3, 5, "#f08ab0"); rpR(c, x, fy, 1, 1, "#f8d850");
-          if (wt > 1) { var bx = Math.round(x - 14 + Math.sin(wt * 2) * 8), by = Math.round(fy - 10 + Math.cos(wt * 3) * 4), fl = Math.floor(wt * 8) % 2; rpR(c, bx, by, 1, 3, RP_INK); rpR(c, bx - 2, by - fl, 2, 2, "#f6c84a"); rpR(c, bx + 1, by - fl, 2, 2, "#f6c84a"); } }
-        if (on && !win) rpStream(c, x - 6, 88, 0, 2);
-      }
-      if (t.k === "coffee") {
-        var cx = p[0];
-        if (on || win) { rpR(c, cx + 10, 94, 1, 2, "#6a3a1c"); var lv = win ? 2 : Math.min(2, Math.round(h)); if (lv) rpR(c, cx + 10, 99 - lv, 4, lv, "#6a3a1c"); rpR(c, cx - 3, 92, 1, 1, "#c8463c"); }
-        if (on || win) for (var k = 0; k < 3; k++) { var u = (clk * .8 + k / 3) % 1; rpR(c, cx + 11 + Math.round(Math.sin((u + k) * 6) * 1.5), Math.round(94 - u * 12), 1, 2, "#ffffff"); }
-        if (on && !win) rpStream(c, cx - 1, 88, 0, 1);
-      }
-      if (t.k === "shower") {
-        var sx = p[0], sy = p[1] + 12;
-        if (on || win) { var ph = clk * 30; for (var d = 0; d < 9; d++) { var yy = sy + ((d * 7 + ph) % (98 - sy)); rpR(c, sx - 4 + d, Math.round(yy), 1, 2, d % 2 ? RP_W[1] : RP_W[0]); } }
-      }
-      if (t.k === "sink") {
-        var y = p[1], full = on || win;
-        if (full) { rpR(c, 165, y + 3, 14, 2, RP_W[1]); rpR(c, 165, y + 3, 14, 1, RP_W[0]); }
-        if (on && !win) { rpR(c, 162, y, 2, 1, RP_W[1]); rpR(c, 164, y + 1, 1, 2, RP_W[1]); }
-        if (win) { var dy = y - 2 + (Math.floor(clk * 3) % 2), dx = 170 + Math.round(Math.sin(clk * 1.5) * 3);   /* a rubber duck bobbing */
-          rpR(c, dx, dy, 7, 4, RP_INK); rpR(c, dx + 1, dy + 1, 5, 2, "#f6d040"); rpR(c, dx + 4, dy - 3, 4, 4, RP_INK); rpR(c, dx + 5, dy - 2, 2, 2, "#f6d040"); rpR(c, dx + 8, dy - 1, 1, 1, "#e8650c"); rpR(c, dx + 6, dy - 2, 1, 1, RP_INK); }
-      }
-      if (t.k === "cup") {
-        var y2 = p[1];
-        if (on || win) { var lv2 = win ? 4 : Math.min(4, Math.round(h * 2)); rpR(c, 4, y2 + 9 - lv2, 7, lv2, RP_W[1]); rpR(c, 4, y2 + 9 - lv2, 7, 1, RP_W[0]); }
-        if (on && !win) { rpR(c, 16, y2, 2, 1, RP_W[1]); rpR(c, 15, y2 + 1, 1, 2, RP_W[1]); rpR(c, 13, y2 + 2, 2, 1, RP_W[2]); }
-        if (win) { var up = Math.min(5, Math.round(wt * 6)); rpR(c, 6, y2 + 3 - up, 3, up + 4, RP_INK); rpR(c, 7, y2 + 3 - up, 1, up + 4, "#e8706a"); rpR(c, 5, y2 - 3 - up, 5, 4, RP_INK); rpR(c, 6, y2 - 2 - up, 3, 2, "#ffffff");
-          for (var b2 = 0; b2 < 3; b2++) { var u2 = (wt * .7 + b2 / 3) % 1; rpR(c, 8 + b2 * 3, Math.round(y2 - 6 - u2 * 10), 2, 2, "#ffffff"); } }
-      }
+    var S = rpS, fr = Math.floor(S.clk * 3) % 2;
+    S.L.st.forEach(function (t, i) {
+      var st = S.mode === "win" ? "win" : rpHit(i) >= 0 ? "on" : "idle", im = RP_STI[t.k + "_" + st + fr];
+      if (!im || !im.complete) return;
+      var x = RPG.x + t.sc * 16, y = RPG.y + t.sr * 16;
+      if (t.side === "r") { c.save(); c.translate(x + im.width, y); c.scale(-1, 1); c.drawImage(im, 0, 0); c.restore(); } else c.drawImage(im, x, y);
     });
   }
   function rpLine(c, x0, y0, x1, y1, col) { var n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (var i = 0; i <= n; i++) rpR(c, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), 1, 1, col); }
   function rpStream(c, x, y, dx, len) { var ph = Math.floor(rpS.clk * 14); for (var i = 0; i < len; i++) rpR(c, x, y + i, 2, 1, (i + ph) % 3 ? RP_W[1] : RP_W[0]); }
-  /* the little bathroom mouse: asleep on the floor, cross when she gets wet, and she joins the fun at the end */
-  function rpMouseDraw(c, x, f, pose) {
-    function m(xx, yy, w, h, col) { rpR(c, f > 0 ? x + xx : x + 13 - xx - w + 1, yy, w, h, col); }
-    var G = "#a8a8b0", GL = "#c4c4cc", P = "#f0a0b0";
-    if (pose === "sleep") {
-      m(0, 95, 11, 5, RP_INK); m(1, 96, 9, 4, G); m(1, 96, 9, 1, GL); m(8, 94, 5, 5, RP_INK); m(9, 95, 3, 3, G); m(8, 92, 3, 3, RP_INK); m(9, 93, 1, 1, P); m(10, 96, 2, 1, RP_INK); m(12, 97, 1, 1, P);
-      m(-1, 98, 1, 1, RP_INK); m(-2, 97, 1, 1, RP_INK); m(-3, 97, 1, 1, RP_INK);
-      return;
-    }
-    var hop = pose === "hop" ? Math.round(Math.abs(Math.sin(rpS.clk * 8)) * 3) : 0, y = -hop;
-    m(0, 94 + y, 9, 6, RP_INK); m(1, 95 + y, 7, 4, G); m(1, 95 + y, 7, 1, GL); m(2, 99 + y, 1, 1, RP_INK); m(6, 99 + y, 1, 1, RP_INK);
-    m(7, 91 + y, 5, 6, RP_INK); m(8, 92 + y, 3, 4, G); m(7, 89 + y, 3, 3, RP_INK); m(8, 90 + y, 1, 1, P); m(12, 94 + y, 1, 1, P);
-    if (pose === "happy" || pose === "hop") { m(9, 93 + y, 1, 1, RP_INK); m(10, 92 + y, 1, 1, RP_INK); } else m(10, 93 + y, 1, 1, RP_INK);
-    m(-1, 97 + y, 1, 1, RP_INK); m(-2, 96 + y, 1, 1, RP_INK); m(-3, 96 + y, 1, 1, RP_INK); m(-4, 97 + y, 1, 1, RP_INK);
-    if (pose === "wet") { m(1, 93, 1, 1, RP_INK); m(4, 92, 1, 2, RP_INK); m(7, 93, 1, 1, RP_INK); m(11, 85, 1, 3, "#c8463c"); m(11, 89, 1, 1, "#c8463c"); }
-  }
   function rpMouse(c) {
-    var S = rpS, x0 = S.L.mouse; if (x0 == null) return;
-    if (S.catWet) { rpR(c, x0 - 2, 99, 18, 1, RP_W[1]); rpMouseDraw(c, x0, 1, "wet"); return; }
-    if (S.mode !== "win") { rpMouseDraw(c, x0, 1, "sleep"); var z = Math.floor(S.clk * 1.2) % 3; for (var k = 0; k <= z; k++) rpR(c, x0 + 10 + k * 3, 89 - k * 3, 2, 1, "#8a8a94"); return; }
-    var go = null, wt = S.wt;
-    S.L.targets.forEach(function (t) { if (!go && (t.k === "shower" || t.k === "coffee")) go = t; });
-    if (!go) { rpMouseDraw(c, x0, 1, wt > .4 ? "hop" : "stand"); return; }
-    var p = rpCC(go.c, go.r), tx = go.k === "shower" ? p[0] - 7 : p[0] + 17, f = tx >= x0 ? 1 : -1, u = Math.min(1, Math.max(0, (wt - .3) / 1.2)), x = Math.round(x0 + (tx - x0) * u);
-    if (u < 1) { rpMouseDraw(c, x, f, Math.floor(wt * 10) % 2 ? "stand" : "happy"); return; }
-    if (go.k === "shower") {   /* a proper shower with soap bubbles */
-      rpMouseDraw(c, x, 1, "happy");
-      for (var b = 0; b < 4; b++) { var bu = (wt * .9 + b / 4) % 1, bx = x + 3 + b * 3 + Math.round(Math.sin((bu + b) * 7) * 2), by = Math.round(90 - bu * 14); rpR(c, bx, by, 3, 3, RP_INK); rpR(c, bx + 1, by + 1, 1, 1, "#ffffff"); }
-    } else {   /* a sip of coffee: the cup up to her nose, and a heart */
-      rpMouseDraw(c, x, -1, "happy");
-      var hy = Math.round(86 - ((wt * 10) % 10)); rpR(c, x + 2, hy, 2, 1, "#e8506a"); rpR(c, x + 5, hy, 2, 1, "#e8506a"); rpR(c, x + 2, hy + 1, 5, 1, "#e8506a"); rpR(c, x + 3, hy + 2, 3, 1, "#e8506a"); rpR(c, x + 4, hy + 3, 1, 1, "#e8506a");
-    }
+    var S = rpS, b = S.L.bed; if (!b) return;
+    var im = RP_STI["bed_" + (S.catWet ? "wet" : "sleep") + (Math.floor(S.clk * (S.catWet ? 6 : 1.5)) % 2)];
+    if (im && im.complete) c.drawImage(im, RPG.x + b[0] * 16, RPG.y + b[1] * 16 - 4);
+    if (S.catWet) rpR(c, RPG.x + b[0] * 16 - 2, 99, 20, 1, RP_W[1]);
   }
   function rpWater(c) {
     var S = rpS; if (!S.f || S.mode === "build") return;
@@ -276,9 +209,9 @@
     }
   }
   function rpLeakStart() {
-    var S = rpS, e = rpLeakPt(), x = S.L.mouse; S.leaks++;
+    var S = rpS, e = rpLeakPt(), bd = S.L.bed, x = bd ? RPG.x + bd[0] * 16 : null; S.leaks++;
     beep([[220, .08], [180, .12]]);
-    if (x != null && e[0] + 8 >= x - 4 && e[0] - 6 <= x + 16) { S.catWet = true; beep([[1320, .04], [1560, .06]]); rpSay("Piep! Die Maus ist nass geworden."); }
+    if (x != null && e[0] + 10 >= x && e[0] - 8 <= x + 16 && e[1] < RPG.y + bd[1] * 16) { S.catWet = true; beep([[1320, .04], [1560, .06]]); rpSay("Piep! Die Maus ist nass geworden."); }
     else rpSay(S.leak.src ? "Das Wasser läuft gleich vorne raus!" : "Leck! Da fehlt noch ein Stück.");
   }
   function rpRun() {
