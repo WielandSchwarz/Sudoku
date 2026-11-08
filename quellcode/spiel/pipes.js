@@ -54,102 +54,141 @@
   }
   function rpCC(c, r) { return [RPG.x + c * 16 + 8, RPG.y + r * 16 + 8]; }
 
-  // ---------------------------------------------------------------- the quiet backdrop of one level: shed wall, floor, beams, crates, barrel, targets
+  // ---------------------------------------------------------------- the quiet backdrop of one level: the bathroom wall, floor, beams, towel cubbies, boiler, targets
   function rpBg(L) {
     return rpSpr("bg" + RP_LEVELS.indexOf(L), 180, 135, function (c) {
-      for (var x = 0; x < 180; x++) rpR(c, x, 0, 1, 100, x % 15 === 0 ? "#c8ab7c" : (Math.floor(x / 15) % 2 ? "#dfc79c" : "#e6cfa4"));
-      for (var y = 100; y < 104; y++) for (x = 0; x < 180; x += 1) rpR(c, x, y, 1, 1, Math.floor((x + Math.floor(y / 6) * 7) / 22) % 2 ? "#9a6a3c" : "#a87444");
+      rpR(c, 0, 0, 180, 52, "#dde9ef");
+      for (var x = 0; x < 180; x += 30) rpR(c, x + 14, 3, 1, 46, "#d4e2ea");
+      rpR(c, 0, 0, 180, 3, "#8a5a30"); rpR(c, 0, 2, 180, 1, "#6a4020");
+      rpR(c, 0, 49, 180, 1, "#6a9ab8"); rpR(c, 0, 50, 180, 2, "#8fbcd4"); rpR(c, 0, 52, 180, 1, "#6a9ab8");
+      rpR(c, 0, 53, 180, 47, "#f4f2ec");
+      for (var y = 53; y < 100; y += 6) { rpR(c, 0, y + 5, 180, 1, "#d8dde2"); for (x = ((y - 53) / 6) % 2 ? 6 : 0; x < 180; x += 12) rpR(c, x, y, 1, 5, "#d8dde2"); }
+      for (y = 100; y < 104; y++) for (x = 0; x < 180; x++) rpR(c, x, y, 1, 1, Math.floor((x + Math.floor(y / 6) * 9) / 26) % 2 ? "#b07a44" : "#c08a50");
       rpR(c, 0, 100, 180, 1, "#7a4a26");
       var bs = PL.blockSet(L), solid = {};
-      for (var cc = 0; cc <= 9; cc++) for (var rr = 0; rr <= 5; rr++) rpR(c, RPG.x + cc * 16, RPG.y + rr * 16, 1, 1, "#b8986a");
+      (L.space || []).forEach(function (q) { solid[q[0] + "," + q[1]] = 1; });
+      for (var cc = 0; cc <= 9; cc++) for (var rr = 0; rr <= 5; rr++) rpR(c, RPG.x + cc * 16, RPG.y + rr * 16, 1, 1, RPG.y + rr * 16 < 52 ? "#b8ccd8" : "#c8ccd0");
       function beam(b, fromTop) {
         var x0 = RPG.x + b[0] * 16 + 3, y0 = fromTop ? 0 : RPG.y + b[1] * 16 + 2, y1 = fromTop ? RPG.y + (b[1] + b[2]) * 16 - 2 : 100;
-        rpR(c, x0, y0, 10, y1 - y0, RP_INK); rpR(c, x0 + 1, y0 + (fromTop ? 0 : 1), 8, y1 - y0 - (fromTop ? 1 : 1), "#9a6a3c"); rpR(c, x0 + 1, y0 + (fromTop ? 0 : 1), 2, y1 - y0 - 1, "#b8844c"); rpR(c, x0 + 7, y0 + (fromTop ? 0 : 1), 2, y1 - y0 - 1, "#7a4a26");
+        rpR(c, x0, y0, 10, y1 - y0, RP_INK); rpR(c, x0 + 1, y0 + (fromTop ? 0 : 1), 8, y1 - y0 - 1, "#9a6a3c"); rpR(c, x0 + 1, y0 + (fromTop ? 0 : 1), 2, y1 - y0 - 1, "#b8844c"); rpR(c, x0 + 7, y0 + (fromTop ? 0 : 1), 2, y1 - y0 - 1, "#7a4a26");
         for (var k = y0 + 8; k < y1 - 4; k += 18) rpR(c, x0 + 4, k, 2, 2, "#5a3418");
         for (var i = 0; i < b[2]; i++) solid[(b[0]) + "," + (b[1] + i)] = 1;
       }
       if (L.beam) beam(L.beam, true);
       if (L.post) beam(L.post, false);
-      (L.blocks || []).forEach(function (q) {
+      (L.blocks || []).forEach(function (q) {   /* a little wooden cubby with folded towels */
         if (solid[q[0] + "," + q[1]]) return;
         var x0 = RPG.x + q[0] * 16, y0 = RPG.y + q[1] * 16;
-        rpR(c, x0, y0, 16, 16, RP_INK); rpR(c, x0 + 1, y0 + 1, 14, 14, "#b8844c"); rpR(c, x0 + 1, y0 + 1, 14, 2, "#d09a5a"); rpR(c, x0 + 13, y0 + 3, 2, 12, "#8a5a34"); rpR(c, x0 + 1, y0 + 13, 12, 2, "#9a6a3c");
-        for (var i = 2; i < 13; i++) rpR(c, x0 + i, y0 + 15 - i, 1, 1, "#8a5a34");
-        rpR(c, x0 + 1, y0 + 7, 12, 1, "#8a5a34");
+        rpR(c, x0, y0, 16, 16, RP_INK); rpR(c, x0 + 1, y0 + 1, 14, 14, "#b8844c"); rpR(c, x0 + 1, y0 + 1, 14, 1, "#d09a5a"); rpR(c, x0 + 2, y0 + 2, 12, 12, "#7a4a26");
+        var tw = [["#f4a3b4", "#fbd4dc"], ["#8cc4ec", "#cce6f8"]];
+        for (var t = 0; t < 2; t++) { var ty = y0 + 3 + t * 5; rpR(c, x0 + 3, ty, 10, 5, RP_INK); rpR(c, x0 + 4, ty + 1, 8, 3, tw[t][0]); rpR(c, x0 + 4, ty + 1, 8, 1, tw[t][1]); rpR(c, x0 + 7, ty + 1, 1, 3, tw[t][1]); }
+        rpR(c, x0 + 2, y0 + 13, 12, 1, "#9a6a3c");
         if (q[1] < 4 && !bs[q[0] + "," + (q[1] + 1)]) { rpR(c, x0 + 1, y0 + 16, 14, 2, RP_INK); rpR(c, x0 + 2, y0 + 16, 12, 1, "#7a4a26"); rpR(c, x0 + 3, y0 + 18, 2, 3, RP_INK); rpR(c, x0 + 11, y0 + 18, 2, 3, RP_INK); }
       });
       var s = L.src, sc = rpCC(s.c, s.r);
-      if (s.d === "l") {   /* the rain barrel on the left */
-        var top = Math.max(2, sc[1] - 22), bot = Math.min(92, sc[1] + 20);
-        rpR(c, 0, top, 16, bot - top, RP_INK);
-        for (var y2 = top + 1; y2 < bot - 1; y2++) for (var x2 = 0; x2 < 15; x2++) rpR(c, x2, y2, 1, 1, x2 % 5 === 4 ? "#8a5028" : "#a86a3a");
-        rpR(c, 0, top + 1, 15, 2, "#3a6a9a"); rpR(c, 0, top + 6, 15, 2, "#5a5a5a"); rpR(c, 0, bot - 7, 15, 2, "#5a5a5a");
-        rpR(c, 2, bot, 3, 100 - bot, RP_INK); rpR(c, 10, bot, 3, 100 - bot, RP_INK); rpR(c, 3, bot, 1, 100 - bot, "#6a3a1c"); rpR(c, 11, bot, 1, 100 - bot, "#6a3a1c");
+      if (s.d === "l") {   /* a copper boiler on the wall, with a gauge */
+        var top = Math.max(4, sc[1] - 20), bot = Math.min(90, sc[1] + 16);
+        rpR(c, 1, top + 1, 15, bot - top - 2, RP_INK); rpR(c, 2, top, 13, bot - top, RP_INK);
+        rpR(c, 2, top + 1, 13, bot - top - 2, RP_CU[1]); rpR(c, 3, top + 1, 2, bot - top - 2, RP_CU[0]); rpR(c, 12, top + 1, 2, bot - top - 2, RP_CU[2]); rpR(c, 14, top + 2, 1, bot - top - 4, RP_CU[3]);
+        rpR(c, 2, top + 5, 13, 1, RP_CU[3]); rpR(c, 2, bot - 6, 13, 1, RP_CU[3]);
+        var gy = top + 9; rpR(c, 5, gy, 7, 7, RP_INK); rpR(c, 6, gy + 1, 5, 5, "#fff8ec"); rpR(c, 8, gy + 2, 1, 2, "#c8463c"); rpR(c, 9, gy + 2, 1, 1, "#c8463c");
+        rpR(c, 7, bot, 3, 100 - bot, RP_INK); rpR(c, 8, bot, 1, 100 - bot, RP_CU[2]);
         rpH(c, 15, 18, sc[1]); rpFH(c, 16, sc[1]); rpR(c, 13, sc[1] - 8, 6, 2, RP_INK); rpR(c, 14, sc[1] - 8, 4, 1, "#c8463c"); rpR(c, 15, sc[1] - 6, 2, 2, RP_INK);
-      } else {   /* a garden tap coming out of the wall above */
+      } else {   /* the water pipe coming out of the ceiling, with a red valve */
         var gx = sc[0];
-        rpH(c, 0, gx + 4, 3); rpVp(c, gx, 3, RPG.y); rpR(c, gx - 3, 0, 7, 7, RP_CU[1]); rpR(c, gx - 4, 0, 1, 7, RP_INK); rpR(c, gx + 4, 0, 1, 7, RP_INK); rpR(c, gx - 3, 6, 7, 1, RP_INK); rpR(c, gx - 2, 0, 1, 6, RP_CU[0]);
-        rpR(c, gx + 5, 1, 7, 3, RP_INK); rpR(c, gx + 6, 2, 5, 1, "#c8463c");
+        rpVp(c, gx, 0, RPG.y); rpFV(c, gx, 3);
+        rpR(c, gx + 4, 2, 7, 3, RP_INK); rpR(c, gx + 5, 3, 5, 1, "#c8463c"); rpR(c, gx + 7, 1, 1, 5, RP_INK);
       }
       L.targets.forEach(function (t) {
         var p = rpCC(t.c, t.r);
         if (t.k === "pot") { var x0 = p[0] - 10; rpR(c, x0 + 1, 89, 18, 11, RP_INK); rpR(c, x0 + 2, 90, 16, 10, "#c8643c"); rpR(c, x0 + 2, 90, 3, 10, "#e08454"); rpR(c, x0 + 14, 90, 4, 10, "#a84a2c"); rpR(c, x0, 88, 20, 3, RP_INK); rpR(c, x0 + 1, 89, 18, 1, "#e8946a"); rpR(c, x0 + 3, 89, 14, 1, "#5a3418"); }
-        if (t.k === "wheel") { rpR(c, p[0] - 9, 93, 2, 7, RP_INK); rpR(c, p[0] + 7, 93, 2, 7, RP_INK); rpR(c, p[0] - 10, 99, 20, 1, RP_INK); }
-        if (t.k === "bath") { var y = p[1]; rpR(c, 164, y + 2, 16, 8, RP_INK); rpR(c, 165, y + 3, 14, 6, "#d8d8d0"); rpR(c, 165, y + 3, 14, 1, "#ecece4"); rpR(c, 165, y + 8, 14, 1, "#b4b4ac"); rpR(c, 168, y + 10, 12, 2, RP_INK); rpR(c, 169, y + 10, 11, 1, "#8a5a34"); rpR(c, 176, y + 12, 3, 4, RP_INK); }
-        if (t.k === "can") { var y3 = p[1]; rpR(c, 0, y3 + 10, 15, 3, RP_INK); rpR(c, 0, y3 + 10, 14, 1, "#a87444"); rpR(c, 8, y3 + 13, 3, 4, RP_INK); rpR(c, 2, y3 + 1, 11, 9, RP_INK); rpR(c, 3, y3 + 2, 9, 8, "#5a9ac8"); rpR(c, 3, y3 + 2, 2, 8, "#7cb8e0"); rpR(c, 10, y3 + 2, 2, 8, "#3a74a8"); rpR(c, 0, y3 + 3, 2, 2, RP_INK); rpR(c, 3, y3 + 2, 9, 1, "#26507a"); }
+        if (t.k === "coffee") {   /* a little espresso machine; the cup stands next to it */
+          var cx = p[0]; rpR(c, cx - 8, 88, 16, 12, RP_INK); rpR(c, cx - 7, 89, 14, 10, "#c8463c"); rpR(c, cx - 7, 89, 14, 1, "#e8706a"); rpR(c, cx + 4, 90, 3, 9, "#a03a32"); rpR(c, cx - 7, 96, 14, 3, "#8a8a84"); rpR(c, cx - 7, 96, 14, 1, "#b4b4ac");
+          rpR(c, cx - 4, 91, 5, 4, RP_INK); rpR(c, cx - 3, 92, 3, 2, "#fff8ec"); rpR(c, cx - 2, 92, 1, 1, RP_INK);
+          rpR(c, cx + 8, 92, 4, 2, RP_INK); rpR(c, cx + 10, 94, 1, 1, RP_INK);
+          rpR(c, cx + 9, 95, 6, 5, RP_INK); rpR(c, cx + 10, 96, 4, 3, "#fff8ec"); rpR(c, cx + 15, 96, 2, 3, RP_INK);
+        }
+        if (t.k === "shower") { var sx = p[0], sy = p[1] + 8; rpR(c, sx - 6, sy, 13, 3, RP_INK); rpR(c, sx - 5, sy + 1, 11, 1, RP_CU[1]); rpR(c, sx - 5, sy, 11, 1, RP_CU[0]); for (var k2 = -4; k2 <= 4; k2 += 2) rpR(c, sx + k2, sy + 3, 1, 1, RP_INK); rpR(c, sx - 9, 98, 19, 2, RP_INK); rpR(c, sx - 8, 98, 17, 1, "#cfe4ee"); }
+        if (t.k === "sink") { var y2 = p[1]; rpR(c, 163, y2 + 2, 17, 8, RP_INK); rpR(c, 164, y2 + 3, 16, 6, "#f8f8f4"); rpR(c, 164, y2 + 8, 16, 1, "#d8dde2"); rpR(c, 165, y2 + 3, 14, 2, "#c8d0d4"); rpR(c, 168, y2 + 10, 9, 2, RP_INK); rpR(c, 169, y2 + 10, 7, 1, "#e8e8e4"); rpR(c, 171, y2 + 12, 3, 5, RP_INK); rpR(c, 172, y2 + 12, 1, 5, "#e8e8e4"); }
+        if (t.k === "cup") { var y3 = p[1]; rpR(c, 0, y3 + 10, 15, 3, RP_INK); rpR(c, 0, y3 + 10, 14, 1, "#f8f8f4"); rpR(c, 0, y3 + 11, 14, 1, "#d8dde2"); rpR(c, 8, y3 + 13, 3, 3, RP_INK); rpR(c, 3, y3 + 2, 9, 8, RP_INK); rpR(c, 4, y3 + 3, 7, 7, "#8cc4ec"); rpR(c, 4, y3 + 3, 2, 7, "#cce6f8"); rpR(c, 9, y3 + 3, 2, 7, "#5a9ad0"); rpR(c, 1, y3 + 4, 2, 4, RP_INK); rpR(c, 4, y3 + 3, 7, 1, "#3a74a8"); }
       });
     });
   }
 
-  // ---------------------------------------------------------------- live parts: targets filling up, the cat, the water
+  // ---------------------------------------------------------------- live parts: targets filling up, the little mouse, the water
   function rpHit(i) { var S = rpS; return S.f && S.mode !== "build" && S.f.hit[i] != null && S.f.hit[i] <= S.t ? S.t - S.f.hit[i] : -1; }
   function rpTargets(c) {
-    var S = rpS, L = S.L, clk = S.clk;
+    var S = rpS, L = S.L, clk = S.clk, win = S.mode === "win", wt = S.wt || 0;
     L.targets.forEach(function (t, i) {
-      var p = rpCC(t.c, t.r), h = rpHit(i), on = h >= 0, win = S.mode === "win";
+      var p = rpCC(t.c, t.r), h = rpHit(i), on = h >= 0;
       if (t.k === "pot") {
         var x = p[0] + 5, g = win ? 8 : on ? Math.min(8, h * 1.2) : 0, st = Math.round(3 + g);
         rpR(c, x - 1, 88 - st, 2, st, RP_INK); rpR(c, x, 88 - st, 1, st, "#4e8c3c");
         if (st > 5) { rpR(c, x - 4, 88 - st + 4, 4, 2, RP_INK); rpR(c, x - 3, 88 - st + 4, 3, 1, "#6aa84e"); rpR(c, x + 1, 88 - st + 2, 4, 2, RP_INK); rpR(c, x + 1, 88 - st + 2, 3, 1, "#6aa84e"); }
-        if (win) { var fy = 88 - st - 2; rpR(c, x - 3, fy - 2, 7, 5, RP_INK); rpR(c, x - 2, fy - 1, 5, 3, "#f08ab0"); rpR(c, x - 1, fy - 3, 3, 7, RP_INK); rpR(c, x - 1, fy - 2, 3, 5, "#f08ab0"); rpR(c, x, fy, 1, 1, "#f8d850"); }
+        if (win) { var fy = 88 - st - 2; rpR(c, x - 3, fy - 2, 7, 5, RP_INK); rpR(c, x - 2, fy - 1, 5, 3, "#f08ab0"); rpR(c, x - 1, fy - 3, 3, 7, RP_INK); rpR(c, x - 1, fy - 2, 3, 5, "#f08ab0"); rpR(c, x, fy, 1, 1, "#f8d850");
+          if (wt > 1) { var bx = Math.round(x - 14 + Math.sin(wt * 2) * 8), by = Math.round(fy - 10 + Math.cos(wt * 3) * 4), fl = Math.floor(wt * 8) % 2; rpR(c, bx, by, 1, 3, RP_INK); rpR(c, bx - 2, by - fl, 2, 2, "#f6c84a"); rpR(c, bx + 1, by - fl, 2, 2, "#f6c84a"); } }
         if (on && !win) rpStream(c, x - 6, 88, 0, 2);
       }
-      if (t.k === "wheel") {
-        var cx = p[0], cy = 93, a = (on || win ? clk * 4 : 0);
-        for (var k = 0; k < 6; k++) { var an = a + k * Math.PI / 3, ex = Math.round(cx + Math.cos(an) * 6), ey = Math.round(cy + Math.sin(an) * 6); rpLine(c, cx, cy, ex, ey, "#7a4a26"); rpR(c, ex - 1, ey - 1, 3, 3, RP_INK); rpR(c, ex, ey, 1, 1, "#b8844c"); }
-        rpR(c, cx - 1, cy - 1, 3, 3, RP_INK); rpR(c, cx, cy, 1, 1, "#e9b949");
-        if (on) rpStream(c, cx + 3, 88, 0, 3);
+      if (t.k === "coffee") {
+        var cx = p[0];
+        if (on || win) { rpR(c, cx + 10, 94, 1, 2, "#6a3a1c"); var lv = win ? 2 : Math.min(2, Math.round(h)); if (lv) rpR(c, cx + 10, 99 - lv, 4, lv, "#6a3a1c"); rpR(c, cx - 3, 92, 1, 1, "#c8463c"); }
+        if (on || win) for (var k = 0; k < 3; k++) { var u = (clk * .8 + k / 3) % 1; rpR(c, cx + 11 + Math.round(Math.sin((u + k) * 6) * 1.5), Math.round(94 - u * 12), 1, 2, "#ffffff"); }
+        if (on && !win) rpStream(c, cx - 1, 88, 0, 1);
       }
-      if (t.k === "bath") {
+      if (t.k === "shower") {
+        var sx = p[0], sy = p[1] + 12;
+        if (on || win) { var ph = clk * 30; for (var d = 0; d < 9; d++) { var yy = sy + ((d * 7 + ph) % (98 - sy)); rpR(c, sx - 4 + d, Math.round(yy), 1, 2, d % 2 ? RP_W[1] : RP_W[0]); } }
+      }
+      if (t.k === "sink") {
         var y = p[1], full = on || win;
         if (full) { rpR(c, 165, y + 3, 14, 2, RP_W[1]); rpR(c, 165, y + 3, 14, 1, RP_W[0]); }
-        if (on && !win) { rpR(c, 162, y, 2, 1, RP_W[1]); rpR(c, 164, y + 1, 1, 2, RP_W[1]); rpR(c, 165, y + 2, 1, 1, RP_W[2]); }
-        if (win) { var by = y - 4 + (Math.floor(clk * 3) % 2); rpR(c, 170, by, 6, 5, RP_INK); rpR(c, 171, by + 1, 4, 3, "#4a8ac8"); rpR(c, 171, by + 3, 4, 1, "#e9b949"); rpR(c, 172, by + 1, 1, 1, "#fff8ec"); rpR(c, 169, by + 2, 1, 1, "#e9a030"); }
+        if (on && !win) { rpR(c, 162, y, 2, 1, RP_W[1]); rpR(c, 164, y + 1, 1, 2, RP_W[1]); }
+        if (win) { var dy = y - 2 + (Math.floor(clk * 3) % 2), dx = 170 + Math.round(Math.sin(clk * 1.5) * 3);   /* a rubber duck bobbing */
+          rpR(c, dx, dy, 7, 4, RP_INK); rpR(c, dx + 1, dy + 1, 5, 2, "#f6d040"); rpR(c, dx + 4, dy - 3, 4, 4, RP_INK); rpR(c, dx + 5, dy - 2, 2, 2, "#f6d040"); rpR(c, dx + 8, dy - 1, 1, 1, "#e8650c"); rpR(c, dx + 6, dy - 2, 1, 1, RP_INK); }
       }
-      if (t.k === "can") {
+      if (t.k === "cup") {
         var y2 = p[1];
-        if (on || win) { var lv = win ? 6 : Math.min(6, Math.round(h * 2)); rpR(c, 3, y2 + 9 - lv, 9, lv, RP_W[1]); rpR(c, 3, y2 + 9 - lv, 9, 1, RP_W[0]); rpR(c, 2, y2 + 1, 11, 1, RP_INK); }
+        if (on || win) { var lv2 = win ? 4 : Math.min(4, Math.round(h * 2)); rpR(c, 4, y2 + 9 - lv2, 7, lv2, RP_W[1]); rpR(c, 4, y2 + 9 - lv2, 7, 1, RP_W[0]); }
         if (on && !win) { rpR(c, 16, y2, 2, 1, RP_W[1]); rpR(c, 15, y2 + 1, 1, 2, RP_W[1]); rpR(c, 13, y2 + 2, 2, 1, RP_W[2]); }
+        if (win) { var up = Math.min(5, Math.round(wt * 6)); rpR(c, 6, y2 + 3 - up, 3, up + 4, RP_INK); rpR(c, 7, y2 + 3 - up, 1, up + 4, "#e8706a"); rpR(c, 5, y2 - 3 - up, 5, 4, RP_INK); rpR(c, 6, y2 - 2 - up, 3, 2, "#ffffff");
+          for (var b2 = 0; b2 < 3; b2++) { var u2 = (wt * .7 + b2 / 3) % 1; rpR(c, 8 + b2 * 3, Math.round(y2 - 6 - u2 * 10), 2, 2, "#ffffff"); } }
       }
     });
   }
   function rpLine(c, x0, y0, x1, y1, col) { var n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (var i = 0; i <= n; i++) rpR(c, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), 1, 1, col); }
   function rpStream(c, x, y, dx, len) { var ph = Math.floor(rpS.clk * 14); for (var i = 0; i < len; i++) rpR(c, x, y + i, 2, 1, (i + ph) % 3 ? RP_W[1] : RP_W[0]); }
-  function rpCat(c) {
-    var S = rpS, x = S.L.cat; if (x == null) return;
-    if (S.catWet) {   /* awake, fur on end, a puddle around her */
-      rpR(c, x - 2, 99, 26, 1, RP_W[1]);
-      rpR(c, x + 4, 86, 16, 12, RP_INK); rpR(c, x + 5, 87, 14, 10, "#8a8a8a"); rpR(c, x + 5, 87, 14, 2, "#a4a4a4");
-      rpR(c, x, 80, 9, 9, RP_INK); rpR(c, x + 1, 81, 7, 7, "#9a9a9a"); rpR(c, x, 78, 2, 3, RP_INK); rpR(c, x + 7, 78, 2, 3, RP_INK);
-      rpR(c, x + 2, 83, 1, 2, RP_INK); rpR(c, x + 6, 83, 1, 2, RP_INK); rpR(c, x + 3, 86, 3, 1, RP_INK);
-      rpR(c, x + 19, 78, 2, 9, RP_INK); rpR(c, x + 6, 97, 2, 3, RP_INK); rpR(c, x + 16, 97, 2, 3, RP_INK);
-      rpR(c, x + 11, 72, 1, 4, "#c8463c"); rpR(c, x + 11, 77, 1, 1, "#c8463c");
+  /* the little bathroom mouse: asleep on the floor, cross when she gets wet, and she joins the fun at the end */
+  function rpMouseDraw(c, x, f, pose) {
+    function m(xx, yy, w, h, col) { rpR(c, f > 0 ? x + xx : x + 13 - xx - w + 1, yy, w, h, col); }
+    var G = "#a8a8b0", GL = "#c4c4cc", P = "#f0a0b0";
+    if (pose === "sleep") {
+      m(0, 95, 11, 5, RP_INK); m(1, 96, 9, 4, G); m(1, 96, 9, 1, GL); m(8, 94, 5, 5, RP_INK); m(9, 95, 3, 3, G); m(8, 92, 3, 3, RP_INK); m(9, 93, 1, 1, P); m(10, 96, 2, 1, RP_INK); m(12, 97, 1, 1, P);
+      m(-1, 98, 1, 1, RP_INK); m(-2, 97, 1, 1, RP_INK); m(-3, 97, 1, 1, RP_INK);
       return;
     }
-    rpR(c, x, 89, 22, 11, RP_INK); rpR(c, x + 1, 90, 20, 10, "#8a8a8a"); rpR(c, x + 1, 90, 20, 2, "#a4a4a4"); rpR(c, x + 1, 98, 20, 2, "#6a6a6a");
-    rpR(c, x - 3, 88, 9, 8, RP_INK); rpR(c, x - 2, 89, 7, 6, "#9a9a9a"); rpR(c, x - 3, 86, 2, 2, RP_INK); rpR(c, x + 4, 86, 2, 2, RP_INK);
-    rpR(c, x - 1, 92, 2, 1, RP_INK); rpR(c, x + 2, 92, 2, 1, RP_INK); rpR(c, x + 19, 96, 5, 2, RP_INK);
-    var z = Math.floor(S.clk * 1.2) % 3; for (var k = 0; k <= z; k++) rpR(c, x + 6 + k * 3, 83 - k * 3, 2, 1, "#6a6a6a");
+    var hop = pose === "hop" ? Math.round(Math.abs(Math.sin(rpS.clk * 8)) * 3) : 0, y = -hop;
+    m(0, 94 + y, 9, 6, RP_INK); m(1, 95 + y, 7, 4, G); m(1, 95 + y, 7, 1, GL); m(2, 99 + y, 1, 1, RP_INK); m(6, 99 + y, 1, 1, RP_INK);
+    m(7, 91 + y, 5, 6, RP_INK); m(8, 92 + y, 3, 4, G); m(7, 89 + y, 3, 3, RP_INK); m(8, 90 + y, 1, 1, P); m(12, 94 + y, 1, 1, P);
+    if (pose === "happy" || pose === "hop") { m(9, 93 + y, 1, 1, RP_INK); m(10, 92 + y, 1, 1, RP_INK); } else m(10, 93 + y, 1, 1, RP_INK);
+    m(-1, 97 + y, 1, 1, RP_INK); m(-2, 96 + y, 1, 1, RP_INK); m(-3, 96 + y, 1, 1, RP_INK); m(-4, 97 + y, 1, 1, RP_INK);
+    if (pose === "wet") { m(1, 93, 1, 1, RP_INK); m(4, 92, 1, 2, RP_INK); m(7, 93, 1, 1, RP_INK); m(11, 85, 1, 3, "#c8463c"); m(11, 89, 1, 1, "#c8463c"); }
+  }
+  function rpMouse(c) {
+    var S = rpS, x0 = S.L.mouse; if (x0 == null) return;
+    if (S.catWet) { rpR(c, x0 - 2, 99, 18, 1, RP_W[1]); rpMouseDraw(c, x0, 1, "wet"); return; }
+    if (S.mode !== "win") { rpMouseDraw(c, x0, 1, "sleep"); var z = Math.floor(S.clk * 1.2) % 3; for (var k = 0; k <= z; k++) rpR(c, x0 + 10 + k * 3, 89 - k * 3, 2, 1, "#8a8a94"); return; }
+    var go = null, wt = S.wt;
+    S.L.targets.forEach(function (t) { if (!go && (t.k === "shower" || t.k === "coffee")) go = t; });
+    if (!go) { rpMouseDraw(c, x0, 1, wt > .4 ? "hop" : "stand"); return; }
+    var p = rpCC(go.c, go.r), tx = go.k === "shower" ? p[0] - 7 : p[0] + 17, f = tx >= x0 ? 1 : -1, u = Math.min(1, Math.max(0, (wt - .3) / 1.2)), x = Math.round(x0 + (tx - x0) * u);
+    if (u < 1) { rpMouseDraw(c, x, f, Math.floor(wt * 10) % 2 ? "stand" : "happy"); return; }
+    if (go.k === "shower") {   /* a proper shower with soap bubbles */
+      rpMouseDraw(c, x, 1, "happy");
+      for (var b = 0; b < 4; b++) { var bu = (wt * .9 + b / 4) % 1, bx = x + 3 + b * 3 + Math.round(Math.sin((bu + b) * 7) * 2), by = Math.round(90 - bu * 14); rpR(c, bx, by, 3, 3, RP_INK); rpR(c, bx + 1, by + 1, 1, 1, "#ffffff"); }
+    } else {   /* a sip of coffee: the cup up to her nose, and a heart */
+      rpMouseDraw(c, x, -1, "happy");
+      var hy = Math.round(86 - ((wt * 10) % 10)); rpR(c, x + 2, hy, 2, 1, "#e8506a"); rpR(c, x + 5, hy, 2, 1, "#e8506a"); rpR(c, x + 2, hy + 1, 5, 1, "#e8506a"); rpR(c, x + 3, hy + 2, 3, 1, "#e8506a"); rpR(c, x + 4, hy + 3, 1, 1, "#e8506a");
+    }
   }
   function rpWater(c) {
     var S = rpS; if (!S.f || S.mode === "build") return;
@@ -207,7 +246,7 @@
     rpStep(dt);
     var c = rpV.c; c.clearRect(0, 0, 180, 135);
     c.drawImage(rpBg(S.L), 0, 0);
-    rpTargets(c); rpCat(c);
+    rpTargets(c); rpMouse(c);
     S.pcs.forEach(function (p) { if (p.lift) return; c.drawImage(rpPieceSpr(p), RPG.x + p.c * 16, RPG.y + p.r * 16); });
     rpWater(c); rpSpray(c);
     if (S.nope > 0) { S.nope -= dt; var q = S.nopeAt; c.globalAlpha = Math.min(1, S.nope * 3); rpR(c, RPG.x + q[0] * 16, RPG.y + q[1] * 16, 16, 1, "#e8650c"); rpR(c, RPG.x + q[0] * 16, RPG.y + q[1] * 16 + 15, 16, 1, "#e8650c"); rpR(c, RPG.x + q[0] * 16, RPG.y + q[1] * 16, 1, 16, "#e8650c"); rpR(c, RPG.x + q[0] * 16 + 15, RPG.y + q[1] * 16, 1, 16, "#e8650c"); c.globalAlpha = 1; }
@@ -232,13 +271,13 @@
     } else if (S.mode === "leak") {
       S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
     } else if (S.mode === "win") {
-      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > 1.8 && rpV.card.hidden) rpWinCard();
+      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > 3.6 && rpV.card.hidden) rpWinCard();
     }
   }
   function rpLeakStart() {
-    var S = rpS, e = rpLeakPt(), x = S.L.cat; S.leaks++;
+    var S = rpS, e = rpLeakPt(), x = S.L.mouse; S.leaks++;
     beep([[220, .08], [180, .12]]);
-    if (x != null && e[0] + 8 >= x - 4 && e[0] - 6 <= x + 24) { S.catWet = true; beep([[880, .06], [660, .1]]); mBan(rpV, "Miau! Die Katze ist nass geworden."); }
+    if (x != null && e[0] + 8 >= x - 4 && e[0] - 6 <= x + 16) { S.catWet = true; beep([[1320, .04], [1560, .06]]); mBan(rpV, "Piep! Die Maus ist nass geworden."); }
     else mBan(rpV, S.leak.src ? "Das Wasser läuft gleich vorne raus!" : "Leck! Da fehlt noch ein Stück.");
   }
   function rpRun() {
@@ -357,3 +396,17 @@
     act("rohre", rpSeq);
   });
   window.__pipes = { open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
+  // ---- and a toolbox in the bathroom, right in front of the towel stool
+  var RPT = { x: 144, b: 128, w: 18, h: 12 };
+  var rpTool = lBtn("rp-bench rp-tool", bathEl, svgOf(/*TOOLART*/, RPT.w, RPT.h), "Werkzeugkiste");
+  pos(rpTool, RPT.x, RPT.b - RPT.h, RPT.w); rpTool.style.zIndex = RPT.b;
+  async function rpSeqBath() {
+    await walkTo(RPT.x - 6, RPT.b - 2); H.dir = 1;
+    front({ eyes: "happy", mouth: "teeth", paws: "hold" }); await wait(350); front({ paws: "down" });
+    rpOpen();
+  }
+  rpTool.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt();
+    act("rohre", rpSeqBath);
+  });
