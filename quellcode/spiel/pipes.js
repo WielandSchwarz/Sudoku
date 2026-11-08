@@ -113,6 +113,10 @@
       var st = S.mode === "win" ? "win" : rpHit(i) >= 0 ? "on" : "idle", im = RP_STI[t.k + "_" + st + fr];
       if (!im || !im.complete) return;
       var x = RPG.x + t.sc * 16, y = RPG.y + t.sr * 16;
+      if (st !== "idle") {   /* water pouring out of the intake into the station */
+        var tg = S.L.targets[i], ix = RPG.x + tg.c * 16 + 8, iy = RPG.y + (tg.r + 1) * 16 + 4;
+        for (var k2 = 0; k2 < 4; k2++) { var yy = iy + ((k2 * 3 + Math.floor(S.clk * 16)) % 7); rpR(c, ix - 1 + (k2 % 2), yy, 1, 2, k2 % 2 ? RP_W[1] : RP_W[0]); }
+      }
       if (t.side === "r") { c.save(); c.translate(x + im.width, y); c.scale(-1, 1); c.drawImage(im, 0, 0); c.restore(); } else c.drawImage(im, x, y);
     });
   }
@@ -124,18 +128,33 @@
     if (im && im.complete) c.drawImage(im, RPG.x + b[0] * 16, RPG.y + b[1] * 16 - 4);
     if (S.catWet) rpR(c, RPG.x + b[0] * 16 - 2, 99, 20, 1, RP_W[1]);
   }
+  /* the water: a clear band inside the pipes that flows in from where it enters, fills each piece smoothly and carries little sparkles along */
   function rpWater(c) {
     var S = rpS; if (!S.f || S.mode === "build") return;
-    var ph = Math.floor(S.clk * 12), arms = {};
-    S.pcs.forEach(function (p) { PL.cellsOf(p).forEach(function (k) { arms[k[0] + "," + k[1]] = k[2]; }); });
-    Object.keys(S.f.dist).forEach(function (k) {
-      if (S.f.dist[k] > S.t) return;
-      var a = arms[k], cr = k.split(","), p = rpCC(+cr[0], +cr[1]), x = p[0], y = p[1];
-      for (var j = 0; j < a.length; j++) {
-        var d = a[j], dx = PL.DX[d], dy = PL.DY[d];
-        for (var i = 0; i < 8; i++) if ((i - ph + 40) % 5 < 3) rpR(c, x + dx * i, y + dy * i, 1, 1, RP_W[1]);
+    var arms = {}, own = {}, dist = S.f.dist, ph = S.clk * 22, src = S.L.src;
+    S.pcs.forEach(function (p, i) { PL.cellsOf(p).forEach(function (k) { arms[k[0] + "," + k[1]] = k[2]; own[k[0] + "," + k[1]] = i; }); });
+    function seg(x, y, d, from, to, k, flowOut, base) {   /* draws the part of one arm between from..to (0 = centre, 8 = cell edge) */
+      var dx = PL.DX[d], dy = PL.DY[d], cr = k.split(","), nk = (+cr[0] + dx) + "," + (+cr[1] + dy), fl = own[nk] !== own[k];
+      for (var i = Math.min(from, to); i < Math.max(from, to) + (Math.max(from, to) === 8 ? 1 : 0); i++) {
+        if (fl && i >= 6) continue;   /* leave the flanges at the ends of a piece visible */
+        var px = x + dx * i, py = y + dy * i, along = flowOut ? base + i : base + 8 - i;
+        var spark = ((Math.floor(along - ph) % 7) + 7) % 7 === 0;
+        if (dx) { rpR(c, px, py - 1, 1, 3, RP_W[1]); rpR(c, px, py - 1, 1, 1, RP_W[0]); rpR(c, px, py + 1, 1, 1, RP_W[2]); if (spark) rpR(c, px, py, 1, 1, "#ffffff"); }
+        else { rpR(c, px - 1, py, 3, 1, RP_W[1]); rpR(c, px - 1, py, 1, 1, RP_W[0]); rpR(c, px + 1, py, 1, 1, RP_W[2]); if (spark) rpR(c, px, py, 1, 1, "#ffffff"); }
       }
-      if (a.length > 2 || a === "rd" || a === "dl" || a === "lu" || a === "ur") rpR(c, x - 1, y - 1, 3, 3, RP_W[1]);
+    }
+    Object.keys(dist).forEach(function (k) {
+      var d0 = dist[k], prog = Math.max(0, Math.min(1, S.t - d0)); if (S.mode === "win") prog = 1;
+      if (prog <= 0) return;
+      var a = arms[k], cr = k.split(","), cc = +cr[0], rr = +cr[1], p = rpCC(cc, rr), x = p[0], y = p[1], ent = null;
+      if (cc === src.c && rr === src.r && d0 === 0) ent = src.d;
+      else for (var j = 0; j < a.length; j++) { var q = a[j], nk = (cc + PL.DX[q]) + "," + (rr + PL.DY[q]); if (dist[nk] === d0 - 1 && arms[nk] && arms[nk].indexOf(PL.OPP[q]) >= 0) { ent = q; break; } }
+      var fin = Math.min(1, prog * 2), fout = Math.max(0, prog * 2 - 1);
+      if (ent) seg(x, y, ent, 8, Math.round(8 - 8 * fin), k, false, d0 * 16);
+      if (fin >= 1) {
+        rpR(c, x - 1, y - 1, 3, 3, RP_W[1]); rpR(c, x - 1, y - 1, 3, 1, RP_W[0]);
+        for (var m = 0; m < a.length; m++) if (a[m] !== ent) seg(x, y, a[m], 0, Math.round(8 * fout), k, true, d0 * 16 + 8);
+      }
     });
   }
   function rpLeakPt() { var lk = rpS.leak, p = rpCC(lk.c, lk.r); return lk.src ? [p[0] + PL.DX[lk.d] * 8, p[1] + PL.DY[lk.d] * 8] : [p[0] + PL.DX[lk.d] * 8, p[1] + PL.DY[lk.d] * 8]; }
