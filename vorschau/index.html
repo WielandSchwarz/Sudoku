@@ -24012,12 +24012,13 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     rpV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Rohr-Rätsel</p><div class="rp-sel">' + RP_LEVELS.map(function (L, i) {
       var n = st[i] || 0, o = ""; for (var k = 0; k < 3; k++) o += k < n ? "★" : "<i>★</i>";
       return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b><span class="fi-st">' + o + '</span></button>';
-    }).join("") + '</div></div>';
+    }).join("") + '</div>' + (document.getElementById("d-harvest") ? '<div class="fi-row"><button type="button" class="fi-b2" data-a="unlock">Admin: alle freischalten</button></div>' : '') + '</div>';
     rpV.card.hidden = false; rpSay("Rohr-Rätsel");
   }
   rpV.card.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"); if (!b || b.disabled) return;
     if (b.dataset.lv != null) return rpStart(+b.dataset.lv);
+    if (b.dataset.a === "unlock") { var M = mL("pipes"); M.lvl = RP_LEVELS.length - 1; if (window.SudokuSave) window.SudokuSave(); rpPick(); return; }   /* preview only */
     if (b.dataset.a === "again") rpStart(rpS.lv); else if (b.dataset.a === "next") rpStart(rpS.lv + 1); else if (b.dataset.a === "pick") rpPick(); else rpClose();
   });
   function rpOpen(lv) {
