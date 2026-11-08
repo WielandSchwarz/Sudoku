@@ -314,9 +314,9 @@
   function rpGrumble(at) { rpSad(at); }
   function rpSqueak(at) { rpToy(at); }
   /* the finale: one big close-up per station, the mouse at her real size */
-  var RP_CLU = /*RPCLOSEUPS*/, RP_CUI = {}; Object.keys(RP_CLU).forEach(function (k) { var im = new Image(); im.src = RP_CLU[k]; RP_CUI[k] = im; });
+  var RP_CLU = /*RPCLOSEUPS*/, RP_CUI = {}, RP_CUN = RP_CLU._count; Object.keys(RP_CLU).forEach(function (k) { if (k === "_count") return; var im = new Image(); im.src = RP_CLU[k]; RP_CUI[k] = im; });
   var RP_CUSAY = { shower: "Die Maus duscht.", tub: "Ein Schaumbad!", coffee: "Die Maus kocht Kaffee.", sink: "Zähneputzen!", plant: "Die Blume blüht." };
-  var RP_CU0 = 1.2, RP_CUT = 2.6, RP_STORY = { coffee: 8, sink: 8 };   /* coffee and basin tell a little story in 8 pictures and get more time */
+  var RP_CU0 = 1.2, RP_CUT = 2.6, RP_STORY = { coffee: 1, sink: 1, coffee_cold: 1 };   /* coffee and basin tell a little story in 8 pictures and get more time */
   function rpCuDur(k) { return RP_STORY[k] ? 4.2 : RP_CUT; }
   function rpCuAt(S) {   /* which close-up is showing at S.wt: [index, time into it, its length] */
     var t = S.wt - RP_CU0; if (t < 0) return [-1, 0, 0];
@@ -324,14 +324,27 @@
     return [S.L.st.length, 0, 0];
   }
   function rpCuEnd(S, upto) { var t = RP_CU0; for (var i = 0; i < Math.min(upto, S.L.st.length); i++) t += rpCuDur(S.L.st[i].k); return t; }
-  function rpCloseup(c) {
-    var S = rpS; if (S.mode !== "win") return;
-    var at = rpCuAt(S), i = at[0]; if (i < 0 || i >= S.L.st.length) return;
-    var t = S.L.st[i], u = at[1], D = at[2], n = RP_STORY[t.k], im = RP_CUI["cu_" + t.k + (n ? Math.min(n - 1, Math.floor(u / (D * .92) * n)) : Math.floor(S.clk * 4) % 4)];
-    if (S.cuSeen !== i) { S.cuSeen = i; rpSay(RP_CUSAY[t.k]); rpGiggle(i); beep([[660, .04], [880, .05]]); }
+  /* one big close-up: loops play at 6 pictures a second, the little stories (coffee, basin) run once from start to end */
+  function rpCuDraw(c, key, u, D) {
+    var n = RP_CUN[key] || 1, fr = RP_STORY[key] ? Math.min(n - 1, Math.floor(u / (D * .95) * n)) : Math.floor(rpS.clk * 6) % n, im = RP_CUI["cu_" + key + fr];
     c.globalAlpha = Math.min(1, u * 5, (D - u) * 5) * .4; rpR(c, 0, 0, 180, 104, "#2b1d12"); c.globalAlpha = 1;
     var sc = Math.min(1, u * 6), y = 7 + Math.round((1 - sc) * 30);
     if (im && im.complete) { c.globalAlpha = Math.min(1, u * 6, (D - u) * 6); c.drawImage(im, 30, y); c.globalAlpha = 1; rpR(c, 30, y + 90, 120, 2, "rgba(43,29,18,.25)"); }
+  }
+  var RP_BADCU0 = .35, RP_BADD = 3.1;
+  function rpBadKey(S) {   /* which bad scene fits: too cold (shower, bath, coffee) or too warm for the flower */
+    var wi = Object.keys(S.f.ok).filter(function (ti) { return !S.f.ok[ti]; })[0]; if (wi == null) return null;
+    var tg = S.L.targets[wi]; if (tg.k === "plant") return "plant_hot"; return RP_CUN[tg.k + "_cold"] ? tg.k + "_cold" : null;
+  }
+  function rpCloseup(c) {
+    var S = rpS;
+    if (S.mode === "wrong" && S.badKey && S.wt > RP_BADCU0) return rpCuDraw(c, S.badKey, S.wt - RP_BADCU0, RP_BADD);
+    if (S.mode === "leak" && S.lt > .45) return rpCuDraw(c, "leak", S.lt - .45, 2.3);
+    if (S.mode !== "win") return;
+    var at = rpCuAt(S), i = at[0]; if (i < 0 || i >= S.L.st.length) return;
+    var t = S.L.st[i];
+    if (S.cuSeen !== i) { S.cuSeen = i; rpSay(RP_CUSAY[t.k]); rpGiggle(i); beep([[660, .04], [880, .05]]); }
+    rpCuDraw(c, t.k, at[1], at[2]);
   }
   var RP_CELL_T = .085;
   function rpStep(dt) {
@@ -342,15 +355,15 @@
       else if (!S.leak && S.t >= S.endT + 4) {
         var wrongI = Object.keys(S.f.ok).filter(function (ti) { return !S.f.ok[ti]; });
         if (Object.keys(S.f.hit).length === S.L.targets.length && wrongI.length) {
-          var wt0 = S.L.targets[wrongI[0]]; S.mode = "wrong"; S.wt = 0; S.leaks++;
+          var wt0 = S.L.targets[wrongI[0]]; S.mode = "wrong"; S.wt = 0; S.leaks++; S.badKey = rpBadKey(S);
           rpSay((RP_WRONG[wt0.k] || {})[S.f.hitT[wrongI[0]]] || "Die Temperatur stimmt nicht."); rpSad(.2);
         } else if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); rpSay("Geschafft!"); S.cuSeen = -1; }
         else { S.mode = "build"; S.f = null; S.leaks++; rpSay("Da kommt noch nicht überall Wasser hin."); rpGrumble(.1); }
       }
     } else if (S.mode === "wrong") {
-      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > 2.6) { S.mode = "build"; S.f = null; }
+      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > RP_BADCU0 + RP_BADD) { S.mode = "build"; S.f = null; }
     } else if (S.mode === "leak") {
-      S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
+      S.lt += dt; if (S.lt > 2.75) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
     } else if (S.mode === "win") {
       S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > rpCuEnd(S, 99) + .2 && !S.finished) rpWinDone();
     }
@@ -397,6 +410,7 @@
       if (S.finished) { if (q0[0] >= bb.x && q0[0] < bb.x + bb.w && q0[1] >= bb.y && q0[1] < bb.y + bb.h) { beep([[523, .04], [659, .06]]); rpNext(); } return; }
       var ci = rpCuAt(S)[0]; S.wt = rpCuEnd(S, Math.max(0, ci + 1)); return;
     }
+    if (S && (S.mode === "wrong" || S.mode === "leak") && rpV.card.hidden) { if (S.mode === "wrong") S.wt = 99; else S.lt = 99; return; }
     if (!S || S.mode !== "build" || !rpV.card.hidden) return;
     var q = mPt(rpV, e), x = q[0], y = q[1], b = RP_LOS;
     if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) { rpRun(); return; }
