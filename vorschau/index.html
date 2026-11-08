@@ -865,11 +865,14 @@ body { font-family: var(--f-ui); -webkit-tap-highlight-color: transparent; }
 .soundbtn svg path:first-child { fill: currentColor; stroke: currentColor; }
 .soundbtn.off { opacity: .75; }
 .top > .soundbtn + .mapbtn { margin-left: 0; }
-
-/* the words now sit below the game window, above the needs bars; the space is kept so nothing jumps */
-.say-box { position: relative !important; left: auto !important; top: auto !important; transform: none !important; display: block; z-index: 1; width: auto !important; max-width: none !important; margin: 10px 3px 2px !important; height: calc(2.6em + 10px) !important; min-height: 0 !important; box-sizing: border-box; visibility: visible !important; display: flex !important; align-items: center; justify-content: center; overflow: hidden; }
-.say-box.on { opacity: 1; }
-.say-box::after { display: none; }
+/* the pipe puzzle's own text line: below the game window, above the needs bars, only while the puzzle is open */
+.rp-say { display: none; margin: 10px 3px 2px; height: calc(2.6em + 10px); box-sizing: border-box; align-items: center; justify-content: center; overflow: hidden; padding: 5px 9px; background: #fff8ec; color: var(--ink); font-size: 0.72rem; font-weight: 700; line-height: 1.3; text-align: center;
+  box-shadow: 0 -3px 0 0 var(--ink), 0 3px 0 0 var(--ink), -3px 0 0 0 var(--ink), 3px 0 0 0 var(--ink), 0 6px 0 0 rgba(43, 29, 18, .18), inset 0 -2px 0 0 #ecdcc4; }
+.rp-say.open { display: flex; }
+.rp-say span { opacity: 0; transition: opacity .25s; } .rp-say.on span { opacity: 1; }
+.rp-wpipe { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
+.rp-wpipe svg { display: block; width: 100%; height: auto; }
+.rp-wpipe::before { content: ""; position: absolute; top: 0; bottom: 0; left: -8px; right: -8px; }
 
 /* needs */
 .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
@@ -5816,8 +5819,8 @@ window.__EXTRAS = true;
   $g("d-harvest").addEventListener("click", function () { Object.keys(CROPS).forEach(function (c) { garden.harvest[c] = (garden.harvest[c] || 0) + 2; garden.seeds[c] = (garden.seeds[c] || 0) + 1; }); renderFoods(); say("Je 2 Ernte und 1 Samen von jeder Pflanze dazu."); });
   kEnter.hidden = false;
 
-  // ---------- the hamster's words: a little pixel box right below the game window ----------
-  statusEl.classList.add("say-box"); (function () { var nd = document.getElementById("needs"); if (nd && nd.parentNode) nd.parentNode.insertBefore(statusEl, nd); else scene.appendChild(statusEl); })();   /* below the game window, above the bars */
+  // ---------- the hamster's words: a little pixel box at the top of the game window ----------
+  statusEl.classList.add("say-box"); scene.appendChild(statusEl);
   var sayTimer = null;
   say = function (t) {
     statusEl.textContent = t || ""; statusEl.classList.toggle("on", !!t);
@@ -23545,7 +23548,13 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   var RPG = { x: 18, y: 20, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
   var RP_TYPES = ["S1", "S2", "S3", "B", "T"], RP_SLOTW = { S1: 20, S2: 28, S3: 34, B: 20, T: 20 }, RP_LOS = { x: 143, y: 107, w: 34, h: 25 };
   var rpV = mPov("rp-pov", "Werkbank verlassen"), rpS = null, rpCache = {}; rpV.ban.style.display = "none";
-  function rpSay(t) { say(t); }   /* the texts go into the line below the game window, never over the pipes */
+  var rpSayEl = document.createElement("div"); rpSayEl.className = "rp-say"; rpSayEl.setAttribute("aria-live", "polite"); rpSayEl.innerHTML = "<span></span>";
+  (function () { var nd = document.getElementById("needs"); if (nd && nd.parentNode) nd.parentNode.insertBefore(rpSayEl, nd); })();
+  var rpSayT = null;
+  function rpSay(t, keep) {   /* the puzzle's texts go into their own line below the game window, never over the pipes */
+    rpSayEl.firstChild.textContent = t || ""; rpSayEl.classList.toggle("on", !!t); clearTimeout(rpSayT);
+    if (t && !keep) rpSayT = setTimeout(function () { rpSayEl.classList.remove("on"); }, Math.max(3500, t.length * 70));
+  }
   function rpR(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); }
   function rpSpr(k, w, h, fn) { if (!rpCache[k]) { var cv = document.createElement("canvas"); cv.width = w; cv.height = h; var c = cv.getContext("2d"); fn(c); rpCache[k] = cv; } return rpCache[k]; }
   function rpH(c, x0, x1, y) { var w = x1 - x0; if (w <= 0) return; rpR(c, x0, y - 3, w, 1, RP_INK); rpR(c, x0, y + 3, w, 1, RP_INK); rpR(c, x0, y - 2, w, 1, RP_CU[0]); rpR(c, x0, y - 1, w, 2, RP_CU[1]); rpR(c, x0, y + 1, w, 1, RP_CU[2]); rpR(c, x0, y + 2, w, 1, RP_CU[3]); }
@@ -23925,7 +23934,7 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     rpSayLong(stars + (hint ? " · " + hint : "") + (first && st < 3 ? " · +3 Leckerli" : ""));
     beep([[784, .06], [1047, .1]]);
   }
-  function rpSayLong(t) { say(t); try { clearTimeout(sayTimer); } catch (e) { } }   /* stays until the next text */
+  function rpSayLong(t) { rpSay(t, true); }   /* stays until the next text */
   function rpNext() { var S = rpS; if (S.lv + 1 < RP_LEVELS.length) rpStart(S.lv + 1); else rpPick(); }
   function rpPick() {
     var M = mL("pipes"), st = M.st || {}, open = Math.min(RP_LEVELS.length - 1, M.lvl || 0);
@@ -23941,12 +23950,12 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     if (b.dataset.a === "again") rpStart(rpS.lv); else if (b.dataset.a === "next") rpStart(rpS.lv + 1); else if (b.dataset.a === "pick") rpPick(); else rpClose();
   });
   function rpOpen(lv) {
-    rpV.el.hidden = false; var M = mL("pipes");
+    rpV.el.hidden = false; rpSayEl.classList.add("open"); var M = mL("pipes");
     rpStart(lv != null ? lv : Math.min(RP_LEVELS.length - 1, M.lvl || 0));
     if (lv == null) rpPick();
     cancelAnimationFrame(rpS.raf); rpS.last = 0; rpS.raf = requestAnimationFrame(rpDraw);
   }
-  function rpClose() { if (rpS) cancelAnimationFrame(rpS.raf); rpS = null; rpV.el.hidden = true; front({ eyes: "happy", mouth: "grin", paws: "down" }); }
+  function rpClose() { if (rpS) cancelAnimationFrame(rpS.raf); rpS = null; rpV.el.hidden = true; rpSayEl.classList.remove("open", "on"); front({ eyes: "happy", mouth: "grin", paws: "down" }); }
   rpV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); rpClose(); });
 
   // ---------------------------------------------------------------- the workbench in the garden, left of the beehive
@@ -23965,12 +23974,12 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     act("rohre", rpSeq);
   });
   window.__pipes = { open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
-  // ---- and a toolbox in the bathroom, right in front of the towel stool
-  var RPT = { x: 144, b: 128, w: 18, h: 12 };
-  var rpTool = lBtn("rp-bench rp-tool", bathEl, svgOf("<rect x=\"5\" y=\"0\" width=\"8\" height=\"1\" fill=\"#3a2414\"/><rect x=\"3\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"4\" y=\"1\" width=\"1\" height=\"1\" fill=\"#c8794a\"/><rect x=\"5\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"6\" y=\"1\" width=\"6\" height=\"1\" fill=\"#8a8a84\"/><rect x=\"12\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"3\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"4\" y=\"2\" width=\"1\" height=\"1\" fill=\"#c8794a\"/><rect x=\"5\" y=\"2\" width=\"2\" height=\"1\" fill=\"#3a2414\"/><rect x=\"11\" y=\"2\" width=\"2\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"3\" width=\"18\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"4\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"1\" y=\"4\" width=\"13\" height=\"1\" fill=\"#e8706a\"/><rect x=\"14\" y=\"4\" width=\"3\" height=\"1\" fill=\"#a03a32\"/><rect x=\"17\" y=\"4\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"5\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"1\" y=\"5\" width=\"13\" height=\"1\" fill=\"#e8706a\"/><rect x=\"14\" y=\"5\" width=\"3\" height=\"1\" fill=\"#a03a32\"/><rect x=\"17\" y=\"5\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"6\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"1\" y=\"6\" width=\"7\" height=\"1\" fill=\"#c8463c\"/><rect x=\"8\" y=\"6\" width=\"2\" height=\"1\" fill=\"#3a2414\"/><rect x=\"10\" y=\"6\" width=\"4\" height=\"1\" fill=\"#c8463c\"/><rect x=\"14\" y=\"6\" width=\"3\" height=\"1\" fill=\"#a03a32\"/><rect x=\"17\" y=\"6\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"7\" width=\"8\" height=\"1\" fill=\"#3a2414\"/><rect x=\"8\" y=\"7\" width=\"2\" height=\"1\" fill=\"#e9b949\"/><rect x=\"10\" y=\"7\" width=\"8\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"8\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"1\" y=\"8\" width=\"7\" height=\"1\" fill=\"#c8463c\"/><rect x=\"8\" y=\"8\" width=\"2\" height=\"1\" fill=\"#3a2414\"/><rect x=\"10\" y=\"8\" width=\"4\" height=\"1\" fill=\"#c8463c\"/><rect x=\"14\" y=\"8\" width=\"3\" height=\"1\" fill=\"#a03a32\"/><rect x=\"17\" y=\"8\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"9\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"1\" y=\"9\" width=\"13\" height=\"1\" fill=\"#c8463c\"/><rect x=\"14\" y=\"9\" width=\"3\" height=\"1\" fill=\"#a03a32\"/><rect x=\"17\" y=\"9\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"10\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"1\" y=\"10\" width=\"13\" height=\"1\" fill=\"#c8463c\"/><rect x=\"14\" y=\"10\" width=\"3\" height=\"1\" fill=\"#a03a32\"/><rect x=\"17\" y=\"10\" width=\"1\" height=\"1\" fill=\"#3a2414\"/><rect x=\"0\" y=\"11\" width=\"18\" height=\"1\" fill=\"#3a2414\"/>", RPT.w, RPT.h), "Werkzeugkiste");
-  pos(rpTool, RPT.x, RPT.b - RPT.h, RPT.w); rpTool.style.zIndex = RPT.b;
+  // ---- and a thin white pipe running down the far left of the bathroom wall: tap it to open the puzzle
+  var RPT = { x: 6, y: 0, w: 6, h: 100 };
+  var rpTool = lBtn("rp-wpipe", bathEl, svgOf("<rect x=\"1\" y=\"0\" width=\"5\" height=\"100\" fill=\"#3a2414\"/><rect x=\"2\" y=\"0\" width=\"3\" height=\"100\" fill=\"#f4f4f0\"/><rect x=\"2\" y=\"0\" width=\"1\" height=\"100\" fill=\"#ffffff\"/><rect x=\"4\" y=\"0\" width=\"1\" height=\"100\" fill=\"#d8dde2\"/><rect x=\"0\" y=\"14\" width=\"6\" height=\"4\" fill=\"#3a2414\"/><rect x=\"1\" y=\"15\" width=\"4\" height=\"2\" fill=\"#b4b4ac\"/><rect x=\"1\" y=\"15\" width=\"4\" height=\"1\" fill=\"#d0d0c8\"/><rect x=\"0\" y=\"46\" width=\"6\" height=\"4\" fill=\"#3a2414\"/><rect x=\"1\" y=\"47\" width=\"4\" height=\"2\" fill=\"#b4b4ac\"/><rect x=\"1\" y=\"47\" width=\"4\" height=\"1\" fill=\"#d0d0c8\"/><rect x=\"0\" y=\"78\" width=\"6\" height=\"4\" fill=\"#3a2414\"/><rect x=\"1\" y=\"79\" width=\"4\" height=\"2\" fill=\"#b4b4ac\"/><rect x=\"1\" y=\"79\" width=\"4\" height=\"1\" fill=\"#d0d0c8\"/>", RPT.w, RPT.h), "Rohr-Rätsel");
+  pos(rpTool, RPT.x, RPT.y, RPT.w); rpTool.style.zIndex = 3;
   async function rpSeqBath() {
-    await walkTo(RPT.x - 6, RPT.b - 2); H.dir = 1;
+    await walkTo(BSPOT.tubSide.x, BSPOT.tubSide.y); H.dir = -1;
     front({ eyes: "happy", mouth: "teeth", paws: "hold" }); await wait(350); front({ paws: "down" });
     rpOpen();
   }

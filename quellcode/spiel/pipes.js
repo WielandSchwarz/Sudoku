@@ -7,7 +7,13 @@
   var RPG = { x: 18, y: 20, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
   var RP_TYPES = ["S1", "S2", "S3", "B", "T"], RP_SLOTW = { S1: 20, S2: 28, S3: 34, B: 20, T: 20 }, RP_LOS = { x: 143, y: 107, w: 34, h: 25 };
   var rpV = mPov("rp-pov", "Werkbank verlassen"), rpS = null, rpCache = {}; rpV.ban.style.display = "none";
-  function rpSay(t) { say(t); }   /* the texts go into the line below the game window, never over the pipes */
+  var rpSayEl = document.createElement("div"); rpSayEl.className = "rp-say"; rpSayEl.setAttribute("aria-live", "polite"); rpSayEl.innerHTML = "<span></span>";
+  (function () { var nd = document.getElementById("needs"); if (nd && nd.parentNode) nd.parentNode.insertBefore(rpSayEl, nd); })();
+  var rpSayT = null;
+  function rpSay(t, keep) {   /* the puzzle's texts go into their own line below the game window, never over the pipes */
+    rpSayEl.firstChild.textContent = t || ""; rpSayEl.classList.toggle("on", !!t); clearTimeout(rpSayT);
+    if (t && !keep) rpSayT = setTimeout(function () { rpSayEl.classList.remove("on"); }, Math.max(3500, t.length * 70));
+  }
   function rpR(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); }
   function rpSpr(k, w, h, fn) { if (!rpCache[k]) { var cv = document.createElement("canvas"); cv.width = w; cv.height = h; var c = cv.getContext("2d"); fn(c); rpCache[k] = cv; } return rpCache[k]; }
   function rpH(c, x0, x1, y) { var w = x1 - x0; if (w <= 0) return; rpR(c, x0, y - 3, w, 1, RP_INK); rpR(c, x0, y + 3, w, 1, RP_INK); rpR(c, x0, y - 2, w, 1, RP_CU[0]); rpR(c, x0, y - 1, w, 2, RP_CU[1]); rpR(c, x0, y + 1, w, 1, RP_CU[2]); rpR(c, x0, y + 2, w, 1, RP_CU[3]); }
@@ -387,7 +393,7 @@
     rpSayLong(stars + (hint ? " · " + hint : "") + (first && st < 3 ? " · +3 Leckerli" : ""));
     beep([[784, .06], [1047, .1]]);
   }
-  function rpSayLong(t) { say(t); try { clearTimeout(sayTimer); } catch (e) { } }   /* stays until the next text */
+  function rpSayLong(t) { rpSay(t, true); }   /* stays until the next text */
   function rpNext() { var S = rpS; if (S.lv + 1 < RP_LEVELS.length) rpStart(S.lv + 1); else rpPick(); }
   function rpPick() {
     var M = mL("pipes"), st = M.st || {}, open = Math.min(RP_LEVELS.length - 1, M.lvl || 0);
@@ -403,12 +409,12 @@
     if (b.dataset.a === "again") rpStart(rpS.lv); else if (b.dataset.a === "next") rpStart(rpS.lv + 1); else if (b.dataset.a === "pick") rpPick(); else rpClose();
   });
   function rpOpen(lv) {
-    rpV.el.hidden = false; var M = mL("pipes");
+    rpV.el.hidden = false; rpSayEl.classList.add("open"); var M = mL("pipes");
     rpStart(lv != null ? lv : Math.min(RP_LEVELS.length - 1, M.lvl || 0));
     if (lv == null) rpPick();
     cancelAnimationFrame(rpS.raf); rpS.last = 0; rpS.raf = requestAnimationFrame(rpDraw);
   }
-  function rpClose() { if (rpS) cancelAnimationFrame(rpS.raf); rpS = null; rpV.el.hidden = true; front({ eyes: "happy", mouth: "grin", paws: "down" }); }
+  function rpClose() { if (rpS) cancelAnimationFrame(rpS.raf); rpS = null; rpV.el.hidden = true; rpSayEl.classList.remove("open", "on"); front({ eyes: "happy", mouth: "grin", paws: "down" }); }
   rpV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); rpClose(); });
 
   // ---------------------------------------------------------------- the workbench in the garden, left of the beehive
@@ -427,12 +433,12 @@
     act("rohre", rpSeq);
   });
   window.__pipes = { open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
-  // ---- and a toolbox in the bathroom, right in front of the towel stool
-  var RPT = { x: 144, b: 128, w: 18, h: 12 };
-  var rpTool = lBtn("rp-bench rp-tool", bathEl, svgOf(/*TOOLART*/, RPT.w, RPT.h), "Werkzeugkiste");
-  pos(rpTool, RPT.x, RPT.b - RPT.h, RPT.w); rpTool.style.zIndex = RPT.b;
+  // ---- and a thin white pipe running down the far left of the bathroom wall: tap it to open the puzzle
+  var RPT = { x: 6, y: 0, w: 6, h: 100 };
+  var rpTool = lBtn("rp-wpipe", bathEl, svgOf(/*WPIPEART*/, RPT.w, RPT.h), "Rohr-Rätsel");
+  pos(rpTool, RPT.x, RPT.y, RPT.w); rpTool.style.zIndex = 3;
   async function rpSeqBath() {
-    await walkTo(RPT.x - 6, RPT.b - 2); H.dir = 1;
+    await walkTo(BSPOT.tubSide.x, BSPOT.tubSide.y); H.dir = -1;
     front({ eyes: "happy", mouth: "teeth", paws: "hold" }); await wait(350); front({ paws: "down" });
     rpOpen();
   }
