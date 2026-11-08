@@ -4,8 +4,9 @@
   /*PIPELOGIC*/
   var RP_LEVELS = /*RPLEVELS*/;
   var RP_ST = /*RPSTATIONS*/, RP_STI = {}; Object.keys(RP_ST).forEach(function (k) { var im = new Image(); im.src = RP_ST[k]; RP_STI[k] = im; });
+  var RP_WT = { w: ["#fde0d0", "#f4a080", "#d8705a"], c: ["#eaf8ff", "#a8dcf6", "#5aa8e0"], m: ["#cfeefc", "#7cc4ec", "#4a9ad0"] };
   var RPG = { x: 18, y: 20, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
-  var RP_TYPES = ["S1", "S2", "S3", "B", "T"], RP_SLOTW = { S1: 20, S2: 28, S3: 34, B: 20, T: 20 }, RP_LOS = { x: 143, y: 107, w: 34, h: 25 };
+  var RP_TYPES = ["S1", "S2", "S3", "B", "T", "X"], RP_SLOTW = { S1: 18, S2: 24, S3: 30, B: 18, T: 18, X: 18 }, RP_LOS = { x: 143, y: 107, w: 34, h: 25 };
   var rpV = mPov("rp-pov", "Werkbank verlassen"), rpS = null, rpCache = {}; rpV.ban.style.display = "none";
   var rpSayEl = document.createElement("div"); rpSayEl.className = "rp-say"; rpSayEl.setAttribute("aria-live", "polite"); rpSayEl.innerHTML = "<span></span>";
   (function () { var nd = document.getElementById("needs"); if (nd && nd.parentNode) nd.parentNode.insertBefore(rpSayEl, nd); })();
@@ -29,6 +30,12 @@
         if (h) { rpH(c, 0, w, 8); rpFH(c, 1, 8); rpFH(c, w - 1, 8); } else { rpVp(c, 8, 0, hh); rpFV(c, 8, 1); rpFV(c, 8, hh - 1); }
       });
     }
+    if (p.t === "X") return rpSpr("X", 16, 16, function (c) {   /* the crossing: the horizontal pipe bridges over the vertical one */
+      rpVp(c, 8, 0, 16); rpFV(c, 8, 1); rpFV(c, 8, 15);
+      rpR(c, 5, 12, 7, 2, "rgba(40,20,10,.45)"); rpR(c, 5, 3, 7, 1, "rgba(40,20,10,.3)");
+      rpH(c, 0, 16, 8); rpFH(c, 1, 8); rpFH(c, 15, 8);
+      rpR(c, 6, 3, 5, 11, RP_INK); rpR(c, 7, 4, 3, 9, RP_CU[1]); rpR(c, 7, 4, 1, 9, RP_CU[0]); rpR(c, 9, 4, 1, 9, RP_CU[2]);   /* a collar where the pipes cross */
+    });
     var con = (p.t === "B" ? PL.BEND : PL.TEE)[p.o];
     return rpSpr(p.t + p.o, 16, 16, function (c) { rpJunction(c, 8, 8, con); });
   }
@@ -59,6 +66,22 @@
       if (pat) { if (sh) for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) rpGlyph(c, pat, cx + dx, y + dy, sh, w); rpGlyph(c, pat, cx, y, col, w); }
       cx += w + 1;
     }
+  }
+  function rpTopTap(c, gx, col, cold) {
+    rpVp(c, gx, 0, RPG.y); rpFV(c, gx, 3);
+    rpR(c, gx + 4, 2, 7, 3, RP_INK); rpR(c, gx + 5, 3, 5, 1, col); rpR(c, gx + 7, 1, 1, 5, RP_INK);
+    if (cold) rpBadge(c, gx - 14, 6, "c"); else if (rpS && rpS.L.src2) rpBadge(c, gx - 14, 6, "w");
+  }
+  function rpFlake(c, x, y) { rpR(c, x + 2, y, 1, 5, "#ffffff"); rpR(c, x, y + 2, 5, 1, "#ffffff"); rpR(c, x + 1, y + 1, 1, 1, "#ffffff"); rpR(c, x + 3, y + 3, 1, 1, "#ffffff"); rpR(c, x + 3, y + 1, 1, 1, "#ffffff"); rpR(c, x + 1, y + 3, 1, 1, "#ffffff"); rpR(c, x + 2, y + 2, 1, 1, "#4a8ac8");
+    rpR(c, x + 2, y - 1, 1, 1, RP_INK); rpR(c, x + 2, y + 5, 1, 1, RP_INK); rpR(c, x - 1, y + 2, 1, 1, RP_INK); rpR(c, x + 5, y + 2, 1, 1, RP_INK); }
+  function rpDrop(c, x, y, col) { rpR(c, x + 2, y, 1, 1, RP_INK); rpR(c, x + 1, y + 1, 3, 1, RP_INK); rpR(c, x, y + 2, 5, 3, RP_INK); rpR(c, x + 1, y + 5, 3, 1, RP_INK); rpR(c, x + 2, y + 1, 1, 1, col); rpR(c, x + 1, y + 2, 3, 3, col); rpR(c, x + 1, y + 2, 1, 1, "#ffffff"); }
+  var RP_BADGE = ["..KKKKK..", ".KXXXXXK.", "KXXXXXXXK", "KXXXXXXXK", "KXXXXXXXK", "KXXXXXXXK", "KXXXXXXXK", ".KXXXXXK.", "..KKKKK.."];
+  var RP_ICON = { w: ["...W...", "..WWW..", ".WWWWW.", ".WWWWW.", "..WWW.."], c: ["W.W.W", ".WWW.", "WWWWW", ".WWW.", "W.W.W"] };
+  function rpBadge(c, x, y, need) {   /* a round tag: red with a drop = warm, blue with a snowflake = cold */
+    var fill = need === "c" ? "#4a9ad0" : "#e8604a", hi = need === "c" ? "#8cc4ec" : "#f6a080";
+    RP_BADGE.forEach(function (row, j) { for (var i = 0; i < row.length; i++) { var ch = row[i]; if (ch === "K") rpR(c, x + i, y + j, 1, 1, RP_INK); else if (ch === "X") rpR(c, x + i, y + j, 1, 1, j < 3 && i < 5 ? hi : fill); } });
+    var ic = RP_ICON[need === "c" ? "c" : "w"], ox = need === "c" ? 2 : 1;
+    ic.forEach(function (row, j) { for (var i = 0; i < row.length; i++) if (row[i] === "W") rpR(c, x + ox + i, y + 2 + j, 1, 1, "#ffffff"); });
   }
   function rpCC(c, r) { return [RPG.x + c * 16 + 8, RPG.y + r * 16 + 8]; }
 
@@ -101,29 +124,42 @@
         rpR(c, 2, top + 5, 13, 1, RP_CU[3]); rpR(c, 2, bot - 6, 13, 1, RP_CU[3]);
         var gy = top + 9; rpR(c, 5, gy, 7, 7, RP_INK); rpR(c, 6, gy + 1, 5, 5, "#fff8ec"); rpR(c, 8, gy + 2, 1, 2, "#c8463c"); rpR(c, 9, gy + 2, 1, 1, "#c8463c");
         rpR(c, 7, bot, 3, 100 - bot, RP_INK); rpR(c, 8, bot, 1, 100 - bot, RP_CU[2]);
+        if (L.src2) rpBadge(c, 4, top + 18, "w");
         rpH(c, 15, 18, sc[1]); rpFH(c, 16, sc[1]); rpR(c, 13, sc[1] - 8, 6, 2, RP_INK); rpR(c, 14, sc[1] - 8, 4, 1, "#c8463c"); rpR(c, 15, sc[1] - 6, 2, 2, RP_INK);
-      } else {   /* the water pipe coming out of the ceiling, with a red valve */
-        var gx = sc[0];
-        rpVp(c, gx, 0, RPG.y); rpFV(c, gx, 3);
-        rpR(c, gx + 4, 2, 7, 3, RP_INK); rpR(c, gx + 5, 3, 5, 1, "#c8463c"); rpR(c, gx + 7, 1, 1, 5, RP_INK);
-      }
+      } else rpTopTap(c, sc[0], "#c8463c");   /* the water pipe coming out of the ceiling, with a red valve */
+      if (L.src2) rpTopTap(c, rpCC(L.src2.c, L.src2.r)[0], "#4a8ac8", true);   /* the cold one: blue valve and a snowflake */
     });
   }
 
   // ---------------------------------------------------------------- live parts: targets filling up, the little mouse, the water
   function rpHit(i) { var S = rpS; return S.f && S.mode !== "build" && S.f.hit[i] != null && S.f.hit[i] <= S.t ? S.t - S.f.hit[i] : -1; }
   /* every station is a little scene with the mouse: waiting, busy once the water arrives, celebrating when all is solved */
+  var RP_WRONG = { shower: { c: "Brr! Eiskalt unter der Dusche!", m: "Nur lauwarm – die Maus friert." }, tub: { c: "Brr! Das Badewasser ist eiskalt!", m: "Das Bad ist nur lauwarm." },
+    coffee: { c: "Kalter Kaffee? Igitt!", m: "Lauwarmer Kaffee? Igitt!" }, plant: { w: "Zu heiß! Die Blume lässt die Blätter hängen.", m: "Lauwarm mag die Blume nicht." } };
   function rpTargets(c) {
     var S = rpS, fr = Math.floor(S.clk * 3) % 2;
     S.L.st.forEach(function (t, i) {
-      var st = S.mode === "win" ? "win" : rpHit(i) >= 0 ? "on" : "idle", im = RP_STI[t.k + "_" + st + fr];
+      var tg = S.L.targets[i], bad = S.mode === "wrong" && S.f && S.f.ok[i] === false;
+      var st = S.mode === "win" ? "win" : bad ? "idle" : rpHit(i) >= 0 ? "on" : "idle", im = RP_STI[t.k + "_" + st + fr];
       if (!im || !im.complete) return;
-      var x = RPG.x + t.sc * 16, y = RPG.y + t.sr * 16;
-      if (st !== "idle") {   /* water pouring out of the intake into the station */
-        var tg = S.L.targets[i], ix = RPG.x + tg.c * 16 + 8, iy = RPG.y + (tg.r + 1) * 16 + 4;
-        for (var k2 = 0; k2 < 4; k2++) { var yy = iy + ((k2 * 3 + Math.floor(S.clk * 16)) % 7); rpR(c, ix - 1 + (k2 % 2), yy, 1, 2, k2 % 2 ? RP_W[1] : RP_W[0]); }
+      var x = RPG.x + t.sc * 16, y = RPG.y + t.sr * 16, W2 = rpPal(S.f && S.f.hitT[i]);
+      if (rpHit(i) >= 0 && S.mode !== "win") {   /* water pouring out of the intake into the station */
+        var ix = RPG.x + tg.c * 16 + 8, iy = RPG.y + (tg.r + 1) * 16 + 4;
+        for (var k2 = 0; k2 < 4; k2++) { var yy = iy + ((k2 * 3 + Math.floor(S.clk * 16)) % 7); rpR(c, ix - 1 + (k2 % 2), yy, 1, 2, k2 % 2 ? W2[1] : W2[0]); }
       }
       if (t.side === "r") { c.save(); c.translate(x + im.width, y); c.scale(-1, 1); c.drawImage(im, 0, 0); c.restore(); } else c.drawImage(im, x, y);
+      if (tg.need) { if (t.k === "plant") rpBadge(c, x + 3, y + 22, tg.need); else rpBadge(c, t.side === "r" ? x + 1 : x + im.width - 12, y - 2, tg.need); }   /* what the station wants: warm or cold */
+      if (bad) {
+        var got = S.f.hitT[i], cx = x + im.width / 2;
+        if (tg.need === "w") {   /* shivering: icicles and a blue chill */
+          c.globalAlpha = .25; rpR(c, x, y, im.width, im.height, "#8cc8f0"); c.globalAlpha = 1;
+          for (var k3 = 0; k3 < 5; k3++) { var ix2 = x + 4 + k3 * (im.width - 8) / 4; rpR(c, Math.round(ix2), y + 1, 1, 3 + (k3 % 2) * 2, "#ffffff"); rpR(c, Math.round(ix2) + 1, y + 1, 1, 2, "#cfeefc"); }
+          var sh = Math.floor(S.clk * 18) % 2 ? 1 : -1; rpR(c, cx - 9 + sh, y + 14, 1, 3, RP_INK); rpR(c, cx + 9 + sh, y + 14, 1, 3, RP_INK); rpR(c, cx - 11 + sh, y + 15, 1, 2, RP_INK); rpR(c, cx + 11 + sh, y + 15, 1, 2, RP_INK);
+        } else {   /* too hot: steam and a drooping red glow */
+          c.globalAlpha = .2; rpR(c, x, y, im.width, im.height, "#f08060"); c.globalAlpha = 1;
+          for (var k4 = 0; k4 < 4; k4++) { var u4 = (S.clk * .9 + k4 / 4) % 1; rpR(c, Math.round(cx - 6 + k4 * 4 + Math.sin(u4 * 7) * 2), Math.round(y + 16 - u4 * 18), 1, 2, "#ffffff"); }
+        }
+      }
     });
   }
   function rpLine(c, x0, y0, x1, y1, col) { var n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (var i = 0; i <= n; i++) rpR(c, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), 1, 1, col); }
@@ -135,31 +171,37 @@
     if (S.catWet) rpR(c, RPG.x + b[0] * 16 - 2, 99, 20, 1, RP_W[1]);
   }
   /* the water: a clear band inside the pipes that flows in from where it enters, fills each piece smoothly and carries little sparkles along */
+  function rpPal(tp) { return rpS.L.src2 ? RP_WT[tp || "m"] : RP_W; }
   function rpWater(c) {
     var S = rpS; if (!S.f || S.mode === "build") return;
-    var arms = {}, own = {}, dist = S.f.dist, ph = S.clk * 22, src = S.L.src;
+    var arms = {}, own = {}, nd = S.f.node, ph = S.clk * 22, src = S.L.src, srcs = [S.L.src].concat(S.L.src2 ? [S.L.src2] : []);
     S.pcs.forEach(function (p, i) { PL.cellsOf(p).forEach(function (k) { arms[k[0] + "," + k[1]] = k[2]; own[k[0] + "," + k[1]] = i; }); });
-    function seg(x, y, d, from, to, k, flowOut, base) {   /* draws the part of one arm between from..to (0 = centre, 8 = cell edge) */
+    function seg(x, y, d, from, to, k, flowOut, base, W) {   /* the part of one arm between from..to (0 = centre, 8 = cell edge) */
       var dx = PL.DX[d], dy = PL.DY[d], cr = k.split(","), nk = (+cr[0] + dx) + "," + (+cr[1] + dy), fl = own[nk] !== own[k];
       for (var i = Math.min(from, to); i < Math.max(from, to) + (Math.max(from, to) === 8 ? 1 : 0); i++) {
         if (fl && i >= 6) continue;   /* leave the flanges at the ends of a piece visible */
         var px = x + dx * i, py = y + dy * i, along = flowOut ? base + i : base + 8 - i;
         var spark = ((Math.floor(along - ph) % 7) + 7) % 7 === 0;
-        if (dx) { rpR(c, px, py - 1, 1, 3, RP_W[1]); rpR(c, px, py - 1, 1, 1, RP_W[0]); rpR(c, px, py + 1, 1, 1, RP_W[2]); if (spark) rpR(c, px, py, 1, 1, "#ffffff"); }
-        else { rpR(c, px - 1, py, 3, 1, RP_W[1]); rpR(c, px - 1, py, 1, 1, RP_W[0]); rpR(c, px + 1, py, 1, 1, RP_W[2]); if (spark) rpR(c, px, py, 1, 1, "#ffffff"); }
+        if (dx) { rpR(c, px, py - 1, 1, 3, W[1]); rpR(c, px, py - 1, 1, 1, W[0]); rpR(c, px, py + 1, 1, 1, W[2]); if (spark) rpR(c, px, py, 1, 1, "#ffffff"); }
+        else { rpR(c, px - 1, py, 3, 1, W[1]); rpR(c, px - 1, py, 1, 1, W[0]); rpR(c, px + 1, py, 1, 1, W[2]); if (spark) rpR(c, px, py, 1, 1, "#ffffff"); }
       }
     }
-    Object.keys(dist).forEach(function (k) {
-      var d0 = dist[k], prog = Math.max(0, Math.min(1, S.t - d0)); if (S.mode === "win") prog = 1;
+    var keys = Object.keys(nd).sort(function (a2, b2) { return (+a2.split(",")[2]) - (+b2.split(",")[2]); }).reverse();   /* vertical channel of a crossing first, the bridge on top */
+    keys.forEach(function (n) {
+      var d0 = nd[n], prog = Math.max(0, Math.min(1, S.t - d0)); if (S.mode === "win" || S.mode === "wrong") prog = 1;
       if (prog <= 0) return;
-      var a = arms[k], cr = k.split(","), cc = +cr[0], rr = +cr[1], p = rpCC(cc, rr), x = p[0], y = p[1], ent = null;
-      if (cc === src.c && rr === src.r && d0 === 0) ent = src.d;
-      else for (var j = 0; j < a.length; j++) { var q = a[j], nk = (cc + PL.DX[q]) + "," + (rr + PL.DY[q]); if (dist[nk] === d0 - 1 && arms[nk] && arms[nk].indexOf(PL.OPP[q]) >= 0) { ent = q; break; } }
+      var pr = n.split(","), cc = +pr[0], rr = +pr[1], ch = +pr[2], k = cc + "," + rr, all = arms[k], a = all.split("|")[ch], p = rpCC(cc, rr), x = p[0], y = p[1], ent = null, W = rpPal(S.f.temp[n]);
+      srcs.forEach(function (sx) { if (!ent && cc === sx.c && rr === sx.r && d0 === 0 && a.indexOf(sx.d) >= 0) ent = sx.d; });
+      if (!ent) for (var j = 0; j < a.length; j++) { var q = a[j], nc = cc + PL.DX[q], nr = rr + PL.DY[q], nch = PL.chan(arms[nc + "," + nr], PL.OPP[q]); if (nch >= 0 && nd[nc + "," + nr + "," + nch] === d0 - 1) { ent = q; break; } }
       var fin = Math.min(1, prog * 2), fout = Math.max(0, prog * 2 - 1);
-      if (ent) seg(x, y, ent, 8, Math.round(8 - 8 * fin), k, false, d0 * 16);
+      if (ent) seg(x, y, ent, 8, Math.round(8 - 8 * fin), k, false, d0 * 16, W);
       if (fin >= 1) {
-        rpR(c, x - 1, y - 1, 3, 3, RP_W[1]); rpR(c, x - 1, y - 1, 3, 1, RP_W[0]);
-        for (var m = 0; m < a.length; m++) if (a[m] !== ent) seg(x, y, a[m], 0, Math.round(8 * fout), k, true, d0 * 16 + 8);
+        if (all.indexOf("|") < 0) { rpR(c, x - 1, y - 1, 3, 3, W[1]); rpR(c, x - 1, y - 1, 3, 1, W[0]); }
+        for (var m = 0; m < a.length; m++) if (a[m] !== ent) seg(x, y, a[m], 0, Math.round(8 * fout), k, true, d0 * 16 + 8, W);
+        if (S.f.temp[n] === "w" && S.L.src2) {   /* warm water steams a little */
+          var hsh = (cc * 7 + rr * 13 + ch * 3) % 5, u = ((S.clk * .7 + hsh / 5) % 1);
+          if (hsh < 2) { rpR(c, x - 1 + Math.round(Math.sin(u * 6 + hsh) * 1.5), Math.round(y - 5 - u * 9), 1, 2, "rgba(255,255,255," + (0.8 - u * .7).toFixed(2) + ")"); }
+        }
       }
     });
   }
@@ -187,7 +229,7 @@
       rpR(c, sl.x, 107, sl.w, 26, "#8a5a34"); rpR(c, sl.x + 1, 108, sl.w - 2, 24, "#9a6a3c"); rpR(c, sl.x + 1, 108, sl.w - 2, 1, "#7a4a26");
       c.globalAlpha = n ? 1 : .35;
       var L = PL.LEN[sl.t];
-      if (L) { var w = 6 + L * 8, x0 = Math.round(cx - w / 2); rpH(c, x0, x0 + w, 118); rpFH(c, x0 + 1, 118); rpFH(c, x0 + w - 1, 118); }
+      if (L) { var w = 4 + L * 7, x0 = Math.round(cx - w / 2); rpH(c, x0, x0 + w, 118); rpFH(c, x0 + 1, 118); rpFH(c, x0 + w - 1, 118); }
       else c.drawImage(rpPieceSpr({ t: sl.t, o: 0 }), Math.round(cx - 8), 110);
       c.globalAlpha = 1;
       rpText(c, String(n), sl.x + sl.w - 5, 126, n ? "#fff8ec" : "#c8aa82", RP_INK);
@@ -298,9 +340,15 @@
       S.t += dt / RP_CELL_T;
       if (S.leak && S.t >= S.leak.t) { S.t = S.leak.t; S.mode = "leak"; S.lt = 0; rpLeakStart(); }
       else if (!S.leak && S.t >= S.endT + 4) {
-        if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); rpSay("Geschafft!"); S.cuSeen = -1; }
+        var wrongI = Object.keys(S.f.ok).filter(function (ti) { return !S.f.ok[ti]; });
+        if (Object.keys(S.f.hit).length === S.L.targets.length && wrongI.length) {
+          var wt0 = S.L.targets[wrongI[0]]; S.mode = "wrong"; S.wt = 0; S.leaks++;
+          rpSay((RP_WRONG[wt0.k] || {})[S.f.hitT[wrongI[0]]] || "Die Temperatur stimmt nicht."); rpSad(.2);
+        } else if (Object.keys(S.f.hit).length === S.L.targets.length) { S.mode = "win"; S.wt = 0; beep([[523, .12], [659, .12], [784, .12], [1047, .3]]); rpSay("Geschafft!"); S.cuSeen = -1; }
         else { S.mode = "build"; S.f = null; S.leaks++; rpSay("Da kommt noch nicht überall Wasser hin."); rpGrumble(.1); }
       }
+    } else if (S.mode === "wrong") {
+      S.wt += dt; S.t += dt / RP_CELL_T; if (S.wt > 2.6) { S.mode = "build"; S.f = null; }
     } else if (S.mode === "leak") {
       S.lt += dt; if (S.lt > 2) { S.mode = "build"; S.f = null; S.leak = null; S.catWet = false; }
     } else if (S.mode === "win") {
@@ -332,6 +380,7 @@
   function rpAt(c, r) { for (var i = 0; i < rpS.pcs.length; i++) if (PL.cellsOf(rpS.pcs[i]).some(function (k) { return k[0] === c && k[1] === r; })) return i; return -1; }
   function rpTurn(i, c, r) {
     var S = rpS, p = S.pcs[i];
+    if (p.t === "X") { beep([[440, .03]]); return; }
     if (!PL.LEN[p.t]) { p.o = (p.o + 1) % 4; beep([[440, .03], [560, .04]]); return; }
     var L = PL.LEN[p.t], idx = p.o === "h" ? c - p.c : r - p.r, no = p.o === "h" ? "v" : "h";
     var tries = [idx]; for (var k = 0; k < L; k++) if (k !== idx) tries.push(k);
