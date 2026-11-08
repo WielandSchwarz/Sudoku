@@ -115,7 +115,7 @@ def tub(state,fr):
     body.outline(); W.on(body)
     rim=L(48,32); rim.r(3,15,44,2,WH); rim.r(3,15,44,1,'#fbfbf8'); rim.outline(); W.on(rim)
     for fx in (9,39):
-        ft=L(6,6); ft.r(1,1,3,3,'#e9b949'); ft.r(1,1,1,3,'#f8d870'); ft.outline(); W.on(ft,fx-2,26)
+        ft=L(7,8); ft.r(2,1,3,5,'#e9b949'); ft.r(1,5,5,1,'#e9b949'); ft.r(2,1,1,5,'#f8d870'); ft.outline(); W.on(ft,fx-3,25)
     if state=='idle':
         mouse(W,40,15,'sit',-1); towel(W,30,16)
         d=L(10,8); d.ell(4,5,3.2,2,'#f6d040'); d.ell(6.5,2.5,1.8,1.8,'#f6d040'); d.outline(); d.px(8.6,2.6,'#e8650c'); d.px(7,2,INK); W.on(d,15,9)
