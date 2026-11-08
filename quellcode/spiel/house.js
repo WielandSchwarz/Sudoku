@@ -27,7 +27,7 @@
   var canBtn = hEl("button", "scarf-btn canopy-btn", scene, ""); canBtn.type = "button"; canBtn.setAttribute("aria-label", "Farbe des Himmelbetts"); canBtn.hidden = true;
   var canPop = hEl("div", "scarf-pop canopy-pop", scene, ""); canPop.hidden = true;
   function renderCanopyBtn() {
-    var show = place2 === "bedroom" && home.bedroom && home.bedroom.bed === 0;
+    var show = false;   /* the colour is chosen in the bedroom catalog now, below the beds */
     canBtn.hidden = !show; if (!show) canPop.hidden = true;
     var c = CANOPY[home.canopy];
     canBtn.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="2" height="14" fill="#a06a38"/><rect x="13" y="1" width="2" height="14" fill="#a06a38"/><rect x="1" y="1" width="14" height="3" fill="' + c[1] + '"/><path d="M3 4h3l-2 7H3z M13 4h-3l2 7h1z" fill="' + c[1] + '"/><rect x="3" y="10" width="10" height="3" fill="' + c[2] + '"/></svg>';
@@ -448,12 +448,14 @@
     bCatalog.innerHTML = '<div class="tabs k-tabs">' + BCATS.map(function (q) { return '<button type="button" class="tab" data-k="' + q.id + '" aria-pressed="' + (q.id === bCat) + '">' + q.name + '</button>'; }).join("") + '</div>' +
       '<p class="k-cat-title">' + c.name + ' auswählen</p><div class="k-items">' + c.names.map(function (nm, i) {
         return '<button type="button" class="item k-item" data-i="' + i + '" aria-pressed="' + (home.bedroom[bCat] === i) + '"><div class="ic">' + bThumb(bCat, i) + '</div><span>' + c.names[i] + '</span></button>';
-      }).join("") + '</div>';
+      }).join("") + '</div>' +
+      (bCat === "bed" && home.bedroom.bed === 0 ? '<div class="wcol"><p class="wcol-h">Farbe</p><div class="wcol-r">' + CANOPY.map(function (cc, i) { return '<button type="button" class="wcol-b' + (i === home.canopy ? " on" : "") + '" data-cv="' + i + '" style="background:' + cc[1] + '" aria-label="' + cc[0] + '"></button>'; }).join("") + '</div></div>' : "");
     var r = BSEL[bCat]; bSel.hidden = false;
     bSel.style.left = (r[0] / 180 * 100) + "%"; bSel.style.top = (r[1] / 135 * 100) + "%"; bSel.style.width = (r[2] / 180 * 100) + "%"; bSel.style.height = (r[3] / 135 * 100) + "%";
   }
   bCatalog.addEventListener("click", function (e) {
     var t = e.target.closest(".tab"); if (t) { bCat = t.dataset.k; renderBCatalog(); return; }
+    var cv = e.target.closest("[data-cv]"); if (cv) { home.canopy = +cv.dataset.cv; renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]); if (window.SudokuSave) window.SudokuSave(); return; }
     var it = e.target.closest(".k-item"); if (!it) return;
     home.bedroom[bCat] = +it.dataset.i; renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]);
   });

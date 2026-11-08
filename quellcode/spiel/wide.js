@@ -18,10 +18,25 @@
   var wView = wLay.querySelector(".wide-view"); place(wView, 161, 31, 38); wView.style.height = gy(32);
   var wbSkyEl = wLay.querySelector("#wb-sky"); wbSkyEl.style.cssText = "left:-68.421%;width:236.842%;top:-21.875%;height:210.938%";   /* the garden frame 90x67.5 around the 38x32 glass */
   // the gramophone on its record cabinet is a piece of furniture now (four colours)
-  var wGram = xEl("div", "slot slot-gram", wRoom); wGram.dataset.slot = "gram"; wGram.setAttribute("role", "button"); wGram.setAttribute("aria-label", "Grammophon"); place(wGram, 105, 38, 40);
+  var wGram = xEl("div", "slot slot-gram", wRoom); wGram.dataset.slot = "gram"; wGram.setAttribute("role", "button"); wGram.setAttribute("aria-label", "Musik"); place(wGram, 105, 38, 40);
   [wDFloor, wGram].forEach(function (el) { el.addEventListener("click", function () { if (!decor) return; curCat = el.dataset.slot; renderCatalog(); }); });
-  wGram.addEventListener("click", function () { if (decor || s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt(); say(N() + " legt eine Platte auf."); act("gram", playGram); });
-  CATS.dfloor = "Dielenboden"; CATS.gram = "Grammophon"; ROOM_CATS.push("dfloor", "gram");
+  wGram.addEventListener("click", function () { if (decor || s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt(); var mu = gMusic(); say(N() + " " + mu.say + "."); act("gram", playGram); });
+  /* the gramophone's four colours are one piece with a colour choice; every music piece has its own tune */
+  var GRAM_COLS = [["messing", "Messing", "#e9b949"], ["kupfer", "Kupfer", "#c8794a"], ["gruen", "Tannengrün", "#3e7a4a"], ["kirsch", "Kirschrot", "#a8323a"]], GRAM_IDS = GRAM_COLS.map(function (c) { return c[0]; });
+  function gramOwnAll() { var o = home.owned.gram; if (GRAM_IDS.some(function (id) { return o.indexOf(id) >= 0; })) GRAM_IDS.forEach(function (id) { if (o.indexOf(id) < 0) o.push(id); }); }
+  var MUSIC = {
+    gram: { say: "legt eine Platte auf", wind: 1, tune: [[392, .2], [330, .2], [392, .2], [523, .4], [494, .2], [440, .2], [392, .4], [330, .2], [349, .2], [392, .2], [330, .5]] },
+    koffer: { say: "legt eine Single auf", wind: 0, tune: [[523, .15], [523, .15], [659, .15], [784, .3], [659, .15], [784, .15], [880, .3], [784, .15], [659, .15], [523, .4]] },
+    radio: { say: "dreht am Radio", wind: 0, tune: [[300, .08], [520, .08], [410, .08], [440, .3], [494, .2], [523, .3], [494, .2], [440, .2], [392, .5]] },
+    jukebox: { say: "drückt eine Taste an der Musikbox", wind: 0, tune: [[392, .15], [392, .15], [440, .15], [494, .3], [587, .15], [494, .15], [440, .3], [392, .15], [330, .15], [392, .5]] },
+    klavier: { say: "klimpert auf dem Klavier", wind: 0, tune: [[262, .25], [330, .25], [392, .25], [523, .5], [392, .25], [330, .25], [262, .5], [294, .25], [349, .25], [440, .5]] },
+    drehorgel: { say: "dreht die Kurbel der Drehorgel", wind: 1, tune: [[392, .3], [523, .15], [523, .15], [494, .3], [440, .15], [440, .15], [392, .3], [330, .3], [392, .6]] },
+    spieluhr: { say: "zieht die Spieluhr auf", wind: 1, tune: [[1047, .25], [1319, .25], [1568, .25], [1319, .25], [1175, .25], [1047, .25], [988, .5], [1047, .5]] },
+    recorder: { say: "drückt auf Play", wind: 0, tune: [[330, .15], [392, .15], [440, .15], [392, .15], [330, .3], [294, .15], [330, .15], [392, .45]] },
+    stereo: { say: "dreht die Stereoanlage auf", wind: 0, tune: [[196, .2], [196, .1], [262, .2], [294, .2], [196, .1], [349, .2], [330, .2], [294, .2], [262, .4]] }
+  };
+  function gMusic() { var id = home.placed.gram; return MUSIC[GRAM_IDS.indexOf(id) >= 0 ? "gram" : id] || MUSIC.gram; }
+  CATS.dfloor = "Dielenboden"; CATS.gram = "Musik"; ROOM_CATS.push("dfloor", "gram");
   // the front door used to be the movable terrace door; whatever save we load, it stands in the hall now
   // the view out of the bay window is the real garden at half size, drawn with half as many pixels: the season's trees, hedge and meadow, the sky of the hour and every weather
   var WBH = /*WBHALF*/;   // the garden layers at half size: one pixel = one room pixel, like everything in front of the window
@@ -150,13 +165,14 @@
     if (!home.placed.gram) return;
     await walkTo(124, 116); H.dir = 1;
     backFrame(0); await wait(300);
-    for (var k = 0; k < 4; k++) { backFrame(k % 2); beep([[180 + k * 20, .05]]); await wait(220); }
+    var mu = gMusic(), TUNE = mu.tune;
+    for (var k = 0; k < (mu.wind ? 4 : 2); k++) { backFrame(k % 2); beep([[180 + k * 20, .05]]); await wait(220); }
     front({ eyes: "happy", mouth: "smile" }); pulse("hop", 300); await wait(300);
-    for (var i = 0; i < GRAM_TUNE.length; i++) {
-      beep([GRAM_TUNE[i]]);
+    for (var i = 0; i < TUNE.length; i++) {
+      beep([TUNE[i]]);
       if (i % 2 === 0) fx("note", 132 + rnd(-6, 8), 40 + rnd(-6, 2), "up", 1.1);
       if (i % 3 === 0) front({ eyes: "happy", mouth: i % 2 ? "smile" : "open" });
-      await wait(GRAM_TUNE[i][1] * 1000 + 120);
+      await wait(TUNE[i][1] * 1000 + 120);
     }
     front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); await wait(700); settle();
   }
@@ -226,10 +242,17 @@
     if (curCat === "dfloor") { items.innerHTML = FURN.dfloor.map(function (it) { var has = home.owned.dfloor.indexOf(it.id) >= 0, on = home.placed.dfloor === it.id;
         return '<button type="button" class="item' + (has ? "" : " locked") + '" data-id="' + it.id + '" aria-pressed="' + on + '"' + (has ? "" : ' aria-disabled="true"') + '><div class="sw" style="background-image:' + tileURL(it.tile).replace(/"/g, "'") + ';background-size:' + (it.w * 0.9) + 'px"></div><span lang="de">' + (has ? it.name : "???") + '</span></button>'; }).join("");
       document.getElementById("cat-clear").hidden = true; }
-    if (curCat === "gram") document.getElementById("cat-clear").hidden = true;
+    if (curCat === "gram") { document.getElementById("cat-clear").hidden = true; gramOwnAll();
+      var pg = home.placed.gram, isCol = GRAM_IDS.indexOf(pg) >= 0;
+      GRAM_IDS.slice(1).forEach(function (id) { var b = items.querySelector('[data-id="' + id + '"]'); if (b) b.remove(); });
+      var gb = items.querySelector('[data-id="messing"]'); if (gb && isCol && pg !== "messing") { gb.dataset.id = pg; gb.setAttribute("aria-pressed", "true"); var gi = item("gram", pg); var ic = gb.querySelector("svg"); if (ic && gi) ic.outerHTML = itemSVG("gram", gi); } }
     if (!box) { box = document.createElement("div"); box.id = "wcol"; box.className = "wcol"; items.parentNode.insertBefore(box, items.nextSibling);
-      box.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; var wp = home.placed.wall, q = (home.pos.wc[wp] || [0, 0]).slice(); q[+b.dataset.r] = +b.dataset.i; home.pos.wc[wp] = q; renderRoom(); renderCatalog(); }); }
+      box.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return;
+        if (b.dataset.g) { home.placed.gram = b.dataset.g; gramOwnAll(); renderRoom(); renderCatalog(); beep([[880, .04], [1175, .06]]); if (window.SudokuSave) window.SudokuSave(); return; }
+        var wp = home.placed.wall, q = (home.pos.wc[wp] || [0, 0]).slice(); q[+b.dataset.r] = +b.dataset.i; home.pos.wc[wp] = q; renderRoom(); renderCatalog(); }); }
     if (decor && place2 === "room") { var ct = { dfloor: CAM0, door: CAM0, gram: 46, plant: 46, chair: 0, clock: 0, shelf: 0 }[curCat]; if (ct != null) camTo(ct, 450); }
+    if (curCat === "gram" && decor && GRAM_IDS.indexOf(home.placed.gram) >= 0) {   /* colour choice for the gramophone, like the wallpapers */
+      box.hidden = false; box.innerHTML = '<p class="wcol-h">Farbe</p><div class="wcol-r">' + GRAM_COLS.map(function (c) { return '<button type="button" class="wcol-b' + (home.placed.gram === c[0] ? " on" : "") + '" data-g="' + c[0] + '" style="background:' + c[2] + '" aria-label="' + c[1] + '"></button>'; }).join("") + '</div>'; return; }
     box.hidden = curCat !== "wall" || !decor; if (box.hidden) return;
     var wp = item("wall", home.placed.wall), q = home.pos.wc[home.placed.wall] || [0, 0], orig = tileURL(wp.tile).replace(/"/g, "'"), cur = tileURL(wWallTile(wp)).replace(/"/g, "'");
     var row = function (r, list, title) { return '<p class="wcol-h">' + title + '</p><div class="wcol-r">' + list.map(function (c, i) {

@@ -45,7 +45,7 @@ s=re.sub(r'\s*<div class="suggest">.*?</div>','',s,flags=re.S)
 s=s.replace('<span class="dot" id="start-dot" hidden></span>','<span class="dot" id="start-dot" hidden></span><span class="pkg-badge" id="start-pkg" hidden></span>')
 s=s.replace('<span>Weiterspielen: Mittel · 8:42</span>','').replace('<span id="start-ham-state">Wartet darauf, dass du ihm einen Namen gibst.</span>','')
 s=s.replace('<button type="button" class="tab" data-cat="wall">Tapete</button>','<button type="button" class="tab" data-cat="plant">Pflanze</button>\n      <button type="button" class="tab" data-cat="wall">Tapete</button>\n      <button type="button" class="tab" data-cat="floor">Boden</button>')
-s=s.replace('<button type="button" class="tab" data-cat="floor">Boden</button>','<button type="button" class="tab" data-cat="floor">Boden</button>'+''.join('\n      <button type="button" class="tab" data-cat="%s">%s</button>' % c for c in (('dfloor','Dielenboden'),('gram','Grammophon'),('door','Tür'),('lamp','Lampe'),('rug','Teppich'),('meadow','Wiese'),('deco','Deko'),('bed','Beet'))))
+s=s.replace('<button type="button" class="tab" data-cat="floor">Boden</button>','<button type="button" class="tab" data-cat="floor">Boden</button>'+''.join('\n      <button type="button" class="tab" data-cat="%s">%s</button>' % c for c in (('dfloor','Dielenboden'),('gram','Musik'),('door','Tür'),('lamp','Lampe'),('rug','Teppich'),('meadow','Wiese'),('deco','Deko'),('bed','Beet'))))
 s=s.replace('<button type="button" class="btn" id="d-unlock">Alle Möbel freischalten</button>','<button type="button" class="btn" id="d-unlock">Alle Möbel freischalten</button>\n      <button type="button" class="btn" id="d-season">Jahreszeit wechseln</button>\n      <button type="button" class="btn" id="d-visit">Besuch kommen lassen</button>'+('\n      <button type="button" class="btn" id="d-weather">Wetter wechseln</button>\n      <button type="button" class="btn" id="d-fest">Fest wechseln</button>\n      <button type="button" class="btn" id="d-harvest">Ernte geben (zum Kochen)</button>' if not os.environ.get('NOEXTRAS') else ''))
 s=s.replace('.tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));','.tabs { display: grid; border-radius: 16px !important; grid-template-columns: repeat(3, minmax(0, 1fr));')
 s=s.replace('.track-stop { font: inherit; font-size: 0.85rem; border: 0; background: none; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 6px; align-self: center; }',
@@ -97,7 +97,7 @@ if True:  # approved detail art
 if True:  # the living room with the hall (assets-neu/wohnzimmer-diele, approved): new chairs, floors for room and hall, ten more wallpapers, the gramophone
     _DI=json.load(open(D+'diele.json'))
     F['chair']=[dict(c, **{k: _DI['chairs'][c['id']][k] for k in ('name','w','h','seat','svg')}) if c['id'] in _DI['chairs'] else c for c in F['chair']]
-    F['floor']=_DI['floor']; F['dfloor']=_DI['dfloor']; F['wall']=F['wall']+_DI['wall']; F['gram']=_DI['gram']
+    F['floor']=_DI['floor']; F['dfloor']=_DI['dfloor']; F['wall']=F['wall']+_DI['wall']; F['gram']=[dict(g, crafted=True) if g['id']!='messing' else dict(g, name='Grammophon') for g in _DI['gram']]+json.load(open(D+'musik.json'))   # colours of the gramophone are a colour choice now, plus eight more music pieces
 P=json.load(open(D+'props.json')); P.pop('bottle',None)
 if True:  # approved detail art
     for _k in ('lamp_on','lamp_off','bowl','rug'): P[_k]['svg']=_N[_k]['svg']
