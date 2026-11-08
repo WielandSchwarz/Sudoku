@@ -1,0 +1,10 @@
+var RP_LEVELS = [
+  { name: "Um die Ecke", src: { c: 0, r: 1, d: "l" }, targets: [{ c: 5, r: 4, d: "d", k: "pot" }], blocks: [], tray: { S3: 1, S2: 2, S1: 2, B: 1 } },
+  { name: "Der Balken", src: { c: 0, r: 1, d: "l" }, targets: [{ c: 8, r: 1, d: "r", k: "bath" }], blocks: [[3, 0], [3, 1], [3, 2]], beam: [3, 0, 3], tray: { S3: 1, S2: 2, S1: 3, B: 4 } },
+  { name: "Zwei Durstige", src: { c: 0, r: 2, d: "l" }, targets: [{ c: 8, r: 1, d: "r", k: "bath" }, { c: 4, r: 4, d: "d", k: "pot" }], blocks: [[6, 2], [6, 3], [2, 3]], crates: 1, tray: { S3: 2, S2: 2, S1: 3, B: 3, T: 1 } },
+  { name: "Der Wasserhahn", src: { c: 4, r: 0, d: "u" }, targets: [{ c: 0, r: 3, d: "l", k: "can" }, { c: 8, r: 3, d: "r", k: "bath" }], blocks: [[4, 2], [4, 3], [4, 4]], beam: [4, 2, 3], cat: 30, tray: { S3: 2, S2: 2, S1: 2, B: 4, T: 1 } },
+  { name: "Drei Töpfe", src: { c: 0, r: 0, d: "l" }, targets: [{ c: 1, r: 4, d: "d", k: "pot" }, { c: 4, r: 4, d: "d", k: "pot" }, { c: 7, r: 4, d: "d", k: "pot" }], blocks: [[2, 2], [3, 2], [5, 1], [6, 1]], crates: 1, tray: { S3: 2, S2: 3, S1: 3, B: 3, T: 2 } },
+  { name: "Das Wasserrad", src: { c: 0, r: 3, d: "l" }, targets: [{ c: 8, r: 1, d: "r", k: "bath" }, { c: 6, r: 4, d: "d", k: "wheel" }], blocks: [[2, 0], [2, 1], [2, 2], [5, 2], [5, 3], [5, 4]], beam: [2, 0, 3], post: [5, 2, 3], cat: 20, tray: { S3: 1, S2: 3, S1: 4, B: 4, T: 1 } },
+  { name: "Knapp bemessen", src: { c: 8, r: 0, d: "u" }, targets: [{ c: 0, r: 1, d: "l", k: "can" }, { c: 3, r: 4, d: "d", k: "pot" }, { c: 8, r: 4, d: "r", k: "bath" }], blocks: [[1, 2], [2, 2], [5, 0], [5, 1], [6, 3]], crates: 1, tray: { S2: 4, S1: 6, B: 4, T: 2 } },
+  { name: "Die große Anlage", src: { c: 2, r: 0, d: "u" }, targets: [{ c: 0, r: 2, d: "l", k: "can" }, { c: 8, r: 1, d: "r", k: "bath" }, { c: 4, r: 4, d: "d", k: "wheel" }, { c: 7, r: 4, d: "d", k: "pot" }], blocks: [[3, 0], [3, 1], [3, 2], [6, 2], [6, 3], [6, 4], [1, 3]], beam: [3, 0, 3], post: [6, 2, 3], cat: 26, tray: { S3: 2, S2: 3, S1: 4, B: 5, T: 3 } }
+];

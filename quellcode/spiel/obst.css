@@ -79,3 +79,13 @@
 @keyframes os-ban-r { from { transform: translateY(-40%); opacity: 0; } }
 .os-pov .os-ban.rw { top: 22%; }
 .os-pop.os-pop-bonus { font-size: 1.25rem; white-space: nowrap; animation-duration: 2.2s; color: #f8d850; }
+/* pipe puzzle */
+.rp-bench { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
+.rp-bench svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rp-pov .fi-cv { touch-action: none; }
+.rp-sel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.rp-lv { border: 0; font: inherit; background: #f3e2c4; color: #3a2414; box-shadow: 0 0 0 2px #3a2414; padding: 4px 0 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.rp-lv b { font-size: 1rem; }
+.rp-lv .fi-st { font-size: .62rem; letter-spacing: 0; }
+.rp-lv.on { background: #ffe08a; }
+.rp-lv:disabled { opacity: .4; cursor: default; }
