@@ -194,46 +194,57 @@
     S.raf = requestAnimationFrame(rpDraw);
   }
 
-  // ---------------------------------------------------------------- the mice's voices: a little vocal synth (buzz through two vowel filters, a breath of "h")
+  // ---------------------------------------------------------------- happy and sad sounds: a little marimba run with sparkles, the sad trombone, a squeaky toy
   function rpAC() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; }
-  var RP_VOW = { i: [380, 2250], e: [520, 1850], a: [750, 1250], o: [480, 850], u: [360, 720], m: [300, 900] };
-  /* syl: [f0 from, f0 to, duration, vowel, loudness, breath before (s), r-roll Hz] */
-  function rpVoice(syls, at, gap) {
+  function rpMarimba(a, f, t, vol, dec) {
+    [[1, 1], [4, .28], [10, .06]].forEach(function (h) {
+      var o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.value = f * h[0];
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol * h[1], t + .004); g.gain.exponentialRampToValueAtTime(.0005, t + dec / h[0] * (h[0] > 1 ? 2 : 1));
+      o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dec + .05);
+    });
+  }
+  function rpJoy(i, at) {
     try {
-      var a = rpAC(), t = a.currentTime + .03 + (at || 0);
-      syls.forEach(function (q) {
-        var f0 = q[0], f1 = q[1], d = q[2], v = RP_VOW[q[3]], amp = q[4] || .2, br = q[5] || 0, rr = q[6] || 0;
-        if (br) {   /* the "h" or "t" in front */
-          var n = a.createBufferSource(), b = a.createBuffer(1, Math.floor(a.sampleRate * br), a.sampleRate), ch = b.getChannelData(0);
-          for (var k = 0; k < ch.length; k++) ch[k] = (Math.random() * 2 - 1) * Math.sin(Math.PI * k / ch.length);
-          var nf = a.createBiquadFilter(), ng = a.createGain(); nf.type = "bandpass"; nf.frequency.value = v[1]; nf.Q.value = 1.2; ng.gain.value = amp * .5;
-          n.buffer = b; n.connect(nf); nf.connect(ng); ng.connect(a.destination); n.start(t); t += br * .8;
-        }
-        var o = a.createOscillator(), out = a.createGain(), vib = a.createOscillator(), vg = a.createGain();
-        o.type = "sawtooth"; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime((f0 + f1) / 2 * 1.06, t + d * .35); o.frequency.linearRampToValueAtTime(f1, t + d);
-        vib.frequency.value = 6.5; vg.gain.value = f0 * .025; vib.connect(vg); vg.connect(o.frequency);
-        [[v[0], 6, 1], [v[1], 9, .5]].forEach(function (fm) { var bp = a.createBiquadFilter(), g = a.createGain(); bp.type = "bandpass"; bp.frequency.value = fm[0]; bp.Q.value = fm[1]; g.gain.value = fm[2] * 3; o.connect(bp); bp.connect(g); g.connect(out); });
-        out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(amp, t + Math.min(.03, d * .3)); out.gain.setValueAtTime(amp, t + d * .6); out.gain.linearRampToValueAtTime(0, t + d);
-        if (rr) { var tr = a.createOscillator(), tg = a.createGain(), mix = a.createGain(); tr.frequency.value = rr; tg.gain.value = .5; mix.gain.value = .5; tr.connect(tg); tg.connect(mix.gain); out.connect(mix); mix.connect(a.destination); tr.start(t); tr.stop(t + d + .02); }
-        else out.connect(a.destination);
-        o.start(t); vib.start(t); o.stop(t + d + .02); vib.stop(t + d + .02);
-        t += d + (gap == null ? .035 : gap);
+      var a = rpAC(), t = a.currentTime + .03 + (at || 0), k = [1, 1.122, 1.335][(i || 0) % 3];
+      [[523, 0], [659, .08], [784, .16], [659, .24], [784, .3], [1047, .38]].forEach(function (n) { rpMarimba(a, n[0] * k, t + n[1], .22, .45); });
+      [2093, 2637, 3136, 4186].forEach(function (f, j) {   /* sparkles on top */
+        var o = a.createOscillator(), g = a.createGain(), tt = t + .5 + j * .06; o.type = "triangle"; o.frequency.value = f * k;
+        g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.05, tt + .005); g.gain.exponentialRampToValueAtTime(.0005, tt + .35); o.connect(g); g.connect(a.destination); o.start(tt); o.stop(tt + .4);
       });
     } catch (e) { }
   }
-  var RP_GIGGLE = {
-    A: [[560, 640, .1, "i", .22, .03], [620, 540, .085, "i", .2, .035], [600, 520, .085, "i", .19, .035], [570, 480, .09, "i", .18, .035], [540, 430, .14, "i", .16, .035]],
-    B: [[760, 880, .07, "i", .18, .02], [820, 700, .06, "i", .16, .03], [800, 690, .06, "i", .15, .03], [780, 660, .06, "i", .14, .03], [740, 620, .06, "i", .13, .03], [700, 560, .1, "i", .12, .03]],
-    C: [[430, 520, .11, "e", .24, .035], [480, 420, .1, "e", .22, .04], [470, 400, .1, "e", .2, .04], [440, 360, .16, "e", .18, .04]]
-  };
-  var RP_GRUMBLE = {
-    A: [[190, 170, .16, "m", .26], [210, 180, .2, "o", .26], [180, 165, .14, "m", .22], [200, 160, .28, "o", .24], [170, 140, .22, "u", .2]],
-    B: [[230, 200, .18, "o", .24, 0, 28], [210, 190, .12, "m", .2], [240, 190, .26, "a", .24, 0, 30], [200, 170, .2, "o", .2, 0, 26], [180, 150, .16, "m", .18]],
-    C: [[260, 200, .32, "m", .24], [180, 150, .3, "o", .24, .04], [160, 130, .2, "u", .2], [150, 140, .22, "m", .15, .12]]
-  };
-  function rpGiggle(i) { var v = RP_GIGGLE[["A", "C", "A"][i % 3]], k = [1, 1, 1.12][i % 3]; rpVoice(v.map(function (q) { return [q[0] * k, q[1] * k, q[2], q[3], q[4] * 1.8, q[5]]; }), 0); }
-  function rpGrumble(at, high) { var v = RP_GRUMBLE.A; rpVoice(high ? v.map(function (q) { return [q[0] * 1.25, q[1] * 1.25, q[2], q[3], q[4]]; }) : v, at, .04); }
-  function rpSqueak(at) { rpVoice([[640, 900, .16, "i", .35, .025]], at); }
+  function rpSad(at) {
+    try {
+      var a = rpAC(), t = a.currentTime + .03 + (at || 0), o = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), vib = a.createOscillator(), vg = a.createGain();
+      o.type = "sawtooth"; fl.type = "lowpass"; fl.Q.value = 3; o.connect(fl); fl.connect(g); g.connect(a.destination);
+      vib.frequency.value = 5.5; vg.gain.value = 0; vib.connect(vg); vg.connect(o.frequency);
+      g.gain.value = 0; g.gain.setValueAtTime(0, a.currentTime); g.gain.setValueAtTime(0, t);
+      [[294, .3], [277, .3], [262, .3], [247, .95]].forEach(function (n, j) {
+        var d = n[1]; o.frequency.setValueAtTime(n[0], t); if (j === 3) { o.frequency.linearRampToValueAtTime(n[0] * .94, t + d); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(n[0] * .035, t + .25); }
+        fl.frequency.setValueAtTime(260, t); fl.frequency.exponentialRampToValueAtTime(1300, t + .12); fl.frequency.exponentialRampToValueAtTime(500, t + d);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.2, t + .04); g.gain.setValueAtTime(.17, t + d * .75); g.gain.linearRampToValueAtTime(0, t + d - .01);
+        t += d + .02;
+      });
+      o.start(a.currentTime); vib.start(a.currentTime); o.stop(t + .05); vib.stop(t + .05);
+    } catch (e) { }
+  }
+  function rpToy(at) {
+    try {
+      var a = rpAC(), t = a.currentTime + .03 + (at || 0);
+      var p = a.createOscillator(), pg = a.createGain(); p.type = "sine"; p.frequency.setValueAtTime(700, t); p.frequency.exponentialRampToValueAtTime(160, t + .09);   /* plop */
+      pg.gain.setValueAtTime(.25, t); pg.gain.exponentialRampToValueAtTime(.001, t + .12); p.connect(pg); pg.connect(a.destination); p.start(t); p.stop(t + .15);
+      [0, .2].forEach(function (dt, j) {   /* squeak-squeak, like a rubber toy */
+        var o = a.createOscillator(), g = a.createGain(), tr = a.createOscillator(), tg = a.createGain(), tt = t + .12 + dt;
+        o.type = "triangle"; o.frequency.setValueAtTime(950, tt); o.frequency.linearRampToValueAtTime(j ? 1250 : 1400, tt + .06); o.frequency.linearRampToValueAtTime(1050, tt + .14);
+        tr.frequency.value = 38; tg.gain.value = 60; tr.connect(tg); tg.connect(o.frequency);
+        g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.12, tt + .015); g.gain.exponentialRampToValueAtTime(.001, tt + .16);
+        o.connect(g); g.connect(a.destination); o.start(tt); tr.start(tt); o.stop(tt + .18); tr.stop(tt + .18);
+      });
+    } catch (e) { }
+  }
+  function rpGiggle(i) { rpJoy(i, 0); }
+  function rpGrumble(at) { rpSad(at); }
+  function rpSqueak(at) { rpToy(at); }
   /* the finale: one big close-up per station, the mouse at her real size */
   var RP_CLU = /*RPCLOSEUPS*/, RP_CUI = {}; Object.keys(RP_CLU).forEach(function (k) { var im = new Image(); im.src = RP_CLU[k]; RP_CUI[k] = im; });
   var RP_CUSAY = { shower: "Die Maus duscht.", tub: "Ein Schaumbad!", coffee: "Die Maus kocht Kaffee.", sink: "Zähneputzen!", plant: "Die Blume blüht." };
@@ -267,7 +278,7 @@
     var S = rpS, e = rpLeakPt(), bd = S.L.bed, x = bd ? RPG.x + bd[0] * 16 : null; S.leaks++;
     beep([[220, .08], [180, .12]]);
     var wet = x != null && e[0] + 10 >= x && e[0] - 8 <= x + 16 && e[1] < RPG.y + bd[1] * 16;
-    if (wet) { rpSqueak(.05); rpGrumble(.35, 1.15); } else rpGrumble(.25);
+    if (wet) { rpSqueak(.05); rpGrumble(.5); } else rpGrumble(.25);
     if (x != null && e[0] + 10 >= x && e[0] - 8 <= x + 16 && e[1] < RPG.y + bd[1] * 16) { S.catWet = true; beep([[1320, .04], [1560, .06]]); rpSay("Piep! Die Maus ist nass geworden."); }
     else rpSay(S.leak.src ? "Das Wasser läuft gleich vorne raus!" : "Leck! Da fehlt noch ein Stück.");
   }
