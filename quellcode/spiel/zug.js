@@ -54,7 +54,7 @@
   function zgOver() { var S = zgS; return S.spawn >= ZG_DAY.length && S.ride.every(function (a) { return !a; }) && Object.keys(S.wait).every(function (k) { return !S.wait[k].length; }); }
   function zgStep(dt) {
     var S = zgS;
-    if (S.mode === "stop") { S.stop.t += dt; if (S.stop.t > 2.6) { S.mode = "wait"; if (zgOver()) zgEnd(); } return; }
+    if (S.mode === "stop") { S.stop.t += dt; if (S.stop.t > ZG_ARR + ZG_BRD + .5) { S.mode = "wait"; if (zgOver()) zgEnd(); } return; }
     if (S.mode !== "map") return;
     S.T += dt; zgSpawn();
     var L = zgLen(S.prev, S.cur); S.d += ZG_SPEED * dt;
@@ -88,7 +88,7 @@
   }
   function zgImg(c, k, x, y) { var im = ZG_I[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
   function zgMap(c) {
-    var S = zgS; zgImg(c, "map", 0, 0);
+    var S = zgS; zgImg(c, "map", 0, 0); zgTrain(c);
     Object.keys(ZG_SW).forEach(function (j) {   /* switches: the branch not taken is faded, the arrow points the way */
       var sw = ZG_SW[j], p = ZG_N[j];
       sw.opts.forEach(function (b, i) {
@@ -107,19 +107,27 @@
       w.forEach(function (a, i) { zgImg(c, "h_" + a.k, x + 3 + i * 16, y + 5); zgImg(c, "p_" + a.to, x + 11 + i * 16, y); zgClock(c, x + 11 + i * 16, y + 12, zgLeft(a)); });
       if (S.wait[st].length > 3) zgR(c, x + bw - 2, y + 9, 2, 2, "#3a2414");
     });
-    var pts = [0, 11, 22].map(zgBehind), pts2 = [4, 15, 26].map(zgBehind);   /* the little train: engine in front, two coaches */
+  }
+  function zgTrain(c) {
+    var S = zgS;
+    zgImg(c, "ms" + (Math.floor(S.clk * 5) % 3), 119, 0);   /* windmill sails */
+    zgImg(c, "duck", Math.round(112 + Math.sin(S.clk * .4) * 14), 93 + (Math.floor(S.clk * 1.5) % 2));
+    var pts = [0, 12, 24].map(zgBehind), pts2 = [5, 17, 29].map(zgBehind);   /* the little train: engine in front, two coaches */
     for (var t = 2; t >= 0; t--) {
-      var p0 = pts[t], p1 = pts2[t], hz = Math.abs(p0[0] - p1[0]) >= Math.abs(p0[1] - p1[1]), w2 = hz ? 10 : 7, h2 = hz ? 7 : 10, x0 = Math.round(p0[0] - w2 / 2), y0 = Math.round(p0[1] - h2 / 2);
-      zgR(c, x0 - 1, y0 - 1, w2 + 2, h2 + 2, "#3a2414"); zgR(c, x0, y0, w2, h2, t ? "#4e8c3c" : "#c8463c"); zgR(c, x0, y0, w2, 1, t ? "#6aa84e" : "#e8706a");
-      if (t) { zgR(c, x0 + 2, y0 + 2, 2, 2, "#bfe4f4"); zgR(c, x0 + w2 - 4, y0 + h2 - 4, 2, 2, "#bfe4f4"); } else zgR(c, Math.round(p0[0]) - 1, Math.round(p0[1]) - 1, 3, 3, "#3a3a3a");
+      var p0 = pts[t], p1 = pts2[t], dx = p0[0] - p1[0], dy = p0[1] - p1[1], d = Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? "r" : "l") : (dy >= 0 ? "d" : "u");
+      var im = ZG_I[(t ? "mc_" : "me_") + d]; if (im && im.complete) c.drawImage(im, Math.round(p0[0] - im.width / 2), Math.round(p0[1] - im.height / 2));
     }
+    S.puffs = S.puffs || [];
+    if (S.mode === "map" && S.clk > (S.nextPuff || 0)) { S.nextPuff = S.clk + .4; S.puffs.push({ x: pts[0][0], y: pts[0][1] - 5, t: S.clk }); }
+    S.puffs = S.puffs.filter(function (q) { return S.clk - q.t < 1.2; });
+    S.puffs.forEach(function (q) { var a = S.clk - q.t; zgImg(c, "puff" + Math.min(2, Math.floor(a * 2.5)), q.x - 3 - a * 2, q.y - 3 - a * 7); });
   }
   var ZG_LOS = { x: 150, y: 108, w: 27, h: 23 };
   function zgSeats(c) {
     var S = zgS;
-    zgR(c, 0, 104, 180, 31, "#3a2414"); zgR(c, 0, 105, 180, 30, "#b07a46"); zgR(c, 0, 105, 180, 2, "#c8945a");
+    zgR(c, 0, 104, 180, 31, "#3a2414"); zgR(c, 0, 105, 180, 30, "#c8c0b0"); zgR(c, 0, 105, 180, 2, "#e0d8c8"); zgR(c, 0, 133, 180, 1, "#a89a88");
     for (var wv = 0; wv < 2; wv++) {
-      var x0 = 2 + wv * 74; zgR(c, x0, 106, 72, 26, "#3a2414"); zgR(c, x0 + 1, 107, 70, 24, "#4e8c3c"); zgR(c, x0 + 1, 107, 70, 2, "#6aa84e");
+      var x0 = 2 + wv * 74; zgR(c, x0, 106, 72, 26, "#3a2414"); zgR(c, x0 + 1, 107, 70, 24, "#4e8c3c"); zgR(c, x0 + 1, 107, 70, 2, "#6a4a3a"); zgR(c, x0 + 1, 109, 70, 19, "#f4e8d0"); zgR(c, x0 + 1, 128, 70, 1, "#3e7030");
       for (var s = 0; s < 3; s++) {
         var i = wv * 3 + s, sx = x0 + 3 + s * 22, a = S.ride[i];
         zgR(c, sx, 110, 21, 17, "#3a2414"); zgR(c, sx + 1, 111, 19, 15, "#bfe4f4");
@@ -131,22 +139,34 @@
     if (typeof rpText === "function") rpText(c, "LOS!", b.x + 7, b.y + 9, "#fff8ec", C3[3]);
     if (on && Math.floor(S.clk * 2) % 2) { zgR(c, b.x - 1, b.y - 1, b.w + 2, 1, "#ffe08a"); zgR(c, b.x - 1, b.y + b.h, b.w + 2, 1, "#ffe08a"); }
   }
-  var ZG_WIN = [[7, 66], [23, 66], [39, 66], [63, 66], [79, 66], [95, 66]];   /* the coach windows in the side view */
+  var ZG_WIN = [[7, 72], [23, 72], [39, 72], [63, 72], [79, 72], [95, 72]];   /* coach windows in the side view (train at rest) */
+  var ZG_ARR = 1, ZG_BRD = 1.6;   /* seconds: rolling in, boarding */
   function zgSide(c) {
-    var S = zgS, P = S.stop, t = P.t, u = Math.min(1, t / 1.6);
+    var S = zgS, P = S.stop, t = P.t, e = Math.min(1, t / ZG_ARR), ox = -Math.round(Math.pow(1 - e, 2) * 190), u = Math.max(0, Math.min(1, (t - ZG_ARR) / ZG_BRD));
     zgImg(c, "side_" + P.st, 0, 0);
+    if (P.st === "muehle") zgImg(c, "bs" + (Math.floor(S.clk * 4) % 3), 6, 8);
+    zgImg(c, "s_coach", 2 + ox, 64); zgImg(c, "s_coach", 58 + ox, 64); zgImg(c, "s_engine", 112 + ox, 56);
+    var wf = Math.floor(-ox / 5) % 2;
+    [10, 44, 66, 100].forEach(function (x) { zgImg(c, "whs" + wf, x - 3 + ox, 92); });
+    [126, 140, 154].forEach(function (x) { zgImg(c, "whb" + wf, x - 5 + ox, 88); });
     S.ride.forEach(function (a, i) {
       if (!a) return; var boarding = P.on.some(function (o) { return o.seat === i; }); if (boarding && u < 1) return;
-      zgImg(c, "h_" + a.k, ZG_WIN[i][0], ZG_WIN[i][1]);
+      zgImg(c, "h_" + a.k, ZG_WIN[i][0] + ox, ZG_WIN[i][1]);
     });
-    P.off.forEach(function (o, j) {   /* getting off: out of the door, then off along the platform */
-      var w = ZG_WIN[o.seat], x = w[0] + 6 + u * (70 + j * 14), hop = Math.abs(Math.sin(t * 9 + j)) * 2;
-      zgImg(c, "b_" + o.a.k, x - 8, 104 - hop); zgImg(c, "h_" + o.a.k, x - 6, 94 - hop);
+    P.off.forEach(function (o, j) {   /* getting off: still on board while rolling in, then out and along the platform */
+      var w = ZG_WIN[o.seat];
+      if (t < ZG_ARR) { zgImg(c, "h_" + o.a.k, w[0] + ox, w[1]); return; }
+      var x = w[0] + 6 + u * (70 + j * 14), hop = Math.abs(Math.sin(t * 9 + j)) * 2;
+      zgImg(c, "b_" + o.a.k, x - 9, 110 - hop); zgImg(c, "h_" + o.a.k, x - 6, 101 - hop);
     });
     P.on.forEach(function (o, j) {   /* getting on: from the platform to the door */
-      if (u >= 1) return; var w = ZG_WIN[o.seat], sx = 120 + j * 18, x = sx + (w[0] + 6 - sx) * u, hop = Math.abs(Math.sin(t * 9 + j * 2)) * 2;
-      zgImg(c, "b_" + o.a.k, x - 8, 104 - hop); zgImg(c, "h_" + o.a.k, x - 6, 94 - hop); zgImg(c, "p_" + o.a.to, x + 3, 89 - hop);
+      if (u >= 1) return; var w = ZG_WIN[o.seat], sx = 124 + j * 18, x = sx + (w[0] + 6 - sx) * u, hop = u > 0 ? Math.abs(Math.sin(t * 9 + j * 2)) * 2 : 0;
+      zgImg(c, "b_" + o.a.k, x - 9, 110 - hop); zgImg(c, "h_" + o.a.k, x - 6, 101 - hop); zgImg(c, "p_" + o.a.to, x + 3, 96 - hop);
     });
+    P.puffs = P.puffs || [];   /* steam from the chimney */
+    if (S.clk > (P.np || 0)) { P.np = S.clk + (t < ZG_ARR ? .15 : .5); P.puffs.push({ x: 163 + ox, t: S.clk }); }
+    P.puffs = P.puffs.filter(function (q) { return S.clk - q.t < 1.4; });
+    P.puffs.forEach(function (q) { var a = S.clk - q.t; zgImg(c, "puff" + Math.min(2, Math.floor(a * 2)), q.x - 4 - a * 10, 52 - a * 22); });
   }
   function zgDraw(now) {
     var S = zgS; if (!S) return;
