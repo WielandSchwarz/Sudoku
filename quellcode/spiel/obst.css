@@ -89,3 +89,10 @@
 .rp-lv .fi-st { font-size: .62rem; letter-spacing: 0; }
 .rp-lv.on { background: #ffe08a; }
 .rp-lv:disabled { opacity: .4; cursor: default; }
+/* train game */
+.zg-pov .fi-cv { touch-action: none; }
+.zg-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 10px; margin: 4px 0 6px; }
+.zg-row { display: flex; align-items: center; gap: 4px; }
+.zg-row img { image-rendering: pixelated; width: 26px; height: auto; }
+.zg-row img + img { width: 16px; }
+.zg-row .ok { color: #3e8434; font-weight: 800; } .zg-row .late { color: #c8463c; font-weight: 800; }
