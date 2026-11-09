@@ -6,7 +6,7 @@ from msprite import svg_to_img
 M0=svg_to_img(json.load(open('../mock2/animals3.json'))['mouse']['svg'],48,50)
 
 def _mix(c,t,a): return (int(c[0]+(t[0]-c[0])*a),int(c[1]+(t[1]-c[1])*a),int(c[2]+(t[2]-c[2])*a),255)
-def shade(lay,dark=3,amt=.3,lamt=.45):
+def shade(lay,dark=1,amt=.16,lamt=.12):
     """2.5D rim shading, light from the top left: darker towards the bottom/right edge, a highlight on the top/left edge (thin parts are left alone)"""
     p=lay.p; w,h=lay.w,lay.h; src=lay.im.copy().load()
     def edge(x,y): return not(0<=x<w and 0<=y<h) or src[x,y][3]==0 or src[x,y]==INK
@@ -25,8 +25,10 @@ def shadow(W,cx,cy,rx,ry,a=.22):
         for x in range(int(cx-rx)-1,int(cx+rx)+2):
             if 0<=x<W.w and 0<=y<W.h and ((x+.5-cx)/rx)**2+((y+.5-cy)/ry)**2<=1: W.p[x,y]=_mix(W.p[x,y],(40,30,40,255),a)
 _old_outline=L.outline
-def _outline_shaded(self):
-    _old_outline(self); shade(self); return self
+def _outline_shaded(self, flat=False):
+    _old_outline(self)
+    if not flat: shade(self)
+    return self
 L.outline=_outline_shaded
 FUR=(154,154,166,255)
 def mouse_big(pose='happy'):
@@ -92,9 +94,9 @@ def castshadow(W,lay,dx=3,dy=2,a=.16):
 def frame(W):
     W.r(0,0,W.w,1,INK); W.r(0,W.h-1,W.w,1,INK); W.r(0,0,1,W.h,INK); W.r(W.w-1,0,1,W.h,INK)
 def bubble(W,x,y,r):
-    b=L(int(r*2+4),int(r*2+4)); b.ell(r+2,r+2,r,r,'#f4fbff'); b.outline(); b.px(r+1,r+.5,WH); W.on(b,int(x-r-2),int(y-r-2))
+    b=L(int(r*2+4),int(r*2+4)); b.ell(r+2,r+2,r,r,'#f4fbff'); b.outline(flat=True); b.px(r+1,r+.5,WH); W.on(b,int(x-r-2),int(y-r-2))
 def duck(W,x,y,f=1):
-    d=L(18,14); d.ell(8,9,6,3.6,'#f6d040'); d.ell(12,4.5,3.4,3.2,'#f6d040'); d.r(2,7,3,2,'#f6d040'); d.outline()
+    d=L(18,14); d.ell(8,9,6,3.6,'#f6d040'); d.ell(12,4.5,3.4,3.2,'#f6d040'); d.r(2,7,3,2,'#f6d040'); d.outline(flat=True)
     d.r(16,4,2,2,'#e8650c'); d.px(13,3,INK); d.r(4,10,8,1,'#d8a820'); d.px(12,2,WH)
     if f<0: d.im=d.im.transpose(Image.FLIP_LEFT_RIGHT)
     W.on(d,x,y)

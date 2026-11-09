@@ -35,7 +35,7 @@ def cu_shower(u):
     W=L(120,90); room_shower(W)
     mo=mouse_big('sing' if (u*4)%1<.5 else 'happy'); W.im.alpha_composite(mo,(36,30))
     wob=S(TAU*u)*1.2
-    fo=L(120,90); fo.ell(60+wob,32,10,4.5,WH); fo.ell(52+wob,33,5,3.5,WH); fo.ell(68+wob,33,5,3.5,WH); fo.ell(60+wob*1.5,28,5,3,WH); fo.outline(); W.on(fo)
+    fo=L(120,90); fo.ell(60+wob,32,10,4.5,WH); fo.ell(52+wob,33,5,3.5,WH); fo.ell(68+wob,33,5,3.5,WH); fo.ell(60+wob*1.5,28,5,3,WH); fo.outline(flat=True); W.on(fo)
     drops(W,u,48,27,22,78,46,skip=lambda x,y: 40<=x<=80 and 38<=y<=74)
     for i in range(6):
         v=(u+i/6)%1; bubble(W,26+i*14+S(TAU*v+i)*3,70-v*64,1.5+(i%3)*.6)
@@ -94,7 +94,7 @@ def cu_tub_cold(u):
     mo=tint(mouse_big('shiver'),'#8cc8f0',.35); W.im.alpha_composite(mo,(56+(1 if int(u*24)%2 else -1),2-int(hop)))
     tub_front(W,cold=True)
     for i,(x,y) in enumerate(((24,46),(40,47),(76,46),(92,47))):     # ice cubes bobbing on the icy water
-        ic=L(11,10); ic.r(1,1,8,7,'#e8f6ff'); ic.r(1,1,8,2,WH); ic.r(6,3,2,4,'#cfeefc'); ic.outline(); W.on(ic,x,y+int(round(S(TAU*u+i))))
+        ic=L(11,10); ic.r(1,1,8,7,'#e8f6ff'); ic.r(1,1,8,2,WH); ic.r(6,3,2,4,'#cfeefc'); ic.outline(flat=True); W.on(ic,x,y+int(round(S(TAU*u+i))))
     W.r(8,52,104,1,'#cfeefc')
     snow(W,u,10,5)
     for (x,y) in ((48,20),(46,24),(84,20),(86,24)): W.r(x,y-int(hop),1,3,INK)
@@ -116,7 +116,7 @@ def room_coffee(W, shake=0, light='#5aa84e', tank=0):
     W.r(32+shake,22,4,4,INK); W.r(33+shake,23,2,2,light)
     W.r(32+shake,30,5,4,INK); W.r(33+shake,31,3,2,'#f6c84a')
     W.r(8,4,30,10,'#e8eef2'); W.r(7,3,32,1,INK); W.r(7,14,32,1,INK); W.r(7,3,1,12,INK); W.r(38,3,1,12,INK); W.r(8,7+int(tank),30,7-int(tank),WAT[1])
-    pl=L(120,90); pl.ell(100,66,9,2.4,WH); pl.outline(); W.on(pl)
+    pl=L(120,90); pl.ell(100,66,9,2.4,WH); pl.outline(flat=True); W.on(pl)
     ck=L(120,90); ck.ell(100,63,5,2.6,'#d8a060'); ck.outline(); W.on(ck); W.px(98,63,'#6a3a1c'); W.px(101,62,'#6a3a1c')
 def gauge(W,shake,ang):
     g=L(20,20); g.ell(8,8,7,7,'#fff8ec'); g.outline(); W.on(g,10+shake,20)
@@ -153,7 +153,7 @@ def cu_coffee(u):
         mug_in_paws(W,73,y0-6)
         if st<5 or st>=6: steam(W,u,77,y0-8,3,12)
     if 6<=st<7:
-        fo=L(120,90); fo.ell(80,49,5,1.6,WH); fo.ell(76,50,2,1.3,WH); fo.ell(84,50,2,1.3,WH); fo.outline(); W.on(fo)
+        fo=L(120,90); fo.ell(80,49,5,1.6,WH); fo.ell(76,50,2,1.3,WH); fo.ell(84,50,2,1.3,WH); fo.outline(flat=True); W.on(fo)
     if st>=5: heart(W,96+int(S(TAU*u*3)),int(10-(st-5)*2))
     if st>=7: sparkle(W,70,24,int(u*32)%2==0); sparkle(W,92,28,int(u*32)%2==1)
     frame(W); return W.im
@@ -216,6 +216,7 @@ def cu_sink(u):
     W=L(120,90); room_sink(W, water=st>=4, reflection=(min(1,(st-6.6)*1.5) if st>=6.6 else None))
     if 4<=st<6:
         for i in range(4): W.r(46,45+((i*2+int(u*48))%8),1,2,WAT[1] if i%2 else WAT[0])
+    duck(W,22,40+(int(round(S(TAU*u*6))) if st>=4 else 0))   # the duck is always there, it bobs once the water runs
     if not (4<=st<5): cup=L(120,90); cup.r(56,41,7,9,'#8cc4ec'); cup.outline(); W.on(cup)
     pose='happy' if st<1 else 'brush' if st<4 else 'closed' if st<5 else 'sing' if st<6 else 'grin'
     W.im.alpha_composite(mouse_big(pose),(64,17))
@@ -228,7 +229,7 @@ def cu_sink(u):
         n=(st-1)/3*5
         fo=L(120,90); fo.ell(90,52,2+n*.6,1.6+n*.25,WH); fo.ell(86,53,1.6+n*.3,1.3+n*.2,WH)
         if n>3: fo.ell(94,51,2,1.6,WH)
-        fo.outline(); W.on(fo)
+        fo.outline(flat=True); W.on(fo)
         for i in range(int(n)):
             v=(u*4+i/5)%1; bubble(W,92+i*4+S(TAU*v)*2,48-v*20,1.3)
     elif st<5:
@@ -237,7 +238,6 @@ def cu_sink(u):
         for i in range(6): v=(u*8+i/6)%1; bubble(W,82+i*3+S(TAU*v)*1.5,48-v*12,1.2+(i%2)*.4)
     else:
         for i,(sx,sy) in enumerate(((86,46),(92,44),(80,40))): sparkle(W,sx,sy,(int(u*40)+i)%2==0)
-        if st>=7: duck(W,22,40+int(round(S(TAU*u*4))))
     frame(W); return W.im
 
 # ---------------------------------------------------------------- flower
@@ -255,7 +255,7 @@ def cu_plant(u):
     op=4.2+S(TAU*u)*.6
     for k in range(6):
         a=k*math.pi/3+u*.6; pl.ell(67.5+Cs(a)*op*1.6,18+S(a)*op*1.4,op*.9,op*.8,'#f08ab0')
-    pl.outline(); W.on(pl)
+    pl.outline(flat=True); W.on(pl)
     W.r(65,17,5,4,'#f8d850'); W.r(66,16,3,1,'#f8d850')
     pot(W)
     mo=mouse_big('closed' if (u*2)%1<.5 else 'happy'); W.im.alpha_composite(mo,(4,27+int(round(S(TAU*u*2)*.6))))
@@ -274,12 +274,12 @@ def cu_plant_hot(u):
     pl.ell(56,48+droop*4,8,3,'#8aa84e'); pl.ell(80,42+droop*6,8,3,'#8aa84e')
     for k in range(5):
         a=k*1.2+1.4; pl.ell(tipx+2+Cs(a)*4,tipy+4+S(a)*3+droop*3,3,2.4,'#d88aa0')
-    pl.outline(); W.on(pl)
+    pl.outline(flat=True); W.on(pl)
     pot(W)
     for i in range(4): v=(u*2+i/4)%1; W.r(int(58+i*6+S(TAU*v+i)*2),int(58-v*20),1,2,WH)
     jit=1 if int(u*24)%2 else 0
     mo=mouse_big('worried'); W.im.alpha_composite(mo,(4+jit,27))
-    sw=L(5,6); sw.r(1,1,2,3,'#8cc4ec'); sw.px(2,0,'#8cc4ec'); sw.outline(); W.on(sw,46,30+int(u*6)%4)
+    sw=L(5,6); sw.r(1,1,2,3,'#8cc4ec'); sw.px(2,0,'#8cc4ec'); sw.outline(flat=True); W.on(sw,46,30+int(u*6)%4)
     t=L(120,90); t.r(0,0,120,90,(240,128,96,40)); W.im.alpha_composite(t.im)
     frame(W); return W.im
 
