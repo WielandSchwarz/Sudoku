@@ -1,16 +1,25 @@
   // ===================== Bimmelbahn: set the switches so every animal reaches its station on time (first playable draft) =====================
   var ZG_A = /*ZUGART*/, ZG_I = {}; Object.keys(ZG_A).forEach(function (k) { var im = new Image(); im.src = ZG_A[k]; ZG_I[k] = im; });
-  var ZG_N = { dorf: [22, 22], j1: [70, 22], muehle: [158, 22], j2: [158, 56], see: [158, 84], wald: [22, 84], berg: [96, 56], c1: [70, 56] };
-  var ZG_E = [["dorf", "j1"], ["j1", "muehle"], ["j1", "c1"], ["c1", "berg"], ["berg", "j2"], ["muehle", "j2"], ["j2", "see"], ["see", "wald"], ["wald", "dorf"]];
+  var ZG_N = { dorf: [22, 22], s1: [64, 22], s2: [128, 22], muehle: [158, 22], s3: [22, 54], s4: [64, 54], berg: [96, 54], s5: [128, 54], s6: [158, 54], wald: [22, 84], see: [158, 84] };
+  var ZG_E = [["dorf", "s1"], ["s1", "s2"], ["s2", "muehle"], ["dorf", "s3"], ["s3", "wald"], ["muehle", "s6"], ["s6", "see"], ["s1", "s4"], ["s2", "s5"], ["s3", "s4"], ["s4", "berg"], ["berg", "s5"], ["s5", "s6"], ["wald", "see"]];
   var ZG_ST = { dorf: "#e9b949", muehle: "#c8463c", see: "#4a9ad0", wald: "#4e8c3c", berg: "#9a9aa6" };
-  var ZG_SW = { j1: { opts: ["muehle", "c1", "dorf"], straight: { dorf: "muehle", muehle: "dorf", c1: "dorf" } }, j2: { opts: ["see", "berg", "muehle"], straight: { muehle: "see", see: "muehle", berg: "muehle" } } };
-  var ZG_BOX = { dorf: [30, 27], muehle: [152, 27, 1], see: [152, 60, 1], wald: [28, 60], berg: [108, 30] };
+  var ZG_SW = { s1: {}, s2: {}, s3: {}, s4: {}, s5: {}, s6: {} };   /* six switches; each can point to any of its three tracks */
+  var ZG_BOX = { dorf: [27, 30], muehle: [153, 30, 1], see: [153, 60, 1], wald: [27, 60], berg: [100, 29] };
   var ZG_DAY = [   /* [time, animal, from, to, patience in seconds of driving] */
-    [0, "maus", "dorf", "see", 40], [0, "hase", "dorf", "muehle", 26], [0, "igel", "see", "berg", 48], [0, "fuchs", "muehle", "wald", 50],
-    [8, "frosch", "berg", "dorf", 45], [14, "maus", "wald", "muehle", 50], [20, "hase", "see", "dorf", 45], [28, "igel", "muehle", "see", 40]
+    [0, "maus", "dorf", "see", 34], [0, "hase", "dorf", "berg", 26], [0, "igel", "see", "muehle", 40], [0, "fuchs", "muehle", "berg", 36],
+    [6, "frosch", "berg", "dorf", 30], [10, "maus", "wald", "muehle", 36], [14, "hase", "berg", "see", 32], [18, "igel", "muehle", "wald", 34],
+    [24, "fuchs", "dorf", "berg", 30], [28, "frosch", "wald", "berg", 32], [34, "maus", "berg", "muehle", 30], [40, "hase", "see", "dorf", 34]
   ];
   var ZG_SPEED = 26, zgNb = {};
   ZG_E.forEach(function (e) { (zgNb[e[0]] = zgNb[e[0]] || []).push(e[1]); (zgNb[e[1]] = zgNb[e[1]] || []).push(e[0]); });
+  Object.keys(ZG_SW).forEach(function (j) {   /* "straight on" for each way in: the track opposite, or else the next one */
+    var sw = ZG_SW[j], p = ZG_N[j]; sw.opts = zgNb[j].slice(); sw.set = 0; sw.straight = {};
+    sw.opts.forEach(function (a) {
+      var pa = ZG_N[a], da = [Math.sign(pa[0] - p[0]), Math.sign(pa[1] - p[1])];
+      var opp = sw.opts.filter(function (b) { var pb = ZG_N[b]; return Math.sign(pb[0] - p[0]) === -da[0] && Math.sign(pb[1] - p[1]) === -da[1]; })[0];
+      sw.straight[a] = opp || sw.opts.filter(function (b) { return b !== a; })[0];
+    });
+  });
   var zgV = mPov("zg-pov", "Bahnhof verlassen"), zgS = null; zgV.ban.style.display = "none";
   function zgR(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); }
   function zgLen(a, b) { var p = ZG_N[a], q = ZG_N[b]; return Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]); }
@@ -28,8 +37,9 @@
   }
   // ---------------------------------------------------------------- the day
   function zgStart() {
-    ZG_SW.j1.set = 0; ZG_SW.j2.set = 0;
-    zgS = { prev: "wald", cur: "dorf", d: zgLen("wald", "dorf"), hist: ["see"], T: 0, clk: 0, spawn: 0, wait: {}, ride: [null, null, null, null, null, null], done: [], mode: "map", hot: {}, last: 0 };
+    var ZG_INIT = { s1: "s2", s2: "muehle", s3: "dorf", s4: "berg", s5: "s6", s6: "see" };   /* start: arrows show the big round trip */
+    Object.keys(ZG_SW).forEach(function (j) { ZG_SW[j].set = Math.max(0, ZG_SW[j].opts.indexOf(ZG_INIT[j])); });
+    zgS = { prev: "s3", cur: "dorf", d: zgLen("s3", "dorf"), hist: ["wald"], T: 0, clk: 0, spawn: 0, wait: {}, ride: [null, null, null, null, null, null], done: [], mode: "map", hot: {}, last: 0 };
     Object.keys(ZG_ST).forEach(function (k) { zgS.wait[k] = []; });
     zgSpawn(); zgArrive(); zgS.lastStop = "dorf";
   }
@@ -110,7 +120,7 @@
   }
   function zgTrain(c) {
     var S = zgS;
-    zgImg(c, "ms" + (Math.floor(S.clk * 5) % 3), 119, 0);   /* windmill sails */
+    zgImg(c, "ms" + (Math.floor(S.clk * 5) % 3), 91, 0);   /* windmill sails */
     zgImg(c, "duck", Math.round(112 + Math.sin(S.clk * .4) * 14), 93 + (Math.floor(S.clk * 1.5) % 2));
     var pts = [0, 12, 24].map(zgBehind), pts2 = [5, 17, 29].map(zgBehind);   /* the little train: engine in front, two coaches */
     for (var t = 2; t >= 0; t--) {

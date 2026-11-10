@@ -109,31 +109,30 @@ def segd(x,y):
         d=math.hypot(dx,dy) if dx and dy else max(dx,dy)
         best=min(best,d)
     return best
-NODES={'dorf':(22,22),'j1':(70,22),'muehle':(158,22),'j2':(158,56),'see':(158,84),'wald':(22,84),'berg':(96,56),'c1':(70,56)}
-SEG=[('dorf','j1'),('j1','muehle'),('j1','c1'),('c1','berg'),('berg','j2'),('muehle','j2'),('j2','see'),('see','wald'),('wald','dorf')]
+NODES={'dorf':(22,22),'s1':(64,22),'s2':(128,22),'muehle':(158,22),'s3':(22,54),'s4':(64,54),'berg':(96,54),'s5':(128,54),'s6':(158,54),'wald':(22,84),'see':(158,84)}
+SEG=[('dorf','s1'),('s1','s2'),('s2','muehle'),('dorf','s3'),('s3','wald'),('muehle','s6'),('s6','see'),('s1','s4'),('s2','s5'),('s3','s4'),('s4','berg'),('berg','s5'),('s5','s6'),('wald','see')]
 SEGS=[(NODES[a],NODES[b]) for a,b in SEG]
 def mountain_m():
-    m=L(84,32)
-    A=[(0,30),(14,6),(20,10),(26,2),(40,30)]; B=[(26,30),(46,4),(54,9),(62,0),(84,30)]
-    poly(m,A,'#9a9aa6'); poly(m,B,'#9a9aa6'); m.outline()
-    # shade the faces that look away from the light: right of each ridge line
-    def shade_right(px,py,bx,col):
-        for y in range(py,31):
-            xr=px+(bx-px)*(y-py)/(30-py)
-            for x in range(int(xr)+1,84):
-                if m.p[x,y]==H('#9a9aa6'): m.p[x,y]=H(col)
+    m=L(58,24); base='#9a9aa6'
+    A=[(0,23),(11,3),(17,8),(24,23)]; B=[(30,23),(44,0),(50,6),(58,23)]; Cc=[(14,23),(28,6),(42,23)]
+    poly(m,Cc,'#a4a4b0'); poly(m,A,base); poly(m,B,base); m.outline()
+    def shade_right(px,py,bx,col,b0):
+        for y in range(py,24):
+            xr=px+(bx-px)*(y-py)/(23-py)
+            for x in range(int(xr)+1,58):
+                if m.p[x,y]==H(b0): m.p[x,y]=H(col)
                 elif m.p[x,y]==INK or m.p[x,y][3]==0: break
-    shade_right(26,2,33,'#7c7c8a'); shade_right(14,6,12,'#86869a'); shade_right(62,0,70,'#7c7c8a'); shade_right(46,4,44,'#86869a')
-    for (x,y) in ((8,22),(18,18),(34,24),(50,20),(70,22),(60,14)): m.px(x,y,'#b4b4c0'); m.px(x+1,y,'#b4b4c0')
-    for (pk,pts) in (((26,2),[(22,7),(26,2),(31,9),(28,8),(26,10),(24,8)]),((62,0),[(57,5),(62,0),(67,7),(64,6),(62,8),(60,6)]),((46,4),[(43,8),(46,4),(49,8),(47,7)])):
+    shade_right(11,3,14,'#7c7c8a',base); shade_right(44,0,48,'#7c7c8a',base); shade_right(28,6,30,'#8a8a98','#a4a4b0')
+    for (pk,pts) in (((11,3),[(8,8),(11,3),(15,8),(13,7),(11,9),(9,8)]),((44,0),[(40,5),(44,0),(48,5),(46,5),(44,7),(42,5)]),((28,6),[(25,10),(28,6),(31,10),(28,9)])):
         poly(m,pts,'#fff8ec')
         for y in range(m.h):
             for x in range(pk[0]+1,m.w):
                 if m.p[x,y]==H('#fff8ec'): m.p[x,y]=H('#d8e2ee')
-    for x in range(1,83):
-        for y in range(23,30):
+    for (x,y) in ((6,17),(20,15),(38,16),(50,14)): m.px(x,y,'#b4b4c0'); m.px(x+1,y,'#b4b4c0')
+    for x in range(1,57):
+        for y in range(17,23):
             q=m.p[x,y]
-            if q[3] and q!=INK and (noise(x,y,3,5)>.55 or y>27): m.p[x,y]=H('#7aa85c') if q==H('#9a9aa6') else H('#6a9850')
+            if q[3] and q!=INK and (noise(x,y,3,5)>.55 or y>20): m.p[x,y]=H('#7aa85c') if q in (H(base),H('#a4a4b0')) else H('#6a9850')
     return m
 def windmill_m(W,x,y):
     t=L(14,17); poly(t,[(4,3),(10,3),(12,16),(2,16)],CREAM); poly(t,[(2,4),(7,-1),(12,4)],'#c8463c'); t.outline()
@@ -180,14 +179,14 @@ def build_map():
     for xx in range(1,10,3): pier.r(xx,1,1,3,WOOD2)
     pier.r(1,1,9,1,light(WOOD,.3)); place(W,pier,145,92,(1,1),.8)
     # stream
-    sp=[(128,49),(128,52),(127,56),(126,60),(127,64),(129,68),(130,72),(129,76),(128,80),(128,84),(127,88),(126,91)]
+    sp=[(112,47),(112,50),(111,54),(110,58),(111,62),(113,66),(114,70),(113,74),(112,78),(112,84),(111,88),(110,91)]
     for (x,y),(x2,y2) in zip(sp,sp[1:]):
         for t in range(0,5):
             yy=int(y+(y2-y)*t/4); xx=int(x+(x2-x)*t/4)
             W.r(xx-3,yy,7,1,'#c8b484'); W.r(xx-2,yy,5,1,WAT[1]); W.px(xx+2,yy,'#68b0e0'); W.px(xx-4,yy,INK); W.px(xx+4,yy,INK)
-    for y in range(51,92,4): W.px(126+(y//4)%2,y,'#d4f0fc'); W.px(127+(y//4)%2,y+1,'#d4f0fc')
+    for y in range(49,92,4): W.px(110+(y//4)%2,y,'#d4f0fc'); W.px(111+(y//4)%2,y+1,'#d4f0fc')
     # mountain
-    mt=mountain_m(); place(W,mt,74,24,(3,1),.82)
+    mt=mountain_m(); place(W,mt,67,26,(3,1),.82)
     # tracks: ballast with edge shading, sleepers, rails with their shadow
     for y in range(104):
         for x in range(180):
@@ -217,34 +216,34 @@ def build_map():
         if (x-1,y) not in rails and (x,y-1) not in rails: pass
         if (x+y)%7==0: W.p[x,y]=H('#d0d0d8')
     # bridges over the stream
-    for by in (56,84):
+    for by in (54,84):
         br=L(15,15); br.r(1,1,13,1,WOOD); br.r(1,13,13,1,WOOD); br.outline()
         for xx in (1,5,9,13): br.r(xx,0,1,1,INK); br.r(xx,14,1,1,INK)
         br.r(1,1,13,1,light(WOOD,.3)); br.r(1,13,13,1,WOOD2)
-        place(W,br,120,by-7,(1,1),.8)
+        place(W,br,104,by-7,(1,1),.8)
     # stations and platforms
-    for k,(x,y,side) in {'dorf':(22,22,'u'),'muehle':(158,22,'u'),'berg':(96,56,'u'),'see':(158,84,'d'),'wald':(22,84,'d')}.items():
+    for k,(x,y,side) in {'dorf':(22,22,'u'),'muehle':(158,22,'u'),'berg':(96,54,'u'),'see':(158,84,'d'),'wald':(22,84,'d')}.items():
         py=y-7 if side=='u' else y+5
         pf=L(24,4); pf.r(1,1,22,2,STONE); pf.outline(); pf.r(1,1,22,1,STONEL); place(W,pf,x-12,py,(1,1),.82)
         if side=='u': station_m(W,k,x,y-6)
         else: station_m(W,k,x,y+24)
-    # Dorf
-    house_m(W,35,0,'#c8463c',12,7); house_m(W,50,4,'#4a7ac0',10,6)
-    fence=L(36,4)
-    for xx in range(0,34,3): fence.r(xx+1,1,1,2,WOOD)
-    fence.r(1,1,33,1,WOOD); fence.outline(); place(W,fence,28,38,(1,1),.85)
-    for x in range(31,61,4):
-        for y in range(44,50,3):
+    # Dorf: houses on the top edge, a garden in the first cell
+    house_m(W,34,0,'#c8463c',11,7); house_m(W,47,3,'#4a7ac0',9,6)
+    fence=L(32,4)
+    for xx in range(0,30,3): fence.r(xx+1,1,1,2,WOOD)
+    fence.r(1,1,29,1,WOOD); fence.outline(); place(W,fence,28,34,(1,1),.85)
+    for x in range(30,56,4):
+        for y in range(40,47,3):
             W.px(x,y,'#3e8434'); W.px(x+1,y,'#5aa84e'); W.px(x,y-1,'#7cc86a')
             if (x+y)%3==0: W.px(x+1,y+1,'#e8604a')
-    tree_m(W,58,38)
-    # Mühle
-    field_m(W,93,2,21,13); windmill_m(W,128,9); field_m(W,164,28,13,9); field_m(W,164,42,13,9)
+    # Mühle: windmill and fields between the switches, more fields on the right
+    field_m(W,74,3,15,12); windmill_m(W,100,9); field_m(W,110,3,13,12)
+    field_m(W,134,29,17,8); bush_m(W,140,47); bush_m(W,149,46,TREE[2]); field_m(W,165,28,12,9); field_m(W,165,41,12,9)
     tree_m(W,172,74)
     # Wald
-    for (x,y,h) in ((6,52,15),(13,76,17),(4,94,15),(40,102,14),(52,98,12),(63,103,15),(10,104,13),(30,84,12),(46,82,10),(16,62,11)): fir_m(W,x,y,h)
-    bush_m(W,64,80); bush_m(W,84,78,TREE[2]); bush_m(W,150,49)
-    tree_m(W,104,79,True); tree_m(W,146,75)
+    for (x,y,h) in ((7,44,14),(8,64,15),(13,78,13),(4,96,15),(40,102,14),(52,98,12),(64,103,15),(10,104,13),(34,80,12),(46,79,10)): fir_m(W,x,y,h)
+    bush_m(W,62,78); bush_m(W,82,79,TREE[2]); bush_m(W,138,62)
+    tree_m(W,92,76,True); tree_m(W,140,79)
     for i in range(46):
         x=(i*37+21)%180; y=(i*23+5)%104
         if segd(x+.5,y+.5)>6.5 and W.p[x,y][1]>150: W.px(x,y,('#ffffff','#f6d84a','#f4a3b4')[i%3])
