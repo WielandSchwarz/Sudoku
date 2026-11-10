@@ -38,7 +38,7 @@ src = src.rstrip('\n') + '''
   new MutationObserver(function (ms) { ms.forEach(function (m) { [].forEach.call(m.addedNodes, function (n) { if (n.parentNode === document.body && adopt(n)) inner.appendChild(n); }); }); }).observe(document.body, { childList: true });
   function fit() {
     var W = window.innerWidth, H = window.innerHeight, z = Math.min(W / 560, H / 760);
-    z = Math.max(1, Math.floor(z * 20) / 20);
+    z = Math.max(1, Math.floor((1 + z) / 2 * 20) / 20);   /* halfway between normal and filling the screen: more room around */
     outer.style.width = (W / z) + "px"; outer.style.height = (H / z) + "px"; outer.style.transform = "scale(" + z + ")";
     var r = document.documentElement.style; r.setProperty("--bs-vw", (W / z / 100) + "px"); r.setProperty("--bs-vh", (H / z / 100) + "px");
   }

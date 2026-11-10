@@ -3180,7 +3180,7 @@ html.bs-on, html.bs-on body { height: 100%; overflow: hidden; }
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 122 · 10.11.2026</p>
+    <p class="opt-version">Version 123 · 11.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -24695,7 +24695,7 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   function zgClose() { if (zgS) cancelAnimationFrame(zgS.raf); zgS = null; zgV.el.hidden = true; }
   zgV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); zgClose(); });
   (function () { var b = $id("d-zug"); if (b) b.addEventListener("click", function () { zgOpen(); }); })();   /* preview only for now */
-  window.__zug = { open: zgOpen, close: zgClose, state: function () { return zgS; }, sw: ZG_SW };
+  window.__zug = { open: zgOpen, close: zgClose, state: function () { return zgS; }, sw: ZG_SW, img: ZG_I };
   // ===================== sound on/off: a button beside the paw at the top; every sound of the game goes through one volume knob =====================
   (function () {
     var muted = false; try { muted = localStorage.getItem("ham-mute") === "1"; } catch (e) { }
@@ -25676,7 +25676,7 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   new MutationObserver(function (ms) { ms.forEach(function (m) { [].forEach.call(m.addedNodes, function (n) { if (n.parentNode === document.body && adopt(n)) inner.appendChild(n); }); }); }).observe(document.body, { childList: true });
   function fit() {
     var W = window.innerWidth, H = window.innerHeight, z = Math.min(W / 560, H / 760);
-    z = Math.max(1, Math.floor(z * 20) / 20);
+    z = Math.max(1, Math.floor((1 + z) / 2 * 20) / 20);   /* halfway between normal and filling the screen: more room around */
     outer.style.width = (W / z) + "px"; outer.style.height = (H / z) + "px"; outer.style.transform = "scale(" + z + ")";
     var r = document.documentElement.style; r.setProperty("--bs-vw", (W / z / 100) + "px"); r.setProperty("--bs-vh", (H / z / 100) + "px");
   }
