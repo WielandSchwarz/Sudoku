@@ -242,6 +242,7 @@ function mountObstsalat(root, ART, opts) {
   function cutFruit(it, dx, dy, onLine) {   /* an ordinary piece of fruit (and the specials): points, sound, combo, skewer, honey chain */
     var f = FR[it.k]; it.cut = true;
     var skin = sliceItem(it, dx, dy);
+    if (!S.strokeHits) S.swipeStart = performance.now();
     sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
     countCut(it.k, skin, f.flesh);
     var val = it.k === "goldapfel" ? 4 : it.k === "wassermelone" ? 6 : 1;
@@ -308,7 +309,7 @@ function mountObstsalat(root, ART, opts) {
 
   // ---------- input
   var HB = { x: 128, y: 91, w: 48, h: 46 };
-  var SWIPE_V = 70, SWIPE_GAP = 110;   /* below this speed (room px/s) for this long (ms) the swipe is over, even with the finger still down */
+  var SWIPE_V = 150, SWIPE_GAP = 60, SWIPE_MAX = 600;   /* a swipe ends when the finger slows down (below SWIPE_V room px/s for SWIPE_GAP ms), turns back, or after SWIPE_MAX ms of cutting: lifting the finger does not matter */
   function pt(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H }; }
   var down = null;
   cv.addEventListener("pointerdown", function (ev) {
@@ -325,8 +326,11 @@ function mountObstsalat(root, ART, opts) {
     if (!down || !S.stroke) return;
     var p = pt(ev), q = S.stroke, now = performance.now(), dist = Math.hypot(p.x - q.x, p.y - q.y);
     down.moved += dist; if (down.moved - down.sw > 40) { down.sw = down.moved; sfx("swish"); }
-    var sp = dist / Math.max(1, now - (down.mt || now - 16)) * 1000; down.mt = now;   /* speed in room pixels per second */
-    if (sp > SWIPE_V) down.fast = now;
+    var dtm = Math.max(1, now - (down.mt || now - 16)), vx = (p.x - q.x) / dtm * 1000, vy = (p.y - q.y) / dtm * 1000; down.mt = now;   /* velocity in room pixels per second, smoothed */
+    var svx = down.vx || 0, svy = down.vy || 0;
+    if (dist > .5 && svx * vx + svy * vy < 0 && Math.hypot(svx, svy) > SWIPE_V) endSwipe();   /* turning back: a new swipe */
+    down.vx = svx * .5 + vx * .5; down.vy = svy * .5 + vy * .5;
+    if (Math.hypot(down.vx, down.vy) > SWIPE_V) down.fast = now;
     cutAlong(q.x, q.y, p.x, p.y);
     S.stroke = p; S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
@@ -576,7 +580,7 @@ function mountObstsalat(root, ART, opts) {
   var last = performance.now(), raf = 0;
   function frame(now) {
     if (S.paused) { last = now; raf = requestAnimationFrame(frame); return; }
-    if (down && (S.strokeHits || S.skew.length) && now - down.fast > SWIPE_GAP) endSwipe();   /* a present is being shown on top: everything waits */
+    if (down && (S.strokeHits || S.skew.length) && (now - down.fast > SWIPE_GAP || now - (S.swipeStart || now) > SWIPE_MAX)) endSwipe();   /* a present is being shown on top: everything waits */
     var dt = Math.min(.05, (now - last) / 1000); last = now; S.t += dt;
     var ts = S.slowT > 0 ? .38 : 1, wdt = dt * ts; S.wt += wdt;
     var tm = timeNow();
