@@ -2708,6 +2708,9 @@ body.dz-on .dz-panel { display: block; }
 .os-al b { font-weight: 800; font-size: clamp(.7rem, 3.3cqw, .9rem); line-height: 1; }
 .os-al.no img { filter: brightness(0); opacity: .18; }
 .os-al.no b { opacity: .5; }
+.os-gsay[hidden] { display: none; }
+.os-gsay { position: absolute; transform: translateY(-50%); z-index: 3; pointer-events: none; color: #3a2414; font-weight: 800; font-size: clamp(.9rem, 5cqw, 1.2rem); line-height: 1; }
+.os-gsay.end { color: #c8463c; }
 
 </style>
 
@@ -22844,7 +22847,7 @@ function mountObstsalat(root, ART, opts) {
     o.im.onload = function () {
       var c = document.createElement("canvas"); c.width = o.w; c.height = o.h; var g = c.getContext("2d"); g.drawImage(o.im, 0, 0); o.data = g.getImageData(0, 0, o.w, o.h);
       o.sil = {};                                       // silhouettes for the glow of special items, in two colours
-      ["#ffffff", "#bfe8ff", "#ffd8a0", "#ff4a3a", "#9a1e14", "#d0ffd0", "#ffd0f0", "#fff8a0"].forEach(function (col) {
+      ["#ffffff", "#bfe8ff", "#ffd8a0", "#ff4a3a", "#9a1e14", "#d0ffd0", "#ffd0f0", "#fff8a0", "#e8a020"].forEach(function (col) {
         var s = document.createElement("canvas"); s.width = o.w; s.height = o.h; var sg = s.getContext("2d"); sg.drawImage(o.im, 0, 0);
         sg.globalCompositeOperation = "source-in"; sg.fillStyle = col; sg.fillRect(0, 0, o.w, o.h); o.sil[col] = s;
       });
@@ -22871,8 +22874,9 @@ function mountObstsalat(root, ART, opts) {
   function reset() {
     S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .5, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
       face: "normal", faceT: 0, nib: 0, nibT: 4 + Math.random() * 3, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
-      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0, stickT: 0, skew: [], skewers: [], cutCount: {}, cutCols: [], bubT: 7 + Math.random() * 4, gHop: 0, favN: 0, smooth: null };
-    endEl.hidden = true; boardEl.hidden = true; albumEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
+      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0, stickT: 0, skew: [], skewers: [], cutCount: {}, cutCols: [], bubT: 7 + Math.random() * 4, gHop: 0, favN: 0, smooth: null, gSaid: false, honey: [] };
+    if (GUEST) S.spawnT = 2.6;
+    endEl.hidden = true; boardEl.hidden = true; albumEl.hidden = true; if (typeof gSay !== "undefined") gSay.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
   }
   function loadBest() { try { return +localStorage.getItem("obstsalat-rekord") || 0; } catch (e) { return 0; } }
@@ -23028,7 +23032,7 @@ function mountObstsalat(root, ART, opts) {
     addScore(points(val));
     if (S.stickT > 0) S.items.forEach(function (o) {   /* honey: whatever sticks to it comes along */
       if (o.cut || o.bub || o.k === "kastanie" || o.k === "kokosnuss" || o.k === "ananas" || SPECIALS[o.k] || PIECE[o.k] && S.wt - o.born < .35) return;
-      if (Math.hypot(o.x - it.x, o.y - it.y) < 24) cutFruit(o, dx, dy, false);
+      if (Math.hypot(o.x - it.x, o.y - it.y) < 30) cutFruit(o, dx, dy, false);
     });
     (function () {
       if (it.k === "wassermelone") { popText("+" + points(6), it.x, it.y, "#f8d850"); sfx("melone"); cheer(1);
@@ -23047,7 +23051,9 @@ function mountObstsalat(root, ART, opts) {
     if (k === "regenbogenerdbeere") { S.comboT = sp.t; S.chain = 0; }
     if (k === "gluehbeere") S.glowT = sp.t;
     if (k === "hamsterkern") S.shieldT = sp.t;
-    if (k === "honigglas") S.stickT = sp.t;
+    if (k === "honigglas") { S.stickT = sp.t;
+      S.items.forEach(function (it) { if (it.k === "honigglas") return; });
+      for (var hb = 0; hb < 30; hb++) { var ah = Math.random() * Math.PI * 2, sh = 30 + Math.random() * 70; S.bits.push({ x: 90, y: 50, vx: Math.cos(ah) * sh, vy: Math.sin(ah) * sh - 30, c: hb % 3 ? "#f0b030" : hb % 2 ? "#ffe080" : "#b86c10", life: .8 + Math.random() * .4, big: true }); } }
     sfx(k);
     if (k === "uhrbluete") { S.timeLeft += 5; showBanner(sp.ban, 1.8, false); cheer(1); return; }
     S.specialMax = sp.t; S.specialKey = k;
@@ -23084,36 +23090,40 @@ function mountObstsalat(root, ART, opts) {
 
   // ---------- input
   var HB = { x: 128, y: 91, w: 48, h: 46 };
+  var SWIPE_V = 70, SWIPE_GAP = 110;   /* below this speed (room px/s) for this long (ms) the swipe is over, even with the finger still down */
   function pt(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H }; }
   var down = null;
   cv.addEventListener("pointerdown", function (ev) {
     if (S.done) {
-      if (S.endT < (S.smooth ? 3 : 1.4)) return;
+      if (S.endT < (S.smooth ? 3 : 1.4) + (GUEST ? 2.4 : 0)) return;
       if (opts.board && !S.boardOn) showBoard(); else reset();
       return;
     }
-    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0, sw: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeId++; S.skew = []; if (!(S.comboT > 0)) S.strokeCuts = [];
+    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0, sw: 0, mt: performance.now(), fast: performance.now() }; S.stroke = p; S.strokeHits = 0; S.strokeId++; S.skew = []; if (!(S.comboT > 0)) S.strokeCuts = [];
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
   cv.addEventListener("pointermove", function (ev) {
     if (!down || !S.stroke) return;
-    var p = pt(ev), q = S.stroke;
-    down.moved += Math.hypot(p.x - q.x, p.y - q.y); if (down.moved - down.sw > 40) { down.sw = down.moved; sfx("swish"); }
+    var p = pt(ev), q = S.stroke, now = performance.now(), dist = Math.hypot(p.x - q.x, p.y - q.y);
+    down.moved += dist; if (down.moved - down.sw > 40) { down.sw = down.moved; sfx("swish"); }
+    var sp = dist / Math.max(1, now - (down.mt || now - 16)) * 1000; down.mt = now;   /* speed in room pixels per second */
+    if (sp > SWIPE_V) down.fast = now;
     cutAlong(q.x, q.y, p.x, p.y);
     S.stroke = p; S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
+  function endSwipe() {   /* one swipe is over: combo and skewer are counted for this swipe only */
+    if (!S.done) skewer();
+    if (S.comboT > 0 && !S.done) { S.chain += S.strokeHits; S.strokeHits = 0; return; }   /* rainbow: every swipe now counts into one big combo */
+    if (S.strokeHits >= 3 && !S.done) { var lc = S.strokeCuts[S.strokeCuts.length - 1]; combo(S.strokeHits, lc.x, lc.y); }
+    S.strokeHits = 0; S.strokeCuts = []; S.skew = [];
+  }
   function up(ev) {
     if (!down) return;
     var p = pt(ev);
     if (down.moved < 3 && p.x >= HB.x && p.x < HB.x + HB.w && p.y >= HB.y + 4 && p.y < HB.y + HB.h) finish();
-    if (!S.done) skewer();
-    if (S.comboT > 0 && !S.done) { S.chain += S.strokeHits; down = null; S.stroke = null; S.strokeHits = 0; return; }   /* rainbow: every swipe now counts into one big combo */
-    if (S.strokeHits >= 3 && !S.done) {
-      var lc = S.strokeCuts[S.strokeCuts.length - 1];
-      combo(S.strokeHits, lc.x, lc.y);
-    }
-    down = null; S.stroke = null; S.strokeHits = 0; S.strokeCuts = [];
+    endSwipe();
+    down = null; S.stroke = null;
   }
   function skewer() {   /* three or more pieces cut in one straight line: the hamster puts them on a skewer */
     var k = S.skew; S.skew = []; if (k.length < 3) return;
@@ -23273,6 +23283,40 @@ function mountObstsalat(root, ART, opts) {
     }
   }
 
+  function drawHoney() {   /* honey runs in from the top edge, with drips; fruit gets a golden coat and drips too */
+    var k = Math.min(1, S.stickT / .5, (SPECIALS.honigglas.t - S.stickT) / .4 + .1), depth = Math.round(5 * k);
+    for (var x = 0; x < W; x++) {
+      var d = depth + (hash(x, 3) % 3) - 1 + (Math.sin(x * .4 + S.t * 2) > .6 ? 1 : 0);
+      var dl = hash(x, 11) % 13 === 0 ? Math.round((8 + hash(x, 5) % 14) * k * (.7 + .3 * Math.sin(S.t * 1.5 + x))) : 0;
+      for (var y = 0; y < d + dl; y++) {
+        if (y >= d && (x % 13 === 0 || hash(x, 11) % 13 !== 0)) break;
+        px(x, y, y === 0 ? "#ffe080" : y >= d + dl - 1 || y === d - 1 && !dl ? "#b86c10" : (x + y) % 7 === 0 ? "#ffd060" : "#f0b030");
+      }
+      if (dl) { px(x - 1, d + dl - 1, "#e8a020"); px(x + 1, d + dl - 1, "#e8a020"); px(x, d + dl, "#b86c10"); px(x - 1, d + dl - 2, "#ffe080"); }
+    }
+  }
+
+  /* the guest: hops in at the start and shows its favourite fruit (it counts double), hops out again;
+     at the end it comes back and shows how many of them were caught */
+  var gSay = document.createElement("b"); gSay.className = "os-gsay"; gSay.hidden = true; root.appendChild(gSay);
+  function drawGuest(t, atEnd) {
+    if (!GIM || !GIM.complete || !GIM.width || !FR[FAV] || !FR[FAV].im.complete) { gSay.hidden = true; return; }
+    var dur = atEnd ? 99 : 3.2, inn = Math.min(1, t / .35), out = atEnd ? 0 : Math.max(0, Math.min(1, (t - dur + .35) / .35));
+    if (t > dur || t < 0) { gSay.hidden = true; return; }
+    var gx = -50 + 51 * inn - 51 * out, hopY = (inn < 1 || out > 0) ? -Math.abs(Math.sin(t * 14)) * 4 : (S.gHop > 0 ? -(Math.floor(S.gHop * 10) % 2 ? 3 : 1) : 0);
+    cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(Math.round(gx) + 8, 131, 34, 2);
+    sprite(GIM, gx, H - GIM.height + 3 + hopY);
+    if (inn >= 1 && out <= 0) {
+      var ff = FR[FAV], bw = ff.w + 30, bh = Math.max(ff.h, 18) + 8, bx = 22, by = 54;
+      [[22, 90, 2], [27, 84, 3]].forEach(function (c) { ring(c[0], c[1], c[2], true); });
+      cx.fillStyle = INK; cx.fillRect(bx + 1, by, bw - 2, bh); cx.fillRect(bx, by + 1, bw, bh - 2);
+      cx.fillStyle = "#fff8ec"; cx.fillRect(bx + 2, by + 1, bw - 4, bh - 2); cx.fillRect(bx + 1, by + 2, bw - 2, bh - 4);
+      sprite(ff.im, bx + 4, by + (bh - ff.h) / 2);
+      gSay.textContent = atEnd ? "×" + S.favN : "×2"; gSay.className = "os-gsay" + (atEnd ? " end" : "");
+      gSay.style.left = ((bx + ff.w + 6) / W * 100) + "%"; gSay.style.top = ((by + bh / 2) / H * 100) + "%"; gSay.hidden = false;
+    } else gSay.hidden = true;
+  }
+
   /* the finale: everything cut flies into the blender, it whirs, then the hamster drinks the smoothie with a straw */
   function liquid(mask, w, h, lev, col, lite, t, swirl) {   /* the liquid is painted first, then cut to the inside of the glass */
     lq.globalCompositeOperation = "source-over"; lq.clearRect(0, 0, 34, 50);
@@ -23313,7 +23357,8 @@ function mountObstsalat(root, ART, opts) {
   // ---------- main loop
   var last = performance.now(), raf = 0;
   function frame(now) {
-    if (S.paused) { last = now; raf = requestAnimationFrame(frame); return; }   /* a present is being shown on top: everything waits */
+    if (S.paused) { last = now; raf = requestAnimationFrame(frame); return; }
+    if (down && (S.strokeHits || S.skew.length) && now - down.fast > SWIPE_GAP) endSwipe();   /* a present is being shown on top: everything waits */
     var dt = Math.min(.05, (now - last) / 1000); last = now; S.t += dt;
     var ts = S.slowT > 0 ? .38 : 1, wdt = dt * ts; S.wt += wdt;
     var tm = timeNow();
@@ -23357,7 +23402,7 @@ function mountObstsalat(root, ART, opts) {
     if (S.stickT > 0) S.items.forEach(function (a, i) {   /* honey: fruit close together pulls together and sticks */
       if (a.cut || a.k === "kastanie" || a.bub) return;
       for (var j = i + 1; j < S.items.length; j++) { var b = S.items[j]; if (b.cut || b.k === "kastanie" || b.bub) continue;
-        var dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; if (d < 30 && d > 17) { var f = 14 * wdt / d; a.vx += dx * f; a.vy += dy * f; b.vx -= dx * f; b.vy -= dy * f; } }
+        var dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; if (d < 30 && d > 18) { var f = 12 * wdt / d; a.vx += dx * f; a.vy += dy * f; b.vx -= dx * f; b.vy -= dy * f; } }
     });
     S.items.forEach(function (it) {
       if (it.bub) { it.vy += (-24 - it.vy) * Math.min(1, 2 * wdt); it.vx = Math.sin(S.t * 1.6 + it.ph) * 10; it.x += it.vx * wdt; it.y += it.vy * wdt; return; }
@@ -23396,27 +23441,18 @@ function mountObstsalat(root, ART, opts) {
       var hc = HAMSIL[face][Math.floor(S.t * 5) % 2 ? "#ffd850" : "#fff6c0"];
       [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(hc, HB.x + o[0], HB.y + hop + o[1]); });
     }
-    if (HAM[face].complete && !(S.smooth && S.endT > 3)) sprite(HAM[face], HB.x, HB.y + hop);
+    if (HAM[face].complete && !(S.smooth && S.endT - (GUEST ? 2.4 : 0) > 3)) sprite(HAM[face], HB.x, HB.y + hop);
     cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(104, 131, 40, 2);
     var lv = S.shown < FULL * .08 ? 0 : S.shown < FULL * .4 ? 1 : S.shown < FULL * .75 ? 2 : 3, b = BOWL[lv];
     if (b.im.complete) sprite(b.im, 107, 133 - b.h);
-    if (GIM && GIM.complete && GIM.width) {   /* the guest sits bottom left and thinks of its favourite fruit */
-      var gh = S.gHop > 0 ? -(Math.floor(S.gHop * 10) % 2 ? 3 : 1) : 0;
-      cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(8, 131, 34, 2);
-      sprite(GIM, 1, H - GIM.height + 3 + gh);
-      if (!S.done && FR[FAV] && FR[FAV].im.complete) {
-        var ff = FR[FAV], bx0 = 30, by0 = 66, br = Math.max(ff.w, ff.h) / 2 + 4;
-        [[22, 90, 2], [26, 84, 3]].forEach(function (c) { ring(c[0], c[1], c[2], true); });
-        ring(bx0, by0, br, true);
-        sprite(ff.im, bx0 - ff.w / 2, by0 - ff.h / 2);
-      }
-    }
-    if (S.stickT > 0) {   /* honey threads between fruit that sticks together */
-      cx.globalAlpha = Math.min(1, S.stickT / .4);
+    if (!S.done) drawGuest(S.t, false);
+    if (S.stickT > 0) {   /* honey threads between fruit that sticks together: they sag a little and wobble */
       S.items.forEach(function (a, i) { if (a.cut || a.k === "kastanie" || a.bub) return;
         for (var j = i + 1; j < S.items.length; j++) { var o = S.items[j]; if (o.cut || o.k === "kastanie" || o.bub) continue;
-          if (Math.hypot(o.x - a.x, o.y - a.y) < 24) { line(a.x, a.y, o.x, o.y, "#c87810"); line(a.x, a.y + 1, o.x, o.y + 1, "#f0b030"); } } });
-      cx.globalAlpha = 1;
+          var dd = Math.hypot(o.x - a.x, o.y - a.y); if (dd >= 30) continue;
+          var sag = 2 + dd / 8 + Math.sin(S.t * 5 + i) * 1, mx = (a.x + o.x) / 2, my = (a.y + o.y) / 2 + sag;
+          line(a.x, a.y + 1, mx, my + 1, "#b86c10"); line(mx, my + 1, o.x, o.y + 1, "#b86c10");
+          line(a.x, a.y, mx, my, "#f0b030"); line(mx, my, o.x, o.y, "#f0b030"); px(mx, my - 1, "#ffe080"); } });
     }
     S.items.forEach(function (it) {
       var f = FR[it.k]; if (!f.im.complete) return;
@@ -23432,7 +23468,16 @@ function mountObstsalat(root, ART, opts) {
         if (Math.floor(S.t * 5) % 2) gc = "#ffffff";
         [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(f.sil[gc], x0 + o[0], y0 + o[1]); });
       }
+      if (S.stickT > 0 && it.k !== "kastanie" && !it.bub && f.sil) {   /* honey coat: a golden outline, glints and a drip hanging off the bottom */
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(f.sil["#e8a020"], x0 + o[0], y0 + o[1]); });
+      }
       sprite(f.im, x0, y0);
+      if (S.stickT > 0 && it.k !== "kastanie" && !it.bub) {
+        var dlen = 2 + Math.round((Math.sin(S.t * 3 + it.born * 5) + 1) * 2);
+        for (var dy2 = 0; dy2 < dlen; dy2++) px(it.x, it.y + f.h / 2 + dy2, dy2 === dlen - 1 ? "#b86c10" : "#f0b030");
+        px(it.x - f.w / 4, it.y - f.h / 4, "#ffe080"); px(it.x - f.w / 4 + 1, it.y - f.h / 4, "#fff6c0");
+        if (Math.random() < .03) S.bits.push({ x: it.x, y: it.y + f.h / 2 + dlen, vx: it.vx * .3, vy: 10, c: "#e8a020", life: .6, big: true });
+      }
       if (it.bub) {   /* soap bubble: a thin shimmering ring, light at the top left */
         var rb = f.r + 5;
         cx.fillStyle = "rgba(255,255,255,.16)"; cx.beginPath(); cx.arc(Math.round(it.x), Math.round(it.y), rb, 0, 7); cx.fill();
@@ -23472,24 +23517,27 @@ function mountObstsalat(root, ART, opts) {
     }
     drawTint(tm, true);
     if (S.slowT > 0) drawFrost();
+    if (S.stickT > 0) drawHoney();
     drawEnvFront(tm, dt);
     cx.setTransform(1, 0, 0, 1, 0, 0);
     if (S.flash > 0) { cx.fillStyle = "rgba(255,252,244," + Math.min(1, S.flash / .35).toFixed(2) + ")"; cx.fillRect(0, 0, W, H); }
     if (S.done && S.endT > .7) {
       var k2 = Math.min(1, (S.endT - .7) / .3);
       cx.fillStyle = "rgba(43,29,18," + (.45 * k2).toFixed(2) + ")"; cx.fillRect(0, 0, W, H);
-      if (S.smooth && !S.boardOn) drawSmoothie(S.smooth, S.endT, k2);
+      var GT = GUEST && GIM && GIM.width ? 2.4 : 0;   /* the guest's little report comes first */
+      if (GT && S.endT < .7 + GT && !S.boardOn) { drawGuest(S.endT - .7, true); if (S.endT > .9 && !S.gSaid) { S.gSaid = true; if (S.favN) { S.gHop = .8; sfx("skewer", 3); } } }
+      else { gSay.hidden = true; if (S.smooth && !S.boardOn) drawSmoothie(S.smooth, S.endT - GT, k2);
       else if (BIG.im.complete && !S.boardOn) {                            // no fruit cut: the (empty) big bowl as before
         var heap = 20, frac = Math.min(1, S.score / FULL), sy = Math.round((1 - frac) * heap);
         var bx = Math.round((W - BIG.w) / 2), by = Math.round(58 - BIG.h / 2 + (1 - k2) * 10);
         cx.drawImage(BIG.im, 0, sy, BIG.w, BIG.h - sy, bx, by + sy, BIG.w, BIG.h - sy);
-      }
-      if (endEl.hidden && !S.boardOn && (!S.smooth || S.endT > 3.1)) {
+      } }
+      if (endEl.hidden && !S.boardOn && (!S.smooth || S.endT - GT > 3.1) && S.endT > .7 + GT) {
         endT.textContent = S.record ? "Neuer Rekord!" : S.smooth ? S.smooth.name + "!" : S.score >= FULL ? "Obstsalat!" : S.score >= FULL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
         endN.textContent = S.score;
         endEl.hidden = false;
       }
-      if (opts.board && !S.boardOn && S.endT > (S.smooth ? 5.6 : 3.2)) showBoard();
+      if (opts.board && !S.boardOn && S.endT > (S.smooth ? 5.6 : 3.2) + GT) showBoard();
     }
     drawHud();
     raf = requestAnimationFrame(frame);

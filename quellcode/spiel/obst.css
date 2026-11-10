@@ -110,3 +110,6 @@
 .os-al b { font-weight: 800; font-size: clamp(.7rem, 3.3cqw, .9rem); line-height: 1; }
 .os-al.no img { filter: brightness(0); opacity: .18; }
 .os-al.no b { opacity: .5; }
+.os-gsay[hidden] { display: none; }
+.os-gsay { position: absolute; transform: translateY(-50%); z-index: 3; pointer-events: none; color: #3a2414; font-weight: 800; font-size: clamp(.9rem, 5cqw, 1.2rem); line-height: 1; }
+.os-gsay.end { color: #c8463c; }
