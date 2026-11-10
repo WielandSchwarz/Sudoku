@@ -145,6 +145,8 @@
     var S = zgS, P = S.stop, t = P.t, e = Math.min(1, t / ZG_ARR), ox = -Math.round(Math.pow(1 - e, 2) * 190), u = Math.max(0, Math.min(1, (t - ZG_ARR) / ZG_BRD));
     zgImg(c, "side_" + P.st, 0, 0);
     if (P.st === "muehle") zgImg(c, "bs" + (Math.floor(S.clk * 4) % 3), 6, 8);
+    c.fillStyle = "rgba(40,30,20,.28)"; c.fillRect(4 + ox, 101, 170, 2); c.fillRect(8 + ox, 103, 162, 1);   /* train shadow on the ballast */
+    function zgFoot(x, hop) { c.fillStyle = "rgba(40,30,20," + (.22 - hop * .04) + ")"; c.fillRect(Math.round(x) - 6, 122, 13, 2); c.fillRect(Math.round(x) - 4, 124, 9, 1); }
     zgImg(c, "s_coach", 2 + ox, 64); zgImg(c, "s_coach", 58 + ox, 64); zgImg(c, "s_engine", 112 + ox, 56);
     var wf = Math.floor(-ox / 5) % 2;
     [10, 44, 66, 100].forEach(function (x) { zgImg(c, "whs" + wf, x - 3 + ox, 92); });
@@ -156,11 +158,11 @@
     P.off.forEach(function (o, j) {   /* getting off: still on board while rolling in, then out and along the platform */
       var w = ZG_WIN[o.seat];
       if (t < ZG_ARR) { zgImg(c, "h_" + o.a.k, w[0] + ox, w[1]); return; }
-      var x = w[0] + 6 + u * (70 + j * 14), hop = Math.abs(Math.sin(t * 9 + j)) * 2;
+      var x = w[0] + 6 + u * (70 + j * 14), hop = Math.abs(Math.sin(t * 9 + j)) * 2; zgFoot(x, hop);
       zgImg(c, "b_" + o.a.k, x - 9, 110 - hop); zgImg(c, "h_" + o.a.k, x - 6, 101 - hop);
     });
     P.on.forEach(function (o, j) {   /* getting on: from the platform to the door */
-      if (u >= 1) return; var w = ZG_WIN[o.seat], sx = 124 + j * 18, x = sx + (w[0] + 6 - sx) * u, hop = u > 0 ? Math.abs(Math.sin(t * 9 + j * 2)) * 2 : 0;
+      if (u >= 1) return; var w = ZG_WIN[o.seat], sx = 124 + j * 18, x = sx + (w[0] + 6 - sx) * u, hop = u > 0 ? Math.abs(Math.sin(t * 9 + j * 2)) * 2 : 0; zgFoot(x, hop);
       zgImg(c, "b_" + o.a.k, x - 9, 110 - hop); zgImg(c, "h_" + o.a.k, x - 6, 101 - hop); zgImg(c, "p_" + o.a.to, x + 3, 96 - hop);
     });
     P.puffs = P.puffs || [];   /* steam from the chimney */
