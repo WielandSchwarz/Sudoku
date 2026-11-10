@@ -14,8 +14,12 @@ function mountObstsalat(root, ART, opts) {
   var HURRY = 10;                                       // last seconds: the clock turns orange
   var INK = "#3a2414";
   var SPECIALS = { frostbeere: { t: 5, ban: "Zeitlupe" }, sonnenblume: { t: 7, ban: "Doppelte Punkte" }, honigwabe: { t: 4, ban: "Obstregen" },
-    pusteblume: { t: 4, ban: "Schweben" }, kleeblatt: { t: 5, ban: "Magnet" }, regenbogenerdbeere: { t: 2.5, ban: "Kombi-Zeit" }, uhrbluete: { t: 0, ban: "+5 Sekunden" }, gluehbeere: { t: 6, ban: "Leuchtobst" }, hamsterkern: { t: 10, ban: "Hamster-Mode" } };
-  var GLOW = { frostbeere: "#bfe8ff", sonnenblume: "#ffd8a0", honigwabe: "#ffffff", pusteblume: "#ffffff", kleeblatt: "#d0ffd0", regenbogenerdbeere: "#ffd0f0", uhrbluete: "#ffd0f0", gluehbeere: "#fff8a0", hamsterkern: "#ffd8a0" };
+    pusteblume: { t: 4, ban: "Schweben" }, kleeblatt: { t: 5, ban: "Magnet" }, regenbogenerdbeere: { t: 2.5, ban: "Kombi-Zeit" }, uhrbluete: { t: 0, ban: "+5 Sekunden" }, gluehbeere: { t: 6, ban: "Leuchtobst" }, hamsterkern: { t: 10, ban: "Hamster-Mode" }, honigglas: { t: 5, ban: "Klebrig" } };
+  var GLOW = { frostbeere: "#bfe8ff", sonnenblume: "#ffd8a0", honigwabe: "#ffffff", pusteblume: "#ffffff", kleeblatt: "#d0ffd0", regenbogenerdbeere: "#ffd0f0", uhrbluete: "#ffd0f0", gluehbeere: "#fff8a0", hamsterkern: "#ffd8a0", honigglas: "#ffd8a0" };
+  var ALBUM = ["apfel", "birne", "pflaume", "erdbeere", "kirschen", "tomate", "moehre", "kuerbis", "goldapfel", "wassermelone", "kokosnuss", "ananas", "frostbeere", "sonnenblume", "honigwabe", "honigglas", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete", "gluehbeere", "hamsterkern"];
+  var SMNAME = { apfel: "Apfel", birne: "Birnen", pflaume: "Pflaumen", erdbeere: "Erdbeer", kirschen: "Kirsch", tomate: "Tomaten", moehre: "Möhren", kuerbis: "Kürbis", goldapfel: "Goldapfel", wassermelone: "Melonen", kokosnuss: "Kokos", ananas: "Ananas" };
+  var PIECE = { kokosstueck: 1, ananasring: 1 };
+  var GUEST = opts.guest || null, FAV = GUEST ? GUEST.fav : null;
 
   // ---------- DOM
   root.classList.add("os-root");
@@ -23,7 +27,8 @@ function mountObstsalat(root, ART, opts) {
     '<b class="os-ban"><span class="os-ban-t"></span><i class="os-ban-time"></i></b><button type="button" class="os-x" aria-label="Obstsalat beenden">×</button>' +
     '<div class="os-hud"><b class="os-hud-s"><img alt=""><span class="os-score">0</span></b><b class="os-hud-t"><img alt=""><span class="os-time">1:00</span></b></div>' +
     '<b class="os-x2" hidden>×2</b><div class="os-pops"></div><div class="os-end" hidden><b class="os-end-n"></b><b class="os-end-t"></b></div>' +
-    '<div class="os-board" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><img alt=""><b>Bestenliste</b></div><ol class="os-board-l"></ol></div></div>';
+    '<div class="os-board" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><img alt=""><b>Bestenliste</b></div><ol class="os-board-l"></ol><button type="button" class="os-albtn">Obst-Album</button></div></div>' +
+    '<div class="os-album" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><b>Obst-Album</b></div><div class="os-album-g"></div></div></div>';
   var cv = root.querySelector(".os-cv"), cx = cv.getContext("2d");
   cx.imageSmoothingEnabled = false;
   var ban = root.querySelector(".os-ban"), banT = root.querySelector(".os-ban-t"), banTime = root.querySelector(".os-ban-time");
@@ -34,6 +39,18 @@ function mountObstsalat(root, ART, opts) {
   var boardEl = root.querySelector(".os-board"), boardList = root.querySelector(".os-board-l");
   boardEl.querySelector(".os-board-h img").src = ART.icon.pokal.img;
   var MEDAL = [ART.icon.gold.img, ART.icon.silber.img, ART.icon.bronze.img];
+  var albumEl = root.querySelector(".os-album"), albumG = root.querySelector(".os-album-g");
+  root.querySelector(".os-albtn").addEventListener("pointerdown", function (e) { e.stopPropagation(); showAlbum(); });
+  albumEl.addEventListener("pointerdown", function (e) { e.stopPropagation(); albumEl.hidden = true; });
+  function showAlbum() {   /* every kind of fruit and how often it was cut, over all rounds */
+    var c = opts.album ? opts.album() || {} : {}; albumG.innerHTML = "";
+    ALBUM.forEach(function (k) {
+      var f = ART.fruit[k], n = c[k] || 0, d = document.createElement("div"); d.className = "os-al" + (n ? "" : " no");
+      d.innerHTML = '<span class="os-al-i"><img alt="" src="' + f.img + '" style="width:calc(var(--os-px) * ' + f.w + ')"></span><b>' + (n ? "×" + n : "?") + "</b>";
+      albumG.appendChild(d);
+    });
+    albumEl.hidden = false; albumG.scrollTop = 0;
+  }
 
   // ---------- images
   function img(src) { var i = new Image(); i.src = src; return i; }
@@ -56,6 +73,11 @@ function mountObstsalat(root, ART, opts) {
     FR[k] = o;
   });
 
+  var GIM = null, GSIL = null;
+  if (GUEST) { GIM = img("data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + GUEST.vb + '" width="' + GUEST.vb.split(" ")[2] + '" height="' + GUEST.vb.split(" ")[3] + '" shape-rendering="crispEdges">' + GUEST.svg + "</svg>")); }
+  var SM = ART.smoothie ? { bb: img(ART.smoothie.blender_back), bf: img(ART.smoothie.blender_front), bm: img(ART.smoothie.blender_mask), gb: img(ART.smoothie.glas_back), gf: img(ART.smoothie.glas_front), gm: img(ART.smoothie.glas_mask) } : null;
+  var LQ = document.createElement("canvas"); LQ.width = 34; LQ.height = 50; var lq = LQ.getContext("2d");
+
   // ---------- environment
   var env = { season: opts.season || seasonNow(), time: opts.time || "auto", weather: opts.weather || "sonne" };
   function seasonNow() { var m = new Date().getMonth(); return m < 2 || m === 11 ? "winter" : m < 5 ? "fruehling" : m < 8 ? "sommer" : "herbst"; }
@@ -70,8 +92,8 @@ function mountObstsalat(root, ART, opts) {
   function reset() {
     S = { items: [], halves: [], drops: [], bits: [], rays: [], trail: [], score: 0, shown: 0, timeLeft: ROUND, best: loadBest(), spawnT: .5, t: 0, wt: 0, done: false, endT: 0, endTitle: "",
       face: "normal", faceT: 0, nib: 0, nibT: 4 + Math.random() * 3, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
-      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0 };
-    endEl.hidden = true; boardEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
+      stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0, stickT: 0, skew: [], skewers: [], cutCount: {}, cutCols: [], bubT: 7 + Math.random() * 4, gHop: 0, favN: 0, smooth: null };
+    endEl.hidden = true; boardEl.hidden = true; albumEl.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
   }
   function loadBest() { try { return +localStorage.getItem("obstsalat-rekord") || 0; } catch (e) { return 0; } }
@@ -96,7 +118,7 @@ function mountObstsalat(root, ART, opts) {
   // ---------- spawning: volleys that grow with time
   function fruitKey() {
     var keys = [], tot = 0;
-    Object.keys(FR).forEach(function (k) { var w = (FR[k].weights || {})[env.season] || 0; if (w) { keys.push([k, w]); tot += w; } });
+    Object.keys(FR).forEach(function (k) { var w = (FR[k].weights || {})[env.season] || 0; if (k === FAV && w) w = Math.max(w * 2.5, 4); if (w) { keys.push([k, w]); tot += w; } });
     var x = Math.random() * tot;
     for (var i = 0; i < keys.length; i++) { x -= keys[i][1]; if (x <= 0) return keys[i][0]; }
     return keys[0][0];
@@ -128,7 +150,7 @@ function mountObstsalat(root, ART, opts) {
     for (i = slots.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp; }
     var gx = 34 + Math.random() * 112, gpeak = 16 + Math.random() * 28, at = S.wt;
     for (i = 0; i < n; i++) {
-      var rr = Math.random(), k = !bombs && i > 0 && Math.random() < bombP && ++bombs ? "kastanie" : rr < .03 ? "goldapfel" : t > 8 && rr < .055 ? "kokosnuss" : t > 5 && rr < .085 ? "wassermelone" : fruitKey();
+      var rr = Math.random(), k = !bombs && i > 0 && Math.random() < bombP && ++bombs ? "kastanie" : rr < .03 ? "goldapfel" : t > 8 && rr < .055 ? "kokosnuss" : t > 5 && rr < .085 ? "wassermelone" : t > 10 && rr < .11 ? "ananas" : fruitKey();
       var x, pk, drift;
       if (i < group) {
         x = gx + (i - (group - 1) / 2) * 15 + (Math.random() - .5) * 3; pk = gpeak + Math.random() * 8;
@@ -141,7 +163,7 @@ function mountObstsalat(root, ART, opts) {
       S.queue.push({ at: at, k: k, x: Math.max(16, Math.min(164, x)), peak: pk, drift: drift });
     }
     if (S.t > S.nextSpecial && S.slowT <= 0 && S.doubleT <= 0 && S.rainT <= 0 && S.floatT <= 0 && S.magT <= 0 && S.comboT <= 0 && S.glowT <= 0 && S.shieldT <= 0) {
-      var SK = ["frostbeere", "sonnenblume", "honigwabe", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete", "hamsterkern"]; if (timeNow() === "nacht") SK.push("gluehbeere", "gluehbeere");
+      var SK = ["frostbeere", "sonnenblume", "honigwabe", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete", "hamsterkern", "honigglas", "honigglas"]; if (timeNow() === "nacht") SK.push("gluehbeere", "gluehbeere");
       var sk = SK[Math.floor(Math.random() * SK.length)];
       S.queue.push({ at: S.wt + .3, k: sk, x: 50 + Math.random() * 80, peak: 18 + Math.random() * 16, drift: null });
       S.nextSpecial = S.t + 5 + Math.random() * 3;
@@ -190,7 +212,12 @@ function mountObstsalat(root, ART, opts) {
       if (it.cut || S.done) return;
       var f = FR[it.k];
       if (segDist(it.x, it.y, ax, ay, bx, by) > f.r + 1) return;
-      if (it.k === "kokosstueck" && S.wt - it.born < .35) return;   /* the pieces are not cut by the swipe that cracked the nut */
+      if (PIECE[it.k] && S.wt - it.born < .35) return;   /* the pieces are not cut by the swipe that cracked the nut */
+      if (it.popT && S.wt - it.popT < .25) return;
+      if (it.bub) {   /* soap bubble: the first swipe pops it, the fruit inside then falls and can be cut */
+        it.bub = false; it.popT = S.wt; it.vy = -35; it.vx *= .3; addScore(points(1)); popText("+" + points(1), it.x, it.y - f.r - 4, "#d8f4ff"); sfx("pop");
+        for (var kb = 0; kb < 14; kb++) { var ab = kb / 14 * Math.PI * 2; S.bits.push({ x: it.x + Math.cos(ab) * (f.r + 4), y: it.y + Math.sin(ab) * (f.r + 4), vx: Math.cos(ab) * 50, vy: Math.sin(ab) * 50 - 10, c: kb % 3 ? "#ffffff" : kb % 2 ? "#ffd0f0" : "#bfe8ff", life: .35 }); }
+        return; }
       if (it.k === "kokosnuss") {                      /* three swipes to crack it, then a shower of coconut pieces */
         if (S.wt - (it.hitT || -9) < .16) return; it.hitT = S.wt; it.hits = (it.hits || 0) + 1;   /* a zigzag in one swipe counts too */
         if (it.hits < 3) { it.vy = Math.min(it.vy * .3, 0) - 45; it.vx *= .3; it.knock = .2; sfx("knock", it.hits);
@@ -201,18 +228,35 @@ function mountObstsalat(root, ART, opts) {
       if (it.k === "kastanie" && S.shieldT > 0) {    /* Hamster-Mode: the chestnut just breaks, and even gives points */
         sliceItem(it, bx - ax, by - ay); addScore(points(2)); popText("+" + points(2), it.x, it.y, "#f8d850"); sfx("shieldhit"); cheer(1); return; }
       if (it.k === "kastanie") { boom(it); return; }
-      if (it.k === "kokosnuss") { sliceItem(it, bx - ax, by - ay); addScore(points(1)); sfx("kokos"); cheer(1);
+      if (it.k === "ananas") { var skA = sliceItem(it, bx - ax, by - ay); addScore(points(1)); sfx("kokos"); cheer(1); countCut(it.k, skA, FR[it.k].flesh);
+        for (var ka = 0; ka < 4; ka++) S.items.push({ k: "ananasring", x: it.x + (ka - 1.5) * 4, y: it.y, vx: (ka - 1.5) * 28 + (Math.random() - .5) * 10, vy: -100 - Math.random() * 40, cut: false, born: S.wt });
+        return; }
+      if (it.k === "kokosnuss") { var skK = sliceItem(it, bx - ax, by - ay); addScore(points(1)); sfx("kokos"); cheer(1); countCut(it.k, skK, FR[it.k].flesh);
         for (var kp = 0; kp < 6; kp++) S.items.push({ k: "kokosstueck", x: it.x + (kp - 2.5) * 3, y: it.y, vx: (kp - 2.5) * 22 + (Math.random() - .5) * 10, vy: -95 - Math.random() * 45, cut: false, born: S.wt });
         return; }
-      var skin = sliceItem(it, bx - ax, by - ay);
-      sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
-      var val = it.k === "goldapfel" ? 4 : it.k === "wassermelone" ? 6 : 1;
-      addScore(points(val));
+      cutFruit(it, bx - ax, by - ay, true);
+    });
+  }
+  function countCut(k, skin, flesh) { if (!PIECE[k]) S.cutCount[k] = (S.cutCount[k] || 0) + 1; if (skin) S.cutCols.push(skin, flesh); }
+  function cutFruit(it, dx, dy, onLine) {   /* an ordinary piece of fruit (and the specials): points, sound, combo, skewer, honey chain */
+    var f = FR[it.k]; it.cut = true;
+    var skin = sliceItem(it, dx, dy);
+    sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
+    countCut(it.k, skin, f.flesh);
+    var val = it.k === "goldapfel" ? 4 : it.k === "wassermelone" ? 6 : 1;
+    if (it.k === FAV) { val *= 2; S.favN++; S.gHop = .5; popText("×2", it.x, it.y - 8, "#ffb0c8"); }   /* the guest's favourite counts double */
+    if (onLine) S.skew.push({ x: it.x, y: it.y, k: it.k, c: skin, f: f.flesh, v: it.k === "goldapfel" ? 4 : 1 });
+    addScore(points(val));
+    if (S.stickT > 0) S.items.forEach(function (o) {   /* honey: whatever sticks to it comes along */
+      if (o.cut || o.bub || o.k === "kastanie" || o.k === "kokosnuss" || o.k === "ananas" || SPECIALS[o.k] || PIECE[o.k] && S.wt - o.born < .35) return;
+      if (Math.hypot(o.x - it.x, o.y - it.y) < 24) cutFruit(o, dx, dy, false);
+    });
+    (function () {
       if (it.k === "wassermelone") { popText("+" + points(6), it.x, it.y, "#f8d850"); sfx("melone"); cheer(1);
         for (var km = 0; km < 4; km++) { var hv = S.halves[S.halves.length - 1 - (km % 2)]; if (hv) S.halves.push({ c: hv.c, x: it.x, y: it.y, vx: (km - 1.5) * 40, vy: -60 - km * 10, w: hv.w, h: hv.h }); } }
       if (it.k === "goldapfel") { cheer(1); popText(S.doubleT > 0 ? "+8" : "+4", it.x, it.y, "#f8d850"); } else if ((S.doubleT > 0 || S.glowT > 0) && it.k !== "wassermelone") popText("+2", it.x, it.y, "#f8d850");
       if (SPECIALS[it.k]) special(it.k);
-    });
+    })();
   }
   function special(k) {
     var sp = SPECIALS[k];
@@ -224,6 +268,7 @@ function mountObstsalat(root, ART, opts) {
     if (k === "regenbogenerdbeere") { S.comboT = sp.t; S.chain = 0; }
     if (k === "gluehbeere") S.glowT = sp.t;
     if (k === "hamsterkern") S.shieldT = sp.t;
+    if (k === "honigglas") S.stickT = sp.t;
     sfx(k);
     if (k === "uhrbluete") { S.timeLeft += 5; showBanner(sp.ban, 1.8, false); cheer(1); return; }
     S.specialMax = sp.t; S.specialKey = k;
@@ -264,11 +309,11 @@ function mountObstsalat(root, ART, opts) {
   var down = null;
   cv.addEventListener("pointerdown", function (ev) {
     if (S.done) {
-      if (S.endT < 1.4) return;
+      if (S.endT < (S.smooth ? 3 : 1.4)) return;
       if (opts.board && !S.boardOn) showBoard(); else reset();
       return;
     }
-    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0, sw: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeId++; if (!(S.comboT > 0)) S.strokeCuts = [];
+    var p = pt(ev); down = { x: p.x, y: p.y, moved: 0, sw: 0 }; S.stroke = p; S.strokeHits = 0; S.strokeId++; S.skew = []; if (!(S.comboT > 0)) S.strokeCuts = [];
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     S.trail.push({ x: p.x, y: p.y, t: S.t });
   });
@@ -283,12 +328,25 @@ function mountObstsalat(root, ART, opts) {
     if (!down) return;
     var p = pt(ev);
     if (down.moved < 3 && p.x >= HB.x && p.x < HB.x + HB.w && p.y >= HB.y + 4 && p.y < HB.y + HB.h) finish();
+    if (!S.done) skewer();
     if (S.comboT > 0 && !S.done) { S.chain += S.strokeHits; down = null; S.stroke = null; S.strokeHits = 0; return; }   /* rainbow: every swipe now counts into one big combo */
     if (S.strokeHits >= 3 && !S.done) {
       var lc = S.strokeCuts[S.strokeCuts.length - 1];
       combo(S.strokeHits, lc.x, lc.y);
     }
     down = null; S.stroke = null; S.strokeHits = 0; S.strokeCuts = [];
+  }
+  function skewer() {   /* three or more pieces cut in one straight line: the hamster puts them on a skewer */
+    var k = S.skew; S.skew = []; if (k.length < 3) return;
+    var a = k[0], b = k[k.length - 1], L = Math.hypot(b.x - a.x, b.y - a.y); if (L < 16) return;
+    var nx = -(b.y - a.y) / L, ny = (b.x - a.x) / L;
+    if (k.some(function (q) { return Math.abs((q.x - a.x) * nx + (q.y - a.y) * ny) > 5.5; })) return;
+    var bonus = points(5), fav = 0;
+    k.forEach(function (q) { if (q.k === FAV) fav += points(q.v * 3); });   /* the favourite on a skewer: five times instead of two */
+    addScore(bonus + fav); sfx("skewer", k.length); cheer(2); if (fav) S.gHop = .8;
+    var e = popText((fav ? "Lieblingsspieß! +" : "Spieß! +") + (bonus + fav), Math.max(30, Math.min(150, (a.x + b.x) / 2)), Math.max(22, Math.min(104, (a.y + b.y) / 2 - 12)), null, 1400);
+    e.className = "os-pop os-pop-combo c6";
+    S.skewers.push({ pts: k.map(function (q) { return { x: q.x, y: q.y, c: q.c, f: q.f }; }), ux: (b.x - a.x) / L, uy: (b.y - a.y) / L, t: 0 });
   }
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
   root.querySelector(".os-x").addEventListener("click", function () { if (opts.onClose) opts.onClose(); else reset(); });
@@ -306,13 +364,22 @@ function mountObstsalat(root, ART, opts) {
     var openN = (S.comboT > 0 ? S.chain : 0) + (S.strokeHits || 0);
     if (openN >= 3 && S.strokeCuts.length) { var lc = S.strokeCuts[S.strokeCuts.length - 1]; combo(openN, lc.x, lc.y); }
     S.chain = 0; S.strokeHits = 0; S.comboT = 0;
-    S.slowT = 0; S.rainT = 0; S.doubleT = 0; x2El.hidden = true; S.queue = [];
+    S.slowT = 0; S.rainT = 0; S.doubleT = 0; S.stickT = 0; S.floatT = 0; S.magT = 0; S.glowT = 0; S.shieldT = 0; x2El.hidden = true; S.queue = []; clearTimeout(banTimer); ban.classList.add("away");
     /* no chestnut hit in the whole round: +50 */
-    if (!S.boomed && S.timeLeft <= 0) { addScore(50); var nb = popText("Ohne Kastanie +50", 90, 72, "#f8d850", 2300); nb.className = "os-pop os-pop-combo os-pop-bonus c6"; cheer(3); }
+    if (!S.boomed && S.timeLeft <= 0) { addScore(50); var nb = popText("Ohne Kastanie +50", 90, 104, "#f8d850", 2300); nb.className = "os-pop os-pop-combo os-pop-bonus c6"; cheer(3); }
     S.local = S.score > 0 ? addRun(S.score) : null;
+    if (S.cutCols.length && SM) {   /* the smoothie: its colour is mixed from everything that was cut */
+      var rs = 0, gs = 0, bs = 0, n = 0;
+      S.cutCols.forEach(function (c) { var m = /rgb\((\d+),(\d+),(\d+)\)/.exec(c), v = m ? [+m[1], +m[2], +m[3]] : hexRgb(c); rs += v[0]; gs += v[1]; bs += v[2]; n++; });
+      var col = [rs / n, gs / n, bs / n], mx = Math.max.apply(null, col), mn = Math.min.apply(null, col);
+      col = col.map(function (v) { return Math.round(Math.max(0, Math.min(255, mn + (v - mn) * 1.35 + 6))); });   /* a little more colourful than the plain average */
+      var top = null, tn = 0; Object.keys(S.cutCount).forEach(function (k) { if (SMNAME[k] && S.cutCount[k] > tn) { tn = S.cutCount[k]; top = k; } });
+      var chunks = []; for (var ci = 0; ci < Math.min(16, S.cutCols.length); ci++) chunks.push(S.cutCols[Math.floor(ci * S.cutCols.length / Math.min(16, S.cutCols.length))]);
+      S.smooth = { col: "rgb(" + col.join(",") + ")", lite: "rgb(" + col.map(function (v) { return Math.min(255, v + 40); }).join(",") + ")", name: top ? SMNAME[top] + "-Smoothie" : "Smoothie", chunks: chunks, lev: Math.min(.92, .4 + .55 * Math.min(1, S.score / FULL)), blend: false, slurp: false };
+    }
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
-    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0 }); if (rw) setTimeout(function () { showBanner(rw, 4, false, true); }, 700); }
+    if (opts.onFinish) { var rw = opts.onFinish({ score: S.score, timeUp: S.timeLeft <= 0, cuts: S.cutCount, guest: GUEST ? GUEST.id : null, fav: S.favN }); if (rw) setTimeout(function () { showBanner(rw, 4, false, true); }, 700); }
     if (opts.board) {
       var mine = S;                                     // a restart before the answer must not mix up rounds
       Promise.resolve().then(function () { return opts.board.submit(mine.score); })
@@ -371,6 +438,13 @@ function mountObstsalat(root, ART, opts) {
     for (var n = 0; n < 400; n++) { cx.fillRect(x0, y0, 1, 1); if (x0 === x1 && y0 === y1) break; var e2 = 2 * e; if (e2 >= dy) { e += dy; x0 += sx; } if (e2 <= dx) { e += dx; y0 += sy; } }
   }
   function sprite(im, x, y) { cx.drawImage(im, Math.round(x), Math.round(y)); }
+  function ring(x, y, r, fill) {   /* a round pixel bubble with a 1 px outline */
+    x = Math.round(x); y = Math.round(y);
+    for (var yy = -r - 1; yy <= r + 1; yy++) for (var xx = -r - 1; xx <= r + 1; xx++) {
+      var d = Math.hypot(xx, yy);
+      if (d <= r - .5 && fill) px(x + xx, y + yy, "#fff8ec"); else if (d <= r + .5 && d > r - .5) px(x + xx, y + yy, INK);
+    }
+  }
 
   function drawEnvBack(tm) {
     if (tm === "nacht") STARS.forEach(function (s) { if (Math.sin(S.t * 2 + s[2]) > -.4) px(s[0], s[1], "#fff8d8"); });
@@ -420,6 +494,43 @@ function mountObstsalat(root, ART, opts) {
     }
   }
 
+  /* the finale: everything cut flies into the blender, it whirs, then the hamster drinks the smoothie with a straw */
+  function liquid(mask, w, h, lev, col, lite, t, swirl) {   /* the liquid is painted first, then cut to the inside of the glass */
+    lq.globalCompositeOperation = "source-over"; lq.clearRect(0, 0, 34, 50);
+    var top = Math.round(h - 2 - (h - 4) * lev);
+    lq.fillStyle = col; lq.fillRect(0, top, w, h - top);
+    lq.fillStyle = lite; lq.fillRect(0, top, w, 1);
+    if (swirl) for (var i = 0; i < 26; i++) { var a = t * 9 + i * .9, r = 3 + (i % 5) * 2; lq.fillRect(Math.round(w / 2 + Math.cos(a) * r), Math.round(top + 4 + (i * 7) % Math.max(1, h - top - 6) + Math.sin(a) * 1.5), 1, 1); }
+    else for (var j = 0; j < 6; j++) lq.fillRect(Math.round(w * .3 + (j * 5) % (w * .4)), Math.round(top + 3 + (j * 3) % Math.max(1, h - top - 6)), 1, 1);
+    lq.globalCompositeOperation = "destination-in"; lq.drawImage(mask, 0, 0);
+    lq.globalCompositeOperation = "source-over";
+  }
+  function drawSmoothie(sm, t, k2) {
+    if (!SM.bb.complete || !SM.gb.complete) return;
+    var bxl = 73, byl = 18 + Math.round((1 - k2) * 10);
+    if (t < 3.0) {
+      var n = sm.chunks.length, landed = 0, shake = t > 2.0 && t < 2.9 ? (Math.floor(t * 30) % 2 ? 1 : -1) : 0;
+      sm.chunks.forEach(function (c, i) { var t0 = .85 + i * .06, u = (t - t0) / .45; if (u >= 1) landed++; });
+      if (t > 2.0 && !sm.blend) { sm.blend = true; sfx("blend"); }
+      cx.drawImage(SM.bb, bxl + shake, byl);
+      liquid(SM.bm, 34, 36, sm.lev * (n ? landed / n : 1), sm.col, sm.lite, t, t > 2.0);
+      cx.drawImage(LQ, 0, 0, 34, 36, bxl + shake, byl, 34, 36);
+      cx.drawImage(SM.bf, bxl + shake, byl);
+      sm.chunks.forEach(function (c, i) { var t0 = .85 + i * .06, u = (t - t0) / .45; if (u < 0 || u >= 1) return;
+        var sx = 125, sy = 118, ex = bxl + 17 + ((i % 5) - 2) * 3, ey = byl + 6, x = sx + (ex - sx) * u, y = sy + (ey - sy) * u - Math.sin(u * Math.PI) * 34;
+        cx.fillStyle = INK; cx.fillRect(Math.round(x) - 2, Math.round(y) - 2, 5, 5); cx.fillStyle = c; cx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3); });
+    } else {
+      var gx = 50, gy = 26 + Math.round(Math.max(0, 1 - (t - 3.0) / .25) * 8), dr = Math.min(1, Math.max(0, (t - 3.4) / 2.2));
+      if (t > 3.4 && !sm.slurp) { sm.slurp = true; sfx("slurp"); }
+      cx.drawImage(SM.gb, gx, gy);
+      liquid(SM.gm, 26, 34, Math.max(.12, sm.lev * (1 - dr * .7)), sm.col, sm.lite, t, false);
+      cx.drawImage(LQ, 0, 0, 26, 34, gx, gy, 26, 34);
+      cx.drawImage(SM.gf, gx, gy);
+      var face = t < 3.4 ? "froh" : dr < 1 ? (Math.floor(t * 4) % 2 ? "kauen" : "greifen") : "backen";
+      if (HAM[face] && HAM[face].complete) sprite(HAM[face], 82, 18);
+    }
+  }
+
   // ---------- main loop
   var last = performance.now(), raf = 0;
   function frame(now) {
@@ -441,6 +552,12 @@ function mountObstsalat(root, ART, opts) {
         }
       }
       S.queue = S.queue.filter(function (q) { if (S.wt >= q.at) { launch(q.k, q.x, q.peak, q.drift); return false; } return true; });
+      S.bubT -= dt;
+      if (S.bubT <= 0 && S.t > 5) {   /* now and then a fruit floats up inside a soap bubble */
+        var bk = fruitKey(), bf = FR[bk], bxx = 30 + Math.random() * 110;
+        S.items.push({ k: bk, x: bxx, y: H + bf.h, vx: (90 - bxx) / 12, vy: -34, cut: false, born: S.wt, bub: true, ph: Math.random() * 6 });
+        S.bubT = 9 + Math.random() * 5;
+      }
       S.timeLeft -= wdt;                                // slow motion slows the clock too
       if (S.timeLeft <= 0) { S.timeLeft = 0; finish(); }
     } else S.endT += dt;
@@ -451,11 +568,21 @@ function mountObstsalat(root, ART, opts) {
     if (S.magT > 0) S.magT -= dt;
     if (S.glowT > 0) S.glowT -= dt;
     if (S.shieldT > 0) S.shieldT -= dt;
+    if (S.stickT > 0) S.stickT -= dt;
+    if (S.gHop > 0) S.gHop -= dt;
+    S.skewers.forEach(function (k) { k.t += dt; }); S.skewers = S.skewers.filter(function (k) { return k.t < 1.1; });
     if (S.comboT > 0) { S.comboT -= dt; if (S.comboT <= 0) { var ch = S.chain + (S.strokeHits || 0), lc2 = S.strokeCuts[S.strokeCuts.length - 1]; if (ch >= 3 && lc2 && !S.done) combo(ch, lc2.x, lc2.y); S.chain = 0; if (!S.stroke) S.strokeCuts = []; } }
-    var spLeft = Math.max(S.slowT, S.doubleT, S.rainT, S.floatT, S.magT, S.comboT, S.glowT, S.shieldT);
+    var spLeft = Math.max(S.slowT, S.doubleT, S.rainT, S.floatT, S.magT, S.comboT, S.glowT, S.shieldT, S.stickT);
     if (S.specialMax && spLeft > 0) banTime.style.transform = "scaleX(" + Math.max(0, spLeft / S.specialMax).toFixed(3) + ")";
 
+    if (S.stickT > 0) S.items.forEach(function (a, i) {   /* honey: fruit close together pulls together and sticks */
+      if (a.cut || a.k === "kastanie" || a.bub) return;
+      for (var j = i + 1; j < S.items.length; j++) { var b = S.items[j]; if (b.cut || b.k === "kastanie" || b.bub) continue;
+        var dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; if (d < 30 && d > 17) { var f = 14 * wdt / d; a.vx += dx * f; a.vy += dy * f; b.vx -= dx * f; b.vy -= dy * f; } }
+    });
     S.items.forEach(function (it) {
+      if (it.bub) { it.vy += (-24 - it.vy) * Math.min(1, 2 * wdt); it.vx = Math.sin(S.t * 1.6 + it.ph) * 10; it.x += it.vx * wdt; it.y += it.vy * wdt; return; }
+      if (S.stickT > 0 && S.magT <= 0 && S.floatT <= 0) { var sd = Math.exp(-1.6 * wdt); it.vx *= sd; it.vy = it.vy * sd + G * .35 * wdt; it.x += it.vx * wdt; it.y += it.vy * wdt; return; }
       if (S.magT > 0) {                                  /* clover: everything is pulled together in the middle of the picture */
         var damp = Math.exp(-3 * wdt), tx = Math.max(62, Math.min(118, it.x)); it.vx = it.vx * damp + (tx - it.x) * 5 * wdt; it.vy = it.vy * damp + (58 - it.y) * 5 * wdt;   /* into a band in the middle, side by side */
       } else if (S.floatT > 0) {                         /* dandelion: everything floats slowly upwards */
@@ -490,10 +617,28 @@ function mountObstsalat(root, ART, opts) {
       var hc = HAMSIL[face][Math.floor(S.t * 5) % 2 ? "#ffd850" : "#fff6c0"];
       [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(hc, HB.x + o[0], HB.y + hop + o[1]); });
     }
-    if (HAM[face].complete) sprite(HAM[face], HB.x, HB.y + hop);
+    if (HAM[face].complete && !(S.smooth && S.endT > 3)) sprite(HAM[face], HB.x, HB.y + hop);
     cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(104, 131, 40, 2);
     var lv = S.shown < FULL * .08 ? 0 : S.shown < FULL * .4 ? 1 : S.shown < FULL * .75 ? 2 : 3, b = BOWL[lv];
     if (b.im.complete) sprite(b.im, 107, 133 - b.h);
+    if (GIM && GIM.complete && GIM.width) {   /* the guest sits bottom left and thinks of its favourite fruit */
+      var gh = S.gHop > 0 ? -(Math.floor(S.gHop * 10) % 2 ? 3 : 1) : 0;
+      cx.fillStyle = "rgba(43,29,18,.16)"; cx.fillRect(8, 131, 34, 2);
+      sprite(GIM, 1, H - GIM.height + 3 + gh);
+      if (!S.done && FR[FAV] && FR[FAV].im.complete) {
+        var ff = FR[FAV], bx0 = 30, by0 = 66, br = Math.max(ff.w, ff.h) / 2 + 4;
+        [[22, 90, 2], [26, 84, 3]].forEach(function (c) { ring(c[0], c[1], c[2], true); });
+        ring(bx0, by0, br, true);
+        sprite(ff.im, bx0 - ff.w / 2, by0 - ff.h / 2);
+      }
+    }
+    if (S.stickT > 0) {   /* honey threads between fruit that sticks together */
+      cx.globalAlpha = Math.min(1, S.stickT / .4);
+      S.items.forEach(function (a, i) { if (a.cut || a.k === "kastanie" || a.bub) return;
+        for (var j = i + 1; j < S.items.length; j++) { var o = S.items[j]; if (o.cut || o.k === "kastanie" || o.bub) continue;
+          if (Math.hypot(o.x - a.x, o.y - a.y) < 24) { line(a.x, a.y, o.x, o.y, "#c87810"); line(a.x, a.y + 1, o.x, o.y + 1, "#f0b030"); } } });
+      cx.globalAlpha = 1;
+    }
     S.items.forEach(function (it) {
       var f = FR[it.k]; if (!f.im.complete) return;
       var jx = it.k === "kastanie" ? (Math.floor(S.t * 20 + it.born * 7) % 3) - 1 : 0;        // the husk trembles a little
@@ -509,6 +654,13 @@ function mountObstsalat(root, ART, opts) {
         [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { sprite(f.sil[gc], x0 + o[0], y0 + o[1]); });
       }
       sprite(f.im, x0, y0);
+      if (it.bub) {   /* soap bubble: a thin shimmering ring, light at the top left */
+        var rb = f.r + 5;
+        cx.fillStyle = "rgba(255,255,255,.16)"; cx.beginPath(); cx.arc(Math.round(it.x), Math.round(it.y), rb, 0, 7); cx.fill();
+        for (var ab = 0; ab < 64; ab++) { var aa = ab / 64 * Math.PI * 2, c0 = aa > 3.4 && aa < 4.9 ? "#ffffff" : aa > .2 && aa < 1.3 ? "#ffd0f0" : aa > 1.3 && aa < 2.2 ? "#bfe8ff" : "#e4f6ff";
+          px(it.x + Math.cos(aa) * rb, it.y + Math.sin(aa) * rb, c0); }
+        px(it.x - rb * .5, it.y - rb * .55, "#ffffff"); px(it.x - rb * .5 + 1, it.y - rb * .55, "#ffffff"); px(it.x - rb * .5, it.y - rb * .55 + 1, "#ffffff");
+      }
       if (it.k === "kokosnuss" && it.hits) {           /* cracks show how close it is to breaking */
         var cr = it.hits === 1 ? [[11, 4], [12, 5], [12, 6], [11, 7], [12, 8]] : [[11, 4], [12, 5], [12, 6], [11, 7], [12, 8], [13, 9], [12, 10], [12, 11], [11, 12], [12, 13], [13, 14], [9, 9], [10, 10], [14, 6], [15, 7]];
         cr.forEach(function (q) { px(x0 + q[0], y0 + q[1], "#2e1a0c"); });
@@ -516,6 +668,15 @@ function mountObstsalat(root, ART, opts) {
       }
     });
     S.halves.forEach(function (h) { sprite(h.c, h.x - h.w / 2, h.y - h.h / 2); });
+    S.skewers.forEach(function (k) {   /* the skewer: a wooden stick with the pieces on it, then it flies into the bowl */
+      var m = k.t < .55 ? 0 : Math.min(1, (k.t - .55) / .5), a = k.pts[0], b = k.pts[k.pts.length - 1], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - k.t * 6;
+      var tx = 125, ty = 118, ox2 = (tx - mx) * m * m, oy2 = (ty - my) * m * m - Math.sin(m * Math.PI) * 20;
+      cx.globalAlpha = 1 - m * .7;
+      var e1 = [a.x - k.ux * 8 + ox2, a.y - k.uy * 8 - k.t * 6 + oy2], e2 = [b.x + k.ux * 8 + ox2, b.y + k.uy * 8 - k.t * 6 + oy2];
+      line(e1[0], e1[1] + 1, e2[0], e2[1] + 1, INK); line(e1[0], e1[1], e2[0], e2[1], "#d8a060");
+      k.pts.forEach(function (q, i) { var x = q.x + ox2, y = q.y - k.t * 6 + oy2; cx.fillStyle = INK; cx.fillRect(Math.round(x) - 4, Math.round(y) - 4, 8, 8); cx.fillStyle = i % 2 ? q.f : q.c; cx.fillRect(Math.round(x) - 3, Math.round(y) - 3, 6, 6); px(x - 2, y - 2, "#ffffff"); });
+      cx.globalAlpha = 1;
+    });
     S.drops.forEach(function (d) { px(d.x, d.y, d.c); });
     S.bits.forEach(function (d) { px(d.x, d.y, d.c); if (d.big) { px(d.x + 1, d.y, d.c); px(d.x, d.y + 1, d.c); } });
     S.rays.forEach(function (r) {                        // combo: short bright rays shooting outward
@@ -538,17 +699,18 @@ function mountObstsalat(root, ART, opts) {
     if (S.done && S.endT > .7) {
       var k2 = Math.min(1, (S.endT - .7) / .3);
       cx.fillStyle = "rgba(43,29,18," + (.45 * k2).toFixed(2) + ")"; cx.fillRect(0, 0, W, H);
-      if (BIG.im.complete && !S.boardOn) {                            // the big bowl is only as full as what was cut: the heap is cut off from the top
+      if (S.smooth && !S.boardOn) drawSmoothie(S.smooth, S.endT, k2);
+      else if (BIG.im.complete && !S.boardOn) {                            // no fruit cut: the (empty) big bowl as before
         var heap = 20, frac = Math.min(1, S.score / FULL), sy = Math.round((1 - frac) * heap);
         var bx = Math.round((W - BIG.w) / 2), by = Math.round(58 - BIG.h / 2 + (1 - k2) * 10);
         cx.drawImage(BIG.im, 0, sy, BIG.w, BIG.h - sy, bx, by + sy, BIG.w, BIG.h - sy);
       }
-      if (endEl.hidden && !S.boardOn) {
-        endT.textContent = S.record ? "Neuer Rekord!" : S.score >= FULL ? "Obstsalat!" : S.score >= FULL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
+      if (endEl.hidden && !S.boardOn && (!S.smooth || S.endT > 3.1)) {
+        endT.textContent = S.record ? "Neuer Rekord!" : S.smooth ? S.smooth.name + "!" : S.score >= FULL ? "Obstsalat!" : S.score >= FULL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
         endN.textContent = S.score;
         endEl.hidden = false;
       }
-      if (opts.board && !S.boardOn && S.endT > 3.2) showBoard();
+      if (opts.board && !S.boardOn && S.endT > (S.smooth ? 5.6 : 3.2)) showBoard();
     }
     drawHud();
     raf = requestAnimationFrame(frame);

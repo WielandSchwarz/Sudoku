@@ -26,7 +26,18 @@
     if (osGame && osGame.pause) osGame.pause(true);
     itemPop({ unwrap: true, force: true, art: art, cls: cls, title: "Neu: " + f.name + "!", onClose: function () { if (osGame && osGame.pause) osGame.pause(false); } });
   }
+  /* guests: a befriended animal sits beside the hamster and wishes for its favourite fruit (two per animal, the first one in season) */
+  var OS_FAV = { igel: ["apfel", "birne"], robin: ["kirschen", "erdbeere"], tit: ["kirschen", "pflaume"], duck: ["erdbeere", "apfel"], chick: ["erdbeere", "moehre"], peng: ["kirschen", "apfel"], beaver: ["birne", "apfel"], otter: ["erdbeere", "pflaume"], owl: ["pflaume", "birne"], frog: ["kirschen", "erdbeere"], ladybug: ["erdbeere", "kirschen"], seal: ["tomate", "apfel"], puffin: ["kirschen", "pflaume"], turtle: ["tomate", "erdbeere"], crab: ["tomate", "kuerbis"], elk: ["apfel", "moehre"], lynx: ["birne", "pflaume"], panda: ["apfel", "birne"], koala: ["birne", "kirschen"], hare: ["moehre", "apfel"], squirrel: ["kuerbis", "birne"], fox: ["kirschen", "pflaume"], mouse: ["erdbeere", "kuerbis"], badger: ["kuerbis", "moehre"] };
+  function osGuest(season) {
+    var seen = window.HamsterSeen ? window.HamsterSeen() || {} : null;
+    var pool = Object.keys(OS_FAV).filter(function (id) { return ALLANI[id] && (!seen || seen[id]); });
+    if (!pool.length) pool = ["igel"];
+    var id = pool[Math.floor(Math.random() * pool.length)], fr = OSART.fruit;
+    var fav = OS_FAV[id].filter(function (k) { return fr[k] && (fr[k].weights || {})[season]; })[0] || OS_FAV[id].filter(function (k) { return fr[k] && Object.keys(fr[k].weights || {}).some(function (q) { return fr[k].weights[q]; }); })[0] || "apfel";
+    return { id: id, name: (typeof ANAME !== "undefined" && ANAME[id]) || id, svg: ALLANI[id].svg, vb: ALLANI[id].vb, fav: fav };
+  }
   function osReward(r) {
+    if (r.cuts) { s.osAlbum = s.osAlbum || {}; Object.keys(r.cuts).forEach(function (k) { s.osAlbum[k] = (s.osAlbum[k] || 0) + r.cuts[k]; }); }
     if (r.score > 0) { s.food = clamp(s.food + Math.min(30, 6 + Math.round(r.score / 5))); try { renderNeeds(); } catch (e) { } }   /* fruit salad fills him up */
     if (!r.timeUp) return "";
     s.osRounds = (s.osRounds || 0) + 1; var n = s.osRounds, msg = "";
@@ -71,6 +82,11 @@
       else if (k === "kokos") { noise(.18, 1800, 500, 1, .14); tone(180, .12, .1, "triangle", 0, 90); [1047, 1319, 1568].forEach(function (f, i) { tone(f, .16, .04, "triangle", .12 + i * .06); }); }
       else if (k === "melone") { noise(.22, 1600, 300, .9, .16); tone(150, .16, .12, "sine", 0, 70); }
       else if (k === "bomb") { noise(.45, 600, 60, .8, .3, 0, "lowpass"); tone(120, .35, .14, "sine", 0, 40); noise(.2, 3000, 1500, 2, .08, .02); }
+      else if (k === "pop") { tone(700, .06, .07, "sine", 0, 1600); noise(.05, 4000, 2500, 3, .04); }
+      else if (k === "honigglas") { for (var hg = 0; hg < 5; hg++) tone(420 - hg * 40, .16, .05, "sine", hg * .07, 300 - hg * 30); tone(196, .5, .04, "triangle", .3, 150); }
+      else if (k === "skewer") { var sn = Math.min(n || 3, 6); for (var sk = 0; sk < sn; sk++) { tone(520 + sk * 70, .05, .07, "triangle", sk * .06); noise(.04, 1800, 900, 2, .05, sk * .06); } [1047, 1319, 1568, 2093].forEach(function (f, i) { tone(f, .2, .045, "square", sn * .06 + i * .07); }); }
+      else if (k === "blend") { noise(.9, 300, 900, .8, .08, 0, "lowpass"); tone(90, .9, .05, "sawtooth", 0, 140); noise(.9, 1200, 2000, 1.5, .03); }
+      else if (k === "slurp") { for (var sl = 0; sl < 3; sl++) noise(.18, 700 + sl * 200, 1500 + sl * 200, 3, .06, sl * .28); tone(520, .25, .04, "sine", .9, 780); }
       else if (k === "tick") { tone(n <= 3 ? 1400 : 1100, .05, .06, "square"); }
       else if (k === "end") { [523, 659, 784].forEach(function (f, i) { tone(f, .2, .05, "square", i * .12); }); }
       else if (k === "full") { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, .2, .06, "square", i * .11); }); tone(1047, .5, .04, "triangle", .5); }
@@ -80,7 +96,7 @@
   function osOpen() {
     var e = osEnv(), acc = osAccount();
     osEl.hidden = false; osEl.innerHTML = '<div class="os-in"></div>';
-    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, sfx: OS_SFX, season: e.season, time: e.time, weather: e.weather, board: osBoard, hamsterName: N(), onClose: osClose });
+    osGame = mountObstsalat(osEl.firstChild, OSART, { onFinish: osReward, sfx: OS_SFX, guest: osGuest(e.season), album: function () { return s.osAlbum || {}; }, season: e.season, time: e.time, weather: e.weather, board: osBoard, hamsterName: N(), onClose: osClose });
   }
   function osClose() {
     var st = osGame && osGame.state ? osGame.state() : null;

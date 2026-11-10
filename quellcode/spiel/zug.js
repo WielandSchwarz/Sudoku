@@ -212,4 +212,4 @@
   function zgClose() { if (zgS) cancelAnimationFrame(zgS.raf); zgS = null; zgV.el.hidden = true; }
   zgV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); zgClose(); });
   (function () { var b = document.getElementById("d-zug"); if (b) b.addEventListener("click", function () { zgOpen(); }); })();   /* preview only for now */
-  window.__zug = { open: zgOpen, close: zgClose, state: function () { return zgS; }, sw: ZG_SW };
+  window.__zug = { open: zgOpen, close: zgClose, state: function () { return zgS; }, sw: ZG_SW, img: ZG_I };
