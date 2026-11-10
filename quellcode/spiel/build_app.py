@@ -5,7 +5,7 @@ import re, json, os, subprocess
 D = '/tmp/claude-0/-home-claude/c2f4144c-e47f-55b9-ac0f-58d21a2c6cc1/scratchpad/ham2/'
 H = '/home/claude/'
 VERSION = os.environ.get('APPVERSION', '77')
-DATE = '09.11.2026'
+DATE = '10.11.2026'
 
 subprocess.run(['python3', D + 'build.py'], check=True, env=dict({k: v for k, v in os.environ.items() if k != 'NOEXTRAS'}, HAMOUT=D + 'mock_for_app.html', COOK2='1', GARDEN2='1', BEE='1', FROG=os.environ.get('FROG', '0'), BSHIP=os.environ.get('BSHIP', '1'), BEDX=os.environ.get('BEDX', '0'), SOCIAL=os.environ.get('SOCIAL', '0'), CAFE=os.environ.get('CAFE', '0'), WORLD=os.environ.get('WORLD', '0'), KITCHEN2=os.environ.get('KITCHEN2', '0'), CFPLANTS=os.environ.get('CFPLANTS', '0'), POSTCARDS=os.environ.get('POSTCARDS', '0'), WIDE=os.environ.get('WIDE', '0'), MINIS=os.environ.get('MINIS', '0'), PLANT2=os.environ.get('PLANT2', '0'), CAFE2=os.environ.get('CAFE2', '0')))
 mock = open(D + 'mock_for_app.html').read()
@@ -294,6 +294,7 @@ for m in re.finditer(r'(= |\.concat\()\[\{"id"', src):
     out.append(src[last:st]); out.append(json.dumps(arr, ensure_ascii=False)); last = st + ln
 out.append(src[last:]); src = ''.join(out)
 assert '"id": "duck"' in src
+exec(open(D + 'ipad_inject.py').read())
 open(H + 'sudoku.html', 'w').write(src)
 
 # ---------------- pwa and offline wrappers ----------------
