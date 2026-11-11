@@ -3,6 +3,26 @@
   // All targets full and no leak = solved. Stars: solved, no leaky run before, no more pieces than needed.
   /*PIPELOGIC*/
   var RP_LEVELS = /*RPLEVELS*/;
+  /* twelve slots per round trip: 3 easy, 3 medium, 2 hard, then 2 + 2 with warm and cold water. Every new round trip draws fresh levels from the pool. */
+  var RP_N = 12, RP_TIER = [1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5];
+  RP_LEVELS.forEach(function (L, i) { if (!L.tier) L.tier = RP_TIER[i]; });
+  function rpRunOf() {
+    var M = mL("pipes");
+    if (!M.run || M.run.length !== RP_N || M.run.some(function (i) { return !RP_LEVELS[i]; })) { M.run = []; for (var i = 0; i < RP_N; i++) M.run.push(i); M.runN = 1; }   /* the first round trip: the hand-made levels */
+    return M.run;
+  }
+  function rpNewRun() {
+    var M = mL("pipes"), old = {}, used = {}, names = {}; (M.run || []).forEach(function (i) { old[i] = 1; });
+    M.run = RP_TIER.map(function (t) {
+      var c = []; RP_LEVELS.forEach(function (L, i) { if (L.tier === t && !old[i] && !used[i] && !names[L.name]) c.push(i); });   /* new levels, no name twice */
+      if (!c.length) RP_LEVELS.forEach(function (L, i) { if (L.tier === t && !old[i] && !used[i]) c.push(i); });
+      if (!c.length) RP_LEVELS.forEach(function (L, i) { if (L.tier === t && !used[i]) c.push(i); });
+      var k = c[Math.floor(Math.random() * c.length)]; used[k] = 1; names[RP_LEVELS[k].name] = 1; return k;
+    });
+    M.runN = (M.runN || 1) + 1; M.st = {}; M.lvl = 0; M.runDone = false;
+    if (window.SudokuSave) window.SudokuSave();
+  }
+  function rpLevel(lv) { return RP_LEVELS[rpRunOf()[lv]]; }
   var RP_ST = /*RPSTATIONS*/, RP_STI = {}; Object.keys(RP_ST).forEach(function (k) { var im = new Image(); im.src = RP_ST[k]; RP_STI[k] = im; });
   var RP_WT = { w: ["#fde0d0", "#f4a080", "#d8705a"], c: ["#eaf8ff", "#a8dcf6", "#5aa8e0"], m: ["#cfeefc", "#7cc4ec", "#4a9ad0"] };
   var RPG = { x: 18, y: 20, c: 16 }, RP_INK = "#3a2414", RP_CU = ["#e8a070", "#c8794a", "#a85a34", "#7a3e22"], RP_W = ["#cfeefc", "#7cc4ec", "#4a9ad0"];
@@ -446,7 +466,7 @@
 
   // ---------------------------------------------------------------- levels, stars and cards
   function rpStart(lv) {
-    var L = RP_LEVELS[lv];
+    var L = rpLevel(lv);
     rpS = Object.assign(rpS || {}, { lv: lv, L: L, pcs: [], tray: Object.assign({}, L.tray), mode: "build", t: 0, clk: 0, leaks: 0, finished: false, stars: 0, drag: null, f: null, leak: null, catWet: false, nope: 0 });
     rpV.card.hidden = true; rpSay((lv + 1) + ". " + L.name);
   }
@@ -454,7 +474,7 @@
   function rpWinDone() {
     var S = rpS, M = mL("pipes"), used = S.pcs.length, par = S.L.par, st = 1 + (S.leaks ? 0 : 1) + (used <= par ? 1 : 0);
     M.st = M.st || {}; var first = !M.st[S.lv];
-    M.st[S.lv] = Math.max(M.st[S.lv] || 0, st); M.lvl = Math.max(M.lvl || 0, S.lv + 1);
+    M.st[S.lv] = Math.max(M.st[S.lv] || 0, st); M.lvl = Math.max(M.lvl || 0, S.lv + 1); if (S.lv === RP_N - 1) M.runDone = true;
     if (first) s.treats = (s.treats || 0) + 3;
     if (window.SudokuSave) window.SudokuSave();
     S.finished = true; S.stars = st;
@@ -464,24 +484,26 @@
     beep([[784, .06], [1047, .1]]);
   }
   function rpSayLong(t) { rpSay(t, true); }   /* stays until the next text */
-  function rpNext() { var S = rpS; if (S.lv + 1 < RP_LEVELS.length) rpStart(S.lv + 1); else rpPick(); }
+  function rpNext() { var S = rpS; if (S.lv + 1 < RP_N) rpStart(S.lv + 1); else { rpNewRun(); rpPick(); } }   /* after the last one: a fresh round trip */
   function rpPick() {
-    var M = mL("pipes"), st = M.st || {}, open = Math.min(RP_LEVELS.length - 1, M.lvl || 0);
-    rpV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Rohr-Rätsel</p><div class="rp-sel">' + RP_LEVELS.map(function (L, i) {
+    var M = mL("pipes"); if (M.runDone) rpNewRun(); rpRunOf(); var st = M.st || {}, open = Math.min(RP_N - 1, M.lvl || 0);
+    rpV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Rohr-Rätsel' + ((M.runN || 1) > 1 ? " · Durchgang " + M.runN : "") + '</p><div class="rp-sel">' + M.run.map(function (L, i) {
       var n = st[i] || 0, o = ""; for (var k = 0; k < 3; k++) o += k < n ? "★" : "<i>★</i>";
       return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b><span class="fi-st">' + o + '</span></button>';
-    }).join("") + '</div>' + (document.getElementById("d-harvest") ? '<div class="fi-row"><button type="button" class="fi-b2" data-a="unlock">Admin: alle freischalten</button></div>' : '') + '</div>';
+    }).join("") + '</div>' + (document.getElementById("d-harvest") ? '<div class="fi-row"><button type="button" class="fi-b2" data-a="unlock">Admin: alle freischalten</button><button type="button" class="fi-b2" data-a="newrun">Admin: neuer Durchgang</button></div>' : '') + '</div>';
     rpV.card.hidden = false; rpSay("Rohr-Rätsel");
   }
   rpV.card.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"); if (!b || b.disabled) return;
     if (b.dataset.lv != null) return rpStart(+b.dataset.lv);
-    if (b.dataset.a === "unlock") { var M = mL("pipes"); M.lvl = RP_LEVELS.length - 1; if (window.SudokuSave) window.SudokuSave(); rpPick(); return; }   /* preview only */
+    if (b.dataset.a === "unlock") { var M = mL("pipes"); M.lvl = RP_N - 1; if (window.SudokuSave) window.SudokuSave(); rpPick(); return; }   /* preview only */
+    if (b.dataset.a === "newrun") { rpNewRun(); rpPick(); return; }
     if (b.dataset.a === "again") rpStart(rpS.lv); else if (b.dataset.a === "next") rpStart(rpS.lv + 1); else if (b.dataset.a === "pick") rpPick(); else rpClose();
   });
   function rpOpen(lv) {
     rpV.el.hidden = false; rpSayEl.classList.add("open"); var M = mL("pipes");
-    rpStart(lv != null ? lv : Math.min(RP_LEVELS.length - 1, M.lvl || 0));
+    if (M.runDone && lv == null) { rpNewRun(); }
+    rpStart(lv != null ? lv : Math.min(RP_N - 1, M.lvl || 0));
     if (lv == null) rpPick();
     cancelAnimationFrame(rpS.raf); rpS.last = 0; rpS.raf = requestAnimationFrame(rpDraw);
   }
@@ -503,7 +525,7 @@
     if (decor || s.asleep) return; if (busy && !interruptible()) return; if (busy) interrupt();
     act("rohre", rpSeq);
   });
-  window.__pipes = { open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
+  window.__pipes = { newRun: rpNewRun, runIds: rpRunOf, open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
   // ---- and a thin white pipe running down the far left of the bathroom wall: tap it to open the puzzle
   var RPT = { x: 6, y: 0, w: 6, h: 100 };
   var rpTool = lBtn("rp-wpipe", bathEl, svgOf(/*WPIPEART*/, RPT.w, RPT.h), "Rohr-Rätsel");
