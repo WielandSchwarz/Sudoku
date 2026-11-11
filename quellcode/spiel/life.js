@@ -561,42 +561,167 @@
   // letters only come from friends: animals with at least three hearts
   function friendIds() { return Object.keys(garden.friends || {}).filter(function (k) { return ALLANI[k] && garden.friends[k] >= 3; }); }
   // ---- letter writing: friends write personal letters with good presents, new animals introduce themselves ----
-  var LOPEN = [
-    ["ich musste heute an dich denken.", "seit meinem letzten Besuch frage ich mich, was in deinem Garten alles wächst.", "ich hoffe, dir geht es gut."],
-    ["es ist schön, dass wir uns so gut verstehen.", "bei dir fühle ich mich jedes Mal wie zu Hause.", "ich erzähle allen hier von unseren Nachmittagen."],
-    ["du bist mir richtig ans Herz gewachsen.", "so gute Freunde wie uns gibt es nicht oft.", "ohne unsere Besuche wäre mein Jahr nur halb so schön."]
-  ];
-  var LSEASON = {
-    spring: "Bei mir blüht gerade alles, und morgens singen die Vögel um die Wette.",
-    summer: "Es ist so warm, dass ich mittags nur noch im Schatten liege.",
-    autumn: "Die Blätter werden bunt, und ich sammle schon fleißig für den Winter.",
-    winter: "Draußen liegt Schnee, und ich kuschle mich abends warm ein."
+  // ---- cosy letters: every animal writes in its own voice about a small, quiet moment of its season ----
+  // hi / sign: how it starts and ends; spring..winter: two moments per season; ({N} = the hamster's name)
+  var LETTERS = {
+    igel: { any: ["ich habe mir unter der Hecke einen neuen Lieblingsplatz eingerichtet. Von dort sehe ich bis zu deinem Gartentor.", "gestern Abend hat es ganz leicht geregnet, und alles roch nach nassem Gras. Ich mag diesen Duft sehr."], hi: ["Hallo {N},"], sign: ["Viele Grüße, dein Igel", "Bis bald, dein Igel"],
+      spring: ["ich bin aus dem Winterschlaf aufgewacht und habe erst mal einen langen Spaziergang unter der Hecke gemacht. Alles riecht nach frischer Erde.", "heute Abend habe ich zwei Regenwürmer und eine Erdbeere gefunden. Ein richtig gutes Abendessen."],
+      summer: ["die Nächte sind jetzt so warm, dass ich bis zum Morgen unterwegs bin. Die Glühwürmchen leisten mir Gesellschaft.", "unter dem Holunder ist es auch mittags schön kühl. Dort mache ich gerade mein Nickerchen."],
+      autumn: ["bei mir raschelt jetzt jeden Abend das Laub, und ich mache mir mein Winternest fertig. Diesmal wird es besonders weich, ich habe viel Moos gefunden.", "heute bin ich durch einen großen Laubhaufen gekrochen. Danach hingen überall Blätter an meinen Stacheln."],
+      winter: ["ich liege gut eingekuschelt in meinem Nest und schlafe viel. Nur kurz wollte ich dir noch schreiben.", "draußen ist es still und weiß. Ich träume schon vom Frühling und von Erdbeeren."] },
+    robin: { any: ["ich habe heute lange auf dem Rand deiner Gießkanne gesessen. Ich hoffe, das macht dir nichts aus.", "am Abend singe ich gern noch ein kleines Lied, bevor ich schlafen gehe."], hi: ["Hallo {N},", "Lieber {N},"], sign: ["Dein Rotkehlchen", "Viele Grüße vom Rotkehlchen"],
+      spring: ["ich singe jetzt jeden Morgen ganz früh auf dem Zaunpfahl. Ich hoffe, ich wecke dich nicht.", "mein Nest im Efeu ist fertig. Es ist klein, aber sehr gemütlich."],
+      summer: ["ich bade gerade jeden Tag in der Vogeltränke. Das Wasser glitzert so schön in der Sonne.", "heute habe ich eine ganze Weile einem Gärtner beim Umgraben zugeschaut. Er hat mir einen Wurm übrig gelassen."],
+      autumn: ["die Beeren an der Hecke sind reif, und ich nasche jeden Tag ein paar.", "der Wind ist frischer geworden, ich plustere mich morgens ordentlich auf."],
+      winter: ["ich sitze gern im verschneiten Busch und schaue den Flocken zu. Mein rotes Bäuchlein hält mich warm.", "am Futterhaus ist morgens viel los. Ich warte immer, bis es ruhiger wird."] },
+    tit: { any: ["ich habe ein paar weiche Fäden für mein Nest gefunden. Jetzt ist es noch kuscheliger.", "heute Morgen hat die Sonne so schön auf meinen Ast geschienen, dass ich gar nicht wegfliegen wollte."], hi: ["Hallo {N},"], sign: ["Liebe Grüße, deine Blaumeise", "Bis bald, Blaumeise"],
+      spring: ["ich ziehe gerade in einen Nistkasten am alten Apfelbaum. Er hat ein rundes Fenster und viel Platz.", "die Knospen gehen auf, überall ist frisches Grün. Ich turne den ganzen Tag in den Zweigen."],
+      summer: ["ich hänge manchmal kopfüber an den dünnen Ästen. Von dort sieht der Garten ganz anders aus.", "mittags ruhe ich mich im Schatten der Linde aus. Die Blätter rauschen so schön."],
+      autumn: ["ich sammle Samen von den Sonnenblumen. Die großen Köpfe sind voll davon.", "morgens liegt Nebel über den Wiesen, und alles ist ganz leise."],
+      winter: ["am Meisenknödel treffe ich jeden Morgen meine Nachbarn. Wir wechseln uns ab.", "die Bäume tragen Raureif, als hätte jemand Zucker darüber gestreut."] },
+    duck: { any: ["ich habe heute am Ufer gesessen und meine Federn geputzt, eine nach der anderen. Das dauert, aber es ist sehr entspannend.", "am Steg gibt es eine Stelle, an der man wunderbar dösen kann. Ich war fast den ganzen Nachmittag dort."], hi: ["Hallo {N},"], sign: ["Liebe Grüße, Ente", "Viele Grüße vom See"],
+      spring: ["am See schlüpfen gerade die ersten Küken. Überall piept es im Schilf.", "das Wasser ist noch frisch, aber die Sonne wärmt schon schön. Ich schwimme langsam meine Runden."],
+      summer: ["am See ist es gerade ganz ruhig. Morgens liegt Nebel über dem Wasser, und ich gleite einfach dahin.", "ich habe eine Stelle mit besonders vielen Wasserlinsen gefunden. Dort bin ich jetzt jeden Tag."],
+      autumn: ["die Blätter treiben jetzt auf dem See wie kleine Boote. Ich schwimme gern zwischen ihnen hindurch.", "es regnet viel, aber das macht mir nichts. Das Wasser perlt einfach an meinen Federn ab."],
+      winter: ["am Rand ist der See schon ein bisschen gefroren. Ich halte mich in der Mitte, wo es offen ist.", "ich stecke den Schnabel unter den Flügel und döse auf dem Steg in der Wintersonne."] },
+    chick: { any: ["ich habe heute ganz allein ein Stück geschwommen. Mama war aber in der Nähe.", "meine Geschwister und ich haben am Ufer Verstecken gespielt. Ich habe mich im Schilf versteckt."], hi: ["Hallo {N},"], sign: ["Dein Entenküken", "Piep, dein Entenküken"],
+      spring: ["Mama hat mir heute gezeigt, wie man nach Wasserflöhen taucht. Es hat dreimal geklappt!", "ich bin jetzt schon fast so schnell wie meine Geschwister, wenn wir hinter Mama herschwimmen."],
+      summer: ["meine Federn werden langsam richtig, nicht mehr nur Flaum. Mama sagt, ich werde groß.", "wir haben heute alle zusammen am Ufer in der Sonne gesessen. Das war schön warm."],
+      autumn: ["Mama sagt, bald wird es kalt. Ich kuschle mich abends ganz nah an sie.", "ich habe heute mein erstes buntes Blatt gefunden und es eine Weile herumgetragen."],
+      winter: ["es hat geschneit! Ich habe noch nie Schnee gesehen. Er ist kalt und ganz weich.", "wir sitzen alle eng zusammen im Schilf. So ist es gar nicht kalt."] },
+    peng: { any: ["ich habe heute einen glatten Stein gefunden und ihn eine Weile mit mir herumgetragen. Er ist schön kühl.", "ich habe meinen Freunden zu Hause eine Postkarte vom See geschickt."], hi: ["Hallo {N},"], sign: ["Dein Pinguin", "Viele Grüße, Pinguin"],
+      spring: ["bei euch wird es jetzt wärmer. Ich gehe deshalb gern früh am Morgen spazieren, wenn es noch frisch ist.", "ich habe am See einen schattigen Platz gefunden. Dort sitze ich und schaue aufs Wasser."],
+      summer: ["mir ist es ein bisschen warm, aber ich kühle mich im See ab. Das klappt ganz gut.", "abends, wenn die Sonne untergeht, wird es angenehm. Dann watschle ich gern am Ufer entlang."],
+      autumn: ["endlich wird es kühler. Ich freue mich jeden Morgen über den frischen Wind.", "ich habe heute im Herbstnebel gestanden. Das erinnert mich ein bisschen an zu Hause."],
+      winter: ["es ist Winter, meine liebste Zeit! Ich bin heute auf dem Bauch über den Schnee gerutscht.", "der See friert langsam zu. Für mich ist das gerade das perfekte Wetter."] },
+    beaver: { any: ["ich habe heute einen besonders schönen Ast gefunden. Er ist fast zu schade für den Damm.", "am Abend schwimme ich gern einmal ganz langsam um meine Burg herum."], hi: ["Hallo {N},"], sign: ["Viele Grüße, dein Biber", "Bis bald, Biber"],
+      spring: ["das Wasser steigt mit der Schneeschmelze. Ich bessere gerade meinen Damm aus, Stock für Stock.", "die Weiden treiben aus, und die jungen Zweige schmecken herrlich frisch."],
+      summer: ["ich habe meiner Burg einen neuen Eingang gebaut. Jetzt komme ich direkt vom Wasser hinein.", "abends sitze ich gern am Damm und höre dem Wasser zu, wie es leise drüberplätschert."],
+      autumn: ["ich lege gerade meinen Wintervorrat an. Unter Wasser stapeln sich schon die Äste.", "die Bäume am Ufer werden gelb und rot. Es sieht aus, als würde der Bach leuchten."],
+      winter: ["meine Burg ist warm und trocken, auch wenn draußen alles gefroren ist.", "unter dem Eis ist es ganz still. Ich hole mir ab und zu einen Zweig aus meinem Vorrat."] },
+    otter: { any: ["ich habe heute so lange im Wasser gespielt, dass ich danach in der Sonne eingeschlafen bin.", "am Bach gibt es eine kleine Rutschbahn aus glattem Lehm. Ich rutsche jeden Tag ein paar Mal."], hi: ["Hallo {N},"], sign: ["Liebe Grüße, dein Otter", "Bis bald, Otter"],
+      spring: ["ich bin heute den ganzen Bach entlanggeschwommen. Überall blühen Sumpfdotterblumen.", "ich habe einen flachen Stein gefunden, der genau auf meinen Bauch passt. Den nehme ich jetzt überallhin mit."],
+      summer: ["ich lasse mich gern auf dem Rücken treiben und schaue in die Wolken.", "am Ufer gibt es eine Stelle mit warmen Steinen. Dort trockne ich nach dem Schwimmen in der Sonne."],
+      autumn: ["das Wasser wird kühler, aber mein Fell hält mich warm. Ich schwimme trotzdem jeden Tag.", "die Blätter sammeln sich in einer kleinen Bucht. Ich tauche gern darunter hindurch."],
+      winter: ["ich bin heute eine verschneite Böschung hinuntergerutscht, direkt in den Bach. Das macht immer wieder Freude.", "ich habe mich in meinem Bau zusammengerollt. Draußen fällt leise Schnee."] },
+    owl: { any: ["ich habe gestern Nacht lange den Mond betrachtet. Er war ganz rund und hell.", "in meiner Baumhöhle habe ich es mir mit ein paar weichen Federn gemütlich gemacht."], hi: ["Lieber {N},"], sign: ["Herzliche Grüße, deine Eule", "Mit herzlichen Grüßen, Eule"],
+      spring: ["die Nächte werden kürzer, und morgens höre ich die ersten Vögel, wenn ich schlafen gehe.", "ich habe gestern Abend lange im Mondschein gesessen. Die Wiese war voller Tau."],
+      summer: ["in den warmen Nächten fliege ich gern weit über die Felder. Alles duftet nach Heu.", "ich habe gestern eine Sternschnuppe gesehen und mir etwas gewünscht. Was, verrate ich nicht."],
+      autumn: ["die Nächte sind jetzt lang und still. Ich sitze oft auf meinem Ast und schaue in den Himmel.", "der Wind bläst durch die Bäume, und ich habe es mir in meiner Baumhöhle gemütlich gemacht."],
+      winter: ["der Schnee macht die Nacht ganz hell. Ich sehe jede Spur im Garten.", "ich hoffe, du hast es warm bei dir. In meiner Höhle ist es mit dicken Federn sehr gemütlich."] },
+    frog: { any: ["ich habe heute einen neuen Stein am Teich gefunden, der genau die richtige Größe zum Sitzen hat.", "abends ist es am Teich so ruhig, dass man jeden Tropfen hört."], hi: ["Hallo {N},", "Huhu {N},"], sign: ["Liebe Grüße vom Teich", "Dein Frosch"],
+      spring: ["der Teich ist aufgewacht, überall quakt es. Abends singen wir alle zusammen.", "ich sitze auf dem ersten Seerosenblatt des Jahres. Es ist noch ganz klein."],
+      summer: ["es hat die ganze Nacht geregnet, und der Teich ist schön voll. Ich sitze unter einem großen Blatt und höre den Tropfen zu.", "die Libellen tanzen über dem Wasser. Ich schaue ihnen gern zu."],
+      autumn: ["der Teich wird ruhiger. Die meisten Libellen sind schon weg, und das Wasser wird kühl.", "ich habe ein schönes Plätzchen unter den Blättern am Ufer gefunden."],
+      winter: ["ich mache es mir bald im weichen Teichgrund gemütlich und schlafe bis zum Frühling.", "auf dem Teich liegt eine dünne Eisschicht. Darunter ist es still und dunkel, genau richtig zum Schlafen."] },
+    ladybug: { any: ["ich habe mir ein neues, gemütliches Versteck in einer Baumrinde gesucht.", "ich habe heute meine Punkte gezählt. Es sind immer noch sieben, alle an ihrem Platz."], hi: ["Hallo {N},"], sign: ["Viele liebe Grüße, Marienkäfer", "Dein Marienkäfer"],
+      spring: ["die Sonne scheint, und ich wärme mich auf einem Gänseblümchen. Meine Punkte glänzen richtig.", "ich bin heute auf einen hohen Grashalm geklettert und von dort losgeflogen."],
+      summer: ["ich habe den ganzen Tag in einem Rosenbusch verbracht. Es duftet herrlich.", "nach dem Regen hängen Tropfen an jedem Blatt. Ich trinke einen und es reicht für den ganzen Tag."],
+      autumn: ["ich suche mir gerade ein warmes Plätzchen für den Winter, vielleicht unter einer Baumrinde.", "die letzten warmen Tage sitze ich auf einer Hauswand in der Sonne."],
+      winter: ["ich schlafe mit vielen anderen Marienkäfern zusammen in einer Mauerritze. So bleibt es warm.", "es ist still geworden draußen. Ich träume von Blumenwiesen."] },
+    seal: { any: ["ich habe heute lange auf einem warmen Felsen gelegen und den Wellen zugehört.", "manchmal schwimme ich ein Stück den Fluss hinauf und schaue mir das Land an."], hi: ["Hallo {N},"], sign: ["Dein Seehund", "Viele Grüße von der Küste"],
+      spring: ["ich liege auf meiner Sandbank und lasse mir die Frühlingssonne auf den Bauch scheinen.", "das Meer ist heute ganz glatt. Ich bin weit hinausgeschwommen und wieder zurück."],
+      summer: ["bei Ebbe liege ich am Strand, bei Flut schwimme ich. So vergeht der Tag ganz gemütlich.", "abends wird das Wasser golden, wenn die Sonne untergeht. Das ist meine liebste Stunde."],
+      autumn: ["die Wellen werden höher, aber ich mag das Schaukeln.", "auf meiner Sandbank liegen jetzt viele Muscheln. Ich habe eine besonders hübsche gefunden."],
+      winter: ["das Wasser ist kalt, aber meine dicke Speckschicht hält mich warm.", "ich liege mit den anderen Seehunden eng beieinander und schaue in den grauen Himmel."] },
+    puffin: { any: ["ich habe heute einen Fisch gefangen und mir dann einen ruhigen Platz zum Essen gesucht.", "der Wind über dem Meer riecht nach Salz. Ich atme ihn gern ganz tief ein."], hi: ["Hallo {N},"], sign: ["Dein Papageientaucher", "Viele Grüße vom Meer"],
+      spring: ["ich bin zurück an meinen Klippen und richte meine kleine Höhle her. Mit frischem Gras wird sie gemütlich.", "über dem Meer fliegen jetzt viele Vögel. Es ist laut und fröhlich hier."],
+      summer: ["ich sitze am Abend gern an der Klippe und schaue aufs Meer. Der Wind ist mild.", "heute war das Meer so klar, dass ich beim Tauchen bis auf den Grund sehen konnte."],
+      autumn: ["ich fliege bald hinaus aufs Meer, wo ich den Winter verbringe. Aber ich komme wieder.", "der Herbststurm hat die Wellen hochgepeitscht. Ich habe mich in meiner Höhle eingekuschelt."],
+      winter: ["ich schaukle draußen auf dem Meer auf den Wellen. Es ist ruhig und weit hier.", "ich denke an den Frühling und an meine Klippe. Bis dahin ist es nicht mehr lange."] },
+    turtle: { any: ["ich habe heute ein besonders schönes Kleeblatt gefunden und es mir in Ruhe angesehen.", "ich habe heute ganz in Ruhe über alles Mögliche nachgedacht. Das kann ich gut."], hi: ["Hallo {N},"], sign: ["Ganz gemütliche Grüße, deine Schildkröte", "Deine Schildkröte"],
+      spring: ["ich bin langsam aufgewacht und habe mich auf einen warmen Stein gelegt. Das tut gut nach dem langen Winter.", "der Löwenzahn blüht wieder. Ich esse jeden Tag ein paar Blätter, ganz in Ruhe."],
+      summer: ["ich liege am Ufer in der Sonne und döse. Ab und zu gehe ich ein paar Schritte ins Wasser.", "heute habe ich einen ganzen Nachmittag gebraucht, um einmal um den Teich zu gehen. Es war sehr schön."],
+      autumn: ["die Tage werden kürzer, und ich werde langsam müde. Bald grabe ich mich ein.", "ich habe noch einmal ausgiebig in der Herbstsonne gelegen."],
+      winter: ["ich schlafe jetzt tief und fest in meiner Erdhöhle. Bis zum Frühling!", "unter der Erde ist es warm und still. Ich schreibe dir nur ganz kurz."] },
+    crab: { any: ["ich habe heute eine leere Schneckenschale gefunden und sie eine Weile angeschaut. Sie war wunderschön gemustert.", "am Abend ziehe ich mich gern in meine Lieblingsspalte zurück und lausche dem Meer."], hi: ["Hallo {N},"], sign: ["Viele Grüße vom Strand, deine Krabbe", "Deine Krabbe"],
+      spring: ["am Strand ist es noch ruhig. Ich habe einen neuen Lieblingsstein gefunden, unter dem ich wohne.", "das Meer hat heute viele bunte Muscheln angespült. Ich habe sie mir alle angeschaut."],
+      summer: ["bei Ebbe gibt es kleine Pfützen zwischen den Steinen. Dort ist das Wasser schön warm.", "ich laufe gern am Abend über den nassen Sand. Die Wellen kommen und gehen ganz leise."],
+      autumn: ["der Wind weht den Sand in kleine Hügel. Ich verstecke mich gern dazwischen.", "das Meer rauscht lauter als im Sommer. Ich höre ihm abends gern zu."],
+      winter: ["ich bleibe jetzt meistens unter meinem Stein, da ist es geschützt.", "der Strand ist leer und still. Nur die Möwen und ich sind noch da."] },
+    elk: { any: ["ich habe heute an einem klaren Bach getrunken. Das Wasser war ganz kalt und frisch.", "ich laufe gern auf den alten Pfaden durch den Wald. Ich kenne jeden Baum dort."], hi: ["Hallo {N},"], sign: ["Dein Elch", "Viele Grüße aus dem Wald"],
+      spring: ["im Wald wird alles grün. Ich stehe gern am Morgen am Waldrand, wenn die Sonne aufgeht.", "im Moor blühen kleine weiße Blumen. Ich gehe ganz vorsichtig zwischen ihnen hindurch."],
+      summer: ["ich wate gern in den See und esse die Wasserpflanzen. Das ist erfrischend.", "die Abende sind lang und hell. Ich höre den Vögeln zu, bis es dunkel wird."],
+      autumn: ["die Birken sind ganz gelb geworden. Der Wald leuchtet richtig.", "morgens hängt Nebel zwischen den Bäumen. Es ist sehr still und schön."],
+      winter: ["der Schnee liegt tief, aber mit meinen langen Beinen komme ich gut durch.", "ich stehe gern zwischen den verschneiten Tannen. Alles ist weiß und leise."] },
+    lynx: { any: ["ich habe heute lange auf einem umgestürzten Baumstamm gelegen. Die Sonne kam durch die Zweige.", "im Wald gibt es eine kleine Lichtung, die außer mir kaum jemand kennt. Dort ist es sehr friedlich."], hi: ["Hallo {N},"], sign: ["Dein Luchs", "Leise Grüße, dein Luchs"],
+      spring: ["ich habe einen sonnigen Felsen im Wald gefunden. Dort liege ich am Nachmittag und schaue in die Bäume.", "der Bach ist voller Schmelzwasser und rauscht laut. Ich höre ihm gern zu."],
+      summer: ["im dichten Farn ist es kühl und schattig. Dort verbringe ich die heißen Stunden.", "ich bin heute Abend lange durch den Wald gestreift. Es roch nach warmem Moos."],
+      autumn: ["mein Winterfell wächst schon. Es wird dick und weich.", "die Blätter fallen leise, und der Wald wird lichter. Ich mag diese Zeit."],
+      winter: ["meine großen Pfoten tragen mich gut über den Schnee. Ich hinterlasse runde Spuren.", "ich habe mich unter einer tief verschneiten Tanne eingerollt. Dort ist es ganz geschützt."] },
+    panda: { any: ["ich habe mir heute ein neues Lieblingsplätzchen zum Dösen gesucht. Es ist zwischen zwei Bambusstauden.", "ich bin einen Hang hinuntergekugelt. Unten hab ich mich einfach hingesetzt und weitergekaut."], hi: ["Hallo {N},"], sign: ["Dein Panda", "Liebe Grüße, Panda"],
+      spring: ["der Bambus treibt frische Sprossen. Die sind ganz zart und schmecken wunderbar.", "ich habe heute lange in einer Astgabel gesessen und gedöst."],
+      summer: ["ich esse viel Bambus und ruhe mich dazwischen aus. So ist der Tag schön gemütlich.", "im Bambuswald rascheln die Blätter leise im Wind."],
+      autumn: ["die Luft ist frisch, und ich fühle mich richtig munter. Ich bin heute einen Hügel hinaufgeklettert.", "ich sitze gern zwischen den bunten Blättern und kaue meinen Bambus."],
+      winter: ["ich habe heute im Schnee gesessen und mich hineingekuschelt. Mein Fell ist sehr warm.", "die Bambusblätter sind voller Schnee. Ich schüttle sie ab und esse weiter."] },
+    koala: { any: ["ich habe heute ein Blatt gefunden, das besonders gut gerochen hat. Ich habe es ganz langsam gegessen.", "ich bin kurz aufgewacht, habe mich umgeschaut und mich dann wieder hingekuschelt."], hi: ["Hallo {N},"], sign: ["Verschlafene Grüße, dein Koala", "Dein Koala"],
+      spring: ["ich habe heute fast den ganzen Tag geschlafen und bin nur kurz für ein paar Blätter aufgewacht.", "der Eukalyptus duftet gerade besonders gut. Ich habe mir die schönsten Blätter ausgesucht."],
+      summer: ["ich halte mich an meinem Baum fest und döse im Schatten. Es ist herrlich ruhig.", "abends, wenn es kühler wird, klettere ich ein bisschen höher und schaue mich um."],
+      autumn: ["ich habe einen neuen Ast gefunden, der genau die richtige Form zum Schlafen hat.", "die Tage werden ruhiger, und ich auch. Aber das bin ich ja ohnehin."],
+      winter: ["ich kuschle mich eng an meinen Baumstamm. Das hält mich warm.", "es ist kühl geworden, aber in meinem Baum ist es gemütlich."] },
+    hare: { any: ["ich habe heute lange in einer Kuhle gesessen und den Wolken zugeschaut.", "ich bin heute am Feldrand entlanggehoppelt und habe an deinen Garten gedacht."], hi: ["Hallo {N},"], sign: ["Liebe Grüße, dein Hase", "Dein Hase"],
+      spring: ["auf der Wiese wächst junges Gras und Klee. Ich sitze am frühen Morgen dort und frühstücke.", "ich bin heute ein paar Runden über das Feld gelaufen, einfach weil es so schön war."],
+      summer: ["ich ruhe mich mittags in einer kleinen Mulde im hohen Gras aus. Dort sieht mich keiner.", "abends sitze ich am Feldrand und schaue zu, wie die Sonne untergeht."],
+      autumn: ["die Felder sind abgeerntet, und ich kann weit über das Land schauen.", "mein Fell wird dichter. Ich bin bereit für die kalten Tage."],
+      winter: ["im Schnee sieht man meine Spuren ganz deutlich. Sie führen bis zu deinem Gartenzaun.", "ich sitze in meiner Sasse und lasse mir den Schnee auf den Rücken fallen. Mein Fell hält warm."] },
+    squirrel: { any: ["ich habe heute einen Tannenzapfen ganz in Ruhe auseinandergenommen. Das dauert, aber ich mag das.", "von meinem Kobel aus kann ich weit über die Baumwipfel schauen. Heute war die Sicht besonders schön."], hi: ["Hallo {N},"], sign: ["Bis bald, dein Eichhörnchen", "Dein Eichhörnchen"],
+      spring: ["ich habe heute ein paar Nüsse vom letzten Herbst wiedergefunden. Ein schöner Frühlingsfund.", "mein Kobel oben in der Tanne ist frisch gepolstert. Er ist sehr gemütlich geworden."],
+      summer: ["ich springe gern von Ast zu Ast, wenn morgens die Sonne durch die Blätter scheint.", "an den Haselsträuchern wachsen schon kleine Nüsse. Ich schaue jeden Tag nach, wie sie wachsen."],
+      autumn: ["heute Morgen war Raureif auf den Ästen. Ich habe den ganzen Vormittag Nüsse gesammelt und dabei an deinen Garten gedacht.", "ich habe meine Vorräte an vielen kleinen Plätzen vergraben. Jetzt kann der Winter kommen."],
+      winter: ["ich kuschle mich in meinen Kobel und wickle meinen Schwanz um mich wie eine Decke.", "heute war ein sonniger Wintertag. Ich habe kurz einen Vorrat ausgegraben und dann weitergeschlafen."] },
+    fox: { any: ["ich habe heute am Bach gesessen und dem Wasser zugehört.", "ich bin am Abend über die Wiese gelaufen, als die Sonne unterging. Alles war golden."], hi: ["Hallo {N},"], sign: ["Bis bald, dein Fuchs", "Dein Fuchs"],
+      spring: ["am Waldrand blühen die Buschwindröschen. Ich laufe am Abend gern dort entlang.", "ich habe mir heute ein sonniges Plätzchen auf einer Lichtung gesucht und lange geschlafen."],
+      summer: ["in den hellen Sommernächten streife ich gern über die Wiesen. Alles duftet nach Klee.", "ich habe heute im kühlen Schatten unter den Farnen gelegen und den Bienen zugehört."],
+      autumn: ["ich bin neulich an deinem Haus vorbeigekommen, im Fenster brannte Licht. Das sah sehr gemütlich aus.", "mein Fell wird dichter, und ich rolle mich abends mit dem Schwanz über der Nase ein."],
+      winter: ["im Schnee leuchtet mein Fell richtig rot. Ich bin heute über das ganze verschneite Feld gelaufen.", "in meinem Bau ist es warm und trocken. Draußen fällt dicker Schnee."] },
+    mouse: { any: ["ich habe mir aus ein paar Halmen ein kleines Dach über meinen Eingang gebaut. Jetzt bleibt es trocken.", "ich habe heute einen Sonnenblumenkern gefunden und ihn ganz langsam gegessen. Er war köstlich."], hi: ["Hallo {N},"], sign: ["Deine Maus", "Liebe Grüße, deine Maus"],
+      spring: ["ich habe mein Nest im Feldrain frisch eingerichtet, mit weichem Gras und ein paar Federn.", "die ersten Erdbeeren werden rot. Ich habe schon eine angeknabbert."],
+      summer: ["ich klettere gern an den Getreidehalmen hoch und schaue über das Feld.", "abends ist es im hohen Gras ganz warm. Ich sitze dort und höre den Grillen zu."],
+      autumn: ["ich sammle Körner und Samen für den Winter. Mein Vorratsraum ist schon halb voll.", "die Kürbisse auf dem Feld sind riesig. Ich habe mich neben einen gesetzt, er war viel größer als ich."],
+      winter: ["mein Nest ist warm und mein Vorrat reicht. Ich mache es mir jeden Abend gemütlich.", "unter dem Schnee habe ich kleine Gänge. Dort ist es geschützt und ruhig."] },
+    badger: { any: ["ich habe heute Abend lange vor meinem Bau gesessen und in den Sternenhimmel geschaut.", "ich habe meinen Bau ein bisschen erweitert. Jetzt gibt es eine kleine Kammer nur zum Ausruhen."], hi: ["Hallo {N},"], sign: ["Viele Grüße aus meinem Bau, dein Dachs", "Dein Dachs"],
+      spring: ["ich habe meinen Bau gelüftet und frisches Gras als Bettzeug hineingetragen.", "der Wald riecht nach Bärlauch. Ich gehe abends gern dort spazieren."],
+      summer: ["in den lauen Nächten bin ich viel unterwegs und grabe nach Leckereien.", "vor meinem Bau sitze ich abends gern noch ein Weilchen und schaue in den Wald."],
+      autumn: ["ich futtere mir gerade einen kleinen Wintervorrat an. Es gibt viele Eicheln und Beeren.", "ich habe mein Winterbett im Bau dick mit Laub gepolstert."],
+      winter: ["ich schlafe viel in meinem warmen Bau. Ab und zu schaue ich nach, ob es noch schneit.", "es ist ruhig im Wald. Ich habe es mir tief unten im Bau gemütlich gemacht."] }
   };
-  var LSIGN = ["Bis bald", "Alles Liebe", "Ganz herzliche Grüße", "Ich freu mich auf dich"];
+  // what a friend adds: the closer the friendship, the more personal (never "we have only just met")
+  var LCLOSE = [
+    ["Vielleicht sehen wir uns bald im Garten.", "Ich hoffe, bei dir ist alles gut.", "Schöne Grüße an deinen Garten."],
+    ["Ich freue mich schon auf meinen nächsten Besuch bei dir.", "Ich komme bald wieder vorbei.", "Pass gut auf dich auf."],
+    ["Weißt du noch, wie wir zusammen im Garten saßen und es angefangen hat zu regnen? Daran denke ich oft.", "Unsere Besuche sind mir sehr lieb geworden.", "Ich denke oft an die Nachmittage bei dir.", "Bei dir ist es immer so gemütlich, ich freue mich schon aufs nächste Mal."]
+  ];
   function cropNow() { var p = (garden.plots || []).filter(function (x) { return x && CROPS[x.crop]; })[0]; return p ? CROPS[p.crop].name : null; }
   function friendGift() {
     var r = Math.random(), crops = Object.keys(CROPS).filter(function (c) { return c !== "chili"; });
-    if (r < 0.3) return { t: "gift", txt: "Und weil du mir so viel bedeutest, kommt bald ein Paket mit etwas Schönem für dein Zuhause!" };
-    if (r < 0.55) return { t: "apples", n: 1, txt: "Im Umschlag steckt ein besonders saftiger Apfel, extra für dich ausgesucht." };
-    if (r < 0.75 && (garden.seeds.chili || 0) < 15) return { t: "seed", k: "chili", n: 1, txt: "Ich lege dir einen Chili-Samen bei. Der ist selten, am besten wächst er im Gewächshaus." };
+    if (r < 0.3) return { t: "gift", txt: pick(["Ich habe dir ein kleines Paket geschickt. Ich glaube, es gefällt dir.", "Bald kommt ein Paket von mir, mit etwas für dein Zuhause."]) };
+    if (r < 0.55) return { t: "apples", n: 1, txt: pick(["Ich lege dir einen Apfel bei.", "Im Umschlag ist ein Apfel für dich."]) };
+    if (r < 0.75 && (garden.seeds.chili || 0) < 15) return { t: "seed", k: "chili", n: 1, txt: "Hier ist ein Chili-Samen für dich. Er wächst am besten im Gewächshaus." };
     var k = typeof seedPick === "function" ? seedPick() : null;
-    if (!k) return { t: "gift", txt: "Und weil du mir so viel bedeutest, kommt bald ein Paket mit etwas Schönem für dein Zuhause!" };
-    return { t: "seed", k: k, n: 1, txt: "Ich habe dir ein Tütchen " + CROPS[k].name + "-Samen eingepackt, meine liebste Sorte." };
+    if (!k) return { t: "gift", txt: "Ich habe dir ein kleines Paket geschickt. Ich glaube, es gefällt dir." };
+    return { t: "seed", k: k, n: 1, txt: pick(["Hier sind ein paar " + CROPS[k].name + "-Samen für dein Beet.", "Ich lege dir ein Tütchen " + CROPS[k].name + "-Samen bei."]) };
   }
   function makeLetter(from, kind) {
     var lines = (GLINES[from] || PLINES[from] || []);
+    if (kind === "hello" && from && (garden.friends[from] || 0) >= 1) kind = null;   /* an animal we already know does not introduce itself again */
     if (kind === "hello") {
       return { from: from, hello: "Hallo " + N() + ",", sign: "Viele Grüße",
         body: "ich wohne noch nicht lange hier in der Gegend und habe schon viel von dir gehört. Vielleicht komme ich bald mal im Garten oder am See vorbei. Ich würde mich freuen, dich kennenzulernen!" + (lines.length ? " Übrigens: " + lines[0] : ""),
         gift: { t: "seeds", k: pick(Object.keys(CROPS).filter(function (c) { return c !== "chili"; })), n: 1 } };
     }
     if (!from) { var friends = friendIds(); if (!friends.length) return null; from = pick(friends); lines = (GLINES[from] || PLINES[from] || []); }
-    var h = garden.friends[from] || 0, tier = h >= 9 ? 2 : h >= 6 ? 1 : 0, crop = cropNow();
-    var parts = [pick(LOPEN[tier])];
-    parts.push(pick([LSEASON[season()], crop ? "Wächst " + crop + " in deinem Beet schon gut? Ich bin gespannt auf die Ernte." : "Hast du schon etwas Neues in deinem Beet gepflanzt?", "Ich war jetzt schon " + h + "-mal bei dir zu Besuch, und jedes Mal war es schön."]));
-    if (tier >= 1) parts.push(pick(["Pass gut auf dich auf, ja?", "Schreib mir mal, wie es " + N() + " so geht. Ach so, das bist ja du!", "Ich komme bald wieder vorbei, versprochen."]));
-    var ps = lines.length ? pick(lines) : "";
-    return { from: from, hello: pick(["Hallo ", "Hey ", "Huhu "]) + N() + ",", sign: pick(LSIGN), body: parts.join(" "), ps: ps, gift: friendGift() };
+    var h = garden.friends[from] || 0, tier = h >= 9 ? 2 : h >= 6 ? 1 : 0, crop = cropNow(), V = LETTERS[from] || LETTERS.igel, se = season(), Lf = life();
+    Lf.lseen = Lf.lseen || {}; var seen = Lf.lseen[from] = Lf.lseen[from] || [];
+    var pool = [];   /* this season's moments first, ones not written yet; then the other seasons are not used (it would not fit the weather) */
+    var all = []; (V[se] || []).forEach(function (t, i) { all.push([se + i, t]); }); (V.any || []).forEach(function (t, i) { all.push(["any" + i, t]); });
+    all.forEach(function (q) { if (seen.indexOf(q[0]) < 0) pool.push(q); });
+    if (!pool.length) { seen.length = 0; pool = all.slice(); }
+    var m = pick(pool); seen.push(m[0]);
+    var parts = [m[1].split("{N}").join(N())];
+    if (crop && Math.random() < .35) parts.push(pick(["Wächst " + crop + " gut in deinem Beet?", "Ich bin gespannt, wie dein " + crop + " wird."]));
+    parts.push(pick(LCLOSE[tier].concat(tier ? LCLOSE[tier - 1] : [])));
+    var gift = friendGift();
+    return { from: from, hello: pick(V.hi).split("{N}").join(N()), sign: pick(V.sign), body: parts.join(" "), ps: "", gift: gift };
   }
   function grantLetter(l) {
     var r = l.gift || { t: "none" }, got = "", icon = "";
@@ -618,7 +743,7 @@
     letterEl.innerHTML = '<div class="lf-dim"></div><div class="lf-env"><div class="lf-flap"><svg viewBox="0 0 30 10" aria-hidden="true" shape-rendering="crispEdges">' + FLAP + '</svg></div>' +
       '<svg class="lf-body" viewBox="0 0 30 20" aria-hidden="true" shape-rendering="crispEdges">' + ENV0 + '</svg></div>' +
       '<div class="lf-paper pixtext"><div class="lf-fold"></div><div class="l-lhead"><span class="l-lpic"><svg viewBox="' + an.vb + '" aria-hidden="true">' + an.svg + '</svg></span><b>Post von ' + ANAME[l.from] + '</b></div>' +
-      '<p>' + (l.hello || "Hallo " + N() + ",") + '</p><p>' + l.body + '</p>' + (l.ps ? '<p class="lf-ps">P.S. ' + l.ps + '</p>' : "") + '<div class="lf-gift"></div><p class="l-lsign">' + (l.sign || "Viele Grüße") + '<br>' + ANAME[l.from] + '</p>' +
+      '<p>' + (l.hello || "Hallo " + N() + ",") + '</p><p>' + l.body + '</p>' + (l.ps ? '<p class="lf-ps">P.S. ' + l.ps + '</p>' : "") + '<div class="lf-gift"></div><p class="l-lsign">' + (l.sign || "Viele Grüße") + (l.sign && l.sign.indexOf(ANAME[l.from]) >= 0 ? "" : '<br>' + ANAME[l.from]) + '</p>' +
       '<div class="l-lbtns"><button type="button" class="pbtn" data-a="ok">' + (l.gift.t !== "none" ? "Danke!" : "Schön!") + '</button></div></div>';
     beep([[880, .05], [660, .05]]);
     front({ eyes: "wide", mouth: "open", paws: "up" });
@@ -667,7 +792,7 @@
     _lArriveFull(true, l.from, null, l);
   });
   renderInbox(); setInterval(renderInbox, 3000);
-  window.__inbox = { n: function () { return (life().inbox || []).length; }, test: function (id) { return letterArrives(true, id || Object.keys(ALLANI)[0], "hello"); } };
+  window.__inbox = { friend: function (id, h) { garden.friends = garden.friends || {}; if (h) garden.friends[id] = h; return makeLetter(id, null); }, n: function () { return (life().inbox || []).length; }, test: function (id) { return letterArrives(true, id || Object.keys(ALLANI)[0], "hello"); } };
   letterEl.addEventListener("click", function (e) { if (e.target.closest("[data-a=ok]") || (letterEl.classList.contains("unfold") && e.target.classList.contains("lf-dim"))) closeLetter(); });
   // a letter every few hours of play, only when you are looking at the hamster
   // a new friend writes right away, but only once the hamster screen is open and nothing else is in the way
