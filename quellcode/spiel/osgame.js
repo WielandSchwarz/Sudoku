@@ -120,7 +120,10 @@ function mountObstsalat(root, ART, opts) {
   // ---------- spawning: volleys that grow with time
   function fruitKey() {
     var keys = [], tot = 0;
-    Object.keys(FR).forEach(function (k) { var w = (FR[k].weights || {})[env.season] || 0; if (k === FAV && w) w = Math.max(w * 2.5, 4); if (w) { keys.push([k, w]); tot += w; } });
+    Object.keys(FR).forEach(function (k) {
+      var w = (FR[k].weights || {})[env.season] || 0; if (k === FAV && w) w = Math.max(w * 2.5, 4);
+      if (w && S && S.cutCount) w *= Math.min(5, 1 + .3 * (S.cutCount[k] || 0));   /* what you cut most comes more often: every round drifts towards your own theme */
+      if (w) { keys.push([k, w]); tot += w; } });
     var x = Math.random() * tot;
     for (var i = 0; i < keys.length; i++) { x -= keys[i][1]; if (x <= 0) return keys[i][0]; }
     return keys[0][0];
