@@ -603,7 +603,7 @@
   var capHook = document.createElement("button"); capHook.type = "button"; capHook.className = "bs-prop bs-boxbtn bs-cap"; capHook.setAttribute("aria-label", "Kapitänsmütze");
   var hallEl = null, CAP = { el: kitchenEl, x: 157, y: 24, walk: 150, fx: 144, fy: 76 };
   function capPlace() {   /* with the hall (built a moment later): the cap hangs by the front door, above the coat rack */
-    if (!hallEl && document.querySelector(".wide-lay")) { hallEl = document.getElementById("room"); CAP = { el: hallEl, x: -23, y: 29, walk: -14, fx: -20, fy: 76 }; }
+    if (!hallEl && document.querySelector(".wide-lay")) { hallEl = document.getElementById("room"); CAP = { el: hallEl, x: -23, y: 29, walk: -16, fx: -20, fy: 76 }; }
     capHook.style.left = gx(CAP.x); capHook.style.top = gy(CAP.y); capHook.style.width = gx(16); if (capHook.parentNode !== CAP.el) CAP.el.appendChild(capHook);
   }
   capPlace(); setTimeout(capPlace, 0);
