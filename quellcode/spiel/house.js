@@ -6,10 +6,20 @@
   function lay(k, x, y, cls) { return '<div class="hl ' + (cls || "") + '" style="left:' + gx(x) + ';top:' + gy(y) + ';width:' + gx(SZ[k][0]) + '">' + svgOf(A[k], SZ[k][0], SZ[k][1]) + '</div>'; }
   // ---- bathroom (left of the living room) ----
   var bathEl = hEl("div", "hroom bath", null); bathEl.id = "bath"; bathEl.hidden = true; scene.insertBefore(bathEl, roomEl.nextSibling);
-  bathEl.innerHTML = '<div class="sky bt-sky" id="bt-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div><div class="h-bg">' + svgOf(A.bath_bg + (A.bath_slope || ""), 180, 135) + '</div>' +
+  bathEl.innerHTML = '<div class="sky bt-sky" id="bt-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div><div class="h-bg" id="ba-art"></div>' +
     '<button type="button" class="h-hot" id="h-tub" aria-label="Baden" style="left:' + gx(12) + ';top:' + gy(66) + ';width:' + gx(82) + ';height:' + gy(42) + '"></button>' +
     '<button type="button" class="g-exit h-exit right" id="bath-exit" aria-label="Ins Schlafzimmer"><span>›</span></button>';
-  var tubFront = hEl("div", "h-front tubfront", scene, lay("bath_foam", 16, 72, "foam") + lay("bath_tub", 14, 76)); tubFront.hidden = true;
+  var tubFront = hEl("div", "h-front tubfront", scene, ""); tubFront.hidden = true;
+  if (!home.bath) home.bath = { wall: 0, floor: 0, tub: 0, sink: 0 };
+  function bathLayers(b) { return ["ba_wall_" + b.wall, "ba_floor_" + b.floor, "ba_fix", "ba_tubb_" + b.tub, "ba_sink_" + b.sink, "bath_slope"]; }
+  function renderBathArt() {   /* the bath is furnished in layers: wall, floor, tub, sink */
+    var b = home.bath;
+    document.getElementById("ba-art").innerHTML = svgOf(bathLayers(b).map(function (k) { return A[k] || ""; }).join(""), 180, 135);
+    var foamy = tubFront.classList.contains("foamy");
+    tubFront.innerHTML = lay("bath_foam", 16, 72, "foam") + lay("ba_tub_" + b.tub, 14, 74);
+    tubFront.classList.toggle("foamy", foamy);
+  }
+  renderBathArt();
   // ---- attic bedroom ----
   var bedEl = hEl("div", "hroom bedroom", null); bedEl.id = "bedroom"; bedEl.hidden = true; scene.insertBefore(bedEl, roomEl.nextSibling);
   bedEl.innerHTML = '<div class="sky b-sky" id="b-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div>' +
@@ -61,7 +71,8 @@
     tubFront.hidden = p !== "bath"; bedFront.hidden = p !== "bedroom";
     bEnter.hidden = true;   /* the bath moved upstairs: no door to it from the living room any more */
     if (p === "bath" || p === "bedroom") H.scale = 1;
-    document.getElementById("decor-btn").hidden = p === "bath";
+    document.getElementById("decor-btn").hidden = false;
+    if (typeof decorLabel === "function") decorLabel();
     renderMapMarker(); renderCanopyBtn();
   };
   function inFront(el, on) { el.classList.toggle("over", on); }
@@ -152,7 +163,7 @@
   };
   // ---- bathing: a cannonball over the rim, then dripping wet until you dry him with the towel ----
   var towelBtn = hEl("button", "h-towelhook", bathEl, svgOf(A.towel_hang, 25, 34)); towelBtn.type = "button"; towelBtn.setAttribute("aria-label", "Handtuch");
-  towelBtn.style.left = gx(70); towelBtn.style.top = gy(36); towelBtn.style.width = gx(25);
+  towelBtn.style.left = gx(88); towelBtn.style.top = gy(40); towelBtn.style.width = gx(25);   /* between the window over the tub and the mirror */
   var wet = false, wetT = null, wetEnd = null, puddleEl = null;
   function setWet(on) {
     wet = on; ham.classList.toggle("wet", on); clearInterval(wetT); clearTimeout(wetEnd);
@@ -213,7 +224,7 @@
     say(N() + " wird abgetrocknet …");
     // the towel flies from the hook to the hamster and wraps him up
     var fly = hEl("div", "h-towelfly", scene, svgOf(A.towel_hang, 25, 34));
-    fly.style.left = gx(70); fly.style.top = gy(36); fly.style.width = gx(25); towelBtn.classList.add("away");
+    fly.style.left = gx(88); fly.style.top = gy(40); fly.style.width = gx(25); towelBtn.classList.add("away");
     void fly.offsetWidth; fly.style.left = gx(H.x - 12.5); fly.style.top = gy(H.y - 54); await wait(450);
     fly.remove();
     front({ eyes: "happy", mouth: "grin", ears: "flat", paws: "down", blush: true });
@@ -468,8 +479,47 @@
     var it = e.target.closest(".k-item"); if (!it) return;
     home.bedroom[bCat] = +it.dataset.i; renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]);
   });
+  // ---- furnishing the bath ----
+  var BACATS = [
+    { id: "tub", name: "Wanne", names: ["Löwenfuß-Wanne", "Pantoffelwanne", "Salbeigrüne Wanne"] },
+    { id: "sink", name: "Waschbecken", names: ["Säulen-Waschbecken", "Holz-Waschtisch", "Becken mit Vorhang"] },
+    { id: "wall", name: "Wand", names: ["Hellblau", "Mint-Mosaik", "Rosa Vertäfelung", "Terrakotta"] },
+    { id: "floor", name: "Boden", names: ["Holzdielen", "Schachbrett", "Mint-Fliesen", "Terrakotta"] }
+  ];
+  var BASEL = { tub: [12, 64, 82, 46], sink: [122, 58, 38, 42], wall: [0, 8, 180, 90], floor: [0, 98, 180, 37] };
+  var BAVB = { tub: "8 60 92 52", sink: "118 54 46 48", wall: "0 4 180 96", floor: "0 96 120 39" };
+  var baCat = "tub", baCatalog = document.createElement("section"); baCatalog.className = "catalog k-catalog"; baCatalog.hidden = true;
+  dBtn.parentNode.insertBefore(baCatalog, dBtn.nextSibling);
+  var baSel = hEl("div", "k-sel", bathEl); baSel.hidden = true;
+  function baThumb(cat, i) {
+    var b = {}; for (var x in home.bath) b[x] = home.bath[x]; b[cat] = i;
+    var o = '<rect x="0" y="0" width="180" height="135" fill="#bfe3f7"/>' + bathLayers(b).map(function (k) { return A[k] || ""; }).join("");
+    if (cat === "tub") o += '<g transform="translate(14 74)">' + A["ba_tub_" + i] + '</g>';
+    return '<svg viewBox="' + BAVB[cat] + '" aria-hidden="true">' + o + '</svg>';
+  }
+  function renderBaCatalog() {
+    var c = BACATS.filter(function (q) { return q.id === baCat; })[0];
+    baCatalog.innerHTML = '<div class="tabs k-tabs">' + BACATS.map(function (q) { return '<button type="button" class="tab" data-k="' + q.id + '" aria-pressed="' + (q.id === baCat) + '">' + q.name + '</button>'; }).join("") + '</div>' +
+      '<p class="k-cat-title">' + c.name + ' auswählen</p><div class="k-items">' + c.names.map(function (nm, i) {
+        return '<button type="button" class="item k-item" data-i="' + i + '" aria-pressed="' + (home.bath[baCat] === i) + '"><div class="ic">' + baThumb(baCat, i) + '</div><span>' + nm + '</span></button>';
+      }).join("") + '</div>';
+    var r = BASEL[baCat]; baSel.hidden = false;
+    baSel.style.left = (r[0] / 180 * 100) + "%"; baSel.style.top = (r[1] / 135 * 100) + "%"; baSel.style.width = (r[2] / 180 * 100) + "%"; baSel.style.height = (r[3] / 135 * 100) + "%";
+  }
+  baCatalog.addEventListener("click", function (e) {
+    var t = e.target.closest(".tab"); if (t) { baCat = t.dataset.k; renderBaCatalog(); return; }
+    var it = e.target.closest(".k-item"); if (!it) return;
+    home.bath[baCat] = +it.dataset.i; renderBathArt(); renderBaCatalog(); beep([[880, .04], [1175, .06]]); if (window.SudokuSave) window.SudokuSave();
+  });
   var _h_setDecor = setDecor;
   setDecor = function (on) {
+    if (place2 === "bath") {
+      decor = on; scene.classList.toggle("decor", on); dBtn.setAttribute("aria-pressed", on);
+      baCatalog.hidden = !on; baSel.hidden = !on; bCatalog.hidden = true; bSel.hidden = true; document.getElementById("catalog").hidden = true;
+      if (on) { document.getElementById("foods").hidden = true; document.getElementById("tracks").hidden = true; if (busy) interrupt(); renderBaCatalog(); }
+      decorLabel(); return;
+    }
+    baCatalog.hidden = true; baSel.hidden = true;
     if (place2 === "bedroom") {
       if (on && s.asleep) { say(N() + " schläft gerade. Weck ihn erst auf."); return; }
       decor = on; scene.classList.toggle("decor", on); dBtn.setAttribute("aria-pressed", on);
@@ -480,7 +530,7 @@
     bCatalog.hidden = true; bSel.hidden = true; _h_setDecor(on);
   };
   var _h_decorLabel = decorLabel;
-  decorLabel = function () { if (place2 === "bedroom") { dBtn.textContent = decor ? "Fertig eingerichtet" : "Schlafzimmer einrichten"; return; } _h_decorLabel(); };
+  decorLabel = function () { if (place2 === "bedroom" || place2 === "bath") { dBtn.textContent = decor ? "Fertig eingerichtet" : (place2 === "bath" ? "Bad einrichten" : "Schlafzimmer einrichten"); return; } _h_decorLabel(); };
 
   // ---- winter: build a snow hamster by tapping the snow heap in the garden ----
   var snowSpot = hEl("button", "g-snowspot", gardenEl, '<svg viewBox="0 0 24 8" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M4 2h16v1h2v1h1v3h1v1H0V7h1V4h1V3h2z"/><path fill="#ffffff" d="M4 3h16v1h2v3H2V4h2z"/><path fill="#dce4ee" d="M2 6h20v1H2z"/><path fill="#eef3f8" d="M6 4h3v1H6zM14 4h2v1h-2z"/></svg>');
