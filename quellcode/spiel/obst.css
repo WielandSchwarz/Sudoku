@@ -113,3 +113,7 @@
 .os-gsay[hidden] { display: none; }
 .os-gsay { position: absolute; transform: translateY(-50%); z-index: 3; pointer-events: none; color: #3a2414; font-weight: 800; font-size: clamp(.9rem, 5cqw, 1.2rem); line-height: 1; }
 .os-gsay.end { color: #c8463c; }
+.os-album .os-board-h { position: relative; }
+.os-alx { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border: 0; background: #fff8ec; color: #3a2414; font: inherit; font-weight: 800; font-size: 1rem; line-height: 1; cursor: pointer;
+  box-shadow: 0 -2px 0 0 #3a2414, 0 2px 0 0 #3a2414, -2px 0 0 0 #3a2414, 2px 0 0 0 #3a2414; }
+.os-album-g { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }

@@ -2711,6 +2711,10 @@ body.dz-on .dz-panel { display: block; }
 .os-gsay[hidden] { display: none; }
 .os-gsay { position: absolute; transform: translateY(-50%); z-index: 3; pointer-events: none; color: #3a2414; font-weight: 800; font-size: clamp(.9rem, 5cqw, 1.2rem); line-height: 1; }
 .os-gsay.end { color: #c8463c; }
+.os-album .os-board-h { position: relative; }
+.os-alx { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border: 0; background: #fff8ec; color: #3a2414; font: inherit; font-weight: 800; font-size: 1rem; line-height: 1; cursor: pointer;
+  box-shadow: 0 -2px 0 0 #3a2414, 0 2px 0 0 #3a2414, -2px 0 0 0 #3a2414, 2px 0 0 0 #3a2414; }
+.os-album-g { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 </style>
 
@@ -22810,7 +22814,7 @@ function mountObstsalat(root, ART, opts) {
     '<div class="os-hud"><b class="os-hud-s"><img alt=""><span class="os-score">0</span></b><b class="os-hud-t"><img alt=""><span class="os-time">1:00</span></b></div>' +
     '<b class="os-x2" hidden>×2</b><div class="os-pops"></div><div class="os-end" hidden><b class="os-end-n"></b><b class="os-end-t"></b></div>' +
     '<div class="os-board" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><img alt=""><b>Bestenliste</b></div><ol class="os-board-l"></ol><button type="button" class="os-albtn">Obst-Album</button></div></div>' +
-    '<div class="os-album" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><b>Obst-Album</b></div><div class="os-album-g"></div></div></div>';
+    '<div class="os-album" hidden><div class="os-board-in"><i class="nl tl"></i><i class="nl tr"></i><i class="nl bl"></i><i class="nl br"></i><div class="os-board-h"><b>Obst-Album</b><button type="button" class="os-alx" aria-label="Schließen">×</button></div><div class="os-album-g"></div></div></div>';
   var cv = root.querySelector(".os-cv"), cx = cv.getContext("2d");
   cx.imageSmoothingEnabled = false;
   var ban = root.querySelector(".os-ban"), banT = root.querySelector(".os-ban-t"), banTime = root.querySelector(".os-ban-time");
@@ -22823,7 +22827,8 @@ function mountObstsalat(root, ART, opts) {
   var MEDAL = [ART.icon.gold.img, ART.icon.silber.img, ART.icon.bronze.img];
   var albumEl = root.querySelector(".os-album"), albumG = root.querySelector(".os-album-g");
   root.querySelector(".os-albtn").addEventListener("pointerdown", function (e) { e.stopPropagation(); showAlbum(); });
-  albumEl.addEventListener("pointerdown", function (e) { e.stopPropagation(); albumEl.hidden = true; });
+  albumEl.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+  albumEl.addEventListener("click", function (e) { if (e.target === albumEl || e.target.classList.contains("os-alx")) albumEl.hidden = true; });
   function showAlbum() {   /* every kind of fruit and how often it was cut, over all rounds */
     var c = opts.album ? opts.album() || {} : {}; albumG.innerHTML = "";
     ALBUM.forEach(function (k) {
@@ -23024,7 +23029,7 @@ function mountObstsalat(root, ART, opts) {
   function cutFruit(it, dx, dy, onLine) {   /* an ordinary piece of fruit (and the specials): points, sound, combo, skewer, honey chain */
     var f = FR[it.k]; it.cut = true;
     var skin = sliceItem(it, dx, dy);
-    S.lastCutT = performance.now();
+    if (!S.strokeHits) S.firstCutT = performance.now();
     sfx(it.k === "goldapfel" ? "gold" : "cut", S.strokeHits); S.strokeHits++; S.cuts++; S.strokeCuts.push({ x: it.x, y: it.y, c: skin, f: f.flesh });
     countCut(it.k, skin, f.flesh);
     var val = it.k === "goldapfel" ? 4 : it.k === "wassermelone" ? 6 : 1;
@@ -23091,7 +23096,7 @@ function mountObstsalat(root, ART, opts) {
 
   // ---------- input
   var HB = { x: 128, y: 91, w: 48, h: 46 };
-  var SWIPE_V = 25, SWIPE_GAP = 150, CUT_GAP = 450;   /* like Fruit Ninja: one swiping motion, slow is fine. It ends when the finger is lifted, stops (below SWIPE_V room px/s for SWIPE_GAP ms), or no fruit is hit for CUT_GAP ms */
+  var SWIPE_V = 25, SWIPE_GAP = 150, COMBO_WIN = 400;   /* like Fruit Ninja: one slash, slow is fine. A combo is closed when the finger is lifted, stops (below SWIPE_V room px/s for SWIPE_GAP ms), or COMBO_WIN ms after its first cut: holding the finger down never adds up */
   function pt(ev) { var r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H }; }
   var down = null;
   cv.addEventListener("pointerdown", function (ev) {
@@ -23162,12 +23167,11 @@ function mountObstsalat(root, ART, opts) {
     S.local = S.score > 0 ? addRun(S.score) : null;
     if (S.cutCols.length && SM) {   /* the smoothie: its colour is mixed from everything that was cut */
       var rs = 0, gs = 0, bs = 0, n = 0;
-      S.cutCols.forEach(function (c) { var m = /rgb\((\d+),(\d+),(\d+)\)/.exec(c), v = m ? [+m[1], +m[2], +m[3]] : hexRgb(c); rs += v[0]; gs += v[1]; bs += v[2]; n++; });
-      var col = [rs / n, gs / n, bs / n], mx = Math.max.apply(null, col), mn = Math.min.apply(null, col);
-      col = col.map(function (v) { return Math.round(Math.max(0, Math.min(255, mn + (v - mn) * 1.35 + 6))); });   /* a little more colourful than the plain average */
+      S.cutCols.forEach(function (c, i) { var m = /rgb\((\d+),(\d+),(\d+)\)/.exec(c), v = m ? [+m[1], +m[2], +m[3]] : hexRgb(c), w = i % 2 ? 1 : 3; rs += v[0] * w; gs += v[1] * w; bs += v[2] * w; n += w; });
+      var col = vivid([rs / n, gs / n, bs / n]);
       var top = null, tn = 0; Object.keys(S.cutCount).forEach(function (k) { if (SMNAME[k] && S.cutCount[k] > tn) { tn = S.cutCount[k]; top = k; } });
       var chunks = []; for (var ci = 0; ci < Math.min(16, S.cutCols.length); ci++) chunks.push(S.cutCols[Math.floor(ci * S.cutCols.length / Math.min(16, S.cutCols.length))]);
-      S.smooth = { col: "rgb(" + col.join(",") + ")", lite: "rgb(" + col.map(function (v) { return Math.min(255, v + 40); }).join(",") + ")", name: top ? SMNAME[top] + "-Smoothie" : "Smoothie", chunks: chunks, lev: Math.min(.92, .4 + .55 * Math.min(1, S.score / FULL)), blend: false, slurp: false };
+      S.smooth = { col: "rgb(" + col.join(",") + ")", lite: "rgb(" + col.map(function (v) { return Math.min(255, v + 40); }).join(",") + ")", name: smName(), chunks: chunks, lev: Math.min(.92, .4 + .55 * Math.min(1, S.score / FULL)), blend: false, slurp: false };
     }
     S.record = S.score > 0 && S.score > S.best; if (S.record) saveBest(S.score);
     sfx(S.record ? "record" : S.score >= FULL ? "full" : "end");
@@ -23320,6 +23324,27 @@ function mountObstsalat(root, ART, opts) {
     } else gSay.hidden = true;
   }
 
+  function vivid(c) {   /* push the mixed colour to a clear, juicy tone: strong saturation, medium lightness */
+    var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn, h = 0;
+    if (d) { h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+    var sat = Math.max(.62, Math.min(.9, (d ? d / (1 - Math.abs(2 * l - 1)) : 0) * 1.5)); l = Math.max(.46, Math.min(.6, l));
+    var C = (1 - Math.abs(2 * l - 1)) * sat, X = C * (1 - Math.abs((h / 60) % 2 - 1)), m = l - C / 2, rgb = h < 60 ? [C, X, 0] : h < 120 ? [X, C, 0] : h < 180 ? [0, C, X] : h < 240 ? [0, X, C] : h < 300 ? [X, 0, C] : [C, 0, X];
+    return rgb.map(function (v) { return Math.round((v + m) * 255); });
+  }
+  var SMN = { apfel: ["Apfel-Abenteuer", "Apfel-Akrobat", "Äpfelchen-Alarm"], birne: ["Birnen-Blitz", "Birnen-Boogie", "Birnchen-Bombe"], pflaume: ["Pflaumen-Power", "Pflaumen-Pirat", "Pflaumen-Party"],
+    erdbeere: ["Erdbeer-Explosion", "Erdbeer-Express", "Erdbeer-Engelchen"], kirschen: ["Kirsch-Kracher", "Kirsch-Karussell", "Kirschkern-Kapitän"], tomate: ["Tomaten-Tornado", "Tomaten-Tango", "Tomaten-Turbo"],
+    moehre: ["Möhren-Mambo", "Möhrchen-Meister", "Möhren-Matrose"], kuerbis: ["Kürbis-Knaller", "Kürbis-Kobold", "Kürbis-Kuschler"], wassermelone: ["Melonen-Monster", "Melonen-Marathon"],
+    kokosnuss: ["Kokos-Karneval", "Kokos-Kanone"], ananas: ["Ananas-Aloha", "Ananas-Abfahrt"], goldapfel: ["Goldapfel-Glanz", "Goldener Galopp"] };
+  var SMMIX = ["Wirbel", "Wunder", "Wumms", "Zauber", "Gewitter", "Durcheinander"];
+  function smName() {   /* named after what was cut most; two close favourites make a mix; lots of kinds make it colourful */
+    var ks = Object.keys(S.cutCount).filter(function (k) { return SMNAME[k]; }).sort(function (a, b) { return S.cutCount[b] - S.cutCount[a]; });
+    var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+    if (!ks.length) return "Spezial-Smoothie";
+    if (ks.length >= 6) return pick(["Kunterbunt-Kaboom", "Obstgarten-Orkan", "Regenbogen-Rakete"]);
+    if (ks.length > 1 && S.cutCount[ks[1]] >= S.cutCount[ks[0]] * .7) return SMNAME[ks[0]] + "-" + SMNAME[ks[1]] + "-" + pick(SMMIX);
+    return pick(SMN[ks[0]] || [SMNAME[ks[0]] + "-" + pick(SMMIX)]);
+  }
+
   /* the finale: everything cut flies into the blender, it whirs, then the hamster drinks the smoothie with a straw */
   function liquid(mask, w, h, lev, col, lite, t, swirl) {   /* the liquid is painted first, then cut to the inside of the glass */
     lq.globalCompositeOperation = "source-over"; lq.clearRect(0, 0, 34, 50);
@@ -23361,7 +23386,7 @@ function mountObstsalat(root, ART, opts) {
   var last = performance.now(), raf = 0;
   function frame(now) {
     if (S.paused) { last = now; raf = requestAnimationFrame(frame); return; }
-    if (down && (S.strokeHits || S.skew.length) && (now - down.fast > SWIPE_GAP || now - (S.lastCutT || now) > CUT_GAP)) endSwipe();   /* a present is being shown on top: everything waits */
+    if (down && (S.strokeHits || S.skew.length) && (now - down.fast > SWIPE_GAP || now - (S.firstCutT || now) > COMBO_WIN)) endSwipe();   /* a present is being shown on top: everything waits */
     var dt = Math.min(.05, (now - last) / 1000); last = now; S.t += dt;
     var ts = S.slowT > 0 ? .38 : 1, wdt = dt * ts; S.wt += wdt;
     var tm = timeNow();
@@ -23536,8 +23561,8 @@ function mountObstsalat(root, ART, opts) {
         cx.drawImage(BIG.im, 0, sy, BIG.w, BIG.h - sy, bx, by + sy, BIG.w, BIG.h - sy);
       } }
       if (endEl.hidden && !S.boardOn && (!S.smooth || S.endT - GT > 3.1) && S.endT > .7 + GT) {
-        endT.textContent = S.record ? "Neuer Rekord!" : S.smooth ? S.smooth.name + "!" : S.score >= FULL ? "Obstsalat!" : S.score >= FULL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
-        endN.textContent = S.score;
+        endT.textContent = S.smooth ? S.smooth.name + "!" : S.record ? "Neuer Rekord!" : S.score >= FULL ? "Obstsalat!" : S.score >= FULL / 2 ? "Kleiner Obstsalat" : "Ein paar Stückchen";
+        endN.textContent = S.smooth && S.record ? S.score + " · Rekord!" : S.score;
         endEl.hidden = false;
       }
       if (opts.board && !S.boardOn && S.endT > (S.smooth ? 5.6 : 3.2) + GT) showBoard();
