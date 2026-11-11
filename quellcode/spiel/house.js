@@ -6,16 +6,17 @@
   function lay(k, x, y, cls) { return '<div class="hl ' + (cls || "") + '" style="left:' + gx(x) + ';top:' + gy(y) + ';width:' + gx(SZ[k][0]) + '">' + svgOf(A[k], SZ[k][0], SZ[k][1]) + '</div>'; }
   // ---- bathroom (left of the living room) ----
   var bathEl = hEl("div", "hroom bath", null); bathEl.id = "bath"; bathEl.hidden = true; scene.insertBefore(bathEl, roomEl.nextSibling);
-  bathEl.innerHTML = '<div class="sky bt-sky" id="bt-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div><div class="h-bg">' + svgOf(A.bath_bg, 180, 135) + '</div>' +
+  bathEl.innerHTML = '<div class="sky bt-sky" id="bt-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div><div class="h-bg">' + svgOf(A.bath_bg + (A.bath_slope || ""), 180, 135) + '</div>' +
     '<button type="button" class="h-hot" id="h-tub" aria-label="Baden" style="left:' + gx(12) + ';top:' + gy(66) + ';width:' + gx(82) + ';height:' + gy(42) + '"></button>' +
-    '<button type="button" class="g-exit h-exit right" id="bath-exit" aria-label="Zurück ins Wohnzimmer"><span>›</span></button>';
+    '<button type="button" class="g-exit h-exit right" id="bath-exit" aria-label="Ins Schlafzimmer"><span>›</span></button>';
   var tubFront = hEl("div", "h-front tubfront", scene, lay("bath_foam", 16, 72, "foam") + lay("bath_tub", 14, 76)); tubFront.hidden = true;
   // ---- attic bedroom ----
   var bedEl = hEl("div", "hroom bedroom", null); bedEl.id = "bedroom"; bedEl.hidden = true; scene.insertBefore(bedEl, roomEl.nextSibling);
   bedEl.innerHTML = '<div class="sky b-sky" id="b-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div>' +
     '<div class="h-bg" id="b-art"></div><div id="b-bedback"></div>' +
     '<button type="button" class="h-hot" id="h-bed" aria-label="Ins Bett" style="left:' + gx(4) + ';top:' + gy(60) + ';width:' + gx(96) + ';height:' + gy(60) + '"></button>' +
-    '<button type="button" class="h-stairs" id="bed-exit" aria-label="Treppe runter ins Wohnzimmer"><span>›</span></button>';
+    '<button type="button" class="h-stairs" id="bed-exit" aria-label="Treppe runter ins Wohnzimmer"><span>›</span></button>' +
+    '<button type="button" class="g-exit h-exit" id="bed-bath" aria-label="Ins Bad"><span>‹</span></button>';   /* the bath is upstairs now, left of the bedroom */
   var bedFront = hEl("div", "h-front bedfront", scene, ""); bedFront.hidden = true;
   if (!home.bedroom) home.bedroom = { bed: 0, wall: 0, window: 0, floor: 0, rug: 0 };
   // the canopy bed can be dressed in a colour of your choice, like scarf and hat
@@ -58,7 +59,7 @@
     _h_showPlace3(p);
     bathEl.hidden = p !== "bath"; bedEl.hidden = p !== "bedroom";
     tubFront.hidden = p !== "bath"; bedFront.hidden = p !== "bedroom";
-    bEnter.hidden = p !== "room";
+    bEnter.hidden = true;   /* the bath moved upstairs: no door to it from the living room any more */
     if (p === "bath" || p === "bedroom") H.scale = 1;
     document.getElementById("decor-btn").hidden = p === "bath";
     renderMapMarker(); renderCanopyBtn();
@@ -68,18 +69,23 @@
   var RSPOT = { home: { x: 124, y: 122 }, bedSide: { x: 116, y: 120 }, bed: { x: 50, y: 100 }, stairs: { x: 160, y: 116 } };
   var BED_CLEAR = 116;   // in the bedroom the hamster stays right of the bed's front, so he never half-disappears behind it
   renderBedroomArt();
-  async function goBathSeq() {
-    if (H.where === "chair") await hopOutOfChair();
-    await walkTo(-14, 120); fadeX(false); await wait(250);
+  async function goBathSeq() {   /* up the stairs, through the bedroom, into the bath on the left */
+    if (place2 !== "bedroom") await goBedroomSeq();
+    await bedToBath();
+  }
+  async function bedToBath() {
+    if (H.where === "bed") await hopOutOfBed();
+    await walkTo(BED_CLEAR, 120); H.dir = -1; fadeX(false); await wait(300);
     showPlace("bath"); moveTo(196, 120, 0); fadeX(true);
     say(N() + " ist im Bad."); await walkTo(BSPOT.home.x, BSPOT.home.y);
     front({ eyes: "happy", mouth: "smile" }); await nibbleNose(4);
   }
-  async function roomFromBath() {
+  async function bathToBed() {
     if (H.where === "tub") await hopOutOfTub();
     await walkTo(196, 120); fadeX(false); await wait(250);
-    showPlace("room"); moveTo(-14, 120, 0); fadeX(true); await walkTo(SPOT.home.x, SPOT.home.y);
+    showPlace("bedroom"); moveTo(BED_CLEAR, 120, 0); fadeX(true); await walkTo(RSPOT.home.x, RSPOT.home.y);
   }
+  async function roomFromBath() { await bathToBed(); await roomFromBedroom(); }
   // the stairs: a little pop-up of the stairwell, the hamster hops up (or down) step by step
   var stairPip = hEl("div", "storm-pip stair-pip", scene); stairPip.hidden = true;
   async function stairClimb(up) {
@@ -119,6 +125,8 @@
   }
   async function travelTo(t) {
     if (t === place2) { say(N() + " ist schon hier."); return; }
+    if (place2 === "bath" && t === "bedroom") return bathToBed();   /* the two rooms upstairs are next to each other */
+    if (place2 === "bedroom" && t === "bath") return bedToBath();
     await toRoom();
     if (t === "kitchen") await goKitchenSeq();
     else if (t === "garden") await goGardenSeq();
@@ -126,7 +134,8 @@
     else if (t === "bedroom") await goBedroomSeq();
   }
   bEnter.addEventListener("click", function () { if (decor || s.asleep) return; if (busy) interrupt(); act("bathgo", goBathSeq); });
-  document.getElementById("bath-exit").addEventListener("click", function () { if (busy) interrupt(); act("inside", roomFromBath); });
+  document.getElementById("bath-exit").addEventListener("click", function () { if (busy) interrupt(); act("inside", bathToBed); });
+  document.getElementById("bed-bath").addEventListener("click", function () { if (s.asleep) { say(N() + " schläft. Weck ihn erst auf."); return; } if (decor) return; if (busy) interrupt(); act("bathgo", bedToBath); });
   document.getElementById("bed-exit").addEventListener("click", function () { if (s.asleep) { say(N() + " schläft. Weck ihn erst auf."); return; } if (busy) interrupt(); act("inside", roomFromBedroom); });
   IDLE_ACTS.push("bathgo", "hwander");
   var _h_walkBed = walkTo;
@@ -387,7 +396,7 @@
     // evening and night: dark outside, the rooms glow with warm light from inside
     if (skyCls) {
       var R = HD.rooms[st], holes = "", glow = "", dark = skyCls === "sky-night" ? 0.35 : 0.15;
-      ["bath", "room", "kitchen"].forEach(function (k) { var r = R[k]; holes += "M" + r[0] + " " + r[1] + "H" + (r[2] + 1) + "V" + (r[3] + 1) + "H" + r[0] + "Z"; });
+      ["room", "kitchen"].forEach(function (k) { var r = R[k]; holes += "M" + r[0] + " " + r[1] + "H" + (r[2] + 1) + "V" + (r[3] + 1) + "H" + r[0] + "Z"; });
       holes += (HD.attic && HD.attic[st]) || (function (r) { return "M" + r[0] + " " + r[1] + "H" + (r[2] + 1) + "V" + (r[3] + 1) + "H" + r[0] + "Z"; })(R.bedroom);
       var night = skyCls === "sky-night";
       o += '<svg class="map-l" viewBox="0 0 180 135" aria-hidden="true"><defs><mask id="map-night-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="180" height="135"><rect width="180" height="135" fill="#fff"/><path d="' + holes + '" fill="#000"/></mask></defs>' +
