@@ -10609,14 +10609,19 @@ window.__EXTRAS = true;
   });
   var HOOK = '<svg viewBox="0 0 16 15" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a2414" d="M6 0h4v4h-1v1h-2v-2h-1z"/><path fill="#8a8a96" d="M7 1h2v2h-2z"/></svg>';
   var capHook = document.createElement("button"); capHook.type = "button"; capHook.className = "bs-prop bs-boxbtn bs-cap"; capHook.setAttribute("aria-label", "Kapitänsmütze");
-  capHook.style.left = gx(157); capHook.style.top = gy(24); capHook.style.width = gx(16); kitchenEl.appendChild(capHook);
+  var hallEl = null, CAP = { el: kitchenEl, x: 157, y: 24, walk: 150, fx: 144, fy: 76 };
+  function capPlace() {   /* with the hall (built a moment later): the cap hangs by the front door, above the coat rack */
+    if (!hallEl && document.querySelector(".wide-lay")) { hallEl = document.getElementById("room"); CAP = { el: hallEl, x: -23, y: 29, walk: -14, fx: -20, fy: 76 }; }
+    capHook.style.left = gx(CAP.x); capHook.style.top = gy(CAP.y); capHook.style.width = gx(16); if (capHook.parentNode !== CAP.el) CAP.el.appendChild(capHook);
+  }
+  capPlace(); setTimeout(capPlace, 0);
   capHook.addEventListener("click", function (e) {
     e.stopPropagation(); if (s.asleep || decor || bsOpen) return; if (busy && !interruptible()) return; if (busy) interrupt();
     var L = bsL(), on = !L.wear;
     act("cap", async function () {
-      await walkTo(150, 121); H.dir = 1; front({ paws: "up", eyes: "happy", mouth: "grin" }); pulse("hop", 300); await wait(250);
-      var fly = propEl(kitchenEl, on ? "bs_caphook" : "bs_caphook", on ? 157 : 144, on ? 24 : 76, "bs-fly"); if (on) capHook.innerHTML = HOOK;
-      void fly.offsetWidth; fly.style.left = gx(on ? 144 : 157); fly.style.top = gy(on ? 76 : 24); beep(on ? [[523, .05], [659, .05], [784, .08]] : [[784, .05], [523, .08]]);
+      await walkTo(CAP.walk, 121); H.dir = hallEl ? -1 : 1; front({ paws: "up", eyes: "happy", mouth: "grin" }); pulse("hop", 300); await wait(250);
+      var fly = propEl(CAP.el, "bs_caphook", on ? CAP.x : CAP.fx, on ? CAP.y : CAP.fy, "bs-fly"); if (on) capHook.innerHTML = HOOK;
+      void fly.offsetWidth; fly.style.left = gx(on ? CAP.fx : CAP.x); fly.style.top = gy(on ? CAP.fy : CAP.y); beep(on ? [[523, .05], [659, .05], [784, .08]] : [[784, .05], [523, .08]]);
       if (!on) { L.wear = false; front({ paws: "up" }); }
       await wait(480); fly.remove();
       if (on) { L.wear = true; front({ eyes: "happy", mouth: "grin", paws: "side_r", blush: true }); pulse("bighop", 600); say("Ahoi! Kapitän " + N() + " meldet sich zur Stelle."); }
@@ -10643,7 +10648,7 @@ window.__EXTRAS = true;
   }
   bsWhereNow(); setInterval(bsWhereNow, 3000);
   var _bs_battleSeq = battleSeq; battleSeq = async function () { var r = await _bs_battleSeq.apply(this, arguments); renderTrophies(); return r; };
-  window.__bs.who = function (k) { bsWho = k; }; window.__bs.opp = BSOPP; window.__bs.box = bsBox; window.__bs.shore = shoreTbl; window.__bs.L = bsL; window.__bs.go = function (t) { if (busy) interrupt(); act("travel", function () { return travelTo(t); }); };
+  window.__bs.who = function (k) { bsWho = k; }; window.__bs.render = renderTrophies; window.__bs.opp = BSOPP; window.__bs.box = bsBox; window.__bs.shore = shoreTbl; window.__bs.L = bsL; window.__bs.go = function (t) { if (busy) interrupt(); act("travel", function () { return travelTo(t); }); };
   (function () {
     var dh = document.getElementById("d-hours"), box = dh && dh.parentNode; if (!box) return;
     var b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.id = "bs-demo"; b.textContent = "Schiffe versenken"; box.appendChild(b);
