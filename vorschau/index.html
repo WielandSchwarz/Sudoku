@@ -22805,7 +22805,7 @@ function mountObstsalat(root, ART, opts) {
   var ALBUM = ["apfel", "birne", "pflaume", "erdbeere", "kirschen", "tomate", "moehre", "kuerbis", "goldapfel", "wassermelone", "kokosnuss", "ananas", "frostbeere", "sonnenblume", "honigwabe", "honigglas", "pusteblume", "kleeblatt", "regenbogenerdbeere", "uhrbluete", "gluehbeere", "hamsterkern"];
   var SMNAME = { apfel: "Apfel", birne: "Birnen", pflaume: "Pflaumen", erdbeere: "Erdbeer", kirschen: "Kirsch", tomate: "Tomaten", moehre: "Möhren", kuerbis: "Kürbis", goldapfel: "Goldapfel", wassermelone: "Melonen", kokosnuss: "Kokos", ananas: "Ananas" };
   var PIECE = { kokosstueck: 1, ananasring: 1 };
-  var GUEST = opts.guest || null, FAV = GUEST ? GUEST.fav : null;
+  var GUEST = opts.guest || null, FAV = GUEST ? GUEST.fav : null, THEME = FAV;
 
   // ---------- DOM
   root.classList.add("os-root");
@@ -22881,6 +22881,7 @@ function mountObstsalat(root, ART, opts) {
       face: "normal", faceT: 0, nib: 0, nibT: 4 + Math.random() * 3, hop: 0, hops: 0, shake: 0, flash: 0, blinkT: 2 + Math.random() * 3,
       stroke: null, strokeHits: 0, strokeCuts: [], cuts: 0, nextSpecial: 4 + Math.random() * 3, bombT: 8 + Math.random() * 3, slowT: 0, doubleT: 0, rainT: 0, rainSpawn: 0, queue: [], floatT: 0, magT: 0, comboT: 0, glowT: 0, chain: 0, strokeId: 0, shieldT: 0, stickT: 0, skew: [], skewers: [], cutCount: {}, cutCols: [], bubT: 7 + Math.random() * 4, gHop: 0, favN: 0, smooth: null, gSaid: false, honey: [] };
     if (GUEST) S.spawnT = 2.6;
+    if (!FAV) { var inSeason = Object.keys(FR).filter(function (k) { return (FR[k].weights || {})[env.season]; }); THEME = inSeason[Math.floor(Math.random() * inSeason.length)]; }
     endEl.hidden = true; boardEl.hidden = true; albumEl.hidden = true; if (typeof gSay !== "undefined") gSay.hidden = true; S.board = null; S.boardOn = false; pops.innerHTML = ""; x2El.hidden = true; hudShown = { s: -1, t: -1 }; hudT.classList.remove("hurry", "tick");
     showBanner("Obstsalat", 2.2);
   }
@@ -22904,12 +22905,14 @@ function mountObstsalat(root, ART, opts) {
   }
 
   // ---------- spawning: volleys that grow with time
-  function fruitKey() {
-    var keys = [], tot = 0;
+  function fruitKey() {   /* the ordinary fruit only: the round's theme fruit (the guest's favourite) comes clearly more often, and whatever you cut most grows too */
+    var keys = [], tot = 0, th = null;
     Object.keys(FR).forEach(function (k) {
-      var w = (FR[k].weights || {})[env.season] || 0; if (k === FAV && w) w = Math.max(w * 2.5, 4);
-      if (w && S && S.cutCount) w *= Math.min(5, 1 + .3 * (S.cutCount[k] || 0));   /* what you cut most comes more often: every round drifts towards your own theme */
-      if (w) { keys.push([k, w]); tot += w; } });
+      var w = (FR[k].weights || {})[env.season] || 0; if (!w) return;
+      if (S && S.cutCount) w *= Math.min(5, 1 + .3 * (S.cutCount[k] || 0));
+      if (k === THEME) th = [k, w]; else { keys.push([k, w]); tot += w; }
+    });
+    if (th) { th[1] = Math.max(th[1], tot * .8); keys.push(th); tot += th[1]; }   /* about 45 % of all ordinary fruit at the start */
     var x = Math.random() * tot;
     for (var i = 0; i < keys.length; i++) { x -= keys[i][1]; if (x <= 0) return keys[i][0]; }
     return keys[0][0];
@@ -23343,8 +23346,8 @@ function mountObstsalat(root, ART, opts) {
     var ks = Object.keys(S.cutCount).filter(function (k) { return SMNAME[k]; }).sort(function (a, b) { return S.cutCount[b] - S.cutCount[a]; });
     var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
     if (!ks.length) return "Spezial-Smoothie";
-    if (ks.length >= 6) return pick(["Kunterbunt-Kaboom", "Obstgarten-Orkan", "Regenbogen-Rakete"]);
-    if (ks.length > 1 && S.cutCount[ks[1]] >= S.cutCount[ks[0]] * .7) return SMNAME[ks[0]] + "-" + SMNAME[ks[1]] + "-" + pick(SMMIX);
+    if (ks.length >= 6 && S.cutCount[ks[0]] < 2 * S.cutCount[ks[1]]) return pick(["Kunterbunt-Kaboom", "Obstgarten-Orkan", "Regenbogen-Rakete"]);
+    if (ks.length > 1 && S.cutCount[ks[1]] >= S.cutCount[ks[0]] * .85) return SMNAME[ks[0]] + "-" + SMNAME[ks[1]] + "-" + pick(SMMIX);
     return pick(SMN[ks[0]] || [SMNAME[ks[0]] + "-" + pick(SMMIX)]);
   }
 
