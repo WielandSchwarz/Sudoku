@@ -834,8 +834,9 @@
     var ch = JSON.parse(JSON.stringify(CF.chair)); ch.crafted = true; FURN.chair.push(ch);
     var lp = JSON.parse(JSON.stringify(CF.lamp)); lp.crafted = true; FURN.lamp.push(lp);
     ARMS.reed = 18;
-    A.bedb_7 = CF.bed.bsvg; A.bedf_7 = CF.bed.fsvg; SZ.bedb_7 = [CF.bed.bw, CF.bed.bh]; SZ.bedf_7 = [CF.bed.fw, CF.bed.fh];
-    HD.beds[7] = { name: CF.bed.name, back: CF.bed.back, front: CF.bed.front, ham: CF.bed.ham };
+    if (!HD.beds[7]) {   /* the bedroom art brings a narrow driftwood bed of its own now */
+      A.bedb_7 = CF.bed.bsvg; A.bedf_7 = CF.bed.fsvg; SZ.bedb_7 = [CF.bed.bw, CF.bed.bh]; SZ.bedf_7 = [CF.bed.fw, CF.bed.fh];
+      HD.beds[7] = { name: CF.bed.name, back: CF.bed.back, front: CF.bed.front, ham: CF.bed.ham }; }
   })();
   function syncBedNames() { var bc = BCATS[0]; if (life().crafts.driftbed && bc.names.length < 8) bc.names.push("Treibholz-Bett"); }
   syncBedNames();
@@ -1175,19 +1176,28 @@
   function vOwn() {
     var L = life();
     if (!L.kown) { L.kown = {}; KCATS.forEach(function (q) { var a = [0]; if (home.kitchen[q.id]) a.push(home.kitchen[q.id]); L.kown[q.id] = a; }); }
-    if (!L.bown) { L.bown = {}; BCATS.forEach(function (q) { var a = [0]; if (home.bedroom[q.id]) a.push(home.bedroom[q.id]); L.bown[q.id] = a; }); }
+    if (!L.bown) L.bown = {};
+    BCATS.forEach(function (q) { if (!L.bown[q.id]) { var a = [0]; if (home.bedroom[q.id]) a.push(home.bedroom[q.id]); L.bown[q.id] = a; } });   /* new kinds of pieces: the first one comes free */
+    if (typeof BACATS !== "undefined") { if (!L.baown) L.baown = {}; BACATS.forEach(function (q) { if (!L.baown[q.id]) { var a = [0]; if (home.bath && home.bath[q.id]) a.push(home.bath[q.id]); L.baown[q.id] = a; } }); }
     return L;
   }
-  function vCats() { return KCATS.map(function (q) { return { cat: "k_" + q.id, q: q, room: "k", n: 3 }; }).concat(BCATS.map(function (q) { return { cat: "b_" + q.id, q: q, room: "b", n: q.id === "bed" ? 7 : q.names.length }; })); }
+  function vCats() { return KCATS.map(function (q) { return { cat: "k_" + q.id, q: q, room: "k", n: 3 }; }).concat(BCATS.map(function (q) { return { cat: "b_" + q.id, q: q, room: "b", n: q.id === "bed" ? 7 : q.names.length }; }))
+      .concat(typeof BACATS === "undefined" ? [] : BACATS.map(function (q) { return { cat: "ba_" + q.id, q: q, room: "ba", n: q.names.length }; })); }
+  // the three rooms whose pieces are earned: kitchen (k), bedroom (b), bath (ba)
+  function vList(L, room) { return room === "k" ? L.kown : room === "ba" ? L.baown : L.bown; }
+  function vPic(it) { return it.room === "k" ? thumb(it.sub, it.id) : it.room === "ba" ? baThumb(it.sub, it.id) : it.sub === "bed" ? bBedOnly(it.id) : bThumb(it.sub, it.id); }
+  function vRoomName(room) { return room === "k" ? "Küche" : room === "ba" ? "Bad" : "Schlafzimmer"; }
+  function vPut(it) { if (it.room === "k") { home.kitchen[it.sub] = it.id; renderKitchenArt(); } else if (it.room === "ba") { home.bath[it.sub] = it.id; renderBathArt(); } else { home.bedroom[it.sub] = it.id; renderBedroomArt(); } }
+  function vIn(room) { return room === "k" ? "in der Küche" : room === "ba" ? "im Bad" : "im Schlafzimmer"; }
   function vInfo(cat) { return vCats().filter(function (v) { return v.cat === cat; })[0]; }
   (function () { var ub = document.getElementById("d-unlock"); if (ub) ub.addEventListener("click", function () {   /* preview admin: kitchen and bedroom things (beds too) count as earned */
-    var L = vOwn(); vCats().forEach(function (v) { var o = v.room === "k" ? L.kown : L.bown, n = Math.max(v.n, v.q.names.length), a = []; for (var i = 0; i < n; i++) a.push(i); o[v.q.id] = a; });
-    try { if (typeof kCatalog !== "undefined" && !kCatalog.hidden) renderKCatalog(); if (typeof bCatalog !== "undefined" && !bCatalog.hidden) renderBCatalog(); renderCosy(); } catch (e) {} }); })();
-  function vOwned(cat, i) { var L = vOwn(), v = vInfo(cat); if (!v) return true; var a = (v.room === "k" ? L.kown : L.bown)[v.q.id] || []; return a.indexOf(i) >= 0; }
+    var L = vOwn(); vCats().forEach(function (v) { var o = vList(L, v.room), n = Math.max(v.n, v.q.names.length), a = []; for (var i = 0; i < n; i++) a.push(i); o[v.q.id] = a; });
+    try { if (typeof kCatalog !== "undefined" && !kCatalog.hidden) renderKCatalog(); if (typeof bCatalog !== "undefined" && !bCatalog.hidden) renderBCatalog(); if (typeof baCatalog !== "undefined" && !baCatalog.hidden) renderBaCatalog(); renderCosy(); } catch (e) {} }); })();
+  function vOwned(cat, i) { var L = vOwn(), v = vInfo(cat); if (!v) return true; var a = vList(L, v.room)[v.q.id] || []; return a.indexOf(i) >= 0; }
   var V_TOTAL = vCats().reduce(function (s2, v) { return s2 + v.n; }, 0);
   TOTAL_ITEMS += V_TOTAL;
   var _v_owned = ownedCount;
-  ownedCount = function () { var L = vOwn(), n = _v_owned(); [L.kown, L.bown].forEach(function (o) { for (var k in o) n += o[k].length; }); return n; };
+  ownedCount = function () { var L = vOwn(), n = _v_owned(); [L.kown, L.bown, L.baown || {}].forEach(function (o) { for (var k in o) n += o[k].length; }); return n; };
   var _v_item = item;
   item = function (cat, id) {
     var v = vInfo(cat); if (!v) return _v_item(cat, id);
@@ -1205,18 +1215,18 @@
   var _v_gift = showGiftModal;
   showGiftModal = function (cat, it) {
     if (!it || !it.virt) return _v_gift(cat, it);
-    var L = vOwn(), list = (it.room === "k" ? L.kown : L.bown)[it.sub]; if (list.indexOf(it.id) < 0) list.push(it.id); renderCosy();
-    var where = it.room === "k" ? "Küche" : "Schlafzimmer";
-    var pic = it.room === "k" ? thumb(it.sub, it.id) : it.sub === "bed" ? bBedOnly(it.id) : bThumb(it.sub, it.id);
+    var L = vOwn(), list = vList(L, it.room)[it.sub]; if (list.indexOf(it.id) < 0) list.push(it.id); renderCosy();
+    var where = vRoomName(it.room);
+    var pic = vPic(it);
     var wrap = document.createElement("div"); wrap.className = "gift-wrap";
-    wrap.innerHTML = '<div class="gift" role="dialog" aria-modal="true" aria-label="Neu für die ' + where + '"><h2>Neu für ' + (it.room === "k" ? "die Küche" : "das Schlafzimmer") + '!</h2><div class="stage v-stage">' + pic + '</div><p>' + it.name + '</p>' +
+    wrap.innerHTML = '<div class="gift" role="dialog" aria-modal="true" aria-label="Neu für ' + where + '"><h2>Neu für ' + (it.room === "k" ? "die Küche" : it.room === "ba" ? "das Bad" : "das Schlafzimmer") + '!</h2><div class="stage v-stage">' + pic + '</div><p>' + it.name + '</p>' +
       '<div class="row"><button type="button" class="btn" data-a="later">Später</button><button type="button" class="btn primary" data-a="place">Gleich einrichten</button></div></div>';
     (document.getElementById("ham-root") || document.body).appendChild(wrap);
     wrap.addEventListener("click", function (e) {
       var a = e.target.dataset && e.target.dataset.a; if (!a) return;
       if (a === "place") {
-        if (it.room === "k") { home.kitchen[it.sub] = it.id; renderKitchenArt(); } else { home.bedroom[it.sub] = it.id; renderBedroomArt(); }
-        say(it.name + " ist jetzt " + (it.room === "k" ? "in der Küche" : "im Schlafzimmer") + ".");
+        vPut(it);
+        say(it.name + " ist jetzt " + vIn(it.room) + ".");
       } else say(it.name + " wartet unter „" + where + " einrichten“.");
       wrap.remove(); if (window.SudokuSave) window.SudokuSave();
     });
@@ -1231,6 +1241,7 @@
   }
   var _v_rk = renderKCatalog; renderKCatalog = function () { _v_rk(); lockItems(kCatalog, "k_" + kCat); };
   var _v_rb = renderBCatalog; renderBCatalog = function () { _v_rb(); lockItems(bCatalog, "b_" + bCat); };
+  if (typeof renderBaCatalog === "function") { var _v_rba = renderBaCatalog; renderBaCatalog = function () { _v_rba(); lockItems(baCatalog, "ba_" + baCat); }; }
   function blockLocked(box) {
     box.addEventListener("click", function (e) {
       var it = e.target.closest(".k-item.locked"); if (!it) return;
@@ -1238,7 +1249,7 @@
       say("Das gibt es noch nicht. Möbel kommen als Paket, wenn du Sudoku, Mumpsch oder Farbklecks spielst.");
     }, true);
   }
-  blockLocked(kCatalog); blockLocked(bCatalog);
+  blockLocked(kCatalog); blockLocked(bCatalog); if (typeof baCatalog !== "undefined") blockLocked(baCatalog);
   setTimeout(function () { vOwn(); try { renderCosy(); } catch (e) {} }, 0);
 
   // ---------- an arrow up in the living room leads to the bedroom ----------
@@ -1359,9 +1370,9 @@
     if (!it) return _ip_gift(cat, it);
     var art, where, place, gcls = "";
     if (it.virt) {
-      var L = vOwn(), list = (it.room === "k" ? L.kown : L.bown)[it.sub]; if (list.indexOf(it.id) < 0) list.push(it.id); renderCosy();
-      art = it.room === "k" ? thumb(it.sub, it.id) : it.sub === "bed" ? bBedOnly(it.id) : bThumb(it.sub, it.id); where = it.room === "k" ? "Küche einrichten" : "Schlafzimmer einrichten";
-      place = function () { if (it.room === "k") { home.kitchen[it.sub] = it.id; renderKitchenArt(); } else { home.bedroom[it.sub] = it.id; renderBedroomArt(); } say(it.name + " ist jetzt " + (it.room === "k" ? "in der Küche." : "im Schlafzimmer.")); if (window.SudokuSave) window.SudokuSave(); };
+      var L = vOwn(), list = vList(L, it.room)[it.sub]; if (list.indexOf(it.id) < 0) list.push(it.id); renderCosy();
+      art = vPic(it); where = it.room === "ba" ? "Bad einrichten" : vRoomName(it.room) + " einrichten";
+      place = function () { vPut(it); say(it.name + " ist jetzt " + vIn(it.room) + "."); if (window.SudokuSave) window.SudokuSave(); };
     } else {
       home.owned[cat].push(it.id); renderCosy();
       art = (cat === "wall" || cat === "floor") ? '<div class="ip-swatch" style="background-image:' + tileURL(it.tile).replace(/"/g, "'") + ';background-size:' + (it.w * 1.6) + 'px"></div>' : itemSVG(cat, it, "", "");

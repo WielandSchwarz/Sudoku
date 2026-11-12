@@ -24,16 +24,51 @@
   var bedEl = hEl("div", "hroom bedroom", null); bedEl.id = "bedroom"; bedEl.hidden = true; scene.insertBefore(bedEl, roomEl.nextSibling);
   bedEl.innerHTML = '<div class="sky b-sky" id="b-sky"><i style="left:0;top:22%;width:40%"></i><b class="sun"></b></div>' +
     '<div class="h-bg" id="b-art"></div><div id="b-bedback"></div>' +
-    '<button type="button" class="h-hot" id="h-bed" aria-label="Ins Bett" style="left:' + gx(4) + ';top:' + gy(60) + ';width:' + gx(96) + ';height:' + gy(60) + '"></button>' +
+    '<button type="button" class="h-hot" id="h-bed" aria-label="Ins Bett" style="left:' + gx(57) + ';top:' + gy(60) + ';width:' + gx(66) + ';height:' + gy(56) + '"></button>' +
     '<button type="button" class="h-stairs" id="bed-exit" aria-label="Treppe runter ins Wohnzimmer"><span>›</span></button>' +
     '<button type="button" class="g-exit h-exit" id="bed-bath" aria-label="Ins Bad"><span>‹</span></button>';   /* the bath is upstairs now, left of the bedroom */
   var bedFront = hEl("div", "h-front bedfront", scene, ""); bedFront.hidden = true;
   if (!home.bedroom) home.bedroom = { bed: 0, wall: 0, window: 0, floor: 0, rug: 0 };
+  // the bedroom is furnished piece by piece now (night stand, lamp, chest, decoration too), each piece with a colour; -1 = its own colours
+  ["stand", "lamp", "chest", "deco"].forEach(function (k) { if (home.bedroom[k] == null) home.bedroom[k] = 0; });
+  ["bed", "wall", "window", "floor", "rug", "stand", "lamp", "chest", "deco"].forEach(function (k) { if (home.bedroom[k + "C"] == null) home.bedroom[k + "C"] = -1; });
+  if (home.bedroom.bedC === -1 && home.canopy) home.bedroom.bedC = home.canopy;   /* the old canopy colour carries over */
+  function bTintOf(cat, item) { var t = HD.btint[cat] && HD.btint[cat][item]; return t || null; }
+  function bOpts(cat, item) {   // the colour choices for one piece: its own colours first, then the palette without the one equal to it
+    var t = bTintOf(cat, item); if (!t) return [];
+    var own = ["Original"].concat(t[1]), list = [{ i: -1, c: own }];
+    HD.bpal[t[0]].forEach(function (e, i) { if (e[1].toLowerCase() !== t[1][0].toLowerCase()) list.push({ i: i, c: e }); });
+    return list;
+  }
+  function bTint(svg, cat, item, ci) {
+    var t = bTintOf(cat, item); if (!t || ci == null || ci < 0) return svg;
+    var e = HD.bpal[t[0]][ci]; if (!e) return svg;
+    t[1].forEach(function (src, k) { if (e[k + 1]) svg = svg.split(src).join(e[k + 1] + "_"); });
+    return svg.split("_\"").join("\"");
+  }
+  var bMaskN = 0;
+  function bArt(b, only) {   // the whole room (or, for a catalog picture, just some layers) as svg content
+    var L = only || ["wall", "floor", "rug", "window", "stand", "lamp", "chest", "fix", "deco"], o = "";
+    L.forEach(function (k) {
+      if (k === "wall") { var id = "bwm" + (++bMaskN); o += '<mask id="' + id + '"><rect width="180" height="135" fill="#fff"/><path fill="#000" d="' + HD.bhole[b.window] + '"/></mask><g mask="url(#' + id + ')">' + bTint(A["bw2_" + b.wall], "wall", b.wall, b.wallC) + '</g>'; }
+      else if (k === "floor") o += bTint(A["bf2_" + b.floor], "floor", b.floor, b.floorC);
+      else if (k === "rug") o += bTint(A["br2_" + b.rug], "rug", b.rug, b.rugC);
+      else if (k === "window") o += bTint(A["bwin2_" + b.window], "window", b.window, b.windowC);
+      else if (k === "stand") o += bTint(A["bns_" + b.stand], "stand", b.stand, b.standC);
+      else if (k === "lamp") o += bTint(A["blp_" + b.lamp], "lamp", b.lamp, b.lampC);
+      else if (k === "chest") o += bTint(A["bch_" + b.chest], "chest", b.chest, b.chestC);
+      else if (k === "fix") o += A.b_fix2;
+      else if (k === "deco") o += bTint(A["bdc_" + b.deco], "deco", b.deco, b.decoC);
+      else if (k === "bed") { var bi = HD.beds[b.bed]; o += bTint('<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + b.bed] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + b.bed] + '</g>', "bed", b.bed, b.bedC); }
+    });
+    return o;
+  }
   // the canopy bed can be dressed in a colour of your choice, like scarf and hat
   var CANOPY = [["Rosa", "#f4a3b4", "#fbd4dc", "#e07f95"], ["Himmelblau", "#8cc4ec", "#cce6f8", "#5a9ad0"], ["Mint", "#8fd4b4", "#cdeee0", "#5aae8c"], ["Flieder", "#c4a8ec", "#e6dcf8", "#9a7ac8"],
     ["Orange", "#f29a42", "#fbd4a8", "#c8691e"], ["Sonnengelb", "#f6d36a", "#fbeab4", "#d8a83a"], ["Kirschrot", "#e8706a", "#f8c4c0", "#c0463c"], ["Salbei", "#a8c090", "#dce8cc", "#7a9a60"], ["Creme", "#f0e2c4", "#fbf4e4", "#cdb88e"]];
   if (home.canopy == null) home.canopy = 0;
-  function tintSvg(svg) { var c = CANOPY[home.canopy]; return svg.split("#f4a3b4").join(c[1] + "_").split("#fbd4dc").join(c[2] + "_").split("#e07f95").join(c[3] + "_").split("_\"").join("\""); }
+  function tintSvg(svg) { return bTint(svg, "bed", home.bedroom.bed, home.bedroom.bedC); }
+  function tintSvgOld(svg) { var c = CANOPY[home.canopy]; return svg.split("#f4a3b4").join(c[1] + "_").split("#fbd4dc").join(c[2] + "_").split("#e07f95").join(c[3] + "_").split("_\"").join("\""); }
   function tintCanopy() { ["b-bedback"].forEach(function (id) { var e = document.getElementById(id); e.innerHTML = tintSvg(e.innerHTML); }); bedFront.innerHTML = tintSvg(bedFront.innerHTML); }
   var canBtn = hEl("button", "scarf-btn canopy-btn", scene, ""); canBtn.type = "button"; canBtn.setAttribute("aria-label", "Farbe des Himmelbetts"); canBtn.hidden = true;
   var canPop = hEl("div", "scarf-pop canopy-pop", scene, ""); canPop.hidden = true;
@@ -55,10 +90,10 @@
   document.addEventListener("click", function (e) { if (!canPop.hidden && !e.target.closest(".canopy-pop")) canPop.hidden = true; });
   function renderBedroomArt() {
     var b = home.bedroom, bi = HD.beds[b.bed];
-    document.getElementById("b-art").innerHTML = svgOf(["bw_" + b.wall + "_" + b.window, "bf_" + b.floor, "b_slope", "bwin_" + b.window, "br_" + b.rug, "b_front"].map(function (k) { return A[k]; }).join(""), 180, 135);
+    document.getElementById("b-art").innerHTML = svgOf(bArt(b), 180, 135);
     document.getElementById("b-bedback").innerHTML = lay("bedb_" + b.bed, bi.back[0], bi.back[1]);
     bedFront.innerHTML = lay("bedf_" + b.bed, bi.front[0], bi.front[1]);
-    if (b.bed === 0) tintCanopy();
+    tintCanopy();
     renderCanopyBtn();
     RSPOT.bed = { x: bi.ham[0], y: bi.ham[1] };
   }
@@ -77,8 +112,8 @@
   };
   function inFront(el, on) { el.classList.toggle("over", on); }
   var BSPOT = { home: { x: 104, y: 122 }, tubSide: { x: 98, y: 118 }, tub: { x: 52, y: 101 } };
-  var RSPOT = { home: { x: 124, y: 122 }, bedSide: { x: 116, y: 120 }, bed: { x: 50, y: 100 }, stairs: { x: 160, y: 116 } };
-  var BED_CLEAR = 116;   // in the bedroom the hamster stays right of the bed's front, so he never half-disappears behind it
+  var RSPOT = { home: { x: 140, y: 122 }, bedSide: { x: 128, y: 120 }, bed: { x: 90, y: 100 }, stairs: { x: 160, y: 116 } };
+  var BED_CLEAR = 126;   // in the bedroom the hamster stays right of the bed's front, so he never half-disappears behind it
   renderBedroomArt();
   async function goBathSeq() {   /* up the stairs, through the bedroom, into the bath on the left */
     if (place2 !== "bedroom") await goBedroomSeq();
@@ -156,7 +191,7 @@
   var _h_idle3 = idle; idle = function () {
     if (place2 === "bath" || place2 === "bedroom") {
       later(idle, rnd(3500, 7000)); if (idleBlocked()) return;
-      act("hwander", async function () { await walkTo(place2 === "bedroom" ? rnd(BED_CLEAR, 150) : rnd(70, 140), rnd(116, 126)); front(mood()); await nibbleNose(6); await wait(700); });
+      act("hwander", async function () { await walkTo(place2 === "bedroom" ? rnd(BED_CLEAR, 152) : rnd(70, 140), rnd(116, 126)); front(mood()); await nibbleNose(6); await wait(700); });
       return;
     }
     _h_idle3();
@@ -275,7 +310,7 @@
   var sleepPop = hEl("div", "sleep-pop", scene, ""); sleepPop.hidden = true;
   function bedIcon() {
     var b = home.bedroom.bed, bi = HD.beds[b], o = '<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + b] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + b] + '</g>';
-    return '<svg viewBox="0 24 106 96" aria-hidden="true">' + (b === 0 ? tintSvg(o) : o) + '</svg>';
+    return '<svg viewBox="50 24 80 96" aria-hidden="true">' + tintSvg(o) + '</svg>';
   }
   document.getElementById("a-sleep").addEventListener("click", function (e) {
     if (s.asleep || decor) return;
@@ -440,44 +475,46 @@
     act("travel", function () { return travelTo(t); });
   });
 
-  // ---- furnishing the bedroom: three choices each ----
+  // ---- furnishing the bedroom: every piece on its own, each with colours ----
   var BCATS = [
-    { id: "bed", name: "Bett", names: ["Himmelbett", "Körbchen-Nest", "Kissenkiste", "Walnuss-Bett", "Streichholz\u00adschachtel", "Fliegenpilz-Bett", "Wolkenbett"] },
-    { id: "wall", name: "Tapete", names: ["Blümchen", "Rosenstreifen", "Sternenhimmel"] },
-    { id: "window", name: "Fenster", names: ["Rundfenster", "Gaubenfenster", "Bogenfenster"] },
+    { id: "bed", name: "Bett", names: ["Himmelbett", "Körbchen-Nest", "Kissenkiste", "Walnuss-Bett", "Streichholz­schachtel", "Fliegenpilz-Bett", "Wolkenbett"] },
+    { id: "wall", name: "Tapete", names: ["Blümchen", "Streifen", "Sternenhimmel", "Holzwand", "Blätter", "Uni"] },
+    { id: "window", name: "Fenster", names: ["Rundfenster", "Sprossenfenster", "Bogenfenster"] },
     { id: "floor", name: "Boden", names: ["Dielen", "Fischgrät", "Teppichboden"] },
-    { id: "rug", name: "Teppich", names: ["Flechtteppich", "Schaffell", "Herzteppich"] }
+    { id: "rug", name: "Teppich", names: ["Flechtteppich", "Fellteppich", "Herzteppich", "Webteppich", "Karoteppich"] },
+    { id: "stand", name: "Nachttisch", names: ["Nachttisch", "Beistelltisch", "Bücherstapel"] },
+    { id: "lamp", name: "Lampe", names: ["Schirmlampe", "Kerze", "Pilzlampe", "Mondlampe", "Sternlampe"] },
+    { id: "chest", name: "Kommode", names: ["Kommode", "Bücherregal", "Bauernschrank"] },
+    { id: "deco", name: "Deko", names: ["Nichts", "Hängepflanze", "Topfpflanze", "Lichterkette", "Wimpelkette"] }
   ];
-  var BSEL = { bed: [2, 26, 100, 94], wall: [62, 4, 56, 90], window: [58, 6, 64, 52], floor: [0, 98, 180, 37], rug: [58, 102, 70, 30] };
-  var BVB = { bed: "0 22 106 96", wall: "30 2 120 70", window: "56 4 68 54", floor: "0 96 120 39", rug: "54 100 76 34" };
+  var BSEL = { bed: [54, 26, 72, 96], wall: [6, 8, 168, 88], window: [10, 14, 50, 44], floor: [0, 98, 180, 37], rug: [36, 102, 108, 30], stand: [33, 76, 26, 25], lamp: [34, 58, 20, 22], chest: [129, 72, 32, 29], deco: [56, 4, 122, 96] };
+  var BVB = { bed: "48 22 84 100", wall: "0 0 180 100", window: "6 10 58 50", floor: "0 96 120 39", rug: "34 100 112 34", stand: "28 56 36 46", lamp: "31 55 24 26", chest: "124 46 42 56", deco: "0 0 180 100" };
+  var BTHUMB = { bed: ["wall", "floor", "bed"], wall: ["wall"], window: ["wall", "window"], floor: ["floor"], rug: ["floor", "rug"], stand: ["wall", "floor", "stand", "lamp"], lamp: ["wall", "stand", "lamp"], chest: ["wall", "floor", "chest"], deco: ["wall", "floor", "chest", "fix", "deco"] };
   var bCat = "bed", bCatalog = document.createElement("section"); bCatalog.className = "catalog k-catalog"; bCatalog.hidden = true;
   var dBtn = document.getElementById("decor-btn"); dBtn.parentNode.insertBefore(bCatalog, dBtn.nextSibling);
   var bSel = hEl("div", "k-sel", bedEl); bSel.hidden = true;
   function bThumb(cat, i) {
     var b = {}; for (var x in home.bedroom) b[x] = home.bedroom[x]; b[cat] = i;
-    var layers = cat === "bed" ? ["bw_" + b.wall + "_" + b.window, "bf_" + b.floor] : cat === "wall" ? ["bw_" + i + "_" + b.window, "b_slope"] : cat === "window" ? ["bw_" + b.wall + "_" + i, "bwin_" + i] : cat === "floor" ? ["bf_" + i] : ["bf_" + b.floor, "br_" + i];
-    var o = '<rect x="60" y="6" width="60" height="50" fill="#bfe3f7"/>' + layers.map(function (k) { return A[k]; }).join("");
-    if (cat === "bed") { var bi = HD.beds[i], bb = '<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + i] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + i] + '</g>'; o += i === 0 ? tintSvg(bb) : bb; }
-    return '<svg viewBox="' + BVB[cat] + '" aria-hidden="true">' + o + '</svg>';
+    return '<svg viewBox="' + BVB[cat] + '" aria-hidden="true"><rect x="0" y="0" width="180" height="135" fill="#bfe3f7"/>' + bArt(b, BTHUMB[cat]) + '</svg>';
   }
   function bBedOnly(i) {   // just the bed, without wall and floor: for the present card
-    var bi = HD.beds[i]; if (!bi) return bThumb("bed", i); var bb = '<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + i] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + i] + '</g>';
-    return '<svg viewBox="' + BVB.bed + '" aria-hidden="true">' + (i === 0 ? tintSvg(bb) : bb) + '</svg>'; }
+    var b = {}; for (var x in home.bedroom) b[x] = home.bedroom[x]; b.bed = i; b.bedC = -1; if (!HD.beds[i]) return bThumb("bed", i);
+    return '<svg viewBox="' + BVB.bed + '" aria-hidden="true">' + bArt(b, ["bed"]) + '</svg>'; }
   function renderBCatalog() {
-    var c = BCATS.filter(function (q) { return q.id === bCat; })[0];
+    var c = BCATS.filter(function (q) { return q.id === bCat; })[0], cur = home.bedroom[bCat], opts = bOpts(bCat, cur), cc = home.bedroom[bCat + "C"];
     bCatalog.innerHTML = '<div class="tabs k-tabs">' + BCATS.map(function (q) { return '<button type="button" class="tab" data-k="' + q.id + '" aria-pressed="' + (q.id === bCat) + '">' + q.name + '</button>'; }).join("") + '</div>' +
       '<p class="k-cat-title">' + c.name + ' auswählen</p><div class="k-items">' + c.names.map(function (nm, i) {
-        return '<button type="button" class="item k-item" data-i="' + i + '" aria-pressed="' + (home.bedroom[bCat] === i) + '"><div class="ic">' + bThumb(bCat, i) + '</div><span>' + c.names[i] + '</span></button>';
+        return '<button type="button" class="item k-item" data-i="' + i + '" aria-pressed="' + (cur === i) + '"><div class="ic">' + bThumb(bCat, i) + '</div><span>' + c.names[i] + '</span></button>';
       }).join("") + '</div>' +
-      (bCat === "bed" && home.bedroom.bed === 0 ? '<div class="wcol"><p class="wcol-h">Farbe</p><div class="wcol-r">' + CANOPY.map(function (cc, i) { return '<button type="button" class="wcol-b' + (i === home.canopy ? " on" : "") + '" data-cv="' + i + '" style="background:' + cc[1] + '" aria-label="' + cc[0] + '"></button>'; }).join("") + '</div></div>' : "");
+      (opts.length ? '<div class="wcol"><p class="wcol-h">Farbe</p><div class="wcol-r">' + opts.map(function (o) { var on = o.i === cc || (o.i === -1 && !HD.bpal[bTintOf(bCat, cur)[0]][cc]); return '<button type="button" class="wcol-b' + (on ? " on" : "") + '" data-cv="' + o.i + '" style="background:' + o.c[1] + '" aria-label="' + o.c[0] + '"></button>'; }).join("") + '</div></div>' : "");
     var r = BSEL[bCat]; bSel.hidden = false;
     bSel.style.left = (r[0] / 180 * 100) + "%"; bSel.style.top = (r[1] / 135 * 100) + "%"; bSel.style.width = (r[2] / 180 * 100) + "%"; bSel.style.height = (r[3] / 135 * 100) + "%";
   }
   bCatalog.addEventListener("click", function (e) {
     var t = e.target.closest(".tab"); if (t) { bCat = t.dataset.k; renderBCatalog(); return; }
-    var cv = e.target.closest("[data-cv]"); if (cv) { home.canopy = +cv.dataset.cv; renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]); if (window.SudokuSave) window.SudokuSave(); return; }
+    var cv = e.target.closest("[data-cv]"); if (cv) { home.bedroom[bCat + "C"] = +cv.dataset.cv; if (bCat === "bed") home.canopy = Math.max(0, +cv.dataset.cv); renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]); if (window.SudokuSave) window.SudokuSave(); return; }
     var it = e.target.closest(".k-item"); if (!it) return;
-    home.bedroom[bCat] = +it.dataset.i; renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]);
+    home.bedroom[bCat] = +it.dataset.i; renderBedroomArt(); renderBCatalog(); beep([[880, .04], [1175, .06]]); if (window.SudokuSave) window.SudokuSave();
   });
   // ---- furnishing the bath ----
   var BACATS = [

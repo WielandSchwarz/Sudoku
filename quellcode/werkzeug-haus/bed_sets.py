@@ -165,25 +165,28 @@ def floor_plant(a, x=168):
         ang = math.radians(-170 + k * 20); L = 12 + (k % 3) * 3
         line(a, x, 85, x + math.cos(ang) * L, 85 + math.sin(ang) * L, 'hb2'); rell(a, x + math.cos(ang) * L, 85 + math.sin(ang) * L, 2.6, 1.6, 0, 'hb' if k % 2 else 'hb2')
 
+BX = 8   # bed, rug and window move right so the window clears the left beam
+def shifted(l, dx):
+    t = G(*S); blit(t, l, dx, 0); return t
 def scene(st, ham=True):
     g = G(*S)
     st['wall'](g); st['floor'](g); beams(g)
-    win = lambda x, y: 16 <= x <= 36 and 22 <= y <= 46
-    hole(g, win, 14, 20, 38, 48, night=st.get('night', False))
+    win = lambda x, y: 16 + BX <= x <= 36 + BX and 22 <= y <= 46
+    hole(g, win, 14 + BX, 20, 38 + BX, 48, night=st.get('night', False))
     slope(g, skylight=st.get('skylight', False))
     W = WOODS[st['wood']]
-    furn = lay(lambda a: (window(a, st.get('cur'), st.get('sill', True), lace=st.get('lace', False)), frames(a, st.get('frames', ('sk1', 'sg1', 'rs1')))))
-    furn2 = lay(lambda a: (nightstand(a, st.get('lamp', 'shade'), st.get('shade', ('mu1', 'mu2'))), chest(a)))
-    remap(furn, W); remap(furn2, W)
-    # the bed: the game's own sprites, moved to the middle (hamster at x 82 instead of 50)
+    furn = shifted(lay(lambda a: window(a, st.get('cur'), st.get('sill', True), lace=st.get('lace', False))), BX)
+    stand = shifted(lay(lambda a: nightstand(a, st.get('lamp', 'shade'), st.get('shade', ('mu1', 'mu2')))), 24)   # right next to the bed
+    furn2 = lay(lambda a: chest(a))
+    for l in (furn, stand, furn2): remap(l, W)
     name, bf, bsz, ff, fsz, bpos, fpos, hpos = GAMEBEDS[st['bed']]
     bb = remap(mkg(bf, *bsz), st.get('bedmap')); fb = remap(mkg(ff, *fsz), st.get('bedmap'))
-    dx = 82 - hpos[0]
+    HX = 82 + BX; dx = HX - hpos[0]
     extra = lay(st['extra']) if st.get('extra') else None
-    rug = lay(st['rug'])
-    L = [furn, furn2, rug] + ([extra] if extra else [])
+    rug = shifted(lay(st['rug']), BX)
+    L = [furn, stand, furn2, rug] + ([extra] if extra else [])
     comp(g, *L); blit(g, bb, bpos[0] + dx, bpos[1])
-    if ham: comp(g, hamlay(82, hpos[1]))
+    if ham: comp(g, hamlay(HX, hpos[1]))
     blit(g, fb, fpos[0] + dx, fpos[1])
     comp(g, railing(g))
     return g
@@ -236,7 +239,7 @@ if __name__ == '__main__':
     from PIL import ImageFont
     FT = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 13)
     for i, st in enumerate(SETS):
-        g = scene(st); im = img(g); im.save('../bad/nset_%02d.png' % (i + 1)); img(g, 3).save('../bad/nset3_%02d.png' % (i + 1))
+        g = scene(st); im = img(g); im.save('../bad/n2set_%02d.png' % (i + 1)); img(g, 3).save('../bad/n2set3_%02d.png' % (i + 1))
         c, r = i % 4, i // 4
         sheet.paste(im, (10 + c * 370, 20 + r * 300)); d.text((10 + c * 370, 2 + r * 300), '%d: %s  (%s)' % (i + 1, st['name'], GAMEBEDS[st['bed']][0]), fill=(0, 0, 0), font=FT)
-    sheet = sheet.crop((0, 0, 4 * 370 + 10, 3 * 300 + 10)); sheet.save('../bad/nsets_sheet.png'); print('ok')
+    sheet = sheet.crop((0, 0, 4 * 370 + 10, 3 * 300 + 10)); sheet.save('../bad/n2sets_sheet.png'); print('ok')
