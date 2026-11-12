@@ -1210,6 +1210,7 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .rp-wpipe { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
 #ham-root .rp-wpipe svg { display: block; width: 100%; height: auto; }
 #ham-root .rp-wpipe::before { content: ""; position: absolute; top: 0; bottom: 0; left: -8px; right: -8px; }
+#ham-root .rp-wpipe.rp-sink::before { display: none; }
 #ham-root .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
 #ham-root .need { display: flex; flex-direction: column; gap: 4px; }
 #ham-root .need-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; font-weight: 600; }
@@ -3200,7 +3201,7 @@ html.bs-on, html.bs-on body { height: 100%; overflow: hidden; }
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 128 · 12.11.2026</p>
+    <p class="opt-version">Version 129 · 12.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -24999,12 +25000,12 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
     act("rohre", rpSeq);
   });
   window.__pipes = { newRun: rpNewRun, runIds: rpRunOf, open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
-  // ---- and a thin white pipe running down the far left of the bathroom wall: tap it to open the puzzle
-  var RPT = { x: 6, y: 0, w: 6, h: 100 };
-  var rpTool = lBtn("rp-wpipe", bathEl, svgOf("<rect x=\"1\" y=\"0\" width=\"5\" height=\"100\" fill=\"#3a2414\"/><rect x=\"2\" y=\"0\" width=\"3\" height=\"100\" fill=\"#f4f4f0\"/><rect x=\"2\" y=\"0\" width=\"1\" height=\"100\" fill=\"#ffffff\"/><rect x=\"4\" y=\"0\" width=\"1\" height=\"100\" fill=\"#d8dde2\"/><rect x=\"0\" y=\"14\" width=\"6\" height=\"4\" fill=\"#3a2414\"/><rect x=\"1\" y=\"15\" width=\"4\" height=\"2\" fill=\"#b4b4ac\"/><rect x=\"1\" y=\"15\" width=\"4\" height=\"1\" fill=\"#d0d0c8\"/><rect x=\"0\" y=\"46\" width=\"6\" height=\"4\" fill=\"#3a2414\"/><rect x=\"1\" y=\"47\" width=\"4\" height=\"2\" fill=\"#b4b4ac\"/><rect x=\"1\" y=\"47\" width=\"4\" height=\"1\" fill=\"#d0d0c8\"/><rect x=\"0\" y=\"78\" width=\"6\" height=\"4\" fill=\"#3a2414\"/><rect x=\"1\" y=\"79\" width=\"4\" height=\"2\" fill=\"#b4b4ac\"/><rect x=\"1\" y=\"79\" width=\"4\" height=\"1\" fill=\"#d0d0c8\"/>", RPT.w, RPT.h), "Rohr-Rätsel");
-  pos(rpTool, RPT.x, RPT.y, RPT.w); rpTool.style.zIndex = 3;
+  // ---- the wash basin opens the puzzle (an invisible button over the sink; the old pipe on the wall is gone)
+  var RPT = { x: 124, y: 54, w: 38, h: 46 };
+  var rpTool = lBtn("rp-wpipe rp-sink", bathEl, "", "Rohr-Rätsel am Waschbecken");
+  pos(rpTool, RPT.x, RPT.y, RPT.w); rpTool.style.height = gy(RPT.h); rpTool.style.zIndex = 3;
   async function rpSeqBath() {
-    await walkTo(BSPOT.tubSide.x, BSPOT.tubSide.y); H.dir = -1;
+    await walkTo(122, 120); H.dir = 1;
     front({ eyes: "happy", mouth: "teeth", paws: "hold" }); await wait(350); front({ paws: "down" });
     rpOpen();
   }
