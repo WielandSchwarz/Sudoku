@@ -526,12 +526,12 @@
     act("rohre", rpSeq);
   });
   window.__pipes = { newRun: rpNewRun, runIds: rpRunOf, open: rpOpen, close: rpClose, state: function () { return rpS; }, levels: RP_LEVELS, PL: PL, run: rpRun, place: function (p) { rpS.pcs.push(p); if (rpS.tray[p.t]) rpS.tray[p.t]--; } };
-  // ---- and a thin white pipe running down the far left of the bathroom wall: tap it to open the puzzle
-  var RPT = { x: 6, y: 0, w: 6, h: 100 };
-  var rpTool = lBtn("rp-wpipe", bathEl, svgOf(/*WPIPEART*/, RPT.w, RPT.h), "Rohr-Rätsel");
-  pos(rpTool, RPT.x, RPT.y, RPT.w); rpTool.style.zIndex = 3;
+  // ---- the wash basin opens the puzzle (an invisible button over the sink; the old pipe on the wall is gone)
+  var RPT = { x: 124, y: 54, w: 38, h: 46 };
+  var rpTool = lBtn("rp-wpipe rp-sink", bathEl, "", "Rohr-Rätsel am Waschbecken");
+  pos(rpTool, RPT.x, RPT.y, RPT.w); rpTool.style.height = gy(RPT.h); rpTool.style.zIndex = 3;
   async function rpSeqBath() {
-    await walkTo(BSPOT.tubSide.x, BSPOT.tubSide.y); H.dir = -1;
+    await walkTo(122, 120); H.dir = 1;
     front({ eyes: "happy", mouth: "teeth", paws: "hold" }); await wait(350); front({ paws: "down" });
     rpOpen();
   }

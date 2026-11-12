@@ -491,3 +491,5 @@
 .rp-wpipe { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; }
 .rp-wpipe svg { display: block; width: 100%; height: auto; }
 .rp-wpipe::before { content: ""; position: absolute; top: 0; bottom: 0; left: -8px; right: -8px; }
+
+.rp-wpipe.rp-sink::before { display: none; }
