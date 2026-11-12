@@ -48,7 +48,7 @@
   }
   var bMaskN = 0;
   function bArt(b, only) {   // the whole room (or, for a catalog picture, just some layers) as svg content
-    var L = only || ["wall", "floor", "rug", "window", "stand", "lamp", "chest", "fix", "deco"], o = "";
+    var L = only || ["wall", "floor", "rug", "window", "shelf", "stand", "lamp", "chest", "fix", "deco"], o = "";
     L.forEach(function (k) {
       if (k === "wall") { var id = "bwm" + (++bMaskN); o += '<mask id="' + id + '"><rect width="180" height="135" fill="#fff"/><path fill="#000" d="' + HD.bhole[b.window] + '"/></mask><g mask="url(#' + id + ')">' + bTint(A["bw2_" + b.wall], "wall", b.wall, b.wallC) + '</g>'; }
       else if (k === "floor") o += bTint(A["bf2_" + b.floor], "floor", b.floor, b.floorC);
@@ -58,6 +58,7 @@
       else if (k === "lamp") o += bTint(A["blp_" + b.lamp], "lamp", b.lamp, b.lampC);
       else if (k === "chest") o += bTint(A["bch_" + b.chest], "chest", b.chest, b.chestC);
       else if (k === "fix") o += A.b_fix2;
+      else if (k === "shelf") { if (b.bed !== 0 && b.bed !== 5) o += bTint(A.bsh, "chest", 0, b.chestC); }   /* the book shelves sit behind the canopy and the toadstool: there they are left out */
       else if (k === "deco") o += bTint(A["bdc_" + b.deco], "deco", b.deco, b.decoC);
       else if (k === "bed") { var bi = HD.beds[b.bed]; o += bTint('<g transform="translate(' + bi.back[0] + ' ' + bi.back[1] + ')">' + A["bedb_" + b.bed] + '</g><g transform="translate(' + bi.front[0] + ' ' + bi.front[1] + ')">' + A["bedf_" + b.bed] + '</g>', "bed", b.bed, b.bedC); }
     });
@@ -489,7 +490,7 @@
   ];
   var BSEL = { bed: [54, 26, 72, 96], wall: [6, 8, 168, 88], window: [10, 14, 50, 44], floor: [0, 98, 180, 37], rug: [36, 102, 108, 30], stand: [33, 76, 26, 25], lamp: [34, 58, 20, 22], chest: [129, 72, 32, 29], deco: [56, 4, 122, 96] };
   var BVB = { bed: "48 22 84 100", wall: "0 0 180 100", window: "6 10 58 50", floor: "0 96 120 39", rug: "34 100 112 34", stand: "28 56 36 46", lamp: "31 55 24 26", chest: "124 46 42 56", deco: "0 0 180 100" };
-  var BTHUMB = { bed: ["wall", "floor", "bed"], wall: ["wall"], window: ["wall", "window"], floor: ["floor"], rug: ["floor", "rug"], stand: ["wall", "floor", "stand", "lamp"], lamp: ["wall", "stand", "lamp"], chest: ["wall", "floor", "chest"], deco: ["wall", "floor", "chest", "fix", "deco"] };
+  var BTHUMB = { bed: ["wall", "floor", "shelf", "bed"], wall: ["wall"], window: ["wall", "window"], floor: ["floor"], rug: ["floor", "rug"], stand: ["wall", "floor", "stand", "lamp"], lamp: ["wall", "stand", "lamp"], chest: ["wall", "floor", "chest"], deco: ["wall", "floor", "chest", "fix", "deco"] };
   var bCat = "bed", bCatalog = document.createElement("section"); bCatalog.className = "catalog k-catalog"; bCatalog.hidden = true;
   var dBtn = document.getElementById("decor-btn"); dBtn.parentNode.insertBefore(bCatalog, dBtn.nextSibling);
   var bSel = hEl("div", "k-sel", bedEl); bSel.hidden = true;

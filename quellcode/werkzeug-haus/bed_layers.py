@@ -192,6 +192,16 @@ def deco_l(i):
             for k, x in enumerate(range(62, 124, 7)): yy = 10 + int(2 * math.sin((x - 60) / 68 * math.pi)); a.poly([(x, yy), (x + 5, yy), (x + 2.5, yy + 5)], ('bn1', 'bn2', 'bn3')[k % 3])
     return mkl(f)
 TINT['deco'] = [None, ['stoff', hexes('dp1', 'dp3', 'dp2')], ['stoff', hexes('dp1', 'dp3', 'dp2')], ['stoff', hexes('lb_1', 'lb_3', 'lb_2')], ['stoff', hexes('bn1', 'bn2', 'bn3')]]
+# ---------------- two book shelves on the wall above the bed (hidden behind the canopy and the toadstool) ----------------
+def shelf_l(g):
+    rnd = random.Random(11)
+    for (y, x0, x1) in ((36, 66, 112), (51, 70, 116)):
+        g.rect(x0, y, x1, y + 2, 'wd'); g.rect(x0, y, x1, y, 'wd3'); g.rect(x0, y + 2, x1, y + 2, 'wd2')
+        for bx in (x0 + 4, x1 - 6): g.rect(bx, y + 3, bx + 1, y + 6, 'wd2'); g.put(bx + 2, y + 3, 'wd2')
+    books(g, 68, 92, 35, rnd); plant(g, 104, 35)
+    books(g, 86, 112, 50, random.Random(12))
+    rell(g, 76, 47, 4, 3.6, 0, 'aqw'); g.rect(73, 43, 79, 44, 'brs'); g.put(75, 46, 'wh'); g.put(77, 48, 'fish')   # a little jar with a shell... a marble jar
+    rell(g, 76, 50, 4.4, 1, 0, 'aqw')
 # ---------------- beds ----------------
 from beds_narrow import NBEDS
 DRIFT_SRC = None
@@ -217,7 +227,7 @@ if __name__ == '__main__':
     for k in range(3): A['bwin2_%d' % k] = window_l(k)
     for i in range(3): A['bf2_%d' % i] = floor_l(i); A['bns_%d' % i] = stand_l(i); A['bch_%d' % i] = chest_l(i)
     for i in range(5): A['br2_%d' % i] = rug_l(i); A['blp_%d' % i] = lamp_l(i); A['bdc_%d' % i] = deco_l(i)
-    A['b_fix2'] = mkl(fixed_l, ol=False)
+    A['b_fix2'] = mkl(fixed_l, ol=False); A['bsh'] = mkl(shelf_l)
     beds = []
     for i, (name, bf, bsz, ff, fsz, bpos, fpos, hpos) in enumerate(NBEDS):
         A['bedb_%d' % i] = dict(w=bsz[0], h=bsz[1], svg=paths(mkg(bf, *bsz))); A['bedf_%d' % i] = dict(w=fsz[0], h=fsz[1], svg=paths(mkg(ff, *fsz)))
