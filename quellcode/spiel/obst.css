@@ -117,3 +117,7 @@
 .os-alx { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border: 0; background: #fff8ec; color: #3a2414; font: inherit; font-weight: 800; font-size: 1rem; line-height: 1; cursor: pointer;
   box-shadow: 0 -2px 0 0 #3a2414, 0 2px 0 0 #3a2414, -2px 0 0 0 #3a2414, 2px 0 0 0 #3a2414; }
 .os-album-g { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+.hb-pick { width: 90%; max-width: 360px; padding: 8px 8px 10px; }
+.hb-lvs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.gm-pop .gm-liner { display: flex; align-items: center; justify-content: center; }

@@ -78,12 +78,13 @@
     M.lvl = Math.max(M.lvl || 0, Math.min(L.length - 1, hbS.lv + 1)); if (window.SudokuSave) window.SudokuSave();
     var next = hbS.lv + 1 < L.length;
     hbV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Die Pausbacke liegt am Pier!</p>' + mStars(st) + '<p class="fi-s">' + hbS.moves + ' Züge</p>' +
-      '<div class="fi-row"><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (next ? '<button type="button" class="fi-b" data-a="next">Nächster Hafen</button>' : '<button type="button" class="fi-b" data-a="end">Fertig</button>') + '</div></div>';
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (next ? '<button type="button" class="fi-b" data-a="next">Nächster Hafen</button>' : '<button type="button" class="fi-b" data-a="list">Alle Häfen</button>') + '</div></div>';
     hbV.card.hidden = false;
   }
   hbV.card.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.a === "again") hStart(hbS.lv); else if (b.dataset.a === "next") hStart(hbS.lv + 1); else hClose();
+    if (b.dataset.lv != null) { hStart(+b.dataset.lv); return; }
+    if (b.dataset.a === "again") hStart(hbS.lv); else if (b.dataset.a === "next") hStart(hbS.lv + 1); else if (b.dataset.a === "list") hPick(); else hClose();
   });
   hbV.cv.addEventListener("pointerdown", function (e) {
     if (!hbS || hbS.won) return; var q = mPt(hbV, e), cc = Math.floor((q[0] - hbG.x) / hbG.c), rr = Math.floor((q[1] - hbG.y) / hbG.c);
@@ -105,6 +106,14 @@
   }
   hbV.cv.addEventListener("pointerup", hUp); hbV.cv.addEventListener("pointercancel", hUp);
   function hOpen(lv) { hbV.el.hidden = false; hStart(lv); cancelAnimationFrame(hbS.raf); hbS.raf = requestAnimationFrame(hDraw); }
+  function hStarsOf(i) { var M = mL("harbour"), b = M.best && M.best[i], L = miA.h_levels[i]; if (!b) return 0; return b <= L.best ? 3 : b <= Math.ceil(L.best * 1.5) ? 2 : 1; }
+  function hPick() {   /* the harbour list: every harbour won so far, plus the next one */
+    var M = mL("harbour"), L = miA.h_levels, open = Math.min(L.length - 1, M.lvl || 0);
+    hbV.card.innerHTML = '<div class="fi-c hb-pick"><p class="fi-h">Welcher Hafen?</p><div class="hb-lvs">' + L.map(function (q, i) {
+      return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b>' + (i <= open ? mStars(hStarsOf(i)) : "") + '</button>'; }).join("") + '</div></div>';
+    hbV.card.hidden = false;
+  }
+  function hOpenPick() { hOpen(); hPick(); }
   function hClose() { if (hbS) cancelAnimationFrame(hbS.raf); hbS = null; hbV.el.hidden = true; }
   hbV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); hClose(); });
 
@@ -769,6 +778,27 @@
   var _mi_interrupt = interrupt; interrupt = function () { if (!window.__resume) { if (hbS) hClose(); if (dvS) dClose(); if (wkS) wkClose(); if (dwS) dwClose(); } return _mi_interrupt.apply(this, arguments); };
   window.__harbor = { open: hOpen, st: function () { return hbS && { lv: hbS.lv, moves: hbS.moves, won: hbS.won, p: hbS.p.map(function (p) { return [p.o, p.L, p.c, p.r]; }) }; }, move: function (i, n) { var p = hbS.p[i], rg = hRange(i); n = Math.max(rg[0], Math.min(rg[1], n)); if (n) { if (p.o === "h") p.c += n; else p.r += n; hbS.moves++; } if (i === 0 && p.c === 3) hbS.won = true; return n; } };
   window.__dive = { open: dOpen, st: function () { return dvS && { air: dvS.air, tr: dvS.tr, tiles: dvS.tiles, busy: dvS.busy, over: dvS.over }; }, dig: function (c, r) { return dDig(c, r); } };
+  // ---- the battleship box (windowsill or picnic table) now asks first: Schiffe versenken or Hafen-Rangieren
+  if (typeof bsBox !== "undefined") (function () {
+    var pop = xEl("div", "sleep-pop gm-pop", scene); pop.hidden = true; var pass = false, from = null;
+    function ask(e) {
+      if (pass) { pass = false; return; }
+      if (bsOpen || s.asleep || decor || (typeof bsActive !== "undefined" && bsActive)) return;
+      e.stopImmediatePropagation(); e.preventDefault(); from = e.currentTarget;
+      var liner = miA.h_liner_h3 ? '<img src="' + miA.h_liner_h3 + '" alt="" style="width:100%;image-rendering:pixelated">' : "";
+      pop.innerHTML = '<p class="ph">Was spielen wir?</p><div class="sp-row"><button type="button" class="sp-opt" data-g="bs"><span class="ic">' + svgOf(A.bs_box_open || A.bs_box, 16, 10) + '</span><span>Schiffe versenken</span></button>' +
+        '<button type="button" class="sp-opt" data-g="hb"><span class="ic gm-liner">' + liner + '</span><span>Hafen-Rangieren</span></button></div>';
+      pop.hidden = false; beep([[660, .04]]);
+    }
+    [bsBox, typeof shoreTbl !== "undefined" ? shoreTbl : null].forEach(function (el) { if (el) el.addEventListener("click", ask, true); });
+    pop.addEventListener("click", function (e) {
+      var b = e.target.closest(".sp-opt"); if (!b) return; e.stopPropagation(); pop.hidden = true;
+      if (b.dataset.g === "bs") { pass = true; from.click(); return; }
+      if (busy && !interruptible()) return; if (busy) interrupt();
+      act("harbour", async function () { front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300); await wait(350); front({ paws: "down" }); hOpenPick(); while (hbS) await wait(250); });
+    });
+    document.addEventListener("pointerdown", function (e) { if (!pop.hidden && !pop.contains(e.target)) pop.hidden = true; }, true);
+  })();
   // in the preview: two buttons to try them
   (function () {
     var row = document.querySelector(".demo .row"); if (!row) return;
