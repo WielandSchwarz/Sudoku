@@ -799,7 +799,7 @@ body { font-family: var(--f-ui); -webkit-tap-highlight-color: transparent; }
 .sky.sky-eve .win-view { filter: brightness(.92) sepia(.12); }
 .sky.sky-night .win-view { filter: brightness(.72) saturate(.85); }
 .sky.w-rain .win-view, .sky.w-clouds .win-view { filter: saturate(.6) brightness(.85); }
-.bt-sky { position: absolute; left: 67.8%; top: 11.9%; width: 15.6%; height: 26.7%; z-index: 0; }
+.bt-sky { position: absolute; left: 22.2%; top: 10.4%; width: 15.6%; height: 26.7%; z-index: 0; }
 /* the garden layers carry 30 px of extra width on each side, so swaying trees are never cut off */
 .map-scene img.map-wide, .storm-pip .pip-layers img, .storm-pip .pip-fg, .win-view img { left: -16.667% !important; width: 133.333% !important; right: auto !important; }
 /* seed chooser: bigger and readable */
@@ -877,7 +877,16 @@ body { font-family: var(--f-ui); -webkit-tap-highlight-color: transparent; }
 .rp-wpipe.rp-sink::before { display: none; }
 
 /* kitchen round 3: the menu in tabs, favourites for coffee and tea at home */
-.kpop3 { top: 3%; max-height: 94%; overflow-y: auto; overscroll-behavior: contain; }
+.kpop3 { position: absolute !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: auto !important; height: auto !important; max-width: none !important; max-height: none !important; transform: none !important; overflow-y: auto; overscroll-behavior: contain; padding: 10px 10px 12px !important; }
+.kpop3 .ph { font-size: 1.15rem !important; margin: 4px 44px 10px 2px !important; text-align: left; }
+.kpop3 .kp-x { position: absolute !important; left: auto !important; right: 8px !important; top: 8px !important; width: 32px; height: 32px; margin: 0 !important; padding: 0 !important; border: 0; background: #fff8ec; box-shadow: inset 0 0 0 2px #3a2414; font: inherit; font-size: 1.2rem; line-height: 1; color: #3a2414; cursor: pointer; clip-path: var(--px-notch2); }
+.kpop3 .ktabs { gap: 5px; margin-bottom: 8px; }
+.kpop3 .ktab { font-size: 0.6rem; padding: 5px 0 4px; letter-spacing: -0.02em; overflow: hidden; }
+.kpop3 .ktab svg { width: 24px; height: 24px; }
+.kpop3 .rgrid { gap: 7px; }
+.kpop3 .recipe { font-size: 0.86rem; min-height: 60px; }
+.kpop3 .recipe > svg { width: 42px !important; height: 36px !important; flex: none; }
+.kpop3 .recipe small svg { width: 14px !important; height: 14px !important; }
 .ktabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin: 0 0 5px; }
 .ktab { border: 0; font: inherit; font-size: 0.56rem; font-weight: 800; color: #3a2414; background: #f3e2c4; box-shadow: 0 0 0 2px #3a2414; padding: 3px 0 2px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; }
 .ktab svg { width: 18px; height: 18px; shape-rendering: crispEdges; }
@@ -14906,10 +14915,11 @@ window.__EXTRAS = true;
         ds.sort(function (a, b) { return (canCook(b) ? 1 : 0) - (canCook(a) ? 1 : 0); });
         body = '<div class="rgrid">' + ds.map(function (d) { var R = DISHES[d]; return '<button type="button" class="recipe" data-d="' + d + '"' + (canCook(d) ? "" : " disabled") + '>' + xs(R.art) + '<span class="rn">' + soft(R.name) + '<small>' + needHtml(R) + '</small></span></button>'; }).join("") + '</div>';
       }
-      var p = kPop('<p class="ph">Was machen wir?</p>' + tabs + body + (kTab === "drink" ? "" : '<p class="pn">Zutaten kommen aus dem Erntekorb im Garten.</p>'));
+      var p = kPop('<button type="button" class="kp-x" aria-label="Schließen">×</button><p class="ph">Was machen wir?</p>' + tabs + body + (kTab === "drink" ? "" : '<p class="pn">Zutaten kommen aus dem Erntekorb im Garten.</p>'));
       p.classList.add("kpop3");
       p.addEventListener("click", function (e) {
         e.stopPropagation();
+        if (e.target.closest(".kp-x")) { document.getElementById("k-ui").innerHTML = ""; return; }
         var t = e.target.closest(".ktab"); if (t) { openMenu(t.dataset.t); return; }
         var dr = e.target.closest("[data-drink]"); if (dr) { document.getElementById("k-ui").innerHTML = ""; if (s.asleep) return; if (busy) interrupt(); act("drink", function () { return homeDrink(dr.dataset.drink); }); return; }
         var b = e.target.closest(".recipe"); if (!b || b.disabled) return; document.getElementById("k-ui").innerHTML = "";

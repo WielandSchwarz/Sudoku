@@ -65,10 +65,11 @@
         ds.sort(function (a, b) { return (canCook(b) ? 1 : 0) - (canCook(a) ? 1 : 0); });
         body = '<div class="rgrid">' + ds.map(function (d) { var R = DISHES[d]; return '<button type="button" class="recipe" data-d="' + d + '"' + (canCook(d) ? "" : " disabled") + '>' + xs(R.art) + '<span class="rn">' + soft(R.name) + '<small>' + needHtml(R) + '</small></span></button>'; }).join("") + '</div>';
       }
-      var p = kPop('<p class="ph">Was machen wir?</p>' + tabs + body + (kTab === "drink" ? "" : '<p class="pn">Zutaten kommen aus dem Erntekorb im Garten.</p>'));
+      var p = kPop('<button type="button" class="kp-x" aria-label="Schließen">×</button><p class="ph">Was machen wir?</p>' + tabs + body + (kTab === "drink" ? "" : '<p class="pn">Zutaten kommen aus dem Erntekorb im Garten.</p>'));
       p.classList.add("kpop3");
       p.addEventListener("click", function (e) {
         e.stopPropagation();
+        if (e.target.closest(".kp-x")) { document.getElementById("k-ui").innerHTML = ""; return; }
         var t = e.target.closest(".ktab"); if (t) { openMenu(t.dataset.t); return; }
         var dr = e.target.closest("[data-drink]"); if (dr) { document.getElementById("k-ui").innerHTML = ""; if (s.asleep) return; if (busy) interrupt(); act("drink", function () { return homeDrink(dr.dataset.drink); }); return; }
         var b = e.target.closest(".recipe"); if (!b || b.disabled) return; document.getElementById("k-ui").innerHTML = "";
