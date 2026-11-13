@@ -135,3 +135,72 @@ def pan_bg():
     return g
 put('pan_bg', pan_bg())
 json.dump(OUT, open('kitchen3.json', 'w')); print(len(OUT), 'pieces', len(json.dumps(OUT)) // 1024, 'KB')
+
+# ================= frying, side view: the pan swings up and the pancake does a somersault (sprite frames) =================
+C(pa1='#f6e6b1', pa2='#e8d49a', pa3='#fff6d4', pb1='#e0a851', pb2='#c88a3a', pb3='#f0c070', pe_='#d8b878')
+def fry_bg():
+    g = G(180, 135); rnd = random.Random(9)
+    bricks(g, rnd, 'hb_', 'hb2_', 'hb3_', 12, 5, 6)
+    region(g, R(0, 0, 179, 14), lambda k: dk(k, .25))
+    # the hearth opening: dark inside, the fire low, a grate the pan stands on
+    for y in range(40, 135):
+        for x in range(10, 170):
+            if ((x + .5 - 90) / 80) ** 2 + ((y + .5 - 120) / 78) ** 2 <= 1: g.p[y][x] = 'K' if ((x + .5 - 90) / 80) ** 2 + ((y + .5 - 120) / 78) ** 2 > .955 else dk('hb2_', .55)
+    softE(g, 90, 118, 70, 30, lambda k: tone(k, .3, WARM), 10)
+    rell(g, 90, 124, 54, 9, 0, 'emb1'); rell(g, 90, 126, 46, 6, 0, 'emb2')
+    for k in range(40):
+        x, y = rnd.uniform(40, 140), rnd.uniform(118, 132); rell(g, x, y, rnd.uniform(1.6, 3), 1.4, 0, rnd.choice(['emb1', 'ash', 'fz4', 'fz2']))
+    for (fx, h) in ((60, 14), (72, 20), (84, 24), (96, 22), (108, 18), (120, 13)):   # flames
+        g.poly([(fx - 6, 124), (fx + 6, 124), (fx + 1, 124 - h), (fx - 1, 124 - h)], 'fz2'); g.poly([(fx - 3, 124), (fx + 3, 124), (fx, 124 - h * .6)], 'fz4'); g.put(fx, 123 - int(h * .3), 'fz3')
+    g.rect(34, 104, 146, 106, 'K'); g.rect(35, 104, 145, 104, 'rim3'); g.rect(35, 105, 145, 105, 'rim')
+    for x in (40, 140): g.rect(x - 1, 106, x + 1, 120, 'K'); g.rect(x, 106, x, 119, 'rim2')
+    vignette(g, 4, .22)
+    return g
+put('fry_bg', fry_bg())
+PIV = (178, 84)   # the pan turns round the end of its handle
+def rot(pts, ang, dy):
+    a = math.radians(ang); c, s = math.cos(a), math.sin(a)
+    return [(PIV[0] + (x - PIV[0]) * c - (y - PIV[1]) * s, PIV[1] + (x - PIV[0]) * s + (y - PIV[1]) * c + dy) for (x, y) in pts]
+def pan_layer(ang, dy, part):
+    g = G(180, 135)
+    def P(pts, k): g.poly(rot(pts, ang, dy), k)
+    if part == 'back':   # the inside you see over the front rim, and the back rim
+        P([(40 + 50 * (1 - math.cos(t)) , 90 - 7 * math.sin(t)) for t in [i / 24 * math.pi for i in range(25)]] + [(140, 92), (40, 92)], 'rim')
+        P([(44 + 46 * (1 - math.cos(t)), 91 - 5 * math.sin(t)) for t in [i / 24 * math.pi for i in range(25)]] + [(136, 92), (44, 92)], dk('rim', .45))
+    else:                # the front: the low wall of the pan with a shine, and the long handle
+        P([(38, 91), (142, 91), (136, 101), (44, 101)], 'rim2'); P([(38, 91), (142, 91), (141, 93), (39, 93)], 'rim4'); P([(44, 99), (136, 99), (136, 101), (44, 101)], dk('rim', .2))
+        P([(56, 94), (70, 94), (69, 96), (57, 96)], 'rim4')
+        P([(141, 91), (150, 89), (151, 94), (140, 96)], 'rim2'); P([(150, 87), (179, 80), (179, 87), (151, 93)], 'wd'); P([(150, 87), (179, 80), (179, 82), (150, 89)], 'wd3'); P([(151, 92), (179, 86), (179, 87), (151, 93)], 'wd2')
+    g.outline('K'); return g
+FR = [(0, 0), (6, -3), (12, -6), (4, -3)]   # rest, swing, top of the swing, settling
+for i, (a, dy) in enumerate(FR):
+    put('panb_%d' % i, pan_layer(a, dy, 'back')); put('panf_%d' % i, pan_layer(a, dy, 'front'))
+# the pancake (and the rösti) turning over: 9 frames from flat to upside down. Face A is the side up at the start.
+PR, PHI = 24, 14
+def cake_frame(th, tex):
+    W_, H_ = 56, 56; g = G(W_, H_); cx, cy = 28, 28
+    s = math.sin(math.radians(th + PHI)); ry = max(1.0, PR * abs(s)); face = 'a' if s > 0 else 'b'
+    thick = 2
+    # the edge: a darker band on the side turned away from the light
+    eo = thick if s > 0 else -thick
+    for y in range(H_):
+        for x in range(W_):
+            u = (x + .5 - cx) / PR; v = (y + .5 - cy - eo * .5) / max(ry, 1)
+            if u * u + v * v <= 1: g.p[y][x] = 'pe_'
+    for y in range(H_):
+        for x in range(W_):
+            u = (x + .5 - cx) / PR; v = (y + .5 - (cy - eo * .5)) / max(ry, 1)
+            if u * u + v * v <= 1:
+                k = 'p' + face + '1'
+                if u * u + v * v > .8: k = 'p' + face + '2'
+                elif u < -.25 and v < -.25 and u * u + v * v < .45: k = 'p' + face + '3'
+                g.p[y][x] = k
+    if ry > 3:   # a little texture: holes in the batter, shreds in the rösti
+        r2 = random.Random(3 if face == 'a' else 5)
+        for q in range(tex):
+            u, v = r2.uniform(-.75, .75), r2.uniform(-.7, .7)
+            if u * u + v * v < .6: g.put(cx + u * PR, cy - eo * .5 + v * ry, 'p' + face + '2')
+    g.outline('K'); return g
+for f in range(9):
+    put('cakef_%d' % f, cake_frame(f * 22.5, 14))
+json.dump(OUT, open('kitchen3.json', 'w')); print('fry frames', len(OUT), len(json.dumps(OUT)) // 1024, 'KB')

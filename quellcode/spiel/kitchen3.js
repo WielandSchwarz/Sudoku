@@ -82,97 +82,95 @@
       el.addEventListener("click", function (e) { e.stopImmediatePropagation(); openMenu(id === "k-oven" ? "bake" : id === "k-board" ? "fresh" : null); }, true);
     });
 
-    // ---------- step: the frying pan. The underside browns; tap to flip when it is golden, twice ----------
-    function pxDisc(cx, cy, rx, ry, colFn) {
-      var o = "", y0 = Math.floor(cy - ry), y1 = Math.ceil(cy + ry);
-      for (var y = y0; y <= y1; y++) {
-        var v = (y + .5 - cy) / ry; if (Math.abs(v) > 1) continue; var w = rx * Math.sqrt(1 - v * v), xa = Math.round(cx - w), xb = Math.round(cx + w);
-        var x = xa; while (x < xb) { var c = colFn(x, y, (x + .5 - cx) / rx, v), x2 = x + 1; while (x2 < xb && colFn(x2, y, (x2 + .5 - cx) / rx, v) === c) x2++; if (c) o += '<rect x="' + x + '" y="' + y + '" width="' + (x2 - x) + '" height="1" fill="' + c + '"/>'; x = x2; }
-      }
-      return o;
+    // ---------- frying, seen from the side: swipe up and the whole pan swings, the pancake does a somersault (sprite frames) ----------
+    VIEW_BG.fry = "fry_bg";
+    var CAKE_SRC = { a: ["#f6e6b1", "#e8d49a", "#fff6d4"], b: ["#e0a851", "#c88a3a", "#f0c070"], e: "#d8b878" };
+    function panSvg(i, mid) { return A["panb_" + i] + (mid || "") + A["panf_" + i]; }
+    function panFrameAt(t) { return t < .12 ? 1 : t < .3 ? 2 : t < .46 ? 3 : 0; }
+    function swipeUp(onUp) {   // any quick upward stroke on the picture counts
+      var y0 = null;
+      svgEl.onpointerdown = function (ev) { y0 = svgPt(ev).y; try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} };
+      svgEl.onpointermove = function (ev) { if (y0 == null) return; var y = svgPt(ev).y; if (y0 - y > 14) { y0 = null; onUp(); } else if (y > y0) y0 = y; };
+      svgEl.onpointerup = svgEl.onpointercancel = function () { y0 = null; };
     }
+    function swipeOff() { svgEl.onpointerdown = svgEl.onpointermove = svgEl.onpointerup = svgEl.onpointercancel = null; }
+    function hintArrow(now, x) { var on = Math.floor(now / 380) % 2; return '<rect x="' + (x - 1) + '" y="' + (56 + on * 3) + '" width="3" height="14" fill="#3a2414"/><rect x="' + x + '" y="' + (57 + on * 3) + '" width="1" height="12" fill="#f6c84a"/><path d="M' + (x - 5) + ' ' + (60 + on * 3) + 'h11l-5.5 -6z" fill="#f6c84a" stroke="#3a2414" stroke-width="1"/>'; }
     var FRY = {
-      pancake: { raw: "#f6e6b4", gold: "#e0a850", dark: "#6a3a1a", rx: 30, ry: 18, txt: "Der Pfannkuchen brät. Wenden, wenn die Unterseite goldbraun ist: tippe auf die Pfanne.", side2: "Jetzt die andere Seite." },
-      rosti: { raw: "#f4b060", gold: "#c8742a", dark: "#5a2e14", rx: 28, ry: 17, txt: "Das Rösti brät. Wenden, wenn es unten goldbraun ist: tippe auf die Pfanne.", side2: "Jetzt die andere Seite." }
+      pancake: { raw: "#f6e6b4", gold: "#e0a850", dark: "#6a3a1a", txt: "Der Pfannkuchen brät. Ist er unten goldbraun, wisch nach oben: die Pfanne wirft ihn um.", side2: "Jetzt die andere Seite, dann noch einmal wenden." },
+      rosti: { raw: "#f4b060", gold: "#c8742a", dark: "#5a2e14", txt: "Das Rösti brät. Ist es unten goldbraun, wisch nach oben: die Pfanne wirft es um.", side2: "Jetzt die andere Seite, dann noch einmal wenden." }
     };
     COOK_EXT.flip = function (X) {
       return new Promise(function (res) {
-        var F_ = FRY[X.s[1]] || FRY.pancake, side = 0, b = [0, 0], t0 = performance.now(), fly = 0, flying = false, done = false, specks = [], T = 9000;
-        setView("pan"); setLiquid(null); $p("pov-ring").hidden = true; $p("pov-bake").hidden = false;
+        var F_ = FRY[X.s[1]] || FRY.pancake, up = 0, flips = 0, b = [0, 0], t0 = performance.now(), fl = null, done = false, T = 9000, hint = true;
+        setView("fry"); setLiquid(null); $p("pov-ring").hidden = true; $p("pov-bake").hidden = false;
         X.head(X.i, F_.txt);
-        for (var k = 0; k < 26; k++) specks.push([Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random()]);
         function colAt(p) { return p < .6 ? mix(F_.raw, F_.gold, p / .6) : mix(F_.gold, F_.dark, (p - .6) / .4); }
+        function cake(frame, topSide, x, y) {   // the frame's face A is the side that was up when the throw began
+          var ca = colAt(b[topSide]), cb = colAt(b[1 - topSide]), svg = A["cakef_" + frame];
+          var to = { a: [ca, mix(ca, "#000000", .1), mix(ca, "#ffffff", .2)], b: [cb, mix(cb, "#000000", .1), mix(cb, "#ffffff", .2)] };
+          ["a", "b"].forEach(function (f) { CAKE_SRC[f].forEach(function (src, k) { svg = svg.split(src).join(to[f][k] + "_"); }); });
+          svg = svg.split(CAKE_SRC.e).join(mix(cb, "#000000", .22) + "_").split('_"').join('"');
+          return '<g transform="translate(' + (x - 28) + ' ' + (y - 28) + ')">' + svg + '</g>';
+        }
         function draw(now) {
           if (done) return;
-          var dt = 0;
-          if (!flying) { b[side] = Math.min(1, (now - t0) / T); }
-          var top = colAt(b[1 - side] * (side ? 1 : 0) + (side ? 0 : 0)), under = colAt(b[side]);
-          var topCol = side === 0 ? F_.raw : colAt(b[0]);                                  // the side facing up: raw at first, then the browned first side
-          var lift = flying ? Math.sin(fly * Math.PI) * 18 : 0, sq = flying ? Math.max(.25, Math.abs(Math.cos(fly * Math.PI))) : 1;
-          var cx = 96, cy = 70 - lift, rx = F_.rx, ry = Math.max(2, F_.ry * sq);
-          var o = '<ellipse cx="' + cx + '" cy="73" rx="' + (rx * (1 - lift / 60)) + '" ry="' + (F_.ry * .6) + '" fill="rgba(0,0,0,.25)"/>';
-          var showUnder = flying && fly > .5;
-          var face = showUnder ? under : topCol;
-          o += pxDisc(cx, cy + 1, rx + 1, ry + 1, function () { return "#3a2414"; });
-          o += pxDisc(cx, cy, rx, ry, function (x, y, u, v) {
-            var edge = u * u + v * v > .78, c = face;
-            if (edge) c = mix(face, "#000000", .14);
-            if (!edge && u < -.2 && v < -.2 && u * u + v * v < .4) c = mix(face, "#ffffff", .14);
-            return c;
-          });
-          if (X.s[1] === "pancake" && side === 0 && !flying && b[0] > .45) {             // bubbles on top tell you it is nearly time
-            for (var j = 0; j < Math.min(12, Math.floor((b[0] - .45) * 40)); j++) { var sp = specks[j]; o += '<rect x="' + Math.round(cx + sp[0] * rx * .7) + '" y="' + Math.round(cy + sp[1] * ry * .6) + '" width="1" height="1" fill="' + mix(F_.raw, "#ffffff", .5) + '"/>'; }
+          var down = 1 - up, o, pi = 0, cy = 88, frame = 0, top = up;
+          if (!fl) b[down] = Math.min(1, b[down] + (now - (draw.last || now)) / T);
+          draw.last = now;
+          if (fl) {
+            var t = (now - fl.t) / 900; if (t >= 1) { t = 1; }
+            pi = panFrameAt(t); var u = Math.max(0, Math.min(1, (t - .1) / .8));
+            cy = 88 - Math.sin(u * Math.PI) * 58 - (pi ? [0, 3, 6, 3][pi] : 0) * (u < .05 ? 1 : 0);
+            frame = Math.min(8, Math.round(u * 8)); top = fl.up;
+            if (t >= 1) { fl = null; up = 1 - up; frame = 0; top = up; flips++; beep([[196, .05]]); if (flips >= 2) { done = true; swipeOff(); setTimeout(res, 450); } else X.head(X.i, F_.side2); }
           }
-          if (X.s[1] === "rosti") for (var j2 = 0; j2 < 26; j2++) { var s2 = specks[j2]; o += '<rect x="' + Math.round(cx + s2[0] * rx * .75) + '" y="' + Math.round(cy + s2[1] * ry * .65) + '" width="2" height="1" fill="' + mix(face, s2[2] > .5 ? "#ffffff" : "#000000", .18) + '"/>'; }
-          if (!flying && Math.random() < .25) { var a = Math.random() * 6.28; o += '<rect x="' + Math.round(cx + Math.cos(a) * (rx + 3)) + '" y="' + Math.round(cy + Math.sin(a) * (ry + 2)) + '" width="1" height="1" fill="#fff4e0"/>'; }   // it sizzles at the edge
+          var sizzle = "";
+          if (!fl) for (var q = 0; q < 3; q++) if (Math.random() < .35) sizzle += '<rect x="' + Math.round(64 + Math.random() * 52) + '" y="' + Math.round(84 + Math.random() * 4) + '" width="1" height="1" fill="#fff4e0"/>';
+          var mid = cake(frame, top, 90, cy);
+          o = fl && cy < 74 ? panSvg(pi) + mid : panSvg(pi, mid + sizzle);
+          if (hint && !fl && b[down] > .45) o += hintArrow(now, 30);
           $p("pov-float").innerHTML = o;
-          $p("pov-bake").innerHTML = woodBarSvg({ w: 72, col: colAt, zone: [.55, .72], mark: b[side] });
-          if (!flying && b[side] >= 1) flip();
+          $p("pov-bake").innerHTML = woodBarSvg({ w: 72, col: colAt, zone: [.55, .72], mark: b[1 - up] });
+          if (!fl && !done && b[down] >= 1) throwIt();
           requestAnimationFrame(draw);
         }
         function grade(p) { return p >= .55 && p <= .72 ? 3 : p >= .45 && p <= .82 ? 2 : 1; }
-        function flip() {
-          if (flying || done) return; flying = true; var g = grade(b[side]); X.grades.push(g); beep(g === 3 ? [[660, .05], [880, .07]] : [[440, .05], [330, .07]]);
-          var f0 = performance.now();
-          (function up(now) { fly = Math.min(1, (now - f0) / 650); if (fly < 1) return requestAnimationFrame(up);
-            flying = false; fly = 0; beep([[220, .04]]);
-            if (side === 0) { side = 1; t0 = performance.now(); X.head(X.i, F_.side2); }
-            else { done = true; svgEl.onclick = $p("pov-bake").onclick = null; setTimeout(res, 300); }
-          })(f0);
+        function throwIt() {
+          if (fl || done) return; hint = false; var g = grade(b[1 - up]); X.grades.push(g);
+          beep(g === 3 ? [[523, .04], [784, .06], [1047, .08]] : [[392, .05], [330, .07]]);
+          fl = { t: performance.now(), up: up };
         }
-        svgEl.onclick = $p("pov-bake").onclick = function () { flip(); };
+        swipeUp(throwIt);
         requestAnimationFrame(draw);
       });
     };
-    // ---------- step: tossing vegetables in the pan. Swipe up to toss; wait too long and the bottom ones catch ----------
+    // ---------- tossing vegetables, the same pan from the side: swipe up 6 times before the bottom ones catch ----------
     COOK_EXT.toss = function (X) {
       return new Promise(function (res) {
-        setView("pan"); setLiquid(null); $p("pov-ring").hidden = false; X.bar(0);
+        setView("fry"); setLiquid(null); $p("pov-ring").hidden = false; $p("pov-bake").hidden = true; X.bar(0);
         X.head(X.i, "Schwenke das Gemüse: wisch 6-mal nach oben, bevor es unten anbrennt.");
-        var cols = [], N = 6, n = 0, last = performance.now(), worst = 0, pieces = [], drag = null, done = false;
-        X.items.forEach(function (k) { var c = { gcarrot: "#f08a24", pumpkin: "#e8822a", herbs: "#5aa04e", tomato: "#e2483a" }[k] || "#c8945a"; for (var q = 0; q < 6; q++) pieces.push({ x: 66 + Math.random() * 58, y: 56 + Math.random() * 26, c: c, h: 0, vy: 0, br: 0, w: k === "herbs" ? 3 : 6 }); });
+        var N = 6, n = 0, last = performance.now(), worst = 0, pieces = [], done = false, sw = null;
+        X.items.forEach(function (k) { var c = { gcarrot: "#f08a24", pumpkin: "#e8822a", herbs: "#5aa04e", tomato: "#e2483a" }[k] || "#c8945a"; for (var q = 0; q < 6; q++) pieces.push({ x: 54 + Math.random() * 72, h: 0, vy: 0, vx: 0, br: 0, c: c, w: k === "herbs" ? 3 : 5, r: Math.random() < .5 }); });
         function draw(now) {
           if (done) return;
-          var dt = Math.min(.05, (now - last) / 1000); last = now;
-          var o = "";
+          var dt = Math.min(.05, (now - last) / 1000), pi = 0; last = now;
+          if (sw) { var t = (now - sw) / 500; pi = t < 1 ? panFrameAt(t * .9) : 0; if (t >= 1) sw = null; }
+          var lift = [0, 3, 6, 3][pi], mid = "";
           pieces.forEach(function (p) {
-            if (p.h > 0 || p.vy) { p.vy -= 220 * dt; p.h = Math.max(0, p.h + p.vy * dt); if (p.h === 0) p.vy = 0; } else p.br = Math.min(1, p.br + dt / 5);
-            var c = mix(p.c, "#3a1c0c", p.br * .7), y = Math.round(p.y - p.h);
-            o += '<rect x="' + Math.round(p.x - 1) + '" y="' + (y - 1) + '" width="' + (p.w + 2) + '" height="' + (p.w > 3 ? 6 : 4) + '" fill="#3a2414"/><rect x="' + Math.round(p.x) + '" y="' + y + '" width="' + p.w + '" height="' + (p.w > 3 ? 4 : 2) + '" fill="' + c + '"/><rect x="' + Math.round(p.x) + '" y="' + (y + (p.w > 3 ? 3 : 1)) + '" width="' + p.w + '" height="1" fill="' + mix(c, "#000000", .2) + '"/><rect x="' + Math.round(p.x) + '" y="' + y + '" width="' + Math.max(1, p.w - 2) + '" height="1" fill="' + mix(c, "#ffffff", .3) + '"/>';
+            if (p.h > 0 || p.vy > 0) { p.vy -= 260 * dt; p.h = Math.max(0, p.h + p.vy * dt); p.x = Math.max(50, Math.min(130, p.x + p.vx * dt)); if (p.h === 0) { p.vy = 0; p.r = Math.random() < .5; } } else p.br = Math.min(1, p.br + dt / 5);
+            var c = mix(p.c, "#3a1c0c", p.br * .7), y = Math.round(88 - lift - p.h), w = p.r && p.h > 0 ? 3 : p.w, hh = p.r && p.h > 0 ? 5 : 3;
+            mid += '<rect x="' + Math.round(p.x - 1) + '" y="' + (y - hh) + '" width="' + (w + 2) + '" height="' + (hh + 2) + '" fill="#3a2414"/><rect x="' + Math.round(p.x) + '" y="' + (y - hh + 1) + '" width="' + w + '" height="' + hh + '" fill="' + c + '"/><rect x="' + Math.round(p.x) + '" y="' + (y - hh + 1) + '" width="' + w + '" height="1" fill="' + mix(c, "#ffffff", .3) + '"/>';
           });
           worst = Math.max(worst, pieces.reduce(function (m, p) { return Math.max(m, p.br); }, 0));
-          if (!drag && n === 0) { var on = Math.floor(now / 400) % 2; o += '<rect x="150" y="' + (60 + on * 2) + '" width="3" height="14" fill="#f6c84a"/><rect x="147" y="' + (60 + on * 2) + '" width="9" height="2" fill="#f6c84a"/>'; }
+          var o = panSvg(pi, mid); if (n === 0 && !sw) o += hintArrow(now, 30);
           $p("pov-float").innerHTML = o;
           requestAnimationFrame(draw);
         }
-        function toss() {
-          n++; X.bar(n / N); beep([[330 + n * 40, .04], [494 + n * 40, .05]]);
-          pieces.forEach(function (p) { p.vy = 70 + Math.random() * 60; p.h = .1; p.br = Math.max(0, p.br - .25); p.x = Math.max(56, Math.min(136, p.x + (Math.random() - .5) * 20)); p.y = Math.max(52, Math.min(86, p.y + (Math.random() - .5) * 10)); });
-          if (n >= N) { done = true; X.grades.push(worst < .55 ? 3 : worst < .8 ? 2 : 1); svgEl.onpointerdown = svgEl.onpointermove = svgEl.onpointerup = null; setTimeout(res, 500); }
-        }
-        svgEl.onpointerdown = function (ev) { drag = svgPt(ev).y; try { svgEl.setPointerCapture(ev.pointerId); } catch (e) {} };
-        svgEl.onpointermove = function (ev) { if (drag == null || done) return; var y = svgPt(ev).y; if (drag - y > 16) { drag = y; toss(); } else if (y > drag) drag = y; };
-        svgEl.onpointerup = function () { drag = null; };
+        swipeUp(function () {
+          if (done) return; n++; X.bar(n / N); sw = performance.now(); beep([[330 + n * 40, .04], [494 + n * 40, .05]]);
+          pieces.forEach(function (p) { p.vy = 90 + Math.random() * 70; p.vx = (Math.random() - .5) * 40; p.h = .1; p.br = Math.max(0, p.br - .25); });
+          if (n >= N) { done = true; X.grades.push(worst < .55 ? 3 : worst < .8 ? 2 : 1); swipeOff(); setTimeout(res, 900); }
+        });
         requestAnimationFrame(draw);
       });
     };
