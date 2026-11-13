@@ -480,7 +480,16 @@
     cfHamJob(function () { return cfHamGo([452, 114]); }).then(function () { cfBakeWalk = false; if (cafeOn && !cfGameOn) { cfHamSet({ eyes: "happy", mouth: "grin" }); bakeGame(); } });
   }
   var cfGameOn = false;
+  var cfHome = null;   // { el, bg, done(kind, stars, title), quit() }: set while Gaston makes a coffee or a tea at home
   // the tap that closes a close-up must not land on the café behind it (the counter, a guest, the door ...)
+  // the favourites card at home: a few blends you liked, instead of the whole shelf
+  function cfFavCard(G_, title, list, onPick) {
+    var card = document.createElement("div"); card.className = "fi-card cf-favs";
+    card.innerHTML = '<div class="fi-c"><p class="fi-h">' + title + '</p><div class="cf-favgrid">' + list.map(function (f, i) { return '<button type="button" class="cf-fav" data-i="' + i + '"><i style="background:' + f.c + '"></i><span>' + f.n + '</span></button>'; }).join("") + '</div></div>';
+    G_.el.appendChild(card);
+    card.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+    card.addEventListener("click", function (e) { e.stopPropagation(); var b = e.target.closest(".cf-fav"); if (!b) return; card.remove(); beep([[523, .04], [659, .05]]); onPick(list[+b.dataset.i]); });
+  }
   function cfSwallow() {
     var t0 = performance.now();
     function eat(e) { if (performance.now() - t0 < 700) { e.stopPropagation(); e.preventDefault(); } document.removeEventListener("click", eat, true); }
@@ -490,7 +499,7 @@
   function cfGameEl(title) {
     var el = document.createElement("div"); el.className = "bee-pov cf-game";
     el.innerHTML = '<canvas width="180" height="135"></canvas><b class="bp-ban cf-ban"></b><div class="cf-gauge"></div><button type="button" class="bp-x" aria-label="Abbrechen">×</button>';
-    cafeEl.appendChild(el); cfGameOn = true;
+    (cfHome ? cfHome.el : cafeEl).appendChild(el); cfGameOn = true;
     var cv = el.querySelector("canvas"), c = cv.getContext("2d"); c.imageSmoothingEnabled = false;
     var ban = el.querySelector(".cf-ban"); function banner(t) { if (ban.textContent === t) return; ban.textContent = t; ban.classList.remove("pop"); void ban.offsetWidth; ban.classList.add("pop"); }
     banner(title);
@@ -522,7 +531,7 @@
     ["pointerdown", "pointermove"].forEach(function (tp) { el.addEventListener(tp, function (e) { if (performance.now() < lockUntil && e.target === cv) { e.stopImmediatePropagation(); } }, true); });
     // pause(ms, fn, x, y): a step is done; show it for a moment, then go on
     function pause(ms, fn, x, y) { hold(ms); if (x != null) spark(x, y); setTimeout(function () { if (el.parentNode) fn(); }, ms); }
-    return { el: el, cv: cv, c: c, banner: banner, spark: spark, hold: hold, pause: pause, gauge: el.querySelector(".cf-gauge"), close: function () { cfGameOn = false; cancelAnimationFrame(fxRaf); el.remove(); cfSwallow(); } };
+    return { el: el, cv: cv, c: c, banner: banner, spark: spark, hold: hold, pause: pause, gauge: el.querySelector(".cf-gauge"), close: function () { cfGameOn = false; cancelAnimationFrame(fxRaf); el.remove(); cfSwallow(); if (cfHome && !cfHome.finished && cfHome.quit) cfHome.quit(); } };
   }
   function R(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); }
   function disc(c, cx, cy, r, col) { c.fillStyle = col; for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) { var h = r * r - (y + .5 - cy) * (y + .5 - cy); if (h <= 0) continue; var w = Math.sqrt(h); c.fillRect(Math.round(cx - w), y, Math.round(2 * w) || 1, 1); } }
@@ -535,6 +544,10 @@
       [[0, -3], [-1, -2], [0, -2], [1, -2], [-3, -1], [-2, -1], [-1, -1], [0, -1], [1, -1], [2, -1], [3, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [-2, 2], [-1, 2], [1, 2], [2, 2]].forEach(function (p) { R(c, x + p[0] * 1.5, cy + p[1] * 1.5, 2, 2, col); }); }
   }
   function cfFinish(G_, kind, stars, title) {
+    if (cfHome) {   /* at home: no café counter, the cup goes to the hamster */
+      var h = cfHome; G_.banner(title); beep(stars === 3 ? [[1047, .1], [1319, .1], [1568, .22]] : [[880, .12], [1047, .2]]); h.finished = true;
+      setTimeout(function () { G_.el.addEventListener("pointerdown", function () { G_.close(); h.done(kind, stars, title); }, { once: true }); }, 500); return;
+    }
     G_.banner(title); var C_ = cfL(); C_[kind] = Math.min(3, (C_[kind] || 0) + 1); cfStock(); if (window.SudokuSave) window.SudokuSave();
     beep(stars === 3 ? [[1047, .1], [1319, .1], [1568, .22]] : [[880, .12], [1047, .2]]);
     cfHamSet({ paws: "up", eyes: "happy", mouth: "grin" }); setTimeout(function () { cfHamSet({}); }, 1400);

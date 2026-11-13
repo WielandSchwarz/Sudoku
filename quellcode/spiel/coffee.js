@@ -44,7 +44,7 @@
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function shadow(x, y, w) { c.fillStyle = "rgba(58,36,20,.22)"; c.fillRect(Math.round(x), Math.round(y), w, 2); }
     function arrow(x, y, t) { var on = Math.floor(t / 300) % 2; R(c, x - 1, y + on * 2, 3, 4, "#f6c84a"); R(c, x - 3, y + 4 + on * 2, 7, 1, "#f6c84a"); R(c, x - 2, y + 5 + on * 2, 5, 1, "#f6c84a"); R(c, x - 1, y + 6 + on * 2, 3, 1, "#f6c84a"); }
-    function wall() { var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); drawCafeWindow(c, performance.now()); drawFest(c, "win", performance.now()); spr("bg_counter", 0, 0); }
+    function wall() { if (cfHome && cfHome.bg && cfHome.bg.complete && cfHome.bg.naturalWidth) { c.drawImage(cfHome.bg, 0, 0); R(c, 0, 0, 180, 135, "rgba(58,36,20,.18)"); spr("bg_counter", 0, 0); return; } var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); drawCafeWindow(c, performance.now()); drawFest(c, "win", performance.now()); spr("bg_counter", 0, 0); }
     function gauge(frac, zone, col) { G_.gauge.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: Math.max(0, Math.min(1, frac)), zone: zone, col: function (k) { return typeof col === "function" ? col(k) : col; } }); }
     function beanCol() { if (cocoa) return "#6a3a20"; var r = 0, g = 0, b = 0; pick.forEach(function (id) { var h = BEAN[bIdx(id)].g; r += parseInt(h.substr(1, 2), 16); g += parseInt(h.substr(3, 2), 16); b += parseInt(h.substr(5, 2), 16); }); var n = pick.length || 1; return "rgb(" + Math.round(r / n) + "," + Math.round(g / n) + "," + Math.round(b / n) + ")"; }
     function showPick() { if (cocoa) { G_.banner("Kakao"); return; } var k = cofKey(pick).split("+").filter(Boolean), u = k.filter(function (v, i) { return k.indexOf(v) === i; }); G_.banner(u.length ? u.map(function (id) { var n = k.filter(function (v) { return v === id; }).length; return BEAN[bIdx(id)].n + (n > 1 ? " ×" + n : ""); }).join(" + ") : "Bohnen in die Schale"); }
@@ -317,7 +317,8 @@
     // ---------- the frame loop ----------
     function draw(t) {
       var dt = Math.min(.05, (t - last) / 1000); last = t;
-      if (phase === "beans") drawBeans(t);
+      if (phase === "fav") { wall(); }
+      else if (phase === "beans") drawBeans(t);
       else if (phase === "grind" || phase === "grindout") drawGrind(t, dt);
       else if (phase === "tamp") drawTamp(t, dt);
       else if (phase === "shot") drawShot(t, dt);
@@ -332,6 +333,13 @@
       wall(); shadow(36, 128, 40); cup25(34, 96, .9, crema || crCol(shot));
       shadow(104, 128, 44); pitcher25(98, 66, 66 + 16, 0);
       arrow(124, 54, t); arrow(50, 84, t);
+    }
+    if (cfHome) {   /* at home: pick one of the favourites, then it goes straight to the grinder */
+      var B0 = cofBook(), favs = Object.keys(B0).map(function (k) { return { k: k, e: B0[k] }; }).sort(function (a, b) { return (b.e.s - a.e.s) || (b.e.t - a.e.t); }).slice(0, 4).map(function (o) { var ids = o.k.split("|")[0]; return { ids: ids === "kakao" ? [] : ids.split("+"), cocoa: ids === "kakao", n: o.e.n, c: o.e.c || "#8a5a30" }; });
+      [{ ids: ["mittel"], n: "Waldweg-Kaffee", c: "#8a5a30" }, { ids: ["hell", "nuss"], n: "Sonnenaufgangs-Kaffee mit Nussnote", c: "#b08050" }, { ids: ["dunkel", "schoko"], n: "Mitternachts-Kaffee mit Schokonote", c: "#4a2a18" }, { ids: [], cocoa: true, n: "Kakao", c: "#7a4428" }]
+        .forEach(function (d) { if (favs.length < 4 && !favs.some(function (f) { return f.n === d.n; })) favs.push(d); });
+      phase = "fav"; G_.banner("Lieblingskaffee");
+      setTimeout(function () { cfFavCard(G_, "Welcher Kaffee?", favs, function (f) { if (f.cocoa) { cocoa = true; phase = "steam"; G_.banner("Milch aufschäumen"); crema = "#7a4428"; return; } pick = f.ids.slice(); showPick(); startGrind(); }); }, 0);
     }
     function startGrind() { G_.pause(500, function () { phase = "grind"; G_.banner("Kurbel drehen"); ang = null; }, 90, 100); }
     G_.cv.addEventListener("pointerdown", function (e) {

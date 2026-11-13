@@ -493,3 +493,17 @@
 .rp-wpipe::before { content: ""; position: absolute; top: 0; bottom: 0; left: -8px; right: -8px; }
 
 .rp-wpipe.rp-sink::before { display: none; }
+
+/* kitchen round 3: the menu in tabs, favourites for coffee and tea at home */
+.kpop3 { top: 3%; max-height: 94%; overflow-y: auto; overscroll-behavior: contain; }
+.ktabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin: 0 0 5px; }
+.ktab { border: 0; font: inherit; font-size: 0.56rem; font-weight: 800; color: #3a2414; background: #f3e2c4; box-shadow: 0 0 0 2px #3a2414; padding: 3px 0 2px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; }
+.ktab svg { width: 18px; height: 18px; shape-rendering: crispEdges; }
+.ktab[aria-pressed="true"] { background: #ffe08a; }
+.kpop3 .recipe small { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.kpop3 .recipe small:not(:has(.need)) { font-size: 0.56rem; font-weight: 600; opacity: .8; }
+.k-coffee { z-index: 2; }
+.cf-favs .fi-c { width: 86%; max-width: 360px; }
+.cf-favgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cf-fav { border: 0; font: inherit; font-size: 0.72rem; font-weight: 800; color: #3a2414; background: #f3e2c4; box-shadow: 0 0 0 2px #3a2414; padding: 6px 6px 7px; display: flex; align-items: center; gap: 6px; text-align: left; cursor: pointer; line-height: 1.15; }
+.cf-fav i { flex: none; width: 14px; height: 14px; box-shadow: 0 0 0 2px #3a2414; }

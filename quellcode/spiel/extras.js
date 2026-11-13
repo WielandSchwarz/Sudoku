@@ -325,6 +325,7 @@
   function svgPt(ev) { var r = svgEl.getBoundingClientRect(); return { x: (ev.clientX - r.left) / r.width * 180, y: (ev.clientY - r.top) / r.height * 135 }; }
   function stationOf(s) { return s[0] === "bake" ? "oven" : (s[0] === "cut" || s[0] === "knead" || s[0] === "decorate" || s[0] === "planer" || s[0] === "shake" || s[1] === "bowl") ? "board" : "stove"; }
   var COOK_EXT = {};   // more kinds of steps can be added from outside (preview)
+  function dVerb(d) { return DISHES[d].verb || (d === "cake" || d === "bread" ? "bake" : d === "salad" ? "fresh" : d === "jam" ? "jar" : "cook"); }
   function carryFor(prev, next, d) {
     if (prev && prev[0] === "bake") return DISHES[d].art;
     if (next[0] === "bake") return next[1] === "cake" ? "carry_tin" : "carry_dough";
@@ -389,8 +390,8 @@
       function stepAdd(i, where, extra) {
         return new Promise(function (res) {
           setView(where);
-          var list = items.concat(extra || []), added = 0, start = where === "pot" ? (d === "jam" ? "#f2dcc8" : "#7ab0d4") : null;
-          var to = where === "bowl" ? null : d === "jam" ? mix(start, target, 0.35) : target;
+          var list = items.concat(extra || []), added = 0, start = where === "pot" ? ((d === "jam" || DISHES[d].jamlike) ? "#f2dcc8" : "#7ab0d4") : null;
+          var to = where === "bowl" ? null : (d === "jam" || DISHES[d].jamlike) ? mix(start, target, 0.35) : target;
           setLiquid(start); floaters = [];
           head(i, "Tippe die Zutaten an, dann fallen sie " + (where === "pot" ? "in den Topf." : "in die Schüssel."));
           var board = $p("pov-board"); board.hidden = false;
@@ -403,7 +404,7 @@
             for (var q = 0; q < pieces * (cut[k] ? 2 : 1); q++) floaters.push({ k: cut[k] ? "chunk_" + k : FOOD[k], a: rnd(0, 6.28), r: rnd(0.2, 0.9), sp: rnd(0.25, 0.6) * (Math.random() < 0.5 ? -1 : 1), s: cut[k] ? 1 : 2 });
             if (to) setLiquid(mix(start || "#f6eedc", to, added / list.length));
             if (where === "bowl") {
-              if (d === "salad") { if (!bowlK) setBowl("greens"); }
+              if (d === "salad" || DISHES[d].greens) { if (!bowlK) setBowl("greens"); }
               else if (k === "egg") setBowl("batter");
               else if (k === "flour" && bowlK !== "batter") setBowl("flour");
             }
@@ -417,13 +418,13 @@
       function stepStir(i, where) {
         return new Promise(function (res) {
           $p("pov-board").hidden = true; $p("pov-ring").hidden = false; bar(0);
-          head(i, where === "bowl" ? (d === "salad" ? "Mische den Salat: zieh den Finger zwei Runden durch die Schüssel." : d === "bread" ? "Rühre Mehl und Kerne zu einem Teig: zwei Runden mit dem Finger." : "Rühre den Teig: zwei Runden mit dem Finger.") : "Rühre um: zieh den Finger zwei Runden durch den Topf.");
+          head(i, DISHES[d].stirTxt && where === "bowl" ? DISHES[d].stirTxt : where === "bowl" ? ((d === "salad" || DISHES[d].greens) ? "Mische den Salat: zieh den Finger zwei Runden durch die Schüssel." : d === "bread" ? "Rühre Mehl und Kerne zu einem Teig: zwei Runden mit dem Finger." : "Rühre den Teig: zwei Runden mit dem Finger.") : "Rühre um: zieh den Finger zwei Runden durch den Topf.");
           var ang = Math.PI * 0.55, stir = 0, last = null, fin = false; drawSpoon(ang);
           function more(da) {
             if (fin) return; stir += Math.abs(da); ang += da; drawSpoon(ang); floaters.forEach(function (f) { f.a += da * 0.6; }); bar(stir / (4 * Math.PI));
             if (Math.random() < 0.12 && where === "pot") puff(POT.x + rnd(-26, 26), POT.y + rnd(-6, 6));
-            if (where === "bowl" && d === "bread" && bowlK === "flour" && stir > 1.6 * Math.PI) { setBowl("dough"); floaters = []; }
-            if (where === "bowl" && d === "cake" && floaters.length && stir > 2.4 * Math.PI) floaters = floaters.filter(function (f, n) { return n % 3 === 0 && stir < 3.2 * Math.PI; });
+            if (where === "bowl" && (d === "bread" || DISHES[d].dough) && bowlK === "flour" && stir > 1.6 * Math.PI) { setBowl("dough"); floaters = []; }
+            if (where === "bowl" && (d === "cake" || DISHES[d].batter) && floaters.length && stir > 2.4 * Math.PI) floaters = floaters.filter(function (f, n) { return n % 3 === 0 && stir < 3.2 * Math.PI; });
             if (stir >= 4 * Math.PI) { fin = true; setTimeout(function () { $p("pov-tool").innerHTML = ""; res(); }, 300); }
           }
           function angOf(ev) { var p = svgPt(ev); return Math.atan2((p.y - POT.y) / POT.ry, (p.x - POT.x) / POT.rx); }
@@ -489,7 +490,7 @@
       function stepBake(i, kind) {
         return new Promise(function (res) {
           setView("oven"); $p("pov-ring").hidden = true; $p("pov-bake").hidden = false; var go = $p("pov-go"); go.hidden = true;
-          head(i, kind === "cake" ? "Der Kuchen backt. Hol ihn raus, wenn er goldbraun ist." : "Das Brot backt. Hol es raus, wenn es goldbraun ist.");
+          head(i, DISHES[d].bakeTxt || (kind === "cake" ? "Der Kuchen backt. Hol ihn raus, wenn er goldbraun ist." : "Das Brot backt. Hol es raus, wenn es goldbraun ist."));
           var b0 = performance.now(), fin = false, art = A["oven_" + kind];
           function colorAt(p) { return p < 0.5 ? mix("#f6e6bc", "#d89038", p / 0.5) : mix("#d89038", "#5e3018", (p - 0.5) / 0.5); }
           bakeFn = function () {
@@ -551,7 +552,7 @@
         if (cancelled) return;
         var stars = grades.length ? Math.min.apply(null, grades) : 3;
         ["pov-gauge", "pov-bake", "pov-go", "pov-ring", "pov-board"].forEach(function (id) { $p(id).hidden = true; });
-        var baked = d === "cake" || d === "bread", verb = baked ? "gebacken" : d === "salad" ? "zubereitet" : "gekocht";
+        var vb = dVerb(d), baked = vb === "bake", verb = { bake: "gebacken", fresh: "zubereitet", fry: "gebraten", jar: "eingemacht", cook: "gekocht" }[vb];
         var msg = stars === 3 ? "Perfekt " + verb + "! Es reicht für 2 Portionen." : stars === 2 ? "Gut " + verb + "!" : baked ? "Ein bisschen zu dunkel geraten, schmeckt aber trotzdem." : "Etwas zu heiß geworden, schmeckt aber trotzdem.";
         $p("pov-done").innerHTML = '<div class="pov-card"><div class="pov-dish">' + svgOf(A[R.art], SZ[R.art][0], SZ[R.art][1]) + '</div><b>' + R.name + '</b><span class="pov-stars">' + "★★★".slice(0, stars) + '<s>' + "★★★".slice(stars) + '</s></span><span>' + msg + '</span><button type="button" class="pbtn" id="pov-ok">Fertig</button></div>';
         $p("pov-done").hidden = false; beep(stars === 3 ? [[1047, .1], [1319, .1], [1568, .22]] : [[880, .12], [1047, .2]]);
@@ -571,7 +572,7 @@
   async function cookSeq(d) {
     var R = DISHES[d], first = KSPOT[stationOf(PLAN[d][0])];
     await walkTo(first.x, first.y);
-    front({ eyes: "happy", mouth: "grin", paws: "hold" }); say(N() + (d === "cake" || d === "bread" ? " backt " : d === "salad" ? " macht " : " kocht ") + R.name + "."); await wait(400);
+    front({ eyes: "happy", mouth: "grin", paws: "hold" }); say(N() + { bake: " backt ", fresh: " macht ", fry: " brät ", jar: " macht ", cook: " kocht " }[dVerb(d)] + R.name + (dVerb(d) === "jar" ? " ein." : ".")); await wait(400);
     var stars = await cookGame(d);
     if (!stars) { say("Kochen abgebrochen."); front({ paws: "down" }); return; }
     for (var k in R.need) garden.harvest[k] -= R.need[k];

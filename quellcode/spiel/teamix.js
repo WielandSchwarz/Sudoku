@@ -252,7 +252,7 @@
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function shadow(x, y, w) { c.fillStyle = "rgba(58,36,20,.22)"; c.fillRect(Math.round(x), Math.round(y), w, 2); c.fillRect(Math.round(x) + 2, Math.round(y) + 2, w - 4, 1); }
     // ---------- the shelf (choose the blend) ----------
-    function wall() { spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now()); }
+    function wall() { if (cfHome && cfHome.bg && cfHome.bg.complete && cfHome.bg.naturalWidth) { c.drawImage(cfHome.bg, 0, 0); R(c, 0, 0, 180, 135, "rgba(58,36,20,.25)"); return; } spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now()); }
     function tin(i, t) {
       var r = TIN[i], g = TEA_ING[i], used = pick.filter(function (v) { return v === g.id; }).length, bob = shake === i ? -Math.abs(Math.round(Math.sin(t / 40) * 2)) : 0;
       spr("tin_" + g.id, r.x, r.y + bob);
@@ -507,7 +507,8 @@
     // ---------- the frame loop ----------
     function draw(t) {
       var dt = Math.min(.05, (t - last) / 1000); last = t;
-      if (phase === "mix") { wall(); for (var i = 0; i < 8; i++) tin(i, t); pot(t); shadow(KET.x + 4, KET.y + 42, 40); spr("kettle_s", KET.x - 4, KET.y - 10); book(t); if (pick.length) arrow(KET.x + 22, KET.y - 18, t); }
+      if (phase === "fav") { wall(); }
+      else if (phase === "mix") { wall(); for (var i = 0; i < 8; i++) tin(i, t); pot(t); shadow(KET.x + 4, KET.y + 42, 40); spr("kettle_s", KET.x - 4, KET.y - 10); book(t); if (pick.length) arrow(KET.x + 22, KET.y - 18, t); }
       else if (phase === "fire") { stepFire(dt, t); if (lit) gaugeHeat(); drawFire(t); }
       else if (phase === "fireout") drawFire(t);
       else if (phase === "pour") stepPour(dt, t);
@@ -518,6 +519,12 @@
       if (phase !== "gone") raf = requestAnimationFrame(draw);
     }
     function showPick() { G_.banner(pick.length ? teaList(pick).join(" + ") : "Zutaten in den Mörser"); }
+    if (cfHome) {   /* at home: a few favourite blends instead of all eight tins */
+      var TB = teaBook(), tf = Object.keys(TB).map(function (k) { return { k: k, e: TB[k] }; }).sort(function (a, b) { return (b.e.s - a.e.s) || (b.e.t - a.e.t); }).slice(0, 4).map(function (o) { return { ids: o.k.split("+"), n: o.e.n, c: o.e.c }; });
+      [["kamille", "honig"], ["minze"], ["apfel", "zitrone"], ["hagebutte"]].forEach(function (ids) { var b = teaBlend(ids); if (tf.length < 4 && !tf.some(function (f) { return f.n === b.name; })) tf.push({ ids: ids, n: b.name, c: b.col }); });
+      phase = "fav"; G_.banner("Lieblingstee");
+      setTimeout(function () { cfFavCard(G_, "Welcher Tee?", tf, function (f) { pick = f.ids.slice(); bl = teaBlend(pick); phase = "fire"; G_.banner("Streichholz anreißen"); beep([[262, .05], [330, .05]]); micStart(); }); }, 0);
+    }
     G_.cv.addEventListener("pointerdown", function (e) {
       e.preventDefault(); var p = pt(e);
       try { G_.cv.setPointerCapture(e.pointerId); } catch (er) {}
