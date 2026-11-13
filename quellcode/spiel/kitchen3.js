@@ -187,13 +187,21 @@
       im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="180" height="135" viewBox="0 0 180 135" shape-rendering="crispEdges"><rect width="180" height="135" fill="#bfe3f7"/>' + kLayers(k).map(function (x) { return A[x]; }).join("") + '</svg>');
       return im;
     }
+    var KC = /*KCLOSEUP*/, kcImg = {};
+    Object.keys(KC).forEach(function (k) { var im = new Image(); im.src = KC[k]; kcImg[k] = im; });
+    function kcSwap(on) {   /* the close-ups at home: the kitchen's own wall, worktop and shelf instead of the café's */
+      if (typeof TIMG !== "object") return;
+      if (on) { kcSwap.saved = { c: TIMG.bg_counter, s: TIMG.bg_shelf }; TIMG.bg_counter = kcImg.kc_counter; TIMG.bg_shelf = kcImg.kc_shelf; }
+      else if (kcSwap.saved) { TIMG.bg_counter = kcSwap.saved.c; TIMG.bg_shelf = kcSwap.saved.s; kcSwap.saved = null; }
+    }
     var DRINK = { coffee: { n: "Kaffee", art: "d_coffee", energy: 14, fun: 6 }, tea: { n: "Tee", art: "d_tea", energy: 6, fun: 8, love: 4 } };
     async function homeDrink(kind) {
       await walkTo(KSPOT.board.x - 4, KSPOT.board.y); H.dir = 1; front({ eyes: "happy", mouth: "grin", paws: "up" }); pulse("hop", 300);
       say(kind === "coffee" ? N() + " mahlt sich einen Kaffee." : N() + " setzt Teewasser auf."); await wait(500);
       var res = await new Promise(function (resolve) {
-        cfHome = { el: scene, bg: kitchenImg(), finished: false, done: function (k2, stars, title) { cfHome = null; resolve({ stars: stars, title: title }); }, quit: function () { cfHome = null; resolve(null); } };
-        try { (kind === "coffee" ? coffeeGame : teaGame)(); } catch (er) { cfHome = null; resolve(null); }
+        kcSwap(true);
+        cfHome = { el: scene, wall: kcImg.kc_wall, finished: false, done: function (k2, stars, title) { cfHome = null; kcSwap(false); resolve({ stars: stars, title: title }); }, quit: function () { cfHome = null; kcSwap(false); resolve(null); } };
+        try { (kind === "coffee" ? coffeeGame : teaGame)(); } catch (er) { cfHome = null; kcSwap(false); resolve(null); }
       });
       if (!res) { say(kind === "coffee" ? "Doch kein Kaffee." : "Doch kein Tee."); front({ paws: "down" }); return; }
       var D = DRINK[kind], art = res.title && /Kakao/.test(res.title) ? "d_cocoa" : D.art;

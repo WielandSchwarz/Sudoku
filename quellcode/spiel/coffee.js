@@ -44,13 +44,13 @@
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function shadow(x, y, w) { c.fillStyle = "rgba(58,36,20,.22)"; c.fillRect(Math.round(x), Math.round(y), w, 2); }
     function arrow(x, y, t) { var on = Math.floor(t / 300) % 2; R(c, x - 1, y + on * 2, 3, 4, "#f6c84a"); R(c, x - 3, y + 4 + on * 2, 7, 1, "#f6c84a"); R(c, x - 2, y + 5 + on * 2, 5, 1, "#f6c84a"); R(c, x - 1, y + 6 + on * 2, 3, 1, "#f6c84a"); }
-    function wall() { if (cfHome && cfHome.bg && cfHome.bg.complete && cfHome.bg.naturalWidth) { c.drawImage(cfHome.bg, 0, 0); R(c, 0, 0, 180, 135, "rgba(58,36,20,.18)"); spr("bg_counter", 0, 0); return; } var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); drawCafeWindow(c, performance.now()); drawFest(c, "win", performance.now()); spr("bg_counter", 0, 0); }
+    function wall() { if (cfHome) { if (cfHome.wall && cfHome.wall.complete) c.drawImage(cfHome.wall, 0, 0); spr("bg_counter", 0, 0); return; } var wi = cafeWall(); if (wi.complete && wi.naturalWidth) c.drawImage(wi, 0, 0); drawCafeWindow(c, performance.now()); drawFest(c, "win", performance.now()); spr("bg_counter", 0, 0); }
     function gauge(frac, zone, col) { G_.gauge.innerHTML = woodBarSvg({ w: 60, vertical: true, up: true, frac: Math.max(0, Math.min(1, frac)), zone: zone, col: function (k) { return typeof col === "function" ? col(k) : col; } }); }
     function beanCol() { if (cocoa) return "#6a3a20"; var r = 0, g = 0, b = 0; pick.forEach(function (id) { var h = BEAN[bIdx(id)].g; r += parseInt(h.substr(1, 2), 16); g += parseInt(h.substr(3, 2), 16); b += parseInt(h.substr(5, 2), 16); }); var n = pick.length || 1; return "rgb(" + Math.round(r / n) + "," + Math.round(g / n) + "," + Math.round(b / n) + ")"; }
     function showPick() { if (cocoa) { G_.banner("Kakao"); return; } var k = cofKey(pick).split("+").filter(Boolean), u = k.filter(function (v, i) { return k.indexOf(v) === i; }); G_.banner(u.length ? u.map(function (id) { var n = k.filter(function (v) { return v === id; }).length; return BEAN[bIdx(id)].n + (n > 1 ? " ×" + n : ""); }).join(" + ") : "Bohnen in die Schale"); }
     // ---------- 1: beans ----------
     function drawBeans(t) {
-      if (cfHome) cfHomeShelf(c, [49, 79]); else { spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now()); }
+      spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now());
       JAR.forEach(function (r, i) { var id = i < 6 ? BEAN[i].id : "kakao", n = i < 6 ? pick.filter(function (v) { return v === id; }).length : cocoa ? 1 : 0; spr("jar_" + id, r.x, r.y);
         for (var u = 0; u < n; u++) { var bx = r.x + r.w - 7 - u * 8; R(c, bx, r.y - 3, 8, 8, "#3a2414"); R(c, bx + 1, r.y - 2, 6, 6, "#f6c84a"); R(c, bx + 2, r.y + 1, 1, 1, "#3a2414"); R(c, bx + 3, r.y + 2, 1, 1, "#3a2414"); R(c, bx + 4, r.y, 1, 2, "#3a2414"); } });
       shadow(BOWL.x + 6, BOWL.y + 25, 36); spr("bowl_b", BOWL.x, BOWL.y);

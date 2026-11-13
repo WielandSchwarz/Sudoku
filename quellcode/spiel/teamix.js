@@ -147,6 +147,7 @@
   // the wall behind is the café's own wall, and the window is the round one behind the counter, with today's sky in it
   var wallImg = null, wallKey = "";
   function cafeWall() {
+    if (cfHome && cfHome.wall) return cfHome.wall;   /* at home: the kitchen wall */
     var se = season(), wt = weather.type, sk = document.getElementById("sky").className, night = /sky-night/.test(sk), eve = /sky-eve/.test(sk);
     var key = se + wt + night + eve + (typeof CF_THEME_NOW === "string" ? CF_THEME_NOW : ""); if (key === wallKey && wallImg) return wallImg; wallKey = key;
     var col = night ? "#1e2a54" : eve ? "#f4b88a" : wt === "storm" ? "#46506a" : (wt === "rain" || wt === "snow") ? "#a8b8c8" : wt === "clouds" ? "#bcd0de" : "#a8dcf6";
@@ -158,6 +159,7 @@
   // ---- the big window in the close-ups: only a part of it is in the picture, the garden is outside, the weather moves
   var WIN = { cx: 166, cy: 26, r: 44 }, winImgs = {};
   function drawCafeWindow(c, t) {
+    if (cfHome) return;
     var se = season(), wt = weather.type, sk = document.getElementById("sky").className, night = /sky-night/.test(sk), eve = /sky-eve/.test(sk);
     var cx = WIN.cx, cy = WIN.cy, r = WIN.r;
     c.save(); c.beginPath(); c.arc(cx, cy, r, 0, 2 * Math.PI); c.clip();
@@ -207,6 +209,7 @@
     c.fillStyle = "rgba(255,220,120,.12)"; c.fillRect(x - 5, y - h - 4, 11, h + 6);
   }
   function drawFest(c, where, t) {
+    if (cfHome) return;
     var f = typeof festival === "function" ? festival() : ""; if (!f) return;
     t = t || performance.now();
     var night = typeof daylight === "function" && daylight() !== "day", win = where !== "shelf", sx = 126, sy = 74;   // the window sill
@@ -252,7 +255,7 @@
     function spr(k, x, y) { var im = TIMG[k]; if (im && im.complete) c.drawImage(im, Math.round(x), Math.round(y)); }
     function shadow(x, y, w) { c.fillStyle = "rgba(58,36,20,.22)"; c.fillRect(Math.round(x), Math.round(y), w, 2); c.fillRect(Math.round(x) + 2, Math.round(y) + 2, w - 4, 1); }
     // ---------- the shelf (choose the blend) ----------
-    function wall() { if (cfHome) { cfHomeShelf(c, [48, 78]); return; } spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now()); }
+    function wall() { spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now()); }
     function tin(i, t) {
       var r = TIN[i], g = TEA_ING[i], used = pick.filter(function (v) { return v === g.id; }).length, bob = shake === i ? -Math.abs(Math.round(Math.sin(t / 40) * 2)) : 0;
       spr("tin_" + g.id, r.x, r.y + bob);
