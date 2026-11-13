@@ -50,7 +50,7 @@
     function showPick() { if (cocoa) { G_.banner("Kakao"); return; } var k = cofKey(pick).split("+").filter(Boolean), u = k.filter(function (v, i) { return k.indexOf(v) === i; }); G_.banner(u.length ? u.map(function (id) { var n = k.filter(function (v) { return v === id; }).length; return BEAN[bIdx(id)].n + (n > 1 ? " ×" + n : ""); }).join(" + ") : "Bohnen in die Schale"); }
     // ---------- 1: beans ----------
     function drawBeans(t) {
-      spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now());
+      if (cfHome) cfHomeShelf(c, [49, 79]); else { spr("bg_shelf", 0, 0); drawFest(c, "shelf", performance.now()); }
       JAR.forEach(function (r, i) { var id = i < 6 ? BEAN[i].id : "kakao", n = i < 6 ? pick.filter(function (v) { return v === id; }).length : cocoa ? 1 : 0; spr("jar_" + id, r.x, r.y);
         for (var u = 0; u < n; u++) { var bx = r.x + r.w - 7 - u * 8; R(c, bx, r.y - 3, 8, 8, "#3a2414"); R(c, bx + 1, r.y - 2, 6, 6, "#f6c84a"); R(c, bx + 2, r.y + 1, 1, 1, "#3a2414"); R(c, bx + 3, r.y + 2, 1, 1, "#3a2414"); R(c, bx + 4, r.y, 1, 2, "#3a2414"); } });
       shadow(BOWL.x + 6, BOWL.y + 25, 36); spr("bowl_b", BOWL.x, BOWL.y);
@@ -317,8 +317,7 @@
     // ---------- the frame loop ----------
     function draw(t) {
       var dt = Math.min(.05, (t - last) / 1000); last = t;
-      if (phase === "fav") { wall(); }
-      else if (phase === "beans") drawBeans(t);
+      if (phase === "beans") drawBeans(t);
       else if (phase === "grind" || phase === "grindout") drawGrind(t, dt);
       else if (phase === "tamp") drawTamp(t, dt);
       else if (phase === "shot") drawShot(t, dt);
@@ -333,13 +332,6 @@
       wall(); shadow(36, 128, 40); cup25(34, 96, .9, crema || crCol(shot));
       shadow(104, 128, 44); pitcher25(98, 66, 66 + 16, 0);
       arrow(124, 54, t); arrow(50, 84, t);
-    }
-    if (cfHome) {   /* at home: pick one of the favourites, then it goes straight to the grinder */
-      var B0 = cofBook(), favs = Object.keys(B0).map(function (k) { return { k: k, e: B0[k] }; }).sort(function (a, b) { return (b.e.s - a.e.s) || (b.e.t - a.e.t); }).slice(0, 4).map(function (o) { var ids = o.k.split("|")[0]; return { ids: ids === "kakao" ? [] : ids.split("+"), cocoa: ids === "kakao", n: o.e.n, c: o.e.c || "#8a5a30" }; });
-      [{ ids: ["mittel"], n: "Waldweg-Kaffee", c: "#8a5a30" }, { ids: ["hell", "nuss"], n: "Sonnenaufgangs-Kaffee mit Nussnote", c: "#b08050" }, { ids: ["dunkel", "schoko"], n: "Mitternachts-Kaffee mit Schokonote", c: "#4a2a18" }, { ids: [], cocoa: true, n: "Kakao", c: "#7a4428" }]
-        .forEach(function (d) { if (favs.length < 4 && !favs.some(function (f) { return f.n === d.n; })) favs.push(d); });
-      phase = "fav"; G_.banner("Lieblingskaffee");
-      setTimeout(function () { cfFavCard(G_, "Welcher Kaffee?", favs, function (f) { if (f.cocoa) { cocoa = true; phase = "steam"; G_.banner("Milch aufschäumen"); crema = "#7a4428"; return; } pick = f.ids.slice(); showPick(); startGrind(); }); }, 0);
     }
     function startGrind() { G_.pause(500, function () { phase = "grind"; G_.banner("Kurbel drehen"); ang = null; }, 90, 100); }
     G_.cv.addEventListener("pointerdown", function (e) {

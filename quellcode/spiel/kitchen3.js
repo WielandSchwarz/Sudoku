@@ -58,8 +58,8 @@
       var body;
       if (kTab === "drink") {
         body = '<div class="rgrid">' +
-          '<button type="button" class="recipe" data-drink="coffee">' + xs("d_coffee") + '<span class="rn">Kaffee<small>Mühle und Kännchen, Lieblingssorten aus dem Café</small></span></button>' +
-          '<button type="button" class="recipe" data-drink="tea">' + xs("d_tea") + '<span class="rn">Tee<small>Lieblingsmischungen aus dem Teebuch</small></span></button></div>';
+          '<button type="button" class="recipe" data-drink="coffee">' + xs("d_coffee") + '<span class="rn">Kaffee</span></button>' +
+          '<button type="button" class="recipe" data-drink="tea">' + xs("d_tea") + '<span class="rn">Tee</span></button></div>';
       } else {
         var ds = Object.keys(DISHES).filter(function (d) { return DISHES[d].cat === kTab; });
         ds.sort(function (a, b) { return (canCook(b) ? 1 : 0) - (canCook(a) ? 1 : 0); });

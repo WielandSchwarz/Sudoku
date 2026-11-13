@@ -482,6 +482,16 @@
   var cfGameOn = false;
   var cfHome = null;   // { el, bg, done(kind, stars, title), quit() }: set while Gaston makes a coffee or a tea at home
   // the tap that closes a close-up must not land on the café behind it (the counter, a guest, the door ...)
+  // at home the shelf scenes show the kitchen: its wall behind, two plain wooden boards for the jars and tins
+  function cfHomeShelf(c, ys) {
+    var bg = cfHome && cfHome.bg; if (bg && bg.complete && bg.naturalWidth) c.drawImage(bg, 0, 0); else R(c, 0, 0, 180, 135, "#f0dfbe");
+    R(c, 0, 0, 180, 135, "rgba(58,36,20,.28)");
+    ys.forEach(function (y) {
+      R(c, 26, y + 6, 152, 2, "rgba(58,36,20,.3)");
+      R(c, 24, y, 156, 6, "#3a2414"); R(c, 25, y + 1, 154, 4, "#a06a38"); R(c, 25, y + 1, 154, 1, "#c08a50"); R(c, 25, y + 4, 154, 1, "#7e4e24");
+      [36, 164].forEach(function (x) { R(c, x, y + 6, 5, 6, "#3a2414"); R(c, x + 1, y + 6, 3, 4, "#7e4e24"); });
+    });
+  }
   // the favourites card at home: a few blends you liked, instead of the whole shelf
   function cfFavCard(G_, title, list, onPick) {
     var card = document.createElement("div"); card.className = "fi-card cf-favs";
