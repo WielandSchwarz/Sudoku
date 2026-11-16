@@ -1232,6 +1232,15 @@ kbd { font-family: var(--f-ui); font-size: 0.78rem; padding: 1px 5px; border-rad
 #ham-root .cf-favgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 #ham-root .cf-fav { border: 0; font: inherit; font-size: 0.72rem; font-weight: 800; color: #3a2414; background: #f3e2c4; box-shadow: 0 0 0 2px #3a2414; padding: 6px 6px 7px; display: flex; align-items: center; gap: 6px; text-align: left; cursor: pointer; line-height: 1.15; }
 #ham-root .cf-fav i { flex: none; width: 14px; height: 14px; box-shadow: 0 0 0 2px #3a2414; }
+#ham-root .sc-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px auto 0; width: 100%; max-width: 520px; box-sizing: border-box; padding: 16px 18px; background: #fff1e4; border: 2px solid #f2cfae; border-radius: 22px; text-align: left; }
+#ham-root .sc-card strong { font-size: 1.05rem; color: #3a2414; }
+#ham-root .sc-card p { margin: 4px 0 0; font-size: 0.86rem; color: #8a6a52; line-height: 1.3; }
+#ham-root .sc-tog { flex: none; position: relative; width: 52px; height: 30px; border: 0; border-radius: 15px; background: #e8d6c4; cursor: pointer; transition: background .2s; }
+#ham-root .sc-tog i { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+#ham-root .sc-tog[aria-checked="true"] { background: #7ab85a; }
+#ham-root .sc-tog[aria-checked="true"] i { transform: translateX(22px); }
+#ham-root .needs.sc-on .bar { position: relative; }
+#ham-root .needs.sc-on .bar::after { content: ""; position: absolute; left: calc(50% - 1px); top: -2px; bottom: -2px; width: 2px; background: #3a2414; opacity: .45; }
 #ham-root .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
 #ham-root .need { display: flex; flex-direction: column; gap: 4px; }
 #ham-root .need-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; font-weight: 600; }
@@ -3064,6 +3073,7 @@ html.bs-on, html.bs-on body { height: 100%; overflow: hidden; }
       <span class="pic"><span class="mini-tiles"><i style="background:#e8554a"></i><i></i><i style="background:#4a8ad8"></i><i style="background:#f2c230"></i><i style="background:#e8554a"></i><i></i><i></i><i style="background:#5aaa4a"></i><i style="background:#4a8ad8"></i></span></span>
       <span class="txt"><strong>Farbklecks</strong></span>
     </button>
+    <div class="sc-card"><div><strong>Selbstversorger</strong><p><span id="sc-name">Dein Hamster</span> kümmert sich ein bisschen selbst: kein Bedürfnis fällt unter die Hälfte.</p></div><button type="button" class="sc-tog" id="sc-tog" role="switch" aria-checked="false" aria-label="Selbstversorger"><i></i></button></div>
       <div class="account acc-start" id="account">
       <strong class="acc-title">Dein Konto</strong>
       <div id="acc-out">
@@ -3225,7 +3235,7 @@ html.bs-on, html.bs-on body { height: 100%; overflow: hidden; }
       </span>
       <span class="switch"><input type="checkbox" id="opt-autonotes" checked><span class="track"></span></span>
     </label>
-    <p class="opt-version">Version 131 · 13.11.2026</p>
+    <p class="opt-version">Version 132 · 16.11.2026</p>
   </div>
 
   <div class="mode-row">
@@ -3323,6 +3333,8 @@ window.__EXTRAS = true;
   ];
   // asleep he recharges about 120 % energy per hour (full in under an hour), awake he loses 3 %
   var DECAY = { food: [-8, -3], energy: [-3, 120], love: [-5, -2], fun: [-7, -2] };
+  // "Selbstversorger": when switched on, needs still go down but never below half (rising is not limited)
+  function scKeep(before, after) { return s.selfcare && after < before ? Math.max(after, Math.min(before, 50)) : after; }
   var s, busy = false, cur = null;
   var scene = document.getElementById("scene"), ham = document.getElementById("hamster"), flipEl = document.getElementById("ham-flip"), bodyEl = document.getElementById("ham-body"), svg = document.getElementById("ham-svg");
   var thought = document.getElementById("thought"), statusEl = document.getElementById("ham-status");
@@ -3921,8 +3933,20 @@ window.__EXTRAS = true;
       return '<div class="need"><div class="need-head"><span>' + st.label + '</span><span>' + v + ' %</span></div>' +
         '<div class="bar" role="meter" aria-label="' + st.label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + v + '"><i style="width:' + v + '%; background:' + col + '"></i></div></div>';
     }).join("");
+    document.getElementById("needs").classList.toggle("sc-on", !!s.selfcare);
     var days = Math.floor((Date.now() - (s.born || Date.now())) / 86400000); document.getElementById("ham-age").textContent = (days < 1 ? "Neu eingezogen" : days === 1 ? "1 Tag alt" : days + " Tage alt") + " · " + s.treats + (s.treats === 1 ? " Apfel" : " Äpfel"); if (typeof renderCosy === "function" && home) renderCosy();
   }
+  // the switch on the start screen; it is part of the hamster's save, so it stays and travels with backups
+  function scSync() {
+    var t = document.getElementById("sc-tog"), nm = document.getElementById("sc-name");
+    if (t) t.setAttribute("aria-checked", s.selfcare ? "true" : "false");
+    if (nm) nm.textContent = s.name || "Dein Hamster";
+  }
+  (function () {
+    var t = document.getElementById("sc-tog"); if (!t) return;
+    t.addEventListener("click", function () { s.selfcare = !s.selfcare; scSync(); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); });
+    scSync();
+  })();
   function syncButtons() {
     var sl = document.getElementById("a-sleep");
     sl.setAttribute("aria-pressed", s.asleep); sl.querySelector("span").textContent = s.asleep ? "Aufwecken" : "Schlafen";
@@ -4103,7 +4127,7 @@ window.__EXTRAS = true;
   // ---------- time ----------
   var sleepH = 0;
   function passHours(h) {
-    STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
+    STATS.forEach(function (st) { s[st.id] = scKeep(s[st.id], clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h)); });
     if (home) trackHappy(h);
     if (s.asleep) sleepH += h;
     // he sleeps until you wake him up
@@ -25568,7 +25592,7 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   var APPLES = { easy: 1, medium: 1, hard: 2, expert: 3 };
   // decay without animations (used for the time the app was closed)
   function passHoursQuiet(h) {
-    STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
+    STATS.forEach(function (st) { s[st.id] = scKeep(s[st.id], clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h)); });
   }
   function catchUpQuiet() {
     var now = Date.now(), h = Math.min(Math.max(0, (now - (s.t || now)) / 3600000), 24 * 30);
@@ -25606,13 +25630,13 @@ function obstsalatBoard(SYNC_URL, getAccount, getHamsterName) {
   function exportState() {
     catchUpQuiet();
     return { v: 1, name: s.name, born: s.born, t: s.t, food: Math.round(s.food * 10) / 10, energy: Math.round(s.energy * 10) / 10, love: Math.round(s.love * 10) / 10, fun: Math.round(s.fun * 10) / 10,
-      asleep: !!s.asleep, treats: s.treats, owned: home.owned, placed: home.placed, pending: home.pending, pos: home.pos, scarf: home.scarf, kitchen: home.kitchen, bedroom: home.bedroom, houseStyle: home.houseStyle, canopy: home.canopy, life: home.life, sleepAt: home.sleepAt === "bed" ? "bed" : "chair",
+      asleep: !!s.asleep, selfcare: !!s.selfcare, treats: s.treats, owned: home.owned, placed: home.placed, pending: home.pending, pos: home.pos, scarf: home.scarf, kitchen: home.kitchen, bedroom: home.bedroom, houseStyle: home.houseStyle, canopy: home.canopy, life: home.life, sleepAt: home.sleepAt === "bed" ? "bed" : "chair",
       garden: { plots: garden.plots, seeds: garden.seeds, harvest: garden.harvest, snow: garden.snow, snowLv: garden.snowLv, snowSeen: !!garden.snowSeen, lastVisit: garden.lastVisit || 0, t: garden.t, friends: garden.friends || {}, advent: garden.advent, easter: garden.easter, xmas: garden.xmas }, words: window.WordsGame ? window.WordsGame.exportState() : undefined, tiles: window.TilesGame ? window.TilesGame.exportState() : undefined };
   }
   function importState(o) {
     if (!o || typeof o !== "object") return;
     ["food", "energy", "love", "fun"].forEach(function (k) { if (typeof o[k] === "number") s[k] = clamp(o[k]); });
-    s.name = o.name || null; s.born = o.born || Date.now(); s.t = o.t || Date.now(); s.asleep = !!o.asleep; s.treats = typeof o.treats === "number" ? o.treats : 3; s.music = false;
+    s.name = o.name || null; s.born = o.born || Date.now(); s.t = o.t || Date.now(); s.asleep = !!o.asleep; s.selfcare = !!o.selfcare; s.treats = typeof o.treats === "number" ? o.treats : 3; s.music = false; setTimeout(scSync, 0);
     if (o.owned) for (var c in home.owned) home.owned[c] = (o.owned[c] || []).filter(function (id) { return item(c, id); });
     for (var c2 in home.owned) if (!home.owned[c2].length && FURN[c2] && FURN[c2][0]) home.owned[c2] = [FURN[c2][0].id];
     if (o.placed) for (var c3 in home.placed) { var own3 = home.owned[c3.replace(/\d+$/, "")] || []; if (o.placed[c3] === null || (o.placed[c3] && own3.indexOf(o.placed[c3]) >= 0)) home.placed[c3] = o.placed[c3]; }
