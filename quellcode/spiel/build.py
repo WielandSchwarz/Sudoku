@@ -142,6 +142,10 @@ if not os.environ.get('NOEXTRAS'):
     assert _ns in s
     s=s.replace(_ns, '  <section class="words" id="scr-words" hidden></section>\n  <section class="words tiles" id="scr-tiles" hidden></section>\n\n'+_ns, 1)
     s=s.replace(_gw, '    <button type="button" class="choice" id="go-tiles">\n      <span class="pic"><span class="mini-tiles"><i style="background:#e8554a"></i><i></i><i style="background:#4a8ad8"></i><i style="background:#f2c230"></i><i style="background:#e8554a"></i><i></i><i></i><i style="background:#5aaa4a"></i><i style="background:#4a8ad8"></i></span></span>\n      <span class="txt"><strong>Farbklecks</strong></span>\n    </button>\n'+_gw, 1)
+# the "Selbstversorger" switch at the bottom of the start screen
+_scend = '  </section>\n\n  <section class="words" id="scr-words"'
+if _scend in s:
+    s = s.replace(_scend, '    <div class="sc-card"><div><strong>Selbstversorger</strong><p><span id="sc-name">Dein Hamster</span> kümmert sich ein bisschen selbst: kein Bedürfnis fällt unter die Hälfte.</p></div><button type="button" class="sc-tog" id="sc-tog" role="switch" aria-checked="false" aria-label="Selbstversorger"><i></i></button></div>\n' + _scend, 1)
 # the hamster card comes first on the start screen
 _hm = _re.search(r'    <button type="button" class="choice" id="go-hamster">.*?</button>\n', s, _re.S)
 if _hm:

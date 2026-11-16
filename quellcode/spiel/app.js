@@ -18,6 +18,8 @@
   ];
   // asleep he recharges about 120 % energy per hour (full in under an hour), awake he loses 3 %
   var DECAY = { food: [-8, -3], energy: [-3, 120], love: [-5, -2], fun: [-7, -2] };
+  // "Selbstversorger": when switched on, needs still go down but never below half (rising is not limited)
+  function scKeep(before, after) { return s.selfcare && after < before ? Math.max(after, Math.min(before, 50)) : after; }
   var s, busy = false, cur = null;
   var scene = document.getElementById("scene"), ham = document.getElementById("hamster"), flipEl = document.getElementById("ham-flip"), bodyEl = document.getElementById("ham-body"), svg = document.getElementById("ham-svg");
   var thought = document.getElementById("thought"), statusEl = document.getElementById("status");
@@ -616,8 +618,20 @@
       return '<div class="need"><div class="need-head"><span>' + st.label + '</span><span>' + v + ' %</span></div>' +
         '<div class="bar" role="meter" aria-label="' + st.label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + v + '"><i style="width:' + v + '%; background:' + col + '"></i></div></div>';
     }).join("");
+    document.getElementById("needs").classList.toggle("sc-on", !!s.selfcare);
     document.getElementById("ham-age").textContent = "3 Tage alt · " + s.treats + " Leckerli";
   }
+  // the switch on the start screen; it is part of the hamster's save, so it stays and travels with backups
+  function scSync() {
+    var t = document.getElementById("sc-tog"), nm = document.getElementById("sc-name");
+    if (t) t.setAttribute("aria-checked", s.selfcare ? "true" : "false");
+    if (nm) nm.textContent = s.name || "Dein Hamster";
+  }
+  (function () {
+    var t = document.getElementById("sc-tog"); if (!t) return;
+    t.addEventListener("click", function () { s.selfcare = !s.selfcare; scSync(); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); });
+    scSync();
+  })();
   function syncButtons() {
     var sl = document.getElementById("a-sleep");
     sl.setAttribute("aria-pressed", s.asleep); sl.querySelector("span").textContent = s.asleep ? "Aufwecken" : "Schlafen";
@@ -699,7 +713,7 @@
   // ---------- time ----------
   var sleepH = 0;
   function passHours(h) {
-    STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
+    STATS.forEach(function (st) { s[st.id] = scKeep(s[st.id], clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h)); });
     if (home) trackHappy(h);
     if (s.asleep) sleepH += h;
     // he sleeps until you wake him up

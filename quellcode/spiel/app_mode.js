@@ -3,7 +3,7 @@
   var APPLES = { easy: 1, medium: 1, hard: 2, expert: 3 };
   // decay without animations (used for the time the app was closed)
   function passHoursQuiet(h) {
-    STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
+    STATS.forEach(function (st) { s[st.id] = scKeep(s[st.id], clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h)); });
   }
   function catchUpQuiet() {
     var now = Date.now(), h = Math.min(Math.max(0, (now - (s.t || now)) / 3600000), 24 * 30);
@@ -41,13 +41,13 @@
   function exportState() {
     catchUpQuiet();
     return { v: 1, name: s.name, born: s.born, t: s.t, food: Math.round(s.food * 10) / 10, energy: Math.round(s.energy * 10) / 10, love: Math.round(s.love * 10) / 10, fun: Math.round(s.fun * 10) / 10,
-      asleep: !!s.asleep, treats: s.treats, owned: home.owned, placed: home.placed, pending: home.pending, pos: home.pos, scarf: home.scarf, kitchen: home.kitchen, bedroom: home.bedroom, houseStyle: home.houseStyle, canopy: home.canopy, life: home.life, sleepAt: home.sleepAt === "bed" ? "bed" : "chair",
+      asleep: !!s.asleep, selfcare: !!s.selfcare, treats: s.treats, owned: home.owned, placed: home.placed, pending: home.pending, pos: home.pos, scarf: home.scarf, kitchen: home.kitchen, bedroom: home.bedroom, houseStyle: home.houseStyle, canopy: home.canopy, life: home.life, sleepAt: home.sleepAt === "bed" ? "bed" : "chair",
       garden: { plots: garden.plots, seeds: garden.seeds, harvest: garden.harvest, snow: garden.snow, snowLv: garden.snowLv, snowSeen: !!garden.snowSeen, lastVisit: garden.lastVisit || 0, t: garden.t, friends: garden.friends || {}, advent: garden.advent, easter: garden.easter, xmas: garden.xmas }, words: window.WordsGame ? window.WordsGame.exportState() : undefined, tiles: window.TilesGame ? window.TilesGame.exportState() : undefined };
   }
   function importState(o) {
     if (!o || typeof o !== "object") return;
     ["food", "energy", "love", "fun"].forEach(function (k) { if (typeof o[k] === "number") s[k] = clamp(o[k]); });
-    s.name = o.name || null; s.born = o.born || Date.now(); s.t = o.t || Date.now(); s.asleep = !!o.asleep; s.treats = typeof o.treats === "number" ? o.treats : 3; s.music = false;
+    s.name = o.name || null; s.born = o.born || Date.now(); s.t = o.t || Date.now(); s.asleep = !!o.asleep; s.selfcare = !!o.selfcare; s.treats = typeof o.treats === "number" ? o.treats : 3; s.music = false; setTimeout(scSync, 0);
     if (o.owned) for (var c in home.owned) home.owned[c] = (o.owned[c] || []).filter(function (id) { return item(c, id); });
     for (var c2 in home.owned) if (!home.owned[c2].length && FURN[c2] && FURN[c2][0]) home.owned[c2] = [FURN[c2][0].id];
     if (o.placed) for (var c3 in home.placed) { var own3 = home.owned[c3.replace(/\d+$/, "")] || []; if (o.placed[c3] === null || (o.placed[c3] && own3.indexOf(o.placed[c3]) >= 0)) home.placed[c3] = o.placed[c3]; }

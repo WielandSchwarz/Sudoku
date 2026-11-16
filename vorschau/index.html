@@ -899,6 +899,17 @@ body { font-family: var(--f-ui); -webkit-tap-highlight-color: transparent; }
 .cf-fav { border: 0; font: inherit; font-size: 0.72rem; font-weight: 800; color: #3a2414; background: #f3e2c4; box-shadow: 0 0 0 2px #3a2414; padding: 6px 6px 7px; display: flex; align-items: center; gap: 6px; text-align: left; cursor: pointer; line-height: 1.15; }
 .cf-fav i { flex: none; width: 14px; height: 14px; box-shadow: 0 0 0 2px #3a2414; }
 
+/* Selbstversorger: the switch on the start screen, and a mark at half on every need bar while it is on */
+.sc-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px auto 0; width: 100%; max-width: 520px; box-sizing: border-box; padding: 16px 18px; background: #fff1e4; border: 2px solid #f2cfae; border-radius: 22px; text-align: left; }
+.sc-card strong { font-size: 1.05rem; color: #3a2414; }
+.sc-card p { margin: 4px 0 0; font-size: 0.86rem; color: #8a6a52; line-height: 1.3; }
+.sc-tog { flex: none; position: relative; width: 52px; height: 30px; border: 0; border-radius: 15px; background: #e8d6c4; cursor: pointer; transition: background .2s; }
+.sc-tog i { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.sc-tog[aria-checked="true"] { background: #7ab85a; }
+.sc-tog[aria-checked="true"] i { transform: translateX(22px); }
+.needs.sc-on .bar { position: relative; }
+.needs.sc-on .bar::after { content: ""; position: absolute; left: calc(50% - 1px); top: -2px; bottom: -2px; width: 2px; background: #3a2414; opacity: .45; }
+
 /* needs */
 .needs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
 .need { display: flex; flex-direction: column; gap: 4px; }
@@ -2768,6 +2779,7 @@ body.dz-on .dz-panel { display: block; }
       <span class="pic"><span class="mini-tiles"><i style="background:#e8554a"></i><i></i><i style="background:#4a8ad8"></i><i style="background:#f2c230"></i><i style="background:#e8554a"></i><i></i><i></i><i style="background:#5aaa4a"></i><i style="background:#4a8ad8"></i></span></span>
       <span class="txt"><strong>Farbklecks</strong></span>
     </button>
+    <div class="sc-card"><div><strong>Selbstversorger</strong><p><span id="sc-name">Dein Hamster</span> kümmert sich ein bisschen selbst: kein Bedürfnis fällt unter die Hälfte.</p></div><button type="button" class="sc-tog" id="sc-tog" role="switch" aria-checked="false" aria-label="Selbstversorger"><i></i></button></div>
   </section>
 
   <section class="words" id="scr-words" hidden></section>
@@ -2922,6 +2934,8 @@ window.__EXTRAS = true;
   ];
   // asleep he recharges about 120 % energy per hour (full in under an hour), awake he loses 3 %
   var DECAY = { food: [-8, -3], energy: [-3, 120], love: [-5, -2], fun: [-7, -2] };
+  // "Selbstversorger": when switched on, needs still go down but never below half (rising is not limited)
+  function scKeep(before, after) { return s.selfcare && after < before ? Math.max(after, Math.min(before, 50)) : after; }
   var s, busy = false, cur = null;
   var scene = document.getElementById("scene"), ham = document.getElementById("hamster"), flipEl = document.getElementById("ham-flip"), bodyEl = document.getElementById("ham-body"), svg = document.getElementById("ham-svg");
   var thought = document.getElementById("thought"), statusEl = document.getElementById("status");
@@ -3520,8 +3534,20 @@ window.__EXTRAS = true;
       return '<div class="need"><div class="need-head"><span>' + st.label + '</span><span>' + v + ' %</span></div>' +
         '<div class="bar" role="meter" aria-label="' + st.label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + v + '"><i style="width:' + v + '%; background:' + col + '"></i></div></div>';
     }).join("");
+    document.getElementById("needs").classList.toggle("sc-on", !!s.selfcare);
     document.getElementById("ham-age").textContent = "3 Tage alt · " + s.treats + " Leckerli";
   }
+  // the switch on the start screen; it is part of the hamster's save, so it stays and travels with backups
+  function scSync() {
+    var t = document.getElementById("sc-tog"), nm = document.getElementById("sc-name");
+    if (t) t.setAttribute("aria-checked", s.selfcare ? "true" : "false");
+    if (nm) nm.textContent = s.name || "Dein Hamster";
+  }
+  (function () {
+    var t = document.getElementById("sc-tog"); if (!t) return;
+    t.addEventListener("click", function () { s.selfcare = !s.selfcare; scSync(); renderNeeds(); if (window.SudokuSave) window.SudokuSave(); });
+    scSync();
+  })();
   function syncButtons() {
     var sl = document.getElementById("a-sleep");
     sl.setAttribute("aria-pressed", s.asleep); sl.querySelector("span").textContent = s.asleep ? "Aufwecken" : "Schlafen";
@@ -3708,7 +3734,7 @@ window.__EXTRAS = true;
   // ---------- time ----------
   var sleepH = 0;
   function passHours(h) {
-    STATS.forEach(function (st) { s[st.id] = clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h); });
+    STATS.forEach(function (st) { s[st.id] = scKeep(s[st.id], clamp(s[st.id] + DECAY[st.id][s.asleep ? 1 : 0] * h)); });
     if (home) trackHappy(h);
     if (s.asleep) sleepH += h;
     // he sleeps until you wake him up
