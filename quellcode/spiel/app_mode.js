@@ -79,7 +79,7 @@
     if (s.name) { document.getElementById("ham-name").textContent = s.name; ham.setAttribute("aria-label", "Hamster " + s.name); }
     interrupt(); renderRoom(); renderPackage();
     if (s.asleep) placeAsleep(); else placeAwake();
-    renderNeeds(); renderCosy(); renderStart(); lastSig = sig();
+    renderNeeds(); renderCosy(); renderStart(); lastSig = sig(); lastPSig = passiveSig(); lastNeeds = needsNow();
   }
   // furniture is never lost between devices: owned items are merged, everything else follows the newer state
   function mergeServer(o, newer) {
@@ -91,8 +91,15 @@
     }
     var fr = {}, mine = garden.friends || {}, theirs = (o.garden && o.garden.friends) || {}, frUp = false;   // hearts only ever grow: keep the higher count from both sides
     Object.keys(mine).concat(Object.keys(theirs)).forEach(function (k) { fr[k] = Math.max(mine[k] || 0, theirs[k] || 0); if (fr[k] !== (mine[k] || 0)) frUp = true; });
-    if (newer) { var copy = JSON.parse(JSON.stringify(o)); copy.owned = union; copy.garden = copy.garden || {}; copy.garden.friends = fr; if (!copy.pending && home.pending) copy.pending = home.pending; importState(copy); }
-    else { var changed = false; for (var c4 in union) if (union[c4].length !== home.owned[c4].length) { home.owned[c4] = union[c4]; changed = true; } if (changed) { renderCosy(); if (decor) renderCatalog(); } if (frUp) garden.friends = fr; }
+    // earned pieces for kitchen, bedroom and bath: the union of both devices
+    var lu = {}, ml = home.life || {}, tl = o.life || {}, lUp = false;
+    ["kown", "bown", "baown"].forEach(function (k) {
+      var A_ = ml[k] || {}, B_ = tl[k] || {}, out = {};
+      Object.keys(A_).concat(Object.keys(B_)).forEach(function (c) { var set = {}; (A_[c] || []).concat(B_[c] || []).forEach(function (i) { set[i] = true; }); out[c] = Object.keys(set).map(Number); if (out[c].length !== (A_[c] || []).length) lUp = true; });
+      if (Object.keys(out).length) lu[k] = out;
+    });
+    if (newer) { var copy = JSON.parse(JSON.stringify(o)); copy.owned = union; copy.garden = copy.garden || {}; copy.garden.friends = fr; if (!copy.pending && home.pending) copy.pending = home.pending; copy.life = copy.life || {}; for (var lk in lu) copy.life[lk] = lu[lk]; importState(copy); }
+    else { var changed = false; for (var c4 in union) if (union[c4].length !== home.owned[c4].length) { home.owned[c4] = union[c4]; changed = true; } if (changed) { renderCosy(); if (decor) renderCatalog(); } if (frUp) garden.friends = fr; if (lUp) { home.life = home.life || {}; for (var lk2 in lu) home.life[lk2] = lu[lk2]; } }
   }
   function onSolved(diff, kind) {
     catchUpQuiet();
@@ -116,11 +123,19 @@
     var plots = garden.plots.map(function (p) { return p ? [p.crop, p.wetUntil || 0] : null; });
     return JSON.stringify([s.name, s.treats, home.owned, home.placed, home.pending, home.pos, home.scarf, home.kitchen, home.bedroom, home.houseStyle, home.canopy, home.sleepAt, JSON.stringify(home.life || 0), plots, garden.seeds, garden.harvest, garden.snowLv, garden.snow, garden.lastVisit, garden.friends, garden.advent, garden.easter, garden.xmas, window.WordsGame ? window.WordsGame.sig() : "", window.TilesGame ? window.TilesGame.sig() : ""]);
   }
-  var lastSig = null, lastPSig = null;
-  function persistNow() { lastSig = sig(); lastPSig = passiveSig(); if (window.SudokuSave) window.SudokuSave(); }
+  var lastSig = null, lastPSig = null, lastNeeds = null;
+  function needsNow() { return { food: s.food, energy: s.energy, love: s.love, fun: s.fun, asleep: s.asleep }; }
+  // needs going UP come from you (feeding, petting, playing, a nap you started): that is a real change and is synced as such;
+  // needs going down by themselves stay a quiet save on this device
+  function needsRose() {
+    var L = lastNeeds; if (!L) return false;
+    return ["food", "love", "fun"].some(function (k) { return s[k] > L[k] + 2; }) || (!s.asleep && !L.asleep && s.energy > L.energy + 2);
+  }
+  function persistNow() { lastSig = sig(); lastPSig = passiveSig(); lastNeeds = needsNow(); if (window.SudokuSave) window.SudokuSave(); }
   setInterval(function () {
-    var g = sig(), ps = passiveSig();
-    if (lastSig !== null && g !== lastSig) persistNow();
+    var g = sig(), ps = passiveSig(), rose = needsRose();
+    if (lastNeeds === null || !rose) lastNeeds = lastNeeds && !rose ? (function (L) { ["food", "energy", "love", "fun"].forEach(function (k) { if (s[k] < L[k]) L[k] = s[k]; }); L.asleep = s.asleep; return L; })(lastNeeds) : needsNow();
+    if ((lastSig !== null && g !== lastSig) || rose) persistNow();
     else if (lastPSig !== null && ps !== lastPSig) { lastPSig = ps; if (window.SudokuSaveQuiet) window.SudokuSaveQuiet(); else if (window.SudokuSave) window.SudokuSave(); }
   }, 2000);
 
