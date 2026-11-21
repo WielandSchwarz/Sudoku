@@ -12,3 +12,6 @@
 .mo-diffs { flex-wrap: wrap; }
 html.mo-nosel, html.mo-nosel * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
 .mo-btns .fi-b2.on { background: #ffe08a; }
+.mo-btns .mo-rep { display: flex; flex-direction: column; align-items: center; white-space: normal; max-width: 48%; }
+.mo-btns .mo-rep small { font-size: .6rem; font-weight: 500; letter-spacing: 0; line-height: 1.2; margin-top: 1px; opacity: .85; }
+.mo-btns .mo-rep small b { font-weight: 800; }

@@ -2771,6 +2771,9 @@ body.dz-on .dz-panel { display: block; }
 .mo-diffs { flex-wrap: wrap; }
 html.mo-nosel, html.mo-nosel * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
 .mo-btns .fi-b2.on { background: #ffe08a; }
+.mo-btns .mo-rep { display: flex; flex-direction: column; align-items: center; white-space: normal; max-width: 48%; }
+.mo-btns .mo-rep small { font-size: .6rem; font-weight: 500; letter-spacing: 0; line-height: 1.2; margin-top: 1px; opacity: .85; }
+.mo-btns .mo-rep small b { font-weight: 800; }
 </style>
 
 <div class="page">
@@ -20789,7 +20792,7 @@ function recolorWallSvg(svg, grund, muster) {
   // lay a message out on the wall card (x 34..146, y 9..53): words wrap, every letter with its code underneath when asked
   function moLayout(msg, code) {
     for (var cp = 0; cp < 2; cp++) {
-      var lg = cp ? 2 : 3, wg = cp ? 6 : 8, lh = code ? 17 : 10, lines = [[]], lw = [0], items = [], ci = 0;
+      var lg = cp ? 2 : 3, wg = cp ? 7 : 11, lh = code ? 17 : 10, lines = [[]], lw = [0], items = [], ci = 0;
       msg.split(" ").forEach(function (word) {
         var ls = word.split("").map(function (ch) { var w = Math.max(moTw(ch), code ? moCw(MC[ch], cp) : 0); return { ch: ch, w: w, i: ci++ }; }), ww = ls.reduce(function (a, b) { return a + b.w; }, 0) + lg * (ls.length - 1);
         var L = lines.length - 1; if (lines[L].length && lw[L] + wg + ww > 110) { lines.push([]); lw.push(0); L++; }
@@ -20812,7 +20815,7 @@ function recolorWallSvg(svg, grund, muster) {
     words.forEach(function (w, n) { for (var j = 0; j < w.length; j++) { var q = L.items[k++]; q.wd = n; } });
     L.items.forEach(function (q) { (byLine[q.y] = byLine[q.y] || []).push(q); });
     Object.keys(byLine).forEach(function (y) {
-      var ln = byLine[y], wg = L.cp ? 6 : 8, lg = L.cp ? 2 : 3, tot = 0, x;
+      var ln = byLine[y], wg = L.cp ? 7 : 11, lg = L.cp ? 2 : 3, tot = 0, x;
       ln.forEach(function (q, j) { tot += q.w + (j ? (q.wd !== ln[j - 1].wd ? wg : lg) : 0); });
       x = Math.round(90 - tot / 2);
       ln.forEach(function (q, j) { if (j) x += q.wd !== ln[j - 1].wd ? wg : lg; q.x = x; x += q.w; });
@@ -20883,7 +20886,7 @@ function recolorWallSvg(svg, grund, muster) {
     moBarSet(g, "");
     setTimeout(function () {
       if (moS !== S) return; S.phase = "pick";
-      moBarSet(g, rs.map(function (r, i) { return '<button type="button" class="fi-b2 mo-rep" data-i="' + i + '">' + r.m + '</button>'; }).join(""));
+      moBarSet(g, rs.map(function (r, i) { var rg = moGloss(r.m); return '<button type="button" class="fi-b2 mo-rep" data-i="' + i + '">' + r.m + (rg ? '<small>' + rg + '</small>' : "") + '</button>'; }).join(""));
     }, 1100);
   }
   function moTx(i) {
