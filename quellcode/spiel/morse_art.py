@@ -46,8 +46,8 @@ def porthole(g):
     for (x, y) in ((10, 17), (17, 15), (13, 20), (19, 21)): g.put(x, y, '#fff6c8')
     for k in range(5): g.put(cx - 5 + k * 2, cy + 5, '#3a5a8a')
 def card(g):   # the code card pinned to the wall; the game writes on it
-    g.rect(30, 8, 149, 54, PA); g.rect(30, 54, 149, 54, PA2); g.rect(149, 8, 149, 54, PA2)
-    for (x, y) in ((33, 10), (146, 10)): g.rect(x, y, x + 1, y + 1, BR2)
+    g.rect(30, 6, 149, 42, PA); g.rect(30, 42, 149, 42, PA2); g.rect(149, 6, 149, 42, PA2)
+    for (x, y) in ((33, 8), (146, 8)): g.rect(x, y, x + 1, y + 1, BR2)
 def desk(g):
     for y in range(72, H):
         for x in range(W):
@@ -80,7 +80,8 @@ def receiver(g):   # Marconi magnetic detector as a box seen from front-above: t
     g.rect(16, 62, 16, 65, CU2)
     # brass name plate and two small switches
     g.rect(28, 60, 42, 66, BR); g.rect(28, 60, 42, 60, BR3); g.rect(28, 66, 42, 66, BR2); g.rect(30, 63, 40, 63, BR2)
-    for cx in (31, 39): ell(g, cx, 75, 2.4, 2.4, EB); g.rect(cx, 71, cx + 1, 74, BR3)
+    ell(g, 31, 75, 2.4, 2.4, EB); g.rect(31, 71, 32, 74, BR3)
+    ell(g, 39, 75, 3.4, 3.4, BR2); ell(g, 39, 74.6, 2.6, 2.6, BR); ell(g, 39, 75, 2, 2, '#6a2a1a'); g.put(38, 74, '#9a4a2a')   # signal lamp (lights up in the game)
 def lamp(g):     # brass desk lamp: round foot with thickness, round stem, green cone shade seen from above
     ell(g, 161, 97, 12, 4, BR2); ell(g, 161, 95.5, 12, 4, BR); ell(g, 159, 94.5, 7, 2, BR3)
     for y in range(58, 95):
@@ -141,7 +142,11 @@ def png(g):
             if c: P[x, y] = tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) + (255,)
     b = io.BytesIO(); im.save(b, 'PNG', optimize=True); return im, 'data:image/png;base64,' + base64.b64encode(b.getvalue()).decode()
 
-bg = comp(lay(wall), lay(porthole), lay(card), lay(desk), lay(receiver), lay(lamp), lay(phones), lay(notepad), lay(keybase))
+def shifted(l, dy):
+    g = G(W, H)
+    for y in range(H - dy): g.p[y + dy] = l.p[y][:]
+    return g
+bg = comp(lay(wall), lay(porthole), lay(card), lay(desk), shifted(lay(receiver), 3), lay(lamp), lay(phones), lay(notepad), lay(keybase))
 out = {}
 for k, g in (('mo_bg', bg), ('mo_up', lever(False)), ('mo_dn', lever(True))):
     im, out[k] = png(g)

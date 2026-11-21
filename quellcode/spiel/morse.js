@@ -36,8 +36,8 @@
       });
       // recompute x per line cleanly
       lines.forEach(function (ln, L) { var x = 0, prev = null; ln.forEach(function (q) { if (prev) x += prev.word !== q.word ? 0 : 0; q.x = x; x += q.w + lg; }); });
-      if (lines.length * lh <= 46 || cp) {
-        var y0 = Math.round(31 - lines.length * lh / 2) + 1;
+      if (lines.length * lh <= 36 || cp) {
+        var y0 = Math.round(24 - lines.length * lh / 2) + 1;
         lines.forEach(function (ln, L) { var x = Math.round(90 - lw[L] / 2), xx = x; ln.forEach(function (q) { q.x = xx; q.y = y0 + L * lh; xx += q.w + lg; if (q.gap) xx += q.gap; items.push(q); }); });
         return { items: items, cp: !!cp };
       }
@@ -90,25 +90,30 @@
       if (wi) t += u * 4;
       word.split("").forEach(function (ch, k) { if (k) t += u * 2; MC[ch].split("").forEach(function (sym, j) { if (j) t += u; var d = (sym === "." ? 1 : 3) * u; seq.push([t, d, li, sym]); t += d; }); li++; });
     });
-    S.phase = "rx"; S.tbl = false; S.msg = msg; S.lay = moLayoutMsg(msg, S.D.code); S.got = []; S.pad = []; S.play = { t0: performance.now() + 250, seq: seq, k: 0, end: t + 400 };
+    S.phase = "rx"; S.msg = msg; S.lay = moLayoutMsg(msg, true); S.got = []; S.pad = []; S.play = { t0: performance.now() + 250, seq: seq, k: 0, end: t + 400 };
     moBarSet("", "");
+  }
+  function moReplay() {
+    var S = moS, keep = S.di; moRx(); S.phase = "dec"; S.di = keep; moBarSet("", ""); S.replay = true;
   }
   function moPlayStep(now) {
     var S = moS, P = S.play, el = now - P.t0, on = false;
     for (var k = P.k; k < P.seq.length; k++) { var q = P.seq[k]; if (el < q[0]) break; S.got[q[2]] = (S.got[q[2]] || "") + q[3]; P.k = k + 1; }
     P.seq.forEach(function (q) { if (el >= q[0] && el < q[0] + q[1]) on = true; });
-    if (on !== !!S.down) { S.down = on ? now : 0; moTone(on, 600); }
-    if (el > P.end) { S.play = null; S.down = 0; moTone(false); moAfterRx(); }
+    if (on !== !!S.lamp) { S.lamp = on; moTone(on, 600); }
+    if (el > P.end) { S.play = null; S.lamp = false; moTone(false); if (S.phase === "rx") moAfterRx(); else moDecOpts(); }
   }
-  function moAfterRx() {
-    var S = moS;
-    // which message was it? two look-alikes from the same level
-    var pool = []; (function walk(n) { pool.push(n.s); (n.r || []).forEach(function (r) { walk(r.n); }); })({ s: "", r: MOC[S.diff].map(function (c) { return { n: c }; }) });
-    pool = pool.filter(function (m, i) { return m && m !== S.msg && pool.indexOf(m) === i && Math.abs(m.length - S.msg.length) <= 4; });
-    var opts = [S.msg]; while (opts.length < 3 && pool.length) opts.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-    opts.sort(function () { return Math.random() - .5; });
-    S.phase = "dec";
-    moBarSet("", opts.map(function (m) { return '<button type="button" class="fi-b2 mo-opt" data-m="' + m + '">' + m + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Listen again">↻</button>' + (S.D.tbl ? '<button type="button" class="fi-b2 mo-tbl" aria-label="Code table">A ·–</button>' : ""));
+  // decoding: letter by letter, each time a few letters to choose from (no list of whole messages)
+  var MO_NOPT = { easy: 3, medium: 5, hard: 7 };
+  function moDist(a, b) { var m = [], i, j; for (i = 0; i <= a.length; i++) { m[i] = [i]; for (j = 1; j <= b.length; j++) m[i][j] = i ? Math.min(m[i - 1][j] + 1, m[i][j - 1] + 1, m[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)) : j; } return m[a.length][b.length]; }
+  function moAfterRx() { var S = moS; S.phase = "dec"; S.di = 0; moDecOpts(); }
+  function moDecOpts() {
+    var S = moS, want = moLetters(S.msg)[S.di], digit = /[0-9]/.test(want), n = MO_NOPT[S.diff];
+    var pool = Object.keys(MC).filter(function (ch) { return ch !== want && ch !== "?" && /[0-9]/.test(ch) === digit; });
+    pool.sort(function (a, b) { return moDist(MC[a], MC[want]) - moDist(MC[b], MC[want]) + (Math.random() - .5) * 1.5; });
+    var opts = [want].concat(pool.slice(0, n - 1)).sort();
+    S.opts = opts;
+    moBarSet("", opts.map(function (ch) { return '<button type="button" class="fi-b2 mo-let" data-c="' + ch + '">' + ch + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Listen again">↻</button>' + (S.D.tbl ? '<button type="button" class="fi-b2 mo-tbl' + (S.tbl ? " on" : "") + '" aria-label="Code table">A ·–</button>' : ""));
   }
   function moShow() {      // the decoded message stands on the card; then the replies, or the end of the conversation
     var S = moS; S.phase = "show"; S.got = moLetters(S.msg).split("").map(function (ch) { return MC[ch]; });
@@ -152,9 +157,13 @@
   }
   moBar.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"), S = moS; if (!b || !S) return;
-    if (b.classList.contains("mo-again")) { S.tbl = false; moRx(); return; }
+    if (b.classList.contains("mo-again")) { if (S.phase === "dec") moReplay(); return; }
     if (b.classList.contains("mo-tbl")) { S.tbl = !S.tbl; b.classList.toggle("on", S.tbl); return; }
-    if (S.phase === "dec" && b.dataset.m != null) { if (b.dataset.m === S.msg) moShow(); else { S.err++; b.disabled = true; moBlip(160, 260); } return; }
+    if (S.phase === "dec" && b.dataset.c != null) {
+      if (b.dataset.c === moLetters(S.msg)[S.di]) { S.di++; moBlip(1050, 70); if (S.di >= moLetters(S.msg).length) moShow(); else moDecOpts(); }
+      else { S.err++; b.disabled = true; moBlip(160, 260); }
+      return;
+    }
     if (S.phase === "pick" && b.dataset.i != null) moTx(+b.dataset.i);
   });
   moV.card.addEventListener("click", function (e) {
@@ -172,18 +181,21 @@
     c.clearRect(0, 0, 180, 135);
     if (moOk("mo_bg")) c.drawImage(moI.mo_bg, 0, 0);
     var dn = !!S.down; if (moOk(dn ? "mo_dn" : "mo_up")) c.drawImage(moI[dn ? "mo_dn" : "mo_up"], 0, 0);
+    if (S.lamp) { c.fillStyle = "rgba(255,233,160,.3)"; c.fillRect(36, 72, 7, 13); c.fillRect(33, 75, 13, 7); c.fillRect(34, 73, 11, 11); c.fillStyle = "#ffd860"; c.fillRect(37, 76, 5, 5); c.fillRect(38, 75, 3, 7); c.fillRect(36, 77, 7, 3); c.fillStyle = "#fff6c8"; c.fillRect(38, 77, 2, 2); }
     var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#c4b494", L = S.lay;
     if (L && (S.phase === "rx" || S.phase === "dec" || S.phase === "show" || S.phase === "pick")) {
       var reveal = S.phase === "show" || S.phase === "pick";
-      if (!reveal && S.tbl && S.phase === "dec") {     // easy: the code table of every letter in the three choices
-        var letters = []; moBar.querySelectorAll(".mo-opt").forEach(function (b) { moLetters(b.dataset.m).split("").forEach(function (ch) { if (letters.indexOf(ch) < 0) letters.push(ch); }); }); letters.sort();
-        var cols = Math.min(4, Math.max(2, Math.ceil(letters.length / 4))), per = Math.ceil(letters.length / cols), cw = Math.floor(116 / cols), cp = cols > 2;
-        letters.forEach(function (ch, i) { var cx = 34 + Math.floor(i / per) * cw, cy = 11 + (i % per) * 9; moTxt(c, ch, cx, cy, INK); moCode(c, MC[ch], cx + 8, cy + 3, 0, INK, INK, cp); });
+      if (!reveal && S.tbl && S.phase === "dec" && !S.play && S.opts) {     // easy: the codes of the letters to choose from
+        var letters = S.opts, cols = Math.min(3, Math.max(1, Math.ceil(letters.length / 3))), per = Math.ceil(letters.length / cols), cw = Math.floor(116 / cols);
+        letters.forEach(function (ch, i) { var cx = 40 + Math.floor(i / per) * cw, cy = 10 + (i % per) * 10; moTxt(c, ch, cx, cy, INK); moCode(c, MC[ch], cx + 9, cy + 3, 0, INK, INK); });
       } else L.items.forEach(function (q, k) {
         var code = MC[q.ch], got = S.got[k] || "";
-        if (reveal) moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, INK);
-        else moTxt(c, "?", q.x + Math.round((q.w - moTw("?")) / 2), q.y, got.length >= code.length ? "#a89878" : DIM);
-        if (S.D.code && got && !reveal) moCode(c, got, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, 0, INK, INK, L.cp);
+        var known = reveal || (S.phase === "dec" && k < S.di), cur = S.phase === "dec" && k === S.di && !S.play;
+        if (known) moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, S.phase === "dec" ? DONE : INK);
+        else moTxt(c, "?", q.x + Math.round((q.w - moTw("?")) / 2), q.y, cur ? INK : DIM);
+        var showCode = !reveal && got && (S.D.code || cur);
+        if (showCode) moCode(c, got, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, 0, cur || !S.D.code ? INK : "#8a7a5a", INK, L.cp);
+        if (cur) mR(c, q.x, q.y + 14, q.w, 1, "#d8a840");
       });
     }
     if (L && (S.phase === "tx" || S.phase === "sent")) {
@@ -196,10 +208,10 @@
         else if (cur && S.buf) moCode(c, S.buf, q.x + Math.round((q.w - moCw(S.buf, L.cp)) / 2), q.y + 10, 99, INK, INK, L.cp);
         if (cur) mR(c, q.x, q.y + 14, q.w, 1, fl ? RED : "#d8a840");
       });
-      if (S.down && now - S.down >= DAH) mR(c, 85, 52, 10, 1, "#d8a840"); else if (S.down) mR(c, 89, 52, 2, 1, "#d8a840");
+      if (S.down && now - S.down >= DAH) mR(c, 85, 41, 10, 1, "#d8a840"); else if (S.down) mR(c, 89, 41, 2, 1, "#d8a840");
     }
     // the notepad: pencil marks (receiving: the last letters as they come in; sending: the current letter)
-    var lines = S.phase === "tx" ? [S.pad.join("")] : (S.phase === "rx" || S.phase === "dec") ? S.got.slice(-4) : [], ly = 105;
+    var lines = S.phase === "tx" ? [S.pad.join("")] : (S.play && S.phase === "rx") ? S.got.slice(-4) : [], ly = 105;
     lines.forEach(function (code) { if (code) moCode(c, code.slice(0, 6), 9, ly, 0, "#4a4a5a", "#4a4a5a"); ly += 6; });
     S.raf = requestAnimationFrame(moDraw);
   }
