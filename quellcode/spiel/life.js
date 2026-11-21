@@ -1403,8 +1403,8 @@
   // no text selection or long-press callout while a game screen (hamster, Mumpsch, Farbklecks) is open: long presses are game input
   (function () {
     var ids = ["scr-hamster", "scr-words", "scr-tiles"], root = document.documentElement;
-    function upd() { root.classList.toggle("ham-nosel", ids.some(function (id) { var el = document.getElementById(id); return el && !el.hidden; })); }
-    var mo = new MutationObserver(upd); ids.forEach(function (id) { var el = document.getElementById(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); });
+    function upd() { root.classList.toggle("ham-nosel", ids.some(function (id) { var el = document.getElementById(id); return el && !el.hidden && !(el.parentNode && el.parentNode.closest && el.parentNode.closest("[hidden]")); })); }
+    var mo = new MutationObserver(upd); ids.forEach(function (id) { var el = document.getElementById(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); }); var hr = document.getElementById("ham-root"); if (hr) mo.observe(hr, { attributes: true, attributeFilter: ["hidden"] });
     document.addEventListener("selectstart", function (e) { var t = e.target; if (t && t.nodeType === 3) t = t.parentNode; if (root.classList.contains("ham-nosel") && !(t && t.closest && t.closest("input, textarea"))) e.preventDefault(); }, true);
     upd();
   })();
