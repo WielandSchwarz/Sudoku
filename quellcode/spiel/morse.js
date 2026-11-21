@@ -129,9 +129,12 @@
     if (S.send && S.ok && now - S.ok < 500) { c.fillStyle = "#ffe9a0"; c.fillRect(150 - 2, 92, 1, 1); }
     S.raf = requestAnimationFrame(moDraw);
   }
-  function moOpen(lv) { moV.el.hidden = false; moStart(lv); cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw); }
+  function moNoSel(on) { document.documentElement.classList.toggle("mo-nosel", on); try { var se = window.getSelection(); if (se) se.removeAllRanges(); } catch (e) { } }
+  document.addEventListener("selectstart", function (e) { if (document.documentElement.classList.contains("mo-nosel")) e.preventDefault(); }, true);
+  moV.cv.addEventListener("touchstart", function (e) { if (moS && moS.send) e.preventDefault(); }, { passive: false });
+  function moOpen(lv) { moNoSel(true); moV.el.hidden = false; moStart(lv); cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw); }
   function moOpenPick() { moOpen(); moPick(); }
-  function moClose() { moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; }
+  function moClose() { moNoSel(false); moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; }
   moV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); moClose(); });
   // the lighthouse at the lake: tap it to climb up to the wireless room
   (function () {

@@ -6,3 +6,4 @@
 .mo-bar .fi-b2 { font-size: .85rem; padding: 6px 9px 9px; white-space: nowrap; }
 .mo-bar .fi-b2:disabled { opacity: .4; }
 .mo-pov.mo-ch .bp-ban { visibility: hidden; }
+html.mo-nosel, html.mo-nosel * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
