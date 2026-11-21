@@ -1352,7 +1352,7 @@
   });
   // cooking
   var _ip_cook = cookSeq;
-  cookSeq = async function (d) { await _ip_cook(d); if (DISHES[d] && ibFor(d)) itemPop({ k: ibFor(d), title: DISHES[d].name + " ist fertig!", sub: "Steht jetzt auf dem Küchentisch." }); };
+  cookSeq = async function (d) { await _ip_cook(d); var ibk = IBIG["d_" + d] ? "d_" + d : ibFor(d); if (DISHES[d] && ibk) itemPop({ k: ibk, title: DISHES[d].name + " ist fertig!", sub: "Steht jetzt auf dem Küchentisch." }); };
   // letters: after "Danke!" the present is shown big
   var _ip_grant = grantLetter;
   grantLetter = function (l) {
