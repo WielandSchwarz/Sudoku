@@ -5,8 +5,8 @@
   var moI = {}; Object.keys(moA).forEach(function (k) { var im = new Image(); im.src = moA[k]; moI[k] = im; });
   var MC = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
     "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-", "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.", "?": "..--.." };
-  var MO_D = { easy: { n: "Leicht", u: 130, show: true, code: true }, medium: { n: "Mittel", u: 100, show: false, code: true }, hard: { n: "Schwer", u: 85, show: false, code: false } };
-  var moV = mPov("mo-pov", "Funkraum verlassen"), moS = null, moAC = null, DAH = 220;
+  var MO_D = { easy: { n: "Easy", u: 130, tbl: true, code: true }, medium: { n: "Normal", u: 100, tbl: false, code: true }, hard: { n: "Hard", u: 85, tbl: false, code: false } };
+  var moV = mPov("mo-pov", "Leave the radio room"), moS = null, moAC = null, DAH = 220;
   var moBar = xEl("div", "mo-bar", moV.el); moBar.hidden = true;
   function moOk(k) { var im = moI[k]; return im && im.complete && im.naturalWidth > 0; }
   function moTone(on, f) {
@@ -69,7 +69,7 @@
     var M = mL("morse"), last = M.diff || "easy";
     moTone(false); if (!moS) moS = {};
     moS.phase = "diff"; moBarSet("", "");
-    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Funkraum</p><div class="fi-row mo-diffs">' + ["easy", "medium", "hard"].map(function (d) {
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Radio room</p><div class="fi-row mo-diffs">' + ["easy", "medium", "hard"].map(function (d) {
       return '<button type="button" class="' + (d === last ? "fi-b" : "fi-b2") + '" data-d="' + d + '">' + MO_D[d].n + '</button>'; }).join("") + '</div></div>';
     moV.card.hidden = false;
   }
@@ -90,7 +90,7 @@
       if (wi) t += u * 4;
       word.split("").forEach(function (ch, k) { if (k) t += u * 2; MC[ch].split("").forEach(function (sym, j) { if (j) t += u; var d = (sym === "." ? 1 : 3) * u; seq.push([t, d, li, sym]); t += d; }); li++; });
     });
-    S.phase = "rx"; S.msg = msg; S.lay = moLayoutMsg(msg, S.D.code); S.got = []; S.pad = []; S.play = { t0: performance.now() + 250, seq: seq, k: 0, end: t + 400 };
+    S.phase = "rx"; S.tbl = false; S.msg = msg; S.lay = moLayoutMsg(msg, S.D.code); S.got = []; S.pad = []; S.play = { t0: performance.now() + 250, seq: seq, k: 0, end: t + 400 };
     moBarSet("", "");
   }
   function moPlayStep(now) {
@@ -102,14 +102,13 @@
   }
   function moAfterRx() {
     var S = moS;
-    if (S.D.show) return moShow();
     // which message was it? two look-alikes from the same level
     var pool = []; (function walk(n) { pool.push(n.s); (n.r || []).forEach(function (r) { walk(r.n); }); })({ s: "", r: MOC[S.diff].map(function (c) { return { n: c }; }) });
     pool = pool.filter(function (m, i) { return m && m !== S.msg && pool.indexOf(m) === i && Math.abs(m.length - S.msg.length) <= 4; });
     var opts = [S.msg]; while (opts.length < 3 && pool.length) opts.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     opts.sort(function () { return Math.random() - .5; });
     S.phase = "dec";
-    moBarSet("", opts.map(function (m) { return '<button type="button" class="fi-b2 mo-opt" data-m="' + m + '">' + m + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Nochmal hören">↻</button>');
+    moBarSet("", opts.map(function (m) { return '<button type="button" class="fi-b2 mo-opt" data-m="' + m + '">' + m + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Listen again">↻</button>' + (S.D.tbl ? '<button type="button" class="fi-b2 mo-tbl" aria-label="Code table">A ·–</button>' : ""));
   }
   function moShow() {      // the decoded message stands on the card; then the replies, or the end of the conversation
     var S = moS; S.phase = "show"; S.got = moLetters(S.msg).split("").map(function (ch) { return MC[ch]; });
@@ -147,13 +146,14 @@
     if (typeof s !== "undefined" && s.fun != null) { s.fun = clamp(s.fun + 6); if (typeof renderNeeds === "function") renderNeeds(); }
     if (window.SudokuSave) window.SudokuSave();
     [660, 880, 1100].forEach(function (f, i) { setTimeout(function () { moBlip(f, 140); }, i * 130); });
-    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">73! Funkspruch beendet</p>' + mStars(st) +
-      '<div class="fi-row"><button type="button" class="fi-b2" data-a="diff">Stufe</button><button type="button" class="fi-b" data-a="next">Nächster Funkspruch</button></div></div>';
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">73! Contact ended</p>' + mStars(st) +
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="diff">Level</button><button type="button" class="fi-b" data-a="next">Next contact</button></div></div>';
     moV.card.hidden = false;
   }
   moBar.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"), S = moS; if (!b || !S) return;
-    if (b.classList.contains("mo-again")) { moRx(); return; }
+    if (b.classList.contains("mo-again")) { S.tbl = false; moRx(); return; }
+    if (b.classList.contains("mo-tbl")) { S.tbl = !S.tbl; b.classList.toggle("on", S.tbl); return; }
     if (S.phase === "dec" && b.dataset.m != null) { if (b.dataset.m === S.msg) moShow(); else { S.err++; b.disabled = true; moBlip(160, 260); } return; }
     if (S.phase === "pick" && b.dataset.i != null) moTx(+b.dataset.i);
   });
@@ -174,14 +174,17 @@
     var dn = !!S.down; if (moOk(dn ? "mo_dn" : "mo_up")) c.drawImage(moI[dn ? "mo_dn" : "mo_up"], 0, 0);
     var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#c4b494", L = S.lay;
     if (L && (S.phase === "rx" || S.phase === "dec" || S.phase === "show" || S.phase === "pick")) {
-      // receiving: easy shows every letter once it has arrived; otherwise the card stays empty until the message is decoded
-      var reveal = S.phase === "show" || S.phase === "pick" || S.D.show;
-      L.items.forEach(function (q, k) {
-        var code = MC[q.ch], got = S.got[k] || "", full = got.length >= code.length;
-        if (reveal && (full || S.phase === "show" || S.phase === "pick")) moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, INK);
-        if (S.D.code && reveal && got) moCode(c, got, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, 0, INK, INK, L.cp);
+      var reveal = S.phase === "show" || S.phase === "pick";
+      if (!reveal && S.tbl && S.phase === "dec") {     // easy: the code table of every letter in the three choices
+        var letters = []; moBar.querySelectorAll(".mo-opt").forEach(function (b) { moLetters(b.dataset.m).split("").forEach(function (ch) { if (letters.indexOf(ch) < 0) letters.push(ch); }); }); letters.sort();
+        var cols = Math.min(4, Math.max(2, Math.ceil(letters.length / 4))), per = Math.ceil(letters.length / cols), cw = Math.floor(116 / cols), cp = cols > 2;
+        letters.forEach(function (ch, i) { var cx = 34 + Math.floor(i / per) * cw, cy = 11 + (i % per) * 9; moTxt(c, ch, cx, cy, INK); moCode(c, MC[ch], cx + 8, cy + 3, 0, INK, INK, cp); });
+      } else L.items.forEach(function (q, k) {
+        var code = MC[q.ch], got = S.got[k] || "";
+        if (reveal) moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, INK);
+        else moTxt(c, "?", q.x + Math.round((q.w - moTw("?")) / 2), q.y, got.length >= code.length ? "#a89878" : DIM);
+        if (S.D.code && got && !reveal) moCode(c, got, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, 0, INK, INK, L.cp);
       });
-      if (!reveal && S.phase === "rx") { var nlet = S.got.length; for (var k = 0; k < Math.min(nlet, 16); k++) mR(c, 90 - 16 * 3 + k * 6, 31, 4, 1, DIM); }
     }
     if (L && (S.phase === "tx" || S.phase === "sent")) {
       var fl = S.flash && now - S.flash < 450;
@@ -212,7 +215,7 @@
   moV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); moClose(); });
   // the lighthouse at the lake: tap it to climb up to the wireless room
   (function () {
-    var hot = document.createElement("button"); hot.type = "button"; hot.className = "l-hot mo-lh"; hot.setAttribute("aria-label", "Leuchtturm");
+    var hot = document.createElement("button"); hot.type = "button"; hot.className = "l-hot mo-lh"; hot.setAttribute("aria-label", "Lighthouse");
     hot.style.cssText = "left:74%;top:30%;width:10%;height:28%";
     pondUi.insertBefore(hot, pondUi.firstChild);
     hot.addEventListener("click", function (e) { e.stopPropagation(); if (typeof busy !== "undefined" && busy && typeof interruptible === "function" && !interruptible()) return; if (busy && typeof interrupt === "function") interrupt(); moOpen(); });

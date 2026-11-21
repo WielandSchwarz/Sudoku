@@ -11,3 +11,4 @@
 .mo-btns .fi-b2:disabled { opacity: .4; }
 .mo-diffs { flex-wrap: wrap; }
 html.mo-nosel, html.mo-nosel * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
+.mo-btns .fi-b2.on { background: #ffe08a; }
