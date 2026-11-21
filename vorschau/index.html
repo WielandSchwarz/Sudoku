@@ -2756,6 +2756,14 @@ body.dz-on .dz-panel { display: block; }
 .hb-lvs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
 .gm-pop .gm-liner { display: flex; align-items: center; justify-content: center; }
 
+.mo-pov .fi-cv { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.mo-pov .bp-ban { left: auto; right: 3%; top: auto; bottom: 4%; margin: 0; transform: none; }
+.mo-pov .bp-ban.pop { animation: dw-ban .35s steps(4); }
+.mo-bar { position: absolute; left: 0; right: 0; bottom: 4%; z-index: 3; display: flex; justify-content: center; gap: 6px; padding: 0 3%; }
+.mo-bar[hidden] { display: none; }
+.mo-bar .fi-b2 { font-size: .85rem; padding: 6px 9px 9px; white-space: nowrap; }
+.mo-bar .fi-b2:disabled { opacity: .4; }
+.mo-pov.mo-ch .bp-ban { visibility: hidden; }
 </style>
 
 <div class="page">
@@ -20736,6 +20744,149 @@ function recolorWallSvg(svg, grund, muster) {
       row.insertBefore(el, row.firstChild);
     });
   })();
+
+  // ---------------------------------------------------------------- Morse (lighthouse): a 1912 ship's wireless desk in close-up
+  // Send: key the word on the card (short press = dit, long press = dah). Receive: a ship sends a word, pick which one it was.
+  var moA = {"mo_bg": "data:image/png;base64,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", "mo_up": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAACF0lEQVR42u3aP2rbYBgH4K8lYzEaMxWPwYSgIUOGDDmC0RFKD6ATdOgJcoBSfIJgcoIOHTJk+AghdDSdOgqTMeBMCf5H7DrG+iw9z2TJxgjpx6tX76cQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA1vvgFDCvd5hNprcf/lV7k5MDl0945/flZ/3ZHTfDhd+kGnIVuuVBXgjvmuLNMMlgC3RLw/wS5DzPlwc2xrWDnVKoP7q87Q3zNuRn/aVtix6anYT5oNPdqBK/GaJON/TCaJJCpVahW+j+ISb5X3roPa6UdVWz+Sp93MvfHeSn8SiZPlqga5gsXF3moShjbVOCZa3HtPmQv1WFUwqzQO84RFeXi9WwKGNtoX7pfzfxNB4Z29W9YFCnZWGeDnXdHkMWsk4WqnEVsk428101rma2P4XKwsquw3z7u0zmeP7e/nr9/Pn0YuX+OhydD14DvUrKgW7s2G46LI63PYztanA9GDgJWo7/azm+fc2SOZ78uLuy5Yj3o6TP6fcf1V68fdfoh8Kfw8Xb+Jf+hYfCDezLK6SNXvq+u/uTzMUpypjU2K6pGh3ok5OjpCpcUcYkFlYEmq3etosyTgRZoLfWcuhHBVrLQTCHBoGGYA4d1nxBSf8KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMegYfWcOSIUZBrQAAAABJRU5ErkJggg==", "mo_dn": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAAChklEQVR42u3bsWrbUBQG4OOSMRiPmULGYErI4DFDpo6leCwdTOkD6Ak6ZOzkBwjFQ+kYSp8gQ4YOHkwooaPJlG7CQ6eAu9QlsePGSm1Jlr9vk5Gw0P11fHSvHAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGRScwmY1txpjO9uX92kNYFmLcMbEbFV37u3fTsazhxX1pDXqjxQ61RZigrydHgXNQl52a5xraqD1b9IonXUXfiYPAem6JutudMYT4L85nXnwX0+fe4tHOwyhXqrqhXoun8e/Ytk4f1bR93xqsM/qYpn3cNoJ4NxERXubpiXEqD6XjRjWJpfw8pW6LPuYaZjdlvHWcKfufLPO6d2Msgt1MsOcxkrdWUD/f5dIw6fr2bwnhL+f91g7WSQS9sj0BUI9aJWGf7r/vmDN8P053n0/KsIdZn66NqmTUnNk1f45wU6j7ZnFaEu20Ohaa2cw7/bOo6vvV687HRmAl1Ez2/abs1DuowByBr+u6GeV6EH34eF9vz7R71o1BuRjtJo1O/fsOkovbe9HamFlSLC/PHLbAV8++o49znnRR8Ki+z5XyTDv4F+TJkDXdl56IiIy8sfhZ/DZODbyeDRabuT08hQ+YeFP/AKdM4ODvZLcy5XN2ltspjyZ2FlpgXKUvVWFX6B5knV+n9/spcd/u2IuB2l8WFO23Nymq7F23dajgKDXcbvmxf+dXnRS8tBrOu7zw95ZgipEoEm/AUrNnthJTZo9dT1ojJhHv/sjbOsikLpwyzUVCfUv74JM5v5BiIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAmvwGIGzSZqKAMRgAAAABJRU5ErkJggg=="};
+  var moI = {}; Object.keys(moA).forEach(function (k) { var im = new Image(); im.src = moA[k]; moI[k] = im; });
+  var MC = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--.." };
+  var MO_LV = [{ w: "E" }, { w: "T" }, { w: "TEE" }, { w: "AN" }, { r: ["AN", "TEE", "NA"] }, { w: "MAI" }, { w: "SOS" }, { r: ["SOS", "MAI", "OMA"] },
+    { w: "MEER" }, { w: "HAI" }, { r: ["HAI", "MEER", "SEE"] }, { w: "MOND" }, { w: "STERN" }, { r: ["STERN", "MOND", "NORD"] },
+    { w: "HAFEN" }, { w: "ANKER" }, { r: ["ANKER", "HAFEN", "KAHN"] }, { w: "GASTON" }, { w: "HAMSTER" }, { r: ["GASTON", "HAMSTER", "GARTEN"] }];
+  var moV = mPov("mo-pov", "Funkraum verlassen"), moS = null, moAC = null, DAH = 220, UNIT = 120;
+  var moBar = xEl("div", "mo-bar", moV.el); moBar.hidden = true;
+  function moOk(k) { var im = moI[k]; return im && im.complete && im.naturalWidth > 0; }
+  function moTone(on, f) {
+    try {
+      if (!moAC) moAC = new (window.AudioContext || window.webkitAudioContext)();
+      if (moAC.state === "suspended") moAC.resume();
+      if (on) { if (moS && moS.osc) return; var o = moAC.createOscillator(), g = moAC.createGain(); o.type = "sine"; o.frequency.value = f || 640; g.gain.value = 0; g.gain.setTargetAtTime(.22, moAC.currentTime, .005); o.connect(g); g.connect(moAC.destination); o.start(); if (moS) moS.osc = [o, g]; }
+      else if (moS && moS.osc) { var q = moS.osc; moS.osc = null; q[1].gain.setTargetAtTime(0, moAC.currentTime, .008); q[0].stop(moAC.currentTime + .06); }
+    } catch (e) { }
+  }
+  function moBlip(f, ms) { try { if (!moAC) return; var o = moAC.createOscillator(), g = moAC.createGain(), t = moAC.currentTime; o.frequency.value = f; g.gain.setValueAtTime(.15, t); g.gain.exponentialRampToValueAtTime(.001, t + ms / 1000); o.connect(g); g.connect(moAC.destination); o.start(t); o.stop(t + ms / 1000 + .02); } catch (e) { } }
+  // pixel text with the 5x7 font of the map signs
+  function moTxt(c, s, x, y, col) { c.fillStyle = col; for (var i = 0; i < s.length; i++) { var g = PF[s[i]]; if (!g) { x += 4; continue; } var rows = g.split(","); rows.forEach(function (r, yy) { for (var xx = 0; xx < r.length; xx++) if (r[xx] === "1") c.fillRect(x + xx, y + yy, 1, 1); }); x += rows[0].length + 1; } return x; }
+  function moTw(s) { var w = 0; for (var i = 0; i < s.length; i++) w += (PF[s[i]] ? PF[s[i]].split(",")[0].length : 3) + 1; return w - 1; }
+  function moCw(code) { var w = 0; for (var i = 0; i < code.length; i++) w += (code[i] === "." ? 2 : 5) + 1; return Math.max(0, w - 1); }
+  function moCode(c, code, x, y, n, col, done) {    // dits and dahs; the first n are done (green)
+    for (var i = 0; i < code.length; i++) { var w = code[i] === "." ? 2 : 5; c.fillStyle = i < n ? done : col; c.fillRect(x, y, w, 2); x += w + 1; }
+  }
+  function moStart(lv) {
+    var M = mL("morse"); lv = Math.max(0, Math.min(MO_LV.length - 1, lv == null ? (M.lvl || 0) : lv));
+    var L = MO_LV[lv];
+    moTone(false);
+    moS = { lv: lv, send: !!L.w, word: L.w || L.r[0], opts: L.r ? L.r.slice() : null, i: 0, buf: "", err: 0, down: 0, flash: 0, ok: 0, pad: [], play: null, won: false, raf: moS && moS.raf };
+    if (!moS.send) { moS.word = L.r[(lv * 7) % L.r.length]; moS.opts = L.r.slice().sort(); }
+    moV.card.hidden = true; moBar.hidden = true; moV.el.classList.remove('mo-ch'); mBan(moV, (moS.send ? "Senden " : "Empfangen ") + (lv + 1));
+    if (!moS.send) setTimeout(moPlay, 600);
+  }
+  function moPlay() {      // the ship sends the word: the key moves by itself, the pencil writes along
+    if (!moS || moS.send || moS.play) return;
+    var S = moS, seq = [], t = 0; moBar.hidden = true; S.pad = [];
+    S.word.split("").forEach(function (ch, li) { MC[ch].split("").forEach(function (sym, k) { var d = (sym === "." ? 1 : 3) * UNIT * 1.4; seq.push([t, d, li, sym]); t += d + UNIT * 1.4; }); t += UNIT * 3; });
+    S.play = { t0: performance.now(), seq: seq, k: 0, end: t };
+  }
+  function moPlayStep(now) {
+    var P = moS.play, el = now - P.t0, on = false;
+    P.seq.forEach(function (q, k) { if (el >= q[0] && el < q[0] + q[1]) on = true; if (el >= q[0] && k >= P.k) { P.k = k + 1; var li = q[2]; moS.pad[li] = (moS.pad[li] || "") + q[3]; } });
+    if (on !== !!moS.down) { moS.down = on ? now : 0; moTone(on, 600); }
+    if (el > P.end) { moS.play = null; moS.down = 0; moTone(false); moChoices(); }
+  }
+  function moChoices() {
+    moBar.innerHTML = moS.opts.map(function (w) { return '<button type="button" class="fi-b2 mo-opt" data-w="' + w + '">' + w + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Nochmal hören">↻</button>';
+    moBar.hidden = false; moV.el.classList.add('mo-ch');
+  }
+  moBar.addEventListener("click", function (e) {
+    e.stopPropagation(); var b = e.target.closest("button"); if (!b || !moS) return;
+    if (b.classList.contains("mo-again")) { moPlay(); return; }
+    if (b.dataset.w === moS.word) { moBar.hidden = true; moS.i = moS.word.length; moWin(); }
+    else { moS.err++; b.disabled = true; moBlip(160, 260); }
+  });
+  function moKey(down) {
+    if (!moS || !moS.send || moS.won) return;
+    var now = performance.now();
+    if (down) { moS.down = now; moTone(true); return; }
+    if (!moS.down) return;
+    var d = now - moS.down; moS.down = 0; moTone(false);
+    var sym = d < DAH ? "." : "-", want = MC[moS.word[moS.i]];
+    moS.buf += sym; moS.pad.push(sym);
+    if (want.indexOf(moS.buf) !== 0) { moS.err++; moS.buf = ""; moS.flash = now; moS.pad = []; setTimeout(function () { moBlip(160, 260); }, 40); return; }
+    if (moS.buf === want) {
+      moS.buf = ""; moS.i++; moS.ok = now; moS.pad = [];
+      setTimeout(function () { moBlip(1050, 120); }, 60);
+      if (moS.i >= moS.word.length) setTimeout(moWin, 500);
+    }
+  }
+  function moStarsN(err) { return err === 0 ? 3 : err <= 2 ? 2 : 1; }
+  function moWin() {
+    if (!moS || moS.won) return; moS.won = true;
+    var M = mL("morse"), st = moStarsN(moS.err); M.best = M.best || {}; M.best[moS.lv] = Math.max(M.best[moS.lv] || 0, st);
+    M.lvl = Math.max(M.lvl || 0, Math.min(MO_LV.length - 1, moS.lv + 1));
+    if (typeof s !== "undefined" && s.fun != null) { s.fun = clamp(s.fun + 6); if (typeof renderNeeds === "function") renderNeeds(); }
+    if (window.SudokuSave) window.SudokuSave();
+    [660, 880, 1100].forEach(function (f, i) { setTimeout(function () { moBlip(f, 140); }, i * 130); });
+    var next = moS.lv + 1 < MO_LV.length;
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">' + (moS.send ? moS.word + " ist angekommen!" : "Richtig: " + moS.word + "!") + '</p>' + mStars(st) +
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (next ? '<button type="button" class="fi-b" data-a="next">Weiter</button>' : '<button type="button" class="fi-b" data-a="list">Alle</button>') + '</div></div>';
+    moV.card.hidden = false;
+  }
+  function moPick() {
+    var M = mL("morse"), open = Math.min(MO_LV.length - 1, M.lvl || 0);
+    moV.card.innerHTML = '<div class="fi-c hb-pick"><p class="fi-h">Welche Nachricht?</p><div class="hb-lvs">' + MO_LV.map(function (q, i) {
+      return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b>' + (i <= open ? mStars((M.best && M.best[i]) || 0) : "") + '</button>'; }).join("") + '</div></div>';
+    moV.card.hidden = false; moBar.hidden = true;
+  }
+  moV.card.addEventListener("click", function (e) {
+    e.stopPropagation(); var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.lv != null) { moStart(+b.dataset.lv); return; }
+    if (b.dataset.a === "again") moStart(moS.lv); else if (b.dataset.a === "next") moStart(moS.lv + 1); else if (b.dataset.a === "list") moPick(); else moClose();
+  });
+  moV.cv.addEventListener("pointerdown", function (e) { if (moS && moS.send) { e.preventDefault(); try { moV.cv.setPointerCapture(e.pointerId); } catch (er) { } moKey(true); } });
+  moV.cv.addEventListener("pointerup", function () { moKey(false); });
+  moV.cv.addEventListener("pointercancel", function () { moKey(false); });
+  moV.cv.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  function moDraw(now) {
+    var c = moV.c, S = moS; if (!S) return;
+    if (S.play) moPlayStep(now);
+    c.clearRect(0, 0, 180, 135);
+    if (moOk("mo_bg")) c.drawImage(moI.mo_bg, 0, 0);
+    var dn = !!S.down; if (moOk(dn ? "mo_dn" : "mo_up")) c.drawImage(moI[dn ? "mo_dn" : "mo_up"], 0, 0);
+    var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#b8a888";
+    if (S.send) {      // the card: the word, each letter with its code underneath
+      var cols = S.word.split("").map(function (ch) { return Math.max(moTw(ch), moCw(MC[ch])); }), gap = 5, tw = cols.reduce(function (a, b) { return a + b; }, 0) + gap * (cols.length - 1), x = Math.round(90 - tw / 2);
+      var fl = S.flash && now - S.flash < 450;
+      S.word.split("").forEach(function (ch, i) {
+        var w = cols[i], cur = i === S.i, col = i < S.i ? DONE : cur ? (fl ? RED : INK) : DIM;
+        moTxt(c, ch, x + Math.round((w - moTw(ch)) / 2), 18, col);
+        moCode(c, MC[ch], x + Math.round((w - moCw(MC[ch])) / 2), 30, i < S.i ? 99 : cur ? S.buf.length : 0, i < S.i ? DONE : cur ? INK : DIM, DONE);
+        if (cur && !S.won) mR(c, x, 36, w, 1, fl ? RED : "#d8a840");
+        x += w + gap;
+      });
+      if (S.down && now - S.down >= DAH) mR(c, 85, 44, 10, 2, "#d8a840"); else if (S.down) mR(c, 89, 44, 2, 2, "#d8a840");   // what the key is making right now
+    } else {           // receive: the code table of every letter in the three words
+      var letters = []; S.opts.join("").split("").forEach(function (ch) { if (letters.indexOf(ch) < 0) letters.push(ch); }); letters.sort();
+      var per = Math.ceil(letters.length / 2);
+      letters.forEach(function (ch, i) { var cx = 36 + Math.floor(i / per) * 58, cy = 13 + (i % per) * 9 * (per > 4 ? .9 : 1); moTxt(c, ch, cx, Math.round(cy), INK); moCode(c, MC[ch], cx + 9, Math.round(cy) + 3, 0, INK, INK); });
+    }
+    // the notepad: pencil marks of what was keyed (send: current letter; receive: one line per letter)
+    var lines = S.send ? [S.pad.join("")] : S.pad, ly = 105;
+    lines.forEach(function (code) { if (!code) { ly += 6; return; } moCode(c, code.slice(0, 5), 9, ly, 0, "#4a4a5a", "#4a4a5a"); ly += 6; });
+    if (S.send && S.ok && now - S.ok < 500) { c.fillStyle = "#ffe9a0"; c.fillRect(150 - 2, 92, 1, 1); }
+    S.raf = requestAnimationFrame(moDraw);
+  }
+  function moOpen(lv) { moV.el.hidden = false; moStart(lv); cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw); }
+  function moOpenPick() { moOpen(); moPick(); }
+  function moClose() { moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; }
+  moV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); moClose(); });
+  // the lighthouse at the lake: tap it to climb up to the wireless room
+  (function () {
+    var hot = document.createElement("button"); hot.type = "button"; hot.className = "l-hot mo-lh"; hot.setAttribute("aria-label", "Leuchtturm");
+    hot.style.cssText = "left:74%;top:30%;width:10%;height:28%";
+    pondUi.insertBefore(hot, pondUi.firstChild);
+    hot.addEventListener("click", function (e) { e.stopPropagation(); if (typeof busy !== "undefined" && busy && typeof interruptible === "function" && !interruptible()) return; if (busy && typeof interrupt === "function") interrupt(); moOpenPick(); });
+  })();
+  window.__morse = { open: moOpen, key: moKey, st: function () { return moS && { lv: moS.lv, word: moS.word, i: moS.i, err: moS.err, won: moS.won, send: moS.send }; } };
   // ===================== washing up, new: a big sink full of suds, the right tool for each kind of dirt, little finds under the foam =====================
   // Four pieces per round, one after the other. Each lies big in the soapy water, partly hidden under foam.
   // Wipe the foam away, then clean every spot with the tool it needs: sponge for ketchup, jam and cocoa, brush for burnt and dried-on bits, water for crumbs.
