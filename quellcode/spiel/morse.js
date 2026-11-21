@@ -1,13 +1,12 @@
 
   // ---------------------------------------------------------------- Morse (lighthouse): a 1912 ship's wireless desk in close-up
-  // Send: key the word on the card (short press = dit, long press = dah). Receive: a ship sends a word, pick which one it was.
-  var moA = /*MORSEART*/;
+  // Random radio conversations in three levels: a ship sends, you decode, pick a reply, key it in (short = dit, long = dah), the ship answers.
+  var moA = /*MORSEART*/, MOC = /*MORSECONV*/;
   var moI = {}; Object.keys(moA).forEach(function (k) { var im = new Image(); im.src = moA[k]; moI[k] = im; });
-  var MC = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--.." };
-  var MO_LV = [{ w: "E" }, { w: "T" }, { w: "TEE" }, { w: "AN" }, { r: ["AN", "TEE", "NA"] }, { w: "MAI" }, { w: "SOS" }, { r: ["SOS", "MAI", "OMA"] },
-    { w: "MEER" }, { w: "HAI" }, { r: ["HAI", "MEER", "SEE"] }, { w: "MOND" }, { w: "STERN" }, { r: ["STERN", "MOND", "NORD"] },
-    { w: "HAFEN" }, { w: "ANKER" }, { r: ["ANKER", "HAFEN", "KAHN"] }, { w: "GASTON" }, { w: "HAMSTER" }, { r: ["GASTON", "HAMSTER", "GARTEN"] }];
-  var moV = mPov("mo-pov", "Funkraum verlassen"), moS = null, moAC = null, DAH = 220, UNIT = 120;
+  var MC = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+    "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-", "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.", "?": "..--.." };
+  var MO_D = { easy: { n: "Leicht", u: 130, show: true, code: true }, medium: { n: "Mittel", u: 100, show: false, code: true }, hard: { n: "Schwer", u: 85, show: false, code: false } };
+  var moV = mPov("mo-pov", "Funkraum verlassen"), moS = null, moAC = null, DAH = 220;
   var moBar = xEl("div", "mo-bar", moV.el); moBar.hidden = true;
   function moOk(k) { var im = moI[k]; return im && im.complete && im.naturalWidth > 0; }
   function moTone(on, f) {
@@ -22,81 +21,148 @@
   // pixel text with the 5x7 font of the map signs
   function moTxt(c, s, x, y, col) { c.fillStyle = col; for (var i = 0; i < s.length; i++) { var g = PF[s[i]]; if (!g) { x += 4; continue; } var rows = g.split(","); rows.forEach(function (r, yy) { for (var xx = 0; xx < r.length; xx++) if (r[xx] === "1") c.fillRect(x + xx, y + yy, 1, 1); }); x += rows[0].length + 1; } return x; }
   function moTw(s) { var w = 0; for (var i = 0; i < s.length; i++) w += (PF[s[i]] ? PF[s[i]].split(",")[0].length : 3) + 1; return w - 1; }
-  function moCw(code) { var w = 0; for (var i = 0; i < code.length; i++) w += (code[i] === "." ? 2 : 5) + 1; return Math.max(0, w - 1); }
-  function moCode(c, code, x, y, n, col, done) {    // dits and dahs; the first n are done (green)
-    for (var i = 0; i < code.length; i++) { var w = code[i] === "." ? 2 : 5; c.fillStyle = i < n ? done : col; c.fillRect(x, y, w, 2); x += w + 1; }
+  function moCw(code, cp) { var w = 0; for (var i = 0; i < code.length; i++) w += (code[i] === "." ? (cp ? 1 : 2) : (cp ? 3 : 5)) + 1; return Math.max(0, w - 1); }
+  function moCode(c, code, x, y, n, col, done, cp) {    // dits and dahs; the first n are done
+    for (var i = 0; i < code.length; i++) { var w = code[i] === "." ? (cp ? 1 : 2) : (cp ? 3 : 5); c.fillStyle = i < n ? done : col; c.fillRect(x, y, w, cp ? 1 : 2); x += w + 1; }
   }
-  function moStart(lv) {
-    var M = mL("morse"); lv = Math.max(0, Math.min(MO_LV.length - 1, lv == null ? (M.lvl || 0) : lv));
-    var L = MO_LV[lv];
+  // lay a message out on the wall card (x 34..146, y 9..53): words wrap, every letter with its code underneath when asked
+  function moLayout(msg, code) {
+    for (var cp = 0; cp < 2; cp++) {
+      var lg = cp ? 2 : 3, wg = cp ? 6 : 8, lh = code ? 17 : 10, lines = [[]], lw = [0], items = [], ci = 0;
+      msg.split(" ").forEach(function (word) {
+        var ls = word.split("").map(function (ch) { var w = Math.max(moTw(ch), code ? moCw(MC[ch], cp) : 0); return { ch: ch, w: w, i: ci++ }; }), ww = ls.reduce(function (a, b) { return a + b.w; }, 0) + lg * (ls.length - 1);
+        var L = lines.length - 1; if (lines[L].length && lw[L] + wg + ww > 110) { lines.push([]); lw.push(0); L++; }
+        if (lines[L].length) lw[L] += wg; ls.forEach(function (q, k) { q.x = lw[L] + (k ? 0 : 0); lw[L] += q.w + (k < ls.length - 1 ? lg : 0); lines[L].push(q); if (k < ls.length - 1) q.x = lw[L] - q.w - lg; });
+      });
+      // recompute x per line cleanly
+      lines.forEach(function (ln, L) { var x = 0, prev = null; ln.forEach(function (q) { if (prev) x += prev.word !== q.word ? 0 : 0; q.x = x; x += q.w + lg; }); });
+      if (lines.length * lh <= 46 || cp) {
+        var y0 = Math.round(31 - lines.length * lh / 2) + 1;
+        lines.forEach(function (ln, L) { var x = Math.round(90 - lw[L] / 2), xx = x; ln.forEach(function (q) { q.x = xx; q.y = y0 + L * lh; xx += q.w + lg; if (q.gap) xx += q.gap; items.push(q); }); });
+        return { items: items, cp: !!cp };
+      }
+    }
+  }
+  // word gaps: mark the first letter of every word after the first so the layout leaves room
+  function moLayoutMsg(msg, code) {
+    var L = moLayout(msg, code), wi = 0, words = msg.split(" "), k = 0;
+    // shift letters of later words on the same line by the word gap
+    var byLine = {};
+    words.forEach(function (w, n) { for (var j = 0; j < w.length; j++) { var q = L.items[k++]; q.wd = n; } });
+    L.items.forEach(function (q) { (byLine[q.y] = byLine[q.y] || []).push(q); });
+    Object.keys(byLine).forEach(function (y) {
+      var ln = byLine[y], wg = L.cp ? 6 : 8, lg = L.cp ? 2 : 3, tot = 0, x;
+      ln.forEach(function (q, j) { tot += q.w + (j ? (q.wd !== ln[j - 1].wd ? wg : lg) : 0); });
+      x = Math.round(90 - tot / 2);
+      ln.forEach(function (q, j) { if (j) x += q.wd !== ln[j - 1].wd ? wg : lg; q.x = x; x += q.w; });
+    });
+    return L;
+  }
+  function moGloss(msg) { var seen = {}, o = []; msg.replace(/\?/g, " ").split(" ").forEach(function (w) { if (MOC.gloss[w] && !seen[w]) { seen[w] = 1; o.push("<b>" + w + "</b> " + MOC.gloss[w]); } }); return o.join(" · "); }
+  function moLetters(msg) { return msg.replace(/ /g, ""); }
+  function moBarSet(gloss, btns) {
+    moBar.innerHTML = (gloss ? '<div class="mo-gl">' + gloss + '</div>' : "") + (btns ? '<div class="mo-btns">' + btns + '</div>' : "");
+    moBar.hidden = !gloss && !btns; moV.el.classList.toggle("mo-ch", !!(btns || gloss));
+  }
+  // ---------------- flow
+  function moPickDiff() {
+    var M = mL("morse"), last = M.diff || "easy";
+    moTone(false); if (!moS) moS = {};
+    moS.phase = "diff"; moBarSet("", "");
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Funkraum</p><div class="fi-row mo-diffs">' + ["easy", "medium", "hard"].map(function (d) {
+      return '<button type="button" class="' + (d === last ? "fi-b" : "fi-b2") + '" data-d="' + d + '">' + MO_D[d].n + '</button>'; }).join("") + '</div></div>';
+    moV.card.hidden = false;
+  }
+  function moNewConv(diff) {
+    var M = mL("morse"), list = MOC[diff]; M.diff = diff; M.seen = M.seen || {}; var seen = M.seen[diff] = (M.seen[diff] || []).filter(function (i) { return i < list.length; });
+    if (seen.length >= list.length) seen.length = 0;
+    var free = list.map(function (c, i) { return i; }).filter(function (i) { return seen.indexOf(i) < 0; }), ci = free[Math.floor(Math.random() * free.length)];
+    seen.push(ci); if (window.SudokuSave) window.SudokuSave();
     moTone(false);
-    moS = { lv: lv, send: !!L.w, word: L.w || L.r[0], opts: L.r ? L.r.slice() : null, i: 0, buf: "", err: 0, down: 0, flash: 0, ok: 0, pad: [], play: null, won: false, raf: moS && moS.raf };
-    if (!moS.send) { moS.word = L.r[(lv * 7) % L.r.length]; moS.opts = L.r.slice().sort(); }
-    moV.card.hidden = true; moBar.hidden = true; moV.el.classList.remove('mo-ch'); mBan(moV, (moS.send ? "Senden " : "Empfangen ") + (lv + 1));
-    if (!moS.send) setTimeout(moPlay, 600);
+    moS = { diff: diff, D: MO_D[diff], node: list[ci], ci: ci, err: 0, phase: "", down: 0, raf: moS && moS.raf, pad: [], tx: null, flash: 0 };
+    moV.card.hidden = true; mBan(moV, MO_D[diff].n); moBarSet("", "");
+    setTimeout(function () { moRx(); }, 700);
   }
-  function moPlay() {      // the ship sends the word: the key moves by itself, the pencil writes along
-    if (!moS || moS.send || moS.play) return;
-    var S = moS, seq = [], t = 0; moBar.hidden = true; S.pad = [];
-    S.word.split("").forEach(function (ch, li) { MC[ch].split("").forEach(function (sym, k) { var d = (sym === "." ? 1 : 3) * UNIT * 1.4; seq.push([t, d, li, sym]); t += d + UNIT * 1.4; }); t += UNIT * 3; });
-    S.play = { t0: performance.now(), seq: seq, k: 0, end: t };
+  function moRx() {        // the ship sends: the key moves by itself, the pencil writes the codes on the pad
+    if (!moS || !moS.node) return;
+    var S = moS, msg = S.node.s, u = S.D.u, seq = [], t = 0, li = 0;
+    msg.split(" ").forEach(function (word, wi) {
+      if (wi) t += u * 4;
+      word.split("").forEach(function (ch, k) { if (k) t += u * 2; MC[ch].split("").forEach(function (sym, j) { if (j) t += u; var d = (sym === "." ? 1 : 3) * u; seq.push([t, d, li, sym]); t += d; }); li++; });
+    });
+    S.phase = "rx"; S.msg = msg; S.lay = moLayoutMsg(msg, S.D.code); S.got = []; S.pad = []; S.play = { t0: performance.now() + 250, seq: seq, k: 0, end: t + 400 };
+    moBarSet("", "");
   }
   function moPlayStep(now) {
-    var P = moS.play, el = now - P.t0, on = false;
-    P.seq.forEach(function (q, k) { if (el >= q[0] && el < q[0] + q[1]) on = true; if (el >= q[0] && k >= P.k) { P.k = k + 1; var li = q[2]; moS.pad[li] = (moS.pad[li] || "") + q[3]; } });
-    if (on !== !!moS.down) { moS.down = on ? now : 0; moTone(on, 600); }
-    if (el > P.end) { moS.play = null; moS.down = 0; moTone(false); moChoices(); }
+    var S = moS, P = S.play, el = now - P.t0, on = false;
+    for (var k = P.k; k < P.seq.length; k++) { var q = P.seq[k]; if (el < q[0]) break; S.got[q[2]] = (S.got[q[2]] || "") + q[3]; P.k = k + 1; }
+    P.seq.forEach(function (q) { if (el >= q[0] && el < q[0] + q[1]) on = true; });
+    if (on !== !!S.down) { S.down = on ? now : 0; moTone(on, 600); }
+    if (el > P.end) { S.play = null; S.down = 0; moTone(false); moAfterRx(); }
   }
-  function moChoices() {
-    moBar.innerHTML = moS.opts.map(function (w) { return '<button type="button" class="fi-b2 mo-opt" data-w="' + w + '">' + w + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Nochmal hören">↻</button>';
-    moBar.hidden = false; moV.el.classList.add('mo-ch');
+  function moAfterRx() {
+    var S = moS;
+    if (S.D.show) return moShow();
+    // which message was it? two look-alikes from the same level
+    var pool = []; (function walk(n) { pool.push(n.s); (n.r || []).forEach(function (r) { walk(r.n); }); })({ s: "", r: MOC[S.diff].map(function (c) { return { n: c }; }) });
+    pool = pool.filter(function (m, i) { return m && m !== S.msg && pool.indexOf(m) === i && Math.abs(m.length - S.msg.length) <= 4; });
+    var opts = [S.msg]; while (opts.length < 3 && pool.length) opts.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    opts.sort(function () { return Math.random() - .5; });
+    S.phase = "dec";
+    moBarSet("", opts.map(function (m) { return '<button type="button" class="fi-b2 mo-opt" data-m="' + m + '">' + m + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Nochmal hören">↻</button>');
   }
-  moBar.addEventListener("click", function (e) {
-    e.stopPropagation(); var b = e.target.closest("button"); if (!b || !moS) return;
-    if (b.classList.contains("mo-again")) { moPlay(); return; }
-    if (b.dataset.w === moS.word) { moBar.hidden = true; moS.i = moS.word.length; moWin(); }
-    else { moS.err++; b.disabled = true; moBlip(160, 260); }
-  });
+  function moShow() {      // the decoded message stands on the card; then the replies, or the end of the conversation
+    var S = moS; S.phase = "show"; S.got = moLetters(S.msg).split("").map(function (ch) { return MC[ch]; });
+    var g = moGloss(S.msg), rs = S.node.r || [];
+    if (!rs.length) { moBarSet(g, ""); setTimeout(function () { if (moS === S) moEnd(); }, 2600); return; }
+    moBarSet(g, "");
+    setTimeout(function () {
+      if (moS !== S) return; S.phase = "pick";
+      moBarSet(g, rs.map(function (r, i) { return '<button type="button" class="fi-b2 mo-rep" data-i="' + i + '">' + r.m + '</button>'; }).join(""));
+    }, 1100);
+  }
+  function moTx(i) {
+    var S = moS, r = S.node.r[i]; S.reply = r; S.phase = "tx"; S.msg = r.m; S.letters = moLetters(r.m); S.i = 0; S.buf = ""; S.pad = [];
+    S.lay = moLayoutMsg(r.m, true); moBarSet(moGloss(r.m), "");
+  }
   function moKey(down) {
-    if (!moS || !moS.send || moS.won) return;
+    var S = moS; if (!S || S.phase !== "tx") return;
     var now = performance.now();
-    if (down) { moS.down = now; moTone(true); return; }
-    if (!moS.down) return;
-    var d = now - moS.down; moS.down = 0; moTone(false);
-    var sym = d < DAH ? "." : "-", want = MC[moS.word[moS.i]];
-    moS.buf += sym; moS.pad.push(sym);
-    if (want.indexOf(moS.buf) !== 0) { moS.err++; moS.buf = ""; moS.flash = now; moS.pad = []; setTimeout(function () { moBlip(160, 260); }, 40); return; }
-    if (moS.buf === want) {
-      moS.buf = ""; moS.i++; moS.ok = now; moS.pad = [];
-      setTimeout(function () { moBlip(1050, 120); }, 60);
-      if (moS.i >= moS.word.length) setTimeout(moWin, 500);
+    if (down) { S.down = now; moTone(true); return; }
+    if (!S.down) return;
+    var d = now - S.down; S.down = 0; moTone(false);
+    var sym = d < DAH ? "." : "-", want = MC[S.letters[S.i]];
+    S.buf += sym; S.pad.push(sym);
+    if (want.indexOf(S.buf) !== 0) { S.err++; S.buf = ""; S.flash = now; S.pad = []; setTimeout(function () { moBlip(160, 260); }, 40); return; }
+    if (S.buf === want) {
+      S.buf = ""; S.i++; S.pad = [];
+      setTimeout(function () { moBlip(1050, 90); }, 50);
+      if (S.i >= S.letters.length) { S.phase = "sent"; setTimeout(function () { if (moS !== S) return; S.node = S.reply.n; moRx(); }, 900); }
     }
   }
   function moStarsN(err) { return err === 0 ? 3 : err <= 2 ? 2 : 1; }
-  function moWin() {
-    if (!moS || moS.won) return; moS.won = true;
-    var M = mL("morse"), st = moStarsN(moS.err); M.best = M.best || {}; M.best[moS.lv] = Math.max(M.best[moS.lv] || 0, st);
-    M.lvl = Math.max(M.lvl || 0, Math.min(MO_LV.length - 1, moS.lv + 1));
+  function moEnd() {
+    var S = moS; S.phase = "end"; moBarSet("", "");
+    var M = mL("morse"), st = moStarsN(S.err); M.done = M.done || {}; M.done[S.diff] = (M.done[S.diff] || 0) + 1;
     if (typeof s !== "undefined" && s.fun != null) { s.fun = clamp(s.fun + 6); if (typeof renderNeeds === "function") renderNeeds(); }
     if (window.SudokuSave) window.SudokuSave();
     [660, 880, 1100].forEach(function (f, i) { setTimeout(function () { moBlip(f, 140); }, i * 130); });
-    var next = moS.lv + 1 < MO_LV.length;
-    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">' + (moS.send ? moS.word + " ist angekommen!" : "Richtig: " + moS.word + "!") + '</p>' + mStars(st) +
-      '<div class="fi-row"><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (next ? '<button type="button" class="fi-b" data-a="next">Weiter</button>' : '<button type="button" class="fi-b" data-a="list">Alle</button>') + '</div></div>';
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">73! Funkspruch beendet</p>' + mStars(st) +
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="diff">Stufe</button><button type="button" class="fi-b" data-a="next">Nächster Funkspruch</button></div></div>';
     moV.card.hidden = false;
   }
-  function moPick() {
-    var M = mL("morse"), open = Math.min(MO_LV.length - 1, M.lvl || 0);
-    moV.card.innerHTML = '<div class="fi-c hb-pick"><p class="fi-h">Welche Nachricht?</p><div class="hb-lvs">' + MO_LV.map(function (q, i) {
-      return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b>' + (i <= open ? mStars((M.best && M.best[i]) || 0) : "") + '</button>'; }).join("") + '</div></div>';
-    moV.card.hidden = false; moBar.hidden = true;
-  }
+  moBar.addEventListener("click", function (e) {
+    e.stopPropagation(); var b = e.target.closest("button"), S = moS; if (!b || !S) return;
+    if (b.classList.contains("mo-again")) { moRx(); return; }
+    if (S.phase === "dec" && b.dataset.m != null) { if (b.dataset.m === S.msg) moShow(); else { S.err++; b.disabled = true; moBlip(160, 260); } return; }
+    if (S.phase === "pick" && b.dataset.i != null) moTx(+b.dataset.i);
+  });
   moV.card.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.lv != null) { moStart(+b.dataset.lv); return; }
-    if (b.dataset.a === "again") moStart(moS.lv); else if (b.dataset.a === "next") moStart(moS.lv + 1); else if (b.dataset.a === "list") moPick(); else moClose();
+    if (b.dataset.d) { moNewConv(b.dataset.d); return; }
+    if (b.dataset.a === "next") moNewConv(moS.diff); else if (b.dataset.a === "diff") moPickDiff(); else moClose();
   });
-  moV.cv.addEventListener("pointerdown", function (e) { if (moS && moS.send) { e.preventDefault(); try { moV.cv.setPointerCapture(e.pointerId); } catch (er) { } moKey(true); } });
+  moV.cv.addEventListener("pointerdown", function (e) { if (moS && moS.phase === "tx") { e.preventDefault(); try { moV.cv.setPointerCapture(e.pointerId); } catch (er) { } moKey(true); } });
   moV.cv.addEventListener("pointerup", function () { moKey(false); });
   moV.cv.addEventListener("pointercancel", function () { moKey(false); });
   moV.cv.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -106,41 +172,49 @@
     c.clearRect(0, 0, 180, 135);
     if (moOk("mo_bg")) c.drawImage(moI.mo_bg, 0, 0);
     var dn = !!S.down; if (moOk(dn ? "mo_dn" : "mo_up")) c.drawImage(moI[dn ? "mo_dn" : "mo_up"], 0, 0);
-    var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#b8a888";
-    if (S.send) {      // the card: the word, each letter with its code underneath
-      var cols = S.word.split("").map(function (ch) { return Math.max(moTw(ch), moCw(MC[ch])); }), gap = 5, tw = cols.reduce(function (a, b) { return a + b; }, 0) + gap * (cols.length - 1), x = Math.round(90 - tw / 2);
-      var fl = S.flash && now - S.flash < 450;
-      S.word.split("").forEach(function (ch, i) {
-        var w = cols[i], cur = i === S.i, col = i < S.i ? DONE : cur ? (fl ? RED : INK) : DIM;
-        moTxt(c, ch, x + Math.round((w - moTw(ch)) / 2), 18, col);
-        moCode(c, MC[ch], x + Math.round((w - moCw(MC[ch])) / 2), 30, i < S.i ? 99 : cur ? S.buf.length : 0, i < S.i ? DONE : cur ? INK : DIM, DONE);
-        if (cur && !S.won) mR(c, x, 36, w, 1, fl ? RED : "#d8a840");
-        x += w + gap;
+    var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#c4b494", L = S.lay;
+    if (L && (S.phase === "rx" || S.phase === "dec" || S.phase === "show" || S.phase === "pick")) {
+      // receiving: easy shows every letter once it has arrived; otherwise the card stays empty until the message is decoded
+      var reveal = S.phase === "show" || S.phase === "pick" || S.D.show;
+      L.items.forEach(function (q, k) {
+        var code = MC[q.ch], got = S.got[k] || "", full = got.length >= code.length;
+        if (reveal && (full || S.phase === "show" || S.phase === "pick")) moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, INK);
+        if (S.D.code && reveal && got) moCode(c, got, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, 0, INK, INK, L.cp);
       });
-      if (S.down && now - S.down >= DAH) mR(c, 85, 44, 10, 2, "#d8a840"); else if (S.down) mR(c, 89, 44, 2, 2, "#d8a840");   // what the key is making right now
-    } else {           // receive: the code table of every letter in the three words
-      var letters = []; S.opts.join("").split("").forEach(function (ch) { if (letters.indexOf(ch) < 0) letters.push(ch); }); letters.sort();
-      var per = Math.ceil(letters.length / 2);
-      letters.forEach(function (ch, i) { var cx = 36 + Math.floor(i / per) * 58, cy = 13 + (i % per) * 9 * (per > 4 ? .9 : 1); moTxt(c, ch, cx, Math.round(cy), INK); moCode(c, MC[ch], cx + 9, Math.round(cy) + 3, 0, INK, INK); });
+      if (!reveal && S.phase === "rx") { var nlet = S.got.length; for (var k = 0; k < Math.min(nlet, 16); k++) mR(c, 90 - 16 * 3 + k * 6, 31, 4, 1, DIM); }
     }
-    // the notepad: pencil marks of what was keyed (send: current letter; receive: one line per letter)
-    var lines = S.send ? [S.pad.join("")] : S.pad, ly = 105;
-    lines.forEach(function (code) { if (!code) { ly += 6; return; } moCode(c, code.slice(0, 5), 9, ly, 0, "#4a4a5a", "#4a4a5a"); ly += 6; });
-    if (S.send && S.ok && now - S.ok < 500) { c.fillStyle = "#ffe9a0"; c.fillRect(150 - 2, 92, 1, 1); }
+    if (L && (S.phase === "tx" || S.phase === "sent")) {
+      var fl = S.flash && now - S.flash < 450;
+      L.items.forEach(function (q, k) {
+        var code = MC[q.ch], cur = k === S.i && S.phase === "tx", col = k < S.i ? DONE : cur ? (fl ? RED : INK) : DIM;
+        moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, col);
+        var showCode = S.D.code || k < S.i;
+        if (showCode) moCode(c, code, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, k < S.i ? 99 : cur ? S.buf.length : 0, k < S.i ? DONE : cur ? INK : DIM, DONE, L.cp);
+        else if (cur && S.buf) moCode(c, S.buf, q.x + Math.round((q.w - moCw(S.buf, L.cp)) / 2), q.y + 10, 99, INK, INK, L.cp);
+        if (cur) mR(c, q.x, q.y + 14, q.w, 1, fl ? RED : "#d8a840");
+      });
+      if (S.down && now - S.down >= DAH) mR(c, 85, 52, 10, 1, "#d8a840"); else if (S.down) mR(c, 89, 52, 2, 1, "#d8a840");
+    }
+    // the notepad: pencil marks (receiving: the last letters as they come in; sending: the current letter)
+    var lines = S.phase === "tx" ? [S.pad.join("")] : (S.phase === "rx" || S.phase === "dec") ? S.got.slice(-4) : [], ly = 105;
+    lines.forEach(function (code) { if (code) moCode(c, code.slice(0, 6), 9, ly, 0, "#4a4a5a", "#4a4a5a"); ly += 6; });
     S.raf = requestAnimationFrame(moDraw);
   }
   function moNoSel(on) { document.documentElement.classList.toggle("mo-nosel", on); try { var se = window.getSelection(); if (se) se.removeAllRanges(); } catch (e) { } }
   document.addEventListener("selectstart", function (e) { if (document.documentElement.classList.contains("mo-nosel")) e.preventDefault(); }, true);
-  moV.cv.addEventListener("touchstart", function (e) { if (moS && moS.send) e.preventDefault(); }, { passive: false });
-  function moOpen(lv) { moNoSel(true); moV.el.hidden = false; moStart(lv); cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw); }
-  function moOpenPick() { moOpen(); moPick(); }
-  function moClose() { moNoSel(false); moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; }
+  moV.cv.addEventListener("touchstart", function (e) { if (moS && moS.phase === "tx") e.preventDefault(); }, { passive: false });
+  function moOpen(diff) {
+    moNoSel(true); moV.el.hidden = false; moS = { phase: "diff", D: MO_D.easy, raf: 0, pad: [], got: [] };
+    cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw);
+    if (diff) moNewConv(diff); else moPickDiff();
+  }
+  function moClose() { moNoSel(false); moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; moV.card.hidden = true; }
   moV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); moClose(); });
   // the lighthouse at the lake: tap it to climb up to the wireless room
   (function () {
     var hot = document.createElement("button"); hot.type = "button"; hot.className = "l-hot mo-lh"; hot.setAttribute("aria-label", "Leuchtturm");
     hot.style.cssText = "left:74%;top:30%;width:10%;height:28%";
     pondUi.insertBefore(hot, pondUi.firstChild);
-    hot.addEventListener("click", function (e) { e.stopPropagation(); if (typeof busy !== "undefined" && busy && typeof interruptible === "function" && !interruptible()) return; if (busy && typeof interrupt === "function") interrupt(); moOpenPick(); });
+    hot.addEventListener("click", function (e) { e.stopPropagation(); if (typeof busy !== "undefined" && busy && typeof interruptible === "function" && !interruptible()) return; if (busy && typeof interrupt === "function") interrupt(); moOpen(); });
   })();
-  window.__morse = { open: moOpen, key: moKey, st: function () { return moS && { lv: moS.lv, word: moS.word, i: moS.i, err: moS.err, won: moS.won, send: moS.send }; } };
+  window.__morse = { open: moOpen, key: moKey, st: function () { return moS && { diff: moS.diff, phase: moS.phase, msg: moS.msg, i: moS.i, err: moS.err, letters: moS.letters, opts: moS.node && moS.node.r && moS.node.r.map(function (r) { return r.m; }) }; }, MC: MC, C: MOC };

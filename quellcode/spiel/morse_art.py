@@ -57,22 +57,46 @@ def desk(g):
     for y in range(80, H):
         for x in range(6, W - 6):
             g.p[y][x] = LE if (x + y * 2) % 19 else LE2
+    for y in range(84, 112):
+        for x in range(136, W - 6):
+            if ((x - 160) / 26) ** 2 + ((y - 99) / 10) ** 2 <= 1: g.p[y][x] = LE3 if (x + y * 2) % 19 else LE
     g.rect(6, 80, W - 7, 80, LE3)
     for x in range(8, W - 8, 4): g.put(x, 82, BR2)     # gold tooling on the leather
-def receiver(g):   # Marconi magnetic detector: varnished box, one tuning dial, a horizontal coil, brass plate
-    g.rect(4, 48, 52, 82, WD); g.rect(4, 48, 52, 51, WD3); g.rect(50, 52, 52, 82, WD2); g.rect(4, 80, 52, 82, WD2)
-    ell(g, 17, 64, 8, 8, EB); ell(g, 17, 64, 6, 6, '#e8dcc0')
-    for t in range(0, 360, 30): g.put(int(17 + math.cos(math.radians(t)) * 5), int(64 + math.sin(math.radians(t)) * 5), EB)
-    g.put(17, 63, CU2); g.put(18, 62, CU2); g.put(19, 61, CU2)
-    g.rect(30, 58, 47, 66, CU); g.rect(30, 58, 47, 58, '#e8945a')
-    for x in range(31, 47, 2): g.rect(x, 59, x, 66, CU2)
-    g.rect(28, 56, 29, 68, BR2); g.rect(48, 56, 49, 68, BR2)
-    g.rect(30, 72, 46, 76, BR); g.rect(30, 72, 46, 72, BR3); g.rect(33, 74, 43, 74, BR2)
-def lamp(g):
-    g.rect(150, 94, 172, 98, BR2); g.rect(150, 94, 172, 94, BR3)
-    g.rect(159, 60, 162, 94, BR); g.rect(159, 60, 159, 94, BR3)
-    g.poly([(146, 58), (176, 58), (170, 46), (152, 46)], '#2e7a4a'); g.rect(152, 46, 170, 47, '#4e9a6a'); g.rect(146, 57, 176, 58, '#1e5a34')
-    g.rect(156, 59, 165, 60, '#fff6c8')
+def receiver(g):   # Marconi magnetic detector as a box seen from front-above: top face, front face, right side
+    g.poly([(9, 43), (51, 43), (46, 53), (2, 53)], WD3)                  # top face (back edge leans towards the middle)
+    for x in range(10, 50, 7): g.rect(x - (x - 9) // 9, 47, x + 3 - (x - 9) // 9, 47, WD)
+    g.rect(2, 53, 46, 84, WD); g.rect(2, 53, 46, 53, '#c08050')         # front face
+    g.poly([(46, 53), (51, 43), (51, 75), (46, 84)], WD2)                 # right side face
+    g.rect(2, 82, 46, 84, WD2)
+    # the coil lying on top: a copper cylinder between two brass cheeks
+    g.rect(22, 41, 40, 47, CU); g.rect(22, 41, 40, 42, '#e8945a'); g.rect(22, 47, 40, 47, CU2)
+    for x in range(24, 40, 2): g.rect(x, 43, x, 46, CU2)
+    for cx in (21, 41): ell(g, cx, 44, 1.6, 4, BR); g.put(cx - 1, 42, BR3)
+    for cx in (11, 15): g.rect(cx, 40, cx + 1, 49, BR2); g.rect(cx, 40, cx, 49, BR3); ell(g, cx + .5, 40, 1.8, 1, BR3)   # terminals
+    # tuning dial on the front: brass ring, ivory scale, ebonite knob standing out with a shadow
+    ell(g, 16, 68, 9, 9, BR2); ell(g, 16, 67.5, 8, 8, BR); ell(g, 16, 68, 6.5, 6.5, '#e8dcc0')
+    for t in range(200, 341, 20): g.put(int(16 + math.cos(math.radians(t)) * 5), int(68 + math.sin(math.radians(t)) * 5), EB)
+    ell(g, 17.5, 70, 3.4, 3, '#b8a888'); ell(g, 16, 68, 3.4, 3, EB); ell(g, 16, 67, 3, 2.2, EB3); g.put(15, 66, '#8a8090')
+    g.rect(16, 62, 16, 65, CU2)
+    # brass name plate and two small switches
+    g.rect(28, 60, 42, 66, BR); g.rect(28, 60, 42, 60, BR3); g.rect(28, 66, 42, 66, BR2); g.rect(30, 63, 40, 63, BR2)
+    for cx in (31, 39): ell(g, cx, 75, 2.4, 2.4, EB); g.rect(cx, 71, cx + 1, 74, BR3)
+def lamp(g):     # brass desk lamp: round foot with thickness, round stem, green cone shade seen from above
+    ell(g, 161, 97, 12, 4, BR2); ell(g, 161, 95.5, 12, 4, BR); ell(g, 159, 94.5, 7, 2, BR3)
+    for y in range(58, 95):
+        g.rect(159, y, 163, y, BR); g.put(159, y, BR3); g.put(163, y, BR2)
+    ell(g, 161, 94, 3, 1.4, BR2); ell(g, 161, 93.5, 2.5, 1, BR)
+    # the shade: a cone between a small top opening and a wide rim
+    for y in range(46, 59):
+        t = (y - 46) / 12; hw = 6 + t * 10
+        for x in range(int(161 - hw), int(161 + hw) + 1):
+            u = (x - 161) / hw
+            g.put(x, y, '#5aaa7a' if u < -.55 else '#2e7a4a' if u < .45 else '#1e5a34')
+    for x in range(145, 178):      # front of the rim curves down
+        u = (x - 161) / 16; yy = 58 + int(round((1 - u * u) ** .5 * 3)) if abs(u) <= 1 else 58
+        g.rect(x, 57, x, yy, '#1e5a34'); g.put(x, yy, BR2)
+    ell(g, 161, 46, 6, 1.8, '#1e4a2c'); ell(g, 161, 45.6, 4.5, 1.1, '#fff6c8')    # the opening at the top, the bulb glowing inside
+    ell(g, 161, 45, 1.6, 1.6, BR2)
 def phones(g):   # headphones hanging on a brass hook on the wall
     g.rect(160, 6, 162, 9, BR2)
     for t in range(0, 181, 5):

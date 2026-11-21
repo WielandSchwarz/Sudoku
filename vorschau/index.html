@@ -2760,11 +2760,15 @@ body.dz-on .dz-panel { display: block; }
 .mo-pov .fi-cv { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .mo-pov .bp-ban { left: auto; right: 3%; top: auto; bottom: 4%; margin: 0; transform: none; }
 .mo-pov .bp-ban.pop { animation: dw-ban .35s steps(4); }
-.mo-bar { position: absolute; left: 0; right: 0; bottom: 4%; z-index: 3; display: flex; justify-content: center; gap: 6px; padding: 0 3%; }
-.mo-bar[hidden] { display: none; }
-.mo-bar .fi-b2 { font-size: .85rem; padding: 6px 9px 9px; white-space: nowrap; }
-.mo-bar .fi-b2:disabled { opacity: .4; }
 .mo-pov.mo-ch .bp-ban { visibility: hidden; }
+.mo-bar { position: absolute; left: 0; right: 0; bottom: 3%; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0 3%; pointer-events: none; }
+.mo-bar[hidden] { display: none; }
+.mo-gl { pointer-events: none; background: #fff8ea; border: 2px solid #3a2414; padding: 2px 7px 3px; font-size: .68rem; line-height: 1.25; color: #3a2414; max-width: 94%; text-align: center; box-shadow: 0 2px 0 rgba(58, 36, 20, .35); }
+.mo-gl b { font-weight: 800; letter-spacing: .04em; }
+.mo-btns { pointer-events: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+.mo-btns .fi-b2 { font-size: .8rem; padding: 5px 9px 8px; white-space: nowrap; letter-spacing: .05em; }
+.mo-btns .fi-b2:disabled { opacity: .4; }
+.mo-diffs { flex-wrap: wrap; }
 html.mo-nosel, html.mo-nosel * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
 </style>
 
@@ -20756,14 +20760,13 @@ function recolorWallSvg(svg, grund, muster) {
   })();
 
   // ---------------------------------------------------------------- Morse (lighthouse): a 1912 ship's wireless desk in close-up
-  // Send: key the word on the card (short press = dit, long press = dah). Receive: a ship sends a word, pick which one it was.
-  var moA = {"mo_bg": "data:image/png;base64,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", "mo_up": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAACF0lEQVR42u3aP2rbYBgH4K8lYzEaMxWPwYSgIUOGDDmC0RFKD6ATdOgJcoBSfIJgcoIOHTJk+AghdDSdOgqTMeBMCf5H7DrG+iw9z2TJxgjpx6tX76cQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA1vvgFDCvd5hNprcf/lV7k5MDl0945/flZ/3ZHTfDhd+kGnIVuuVBXgjvmuLNMMlgC3RLw/wS5DzPlwc2xrWDnVKoP7q87Q3zNuRn/aVtix6anYT5oNPdqBK/GaJON/TCaJJCpVahW+j+ISb5X3roPa6UdVWz+Sp93MvfHeSn8SiZPlqga5gsXF3moShjbVOCZa3HtPmQv1WFUwqzQO84RFeXi9WwKGNtoX7pfzfxNB4Z29W9YFCnZWGeDnXdHkMWsk4WqnEVsk428101rma2P4XKwsquw3z7u0zmeP7e/nr9/Pn0YuX+OhydD14DvUrKgW7s2G46LI63PYztanA9GDgJWo7/azm+fc2SOZ78uLuy5Yj3o6TP6fcf1V68fdfoh8Kfw8Xb+Jf+hYfCDezLK6SNXvq+u/uTzMUpypjU2K6pGh3ok5OjpCpcUcYkFlYEmq3etosyTgRZoLfWcuhHBVrLQTCHBoGGYA4d1nxBSf8KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMegYfWcOSIUZBrQAAAABJRU5ErkJggg==", "mo_dn": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAAChklEQVR42u3bsWrbUBQG4OOSMRiPmULGYErI4DFDpo6leCwdTOkD6Ak6ZOzkBwjFQ+kYSp8gQ4YOHkwooaPJlG7CQ6eAu9QlsePGSm1Jlr9vk5Gw0P11fHSvHAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGRScwmY1txpjO9uX92kNYFmLcMbEbFV37u3fTsazhxX1pDXqjxQ61RZigrydHgXNQl52a5xraqD1b9IonXUXfiYPAem6JutudMYT4L85nXnwX0+fe4tHOwyhXqrqhXoun8e/Ytk4f1bR93xqsM/qYpn3cNoJ4NxERXubpiXEqD6XjRjWJpfw8pW6LPuYaZjdlvHWcKfufLPO6d2Msgt1MsOcxkrdWUD/f5dIw6fr2bwnhL+f91g7WSQS9sj0BUI9aJWGf7r/vmDN8P053n0/KsIdZn66NqmTUnNk1f45wU6j7ZnFaEu20Ohaa2cw7/bOo6vvV687HRmAl1Ez2/abs1DuowByBr+u6GeV6EH34eF9vz7R71o1BuRjtJo1O/fsOkovbe9HamFlSLC/PHLbAV8++o49znnRR8Ki+z5XyTDv4F+TJkDXdl56IiIy8sfhZ/DZODbyeDRabuT08hQ+YeFP/AKdM4ODvZLcy5XN2ltspjyZ2FlpgXKUvVWFX6B5knV+n9/spcd/u2IuB2l8WFO23Nymq7F23dajgKDXcbvmxf+dXnRS8tBrOu7zw95ZgipEoEm/AUrNnthJTZo9dT1ojJhHv/sjbOsikLpwyzUVCfUv74JM5v5BiIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAmvwGIGzSZqKAMRgAAAABJRU5ErkJggg=="};
+  // Random radio conversations in three levels: a ship sends, you decode, pick a reply, key it in (short = dit, long = dah), the ship answers.
+  var moA = {"mo_bg": "data:image/png;base64,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", "mo_up": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAACF0lEQVR42u3aP2rbYBgH4K8lYzEaMxWPwYSgIUOGDDmC0RFKD6ATdOgJcoBSfIJgcoIOHTJk+AghdDSdOgqTMeBMCf5H7DrG+iw9z2TJxgjpx6tX76cQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA1vvgFDCvd5hNprcf/lV7k5MDl0945/flZ/3ZHTfDhd+kGnIVuuVBXgjvmuLNMMlgC3RLw/wS5DzPlwc2xrWDnVKoP7q87Q3zNuRn/aVtix6anYT5oNPdqBK/GaJON/TCaJJCpVahW+j+ISb5X3roPa6UdVWz+Sp93MvfHeSn8SiZPlqga5gsXF3moShjbVOCZa3HtPmQv1WFUwqzQO84RFeXi9WwKGNtoX7pfzfxNB4Z29W9YFCnZWGeDnXdHkMWsk4WqnEVsk428101rma2P4XKwsquw3z7u0zmeP7e/nr9/Pn0YuX+OhydD14DvUrKgW7s2G46LI63PYztanA9GDgJWo7/azm+fc2SOZ78uLuy5Yj3o6TP6fcf1V68fdfoh8Kfw8Xb+Jf+hYfCDezLK6SNXvq+u/uTzMUpypjU2K6pGh3ok5OjpCpcUcYkFlYEmq3etosyTgRZoLfWcuhHBVrLQTCHBoGGYA4d1nxBSf8KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMegYfWcOSIUZBrQAAAABJRU5ErkJggg==", "mo_dn": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACHCAYAAAC/I3MxAAAChklEQVR42u3bsWrbUBQG4OOSMRiPmULGYErI4DFDpo6leCwdTOkD6Ak6ZOzkBwjFQ+kYSp8gQ4YOHkwooaPJlG7CQ6eAu9QlsePGSm1Jlr9vk5Gw0P11fHSvHAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGRScwmY1txpjO9uX92kNYFmLcMbEbFV37u3fTsazhxX1pDXqjxQ61RZigrydHgXNQl52a5xraqD1b9IonXUXfiYPAem6JutudMYT4L85nXnwX0+fe4tHOwyhXqrqhXoun8e/Ytk4f1bR93xqsM/qYpn3cNoJ4NxERXubpiXEqD6XjRjWJpfw8pW6LPuYaZjdlvHWcKfufLPO6d2Msgt1MsOcxkrdWUD/f5dIw6fr2bwnhL+f91g7WSQS9sj0BUI9aJWGf7r/vmDN8P053n0/KsIdZn66NqmTUnNk1f45wU6j7ZnFaEu20Ohaa2cw7/bOo6vvV687HRmAl1Ez2/abs1DuowByBr+u6GeV6EH34eF9vz7R71o1BuRjtJo1O/fsOkovbe9HamFlSLC/PHLbAV8++o49znnRR8Ki+z5XyTDv4F+TJkDXdl56IiIy8sfhZ/DZODbyeDRabuT08hQ+YeFP/AKdM4ODvZLcy5XN2ltspjyZ2FlpgXKUvVWFX6B5knV+n9/spcd/u2IuB2l8WFO23Nymq7F23dajgKDXcbvmxf+dXnRS8tBrOu7zw95ZgipEoEm/AUrNnthJTZo9dT1ojJhHv/sjbOsikLpwyzUVCfUv74JM5v5BiIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAmvwGIGzSZqKAMRgAAAABJRU5ErkJggg=="}, MOC = {"easy":[{"s":"GM LT","r":[{"m":"GM","n":{"s":"WX OK?","r":[{"m":"JA","n":{"s":"FB 73"}},{"m":"NEBEL","n":{"s":"R TU 73"}}]}},{"m":"MOIN","n":{"s":"MOIN OM","r":[{"m":"TU","n":{"s":"73"}},{"m":"HALLO","n":{"s":"HI HI 73"}}]}}]},{"s":"HALLO LT","r":[{"m":"HALLO","n":{"s":"HW?","r":[{"m":"GUT","n":{"s":"FB 73"}},{"m":"OK","n":{"s":"R GN"}}]}},{"m":"WER?","n":{"s":"DE MOEWE","r":[{"m":"MOIN","n":{"s":"MOIN 73"}},{"m":"TU","n":{"s":"GN SK"}}]}}]},{"s":"GE LT","r":[{"m":"GE","n":{"s":"SONNE HR","r":[{"m":"FB","n":{"s":"TU 73"}},{"m":"SUPER","n":{"s":"JA 73"}}]}},{"m":"HI","n":{"s":"HI OM","r":[{"m":"WX?","n":{"s":"WIND 73"}},{"m":"GE OM","n":{"s":"TU GN"}}]}}]},{"s":"SOS","r":[{"m":"WO?","n":{"s":"HAFEN","r":[{"m":"OK","n":{"s":"TU TU"}},{"m":"KOMME","n":{"s":"FB 73"}}]}},{"m":"R","n":{"s":"MAST WEG","r":[{"m":"HILFE","n":{"s":"TU OM"}},{"m":"OK","n":{"s":"R SK"}}]}}]},{"s":"CQ","r":[{"m":"LT","n":{"s":"HI LT","r":[{"m":"HI","n":{"s":"WX?","r":[{"m":"SONNE","n":{"s":"FB 73"}},{"m":"WIND","n":{"s":"R 73"}}]}},{"m":"GM","n":{"s":"GM OM 73"}}]}},{"m":"HALLO","n":{"s":"DE OTTER","r":[{"m":"HI","n":{"s":"FISCH?","r":[{"m":"JA","n":{"s":"FB GN"}},{"m":"NEIN","n":{"s":"SRI 73"}}]}},{"m":"GM","n":{"s":"GM 73"}}]}}]},{"s":"FISCH?","r":[{"m":"JA","n":{"s":"WO?","r":[{"m":"HAFEN","n":{"s":"TU 73"}},{"m":"NORD","n":{"s":"FB GN"}}]}},{"m":"NEIN","n":{"s":"SRI","r":[{"m":"OK","n":{"s":"73"}},{"m":"MORGEN","n":{"s":"R 73"}}]}}]},{"s":"EIS HR","r":[{"m":"R","n":{"s":"TU","r":[{"m":"GL","n":{"s":"TU GL"}},{"m":"73","n":{"s":"73 SK"}}]}},{"m":"WO?","n":{"s":"NORD","r":[{"m":"TU","n":{"s":"R 73"}},{"m":"OK","n":{"s":"GN"}}]}}]},{"s":"TEE?","r":[{"m":"JA","n":{"s":"FB HI","r":[{"m":"TU","n":{"s":"73"}},{"m":"ZUCKER","n":{"s":"HI HI GN"}}]}},{"m":"NEIN","n":{"s":"KAFFEE?","r":[{"m":"JA","n":{"s":"FB 73"}},{"m":"NEIN","n":{"s":"OK GN"}}]}}]},{"s":"GN LT","r":[{"m":"GN","n":{"s":"TU OM","r":[{"m":"73","n":{"s":"73 SK"}},{"m":"88","n":{"s":"HI 88"}}]}},{"m":"SCHON?","n":{"s":"JA MUEDE","r":[{"m":"OK","n":{"s":"GN 73"}},{"m":"SCHLAF","n":{"s":"TU GN"}}]}}]},{"s":"NEBEL","r":[{"m":"R","n":{"s":"LICHT?","r":[{"m":"JA","n":{"s":"TU TU"}},{"m":"AN","n":{"s":"FB 73"}}]}},{"m":"HIER","n":{"s":"DICHT?","r":[{"m":"JA","n":{"s":"R 73"}},{"m":"ETWAS","n":{"s":"OK TU"}}]}}]},{"s":"HUNGER","r":[{"m":"FISCH","n":{"s":"FB","r":[{"m":"GUT?","n":{"s":"JA TU"}},{"m":"73","n":{"s":"73"}}]}},{"m":"KEKS?","n":{"s":"JA TU","r":[{"m":"NOCH?","n":{"s":"JA HI"}},{"m":"OK","n":{"s":"FB GN"}}]}}]},{"s":"WIND?","r":[{"m":"JA","n":{"s":"STARK?","r":[{"m":"JA","n":{"s":"R TU"}},{"m":"NEIN","n":{"s":"FB 73"}}]}},{"m":"NEIN","n":{"s":"FB","r":[{"m":"SONNE","n":{"s":"SUPER 73"}},{"m":"RUHIG","n":{"s":"TU GN"}}]}}]}],"medium":[{"s":"CQ DE MOEWE","r":[{"m":"DE LT K","n":{"s":"GM OM UR WX?","r":[{"m":"SONNE","n":{"s":"FB TU 73"}},{"m":"REGEN","n":{"s":"SRI OM 73"}}]}},{"m":"QRZ?","n":{"s":"DE MOEWE K","r":[{"m":"GM OM","n":{"s":"GM TU K"}},{"m":"R TU","n":{"s":"73 SK"}}]}}]},{"s":"LT DE ANNA K","r":[{"m":"R K","n":{"s":"QTH HAFEN","r":[{"m":"FB","n":{"s":"TU 73 SK"}},{"m":"WILLKOMMEN","n":{"s":"TU OM 73"}}]}},{"m":"GE OM","n":{"s":"GE UR WX?","r":[{"m":"NEBEL","n":{"s":"R TU K"}},{"m":"KLAR","n":{"s":"FB 73"}}]}}]},{"s":"NEBEL HR DICHT","r":[{"m":"R LICHT AN","n":{"s":"TU OM FB","r":[{"m":"GL","n":{"s":"TU GL 73"}},{"m":"73","n":{"s":"73 SK"}}]}},{"m":"QTH?","n":{"s":"NAHE HAFEN","r":[{"m":"PSE LANGSAM","n":{"s":"R TU"}},{"m":"R K","n":{"s":"FB 73"}}]}}]},{"s":"PSE RPT","r":[{"m":"HAFEN OFFEN","n":{"s":"R TU","r":[{"m":"AR","n":{"s":"73 SK"}},{"m":"CUL","n":{"s":"CUL 73"}}]}},{"m":"QRM HR","n":{"s":"RPT AGN?","r":[{"m":"JA","n":{"s":"R K"}},{"m":"NEIN","n":{"s":"OK 73"}}]}}]},{"s":"MSG FUER LT","r":[{"m":"R K","n":{"s":"POST MORGEN","r":[{"m":"FB TU","n":{"s":"73"}},{"m":"WANN?","n":{"s":"FRUEH 73"}}]}},{"m":"PSE AGN","n":{"s":"MSG FUER LT","r":[{"m":"R TU","n":{"s":"FB K"}},{"m":"QSL","n":{"s":"TU 73 SK"}}]}}]},{"s":"SOS MAST BRUCH","r":[{"m":"QTH?","n":{"s":"NORD KAP","r":[{"m":"R KOMME","n":{"s":"TU TU OM"}},{"m":"BOOT KOMMT","n":{"s":"FB TU"}}]}},{"m":"R R","n":{"s":"WASSER HR","r":[{"m":"PUMPEN","n":{"s":"R TU"}},{"m":"BOOT KOMMT","n":{"s":"TU OM 73"}}]}}]},{"s":"GM HW UR WX?","r":[{"m":"WX SONNE","n":{"s":"FB HR AUCH","r":[{"m":"SUPER","n":{"s":"TU 73"}},{"m":"CUL","n":{"s":"CUL OM"}}]}},{"m":"WX REGEN","n":{"s":"SRI OM","r":[{"m":"NIL","n":{"s":"HI HI 73"}},{"m":"TU","n":{"s":"73 SK"}}]}}]},{"s":"EIS IM HAFEN?","r":[{"m":"NEIN","n":{"s":"FB TU","r":[{"m":"GL","n":{"s":"TU 73"}},{"m":"KOMMEN?","n":{"s":"JA MORGEN"}}]}},{"m":"JA ETWAS","n":{"s":"R LANGSAM","r":[{"m":"FB","n":{"s":"TU 73"}},{"m":"GL OM","n":{"s":"TU GL"}}]}}]},{"s":"CQ CQ DE OTTER","r":[{"m":"DE LT K","n":{"s":"HI LT ES FISCH","r":[{"m":"FB","n":{"s":"TU 73"}},{"m":"VIEL?","n":{"s":"JA 10 KISTEN"}}]}},{"m":"GE OTTER","n":{"s":"GE OM UR QTH?","r":[{"m":"LT HR","n":{"s":"FB 73"}},{"m":"HAFEN","n":{"s":"R TU"}}]}}]},{"s":"TNX FUER LICHT","r":[{"m":"GERN OM","n":{"s":"FB 73 SK","r":[{"m":"73","n":{"s":"SK"}},{"m":"CUL","n":{"s":"CUL 73"}}]}},{"m":"NIL DANK","n":{"s":"HI HI FB","r":[{"m":"GL","n":{"s":"TU GL"}},{"m":"73","n":{"s":"73 SK"}}]}}]},{"s":"SRI QRM HR","r":[{"m":"PSE AGN","n":{"s":"RPT WX OK","r":[{"m":"R TU","n":{"s":"73"}},{"m":"QSL","n":{"s":"FB 73"}}]}},{"m":"QSL?","n":{"s":"QSL TU OM","r":[{"m":"73","n":{"s":"73 SK"}},{"m":"CUL","n":{"s":"CUL OM"}}]}}]},{"s":"GN LT 88","r":[{"m":"GN 88","n":{"s":"TU OM SK","r":[{"m":"SK","n":{"s":"HI HI"}},{"m":"CUL","n":{"s":"CUL 73"}}]}},{"m":"GN OM","n":{"s":"GN ES GL","r":[{"m":"TU","n":{"s":"73"}},{"m":"73","n":{"s":"SK"}}]}}]}],"hard":[{"s":"CQD CQD DE KOGGE","r":[{"m":"DE LT QTH?","n":{"s":"5 SM NORD LT","r":[{"m":"R BOOT KOMMT","n":{"s":"TU OM SCHNELL"}},{"m":"WASSER IM BOOT?","n":{"s":"JA PUMPEN LAUFEN"}}]}},{"m":"R R LT HR K","n":{"s":"EIS RUDER WEG","r":[{"m":"R ANKER WERFEN","n":{"s":"R ANKER UNTEN"}},{"m":"BOOT KOMMT 10 MIN","n":{"s":"TU TU OM"}}]}}]},{"s":"LT DE NORDSTERN K","r":[{"m":"GE OM UR QTH?","n":{"s":"QTH 3 SM WEST","r":[{"m":"R KURS OST","n":{"s":"R TU OM 73"}},{"m":"PSE LANGSAM HR","n":{"s":"R LANGSAM TU"}}]}},{"m":"R K UR MSG?","n":{"s":"MSG 2 KISTEN TEE","r":[{"m":"FB TU OM","n":{"s":"BRINGE MORGEN"}},{"m":"QSL 2 KISTEN","n":{"s":"FB QSL 73"}}]}}]},{"s":"EIS 4 SM NORD LT","r":[{"m":"R TU OM","n":{"s":"UR WX HR?","r":[{"m":"WX KLAR KALT","n":{"s":"FB GL OM 73"}},{"m":"WX NEBEL DICHT","n":{"s":"R LICHT AN?"}}]}},{"m":"HW GROSS?","n":{"s":"BERG GROSS","r":[{"m":"R KURS SUED","n":{"s":"R TU KURS SUED"}},{"m":"R LANGSAM PSE","n":{"s":"R LANGSAM 73"}}]}}]},{"s":"QRM HR PSE RPT UR WX","r":[{"m":"WX STURM HR","n":{"s":"R BLEIBE IM HAFEN","r":[{"m":"FB GL OM","n":{"s":"TU GL 73"}},{"m":"R SICHER?","n":{"s":"JA SICHER TU"}}]}},{"m":"WX SONNE ES WIND","n":{"s":"FB TU KOMME HEUTE","r":[{"m":"R WILLKOMMEN","n":{"s":"TU 73 SK"}},{"m":"CUL OM","n":{"s":"CUL ES 73"}}]}}]},{"s":"GM LT DE SEEHUND","r":[{"m":"GM OM HW?","n":{"s":"FB HR ES UR?","r":[{"m":"FB HR ES SONNE","n":{"s":"SUPER 73"}},{"m":"MUEDE ABER OK","n":{"s":"HI HI TU 73"}}]}},{"m":"GM OM UR QTH?","n":{"s":"QTH FELSEN OST","r":[{"m":"R SONNE HR","n":{"s":"FB TU OM"}},{"m":"R CUL","n":{"s":"CUL 73 SK"}}]}}]},{"s":"SOS SOS DE KRABBE","r":[{"m":"DE LT QTH K","n":{"s":"HAFEN EINFAHRT","r":[{"m":"R BOOT KOMMT","n":{"s":"TU TU SCHNELL"}},{"m":"UR PROBLEM?","n":{"s":"SEGEL KAPUTT"}}]}},{"m":"R R WAS LOS?","n":{"s":"MOTOR AUS NEBEL","r":[{"m":"R LICHT AN K","n":{"s":"SEHE LICHT TU"}},{"m":"R ANKER WERFEN","n":{"s":"R ANKER TU 73"}}]}}]},{"s":"CQ CQ CQ DE FRIEDA","r":[{"m":"DE LT K","n":{"s":"HI LT NEU HR","r":[{"m":"FB WILLKOMMEN","n":{"s":"TU OM 73"}},{"m":"UR QTH?","n":{"s":"QTH WEST BUCHT"}}]}},{"m":"QRZ? PSE AGN","n":{"s":"DE FRIEDA FRIEDA","r":[{"m":"R GE FRIEDA","n":{"s":"GE OM TU 73"}},{"m":"QSL FRIEDA","n":{"s":"FB QSL 73"}}]}}]},{"s":"MSG VON PAUSBACKE","r":[{"m":"R PSE MSG K","n":{"s":"SIE KOMMT MORGEN","r":[{"m":"FB TU OM","n":{"s":"R 73 SK"}},{"m":"WANN GENAU?","n":{"s":"8 UHR FRUEH"}}]}},{"m":"R TU WAS?","n":{"s":"FISCH FUER GASTON","r":[{"m":"HI HI FB TU","n":{"s":"GERN 73"}},{"m":"SUPER TU OM","n":{"s":"73 ES GL"}}]}}]},{"s":"UR LICHT AUS?","r":[{"m":"NEIN LICHT AN","n":{"s":"SRI SEHE NIL","r":[{"m":"R NEBEL HR","n":{"s":"R TU LANGSAM"}},{"m":"QTH PSE?","n":{"s":"QTH 2 SM SUED"}}]}},{"m":"JA PSE WARTEN","n":{"s":"R WARTE HR","r":[{"m":"LICHT WIEDER AN","n":{"s":"FB SEHE TU"}},{"m":"TU OM 5 MIN","n":{"s":"R OK 73"}}]}}]},{"s":"HR WALROSS 30 GAESTE","r":[{"m":"R UR QTH?","n":{"s":"BUCHT NORD KOMMEN","r":[{"m":"R HAFEN FREI","n":{"s":"TU FB 73"}},{"m":"PSE LANGSAM","n":{"s":"R LANGSAM TU"}}]}},{"m":"FB WILLKOMMEN","n":{"s":"TU GIBT ES TEE?","r":[{"m":"JA 30 TASSEN","n":{"s":"HI HI FB TU"}},{"m":"JA ES KEKSE","n":{"s":"SUPER TU 73"}}]}}]},{"s":"GE LT WX MORGEN?","r":[{"m":"WX SONNE MORGEN","n":{"s":"FB TU FAHRE FRUEH","r":[{"m":"GL OM","n":{"s":"TU GL 73"}},{"m":"CUL MORGEN","n":{"s":"CUL 73 SK"}}]}},{"m":"WX STURM MORGEN","n":{"s":"R BLEIBE HR","r":[{"m":"FB SICHER","n":{"s":"TU 73"}},{"m":"GN OM 73","n":{"s":"GN 73 SK"}}]}}]},{"s":"RPT RPT UR MSG","r":[{"m":"QRM HR SRI","n":{"s":"R QRN AUCH HR","r":[{"m":"PSE LANGSAM","n":{"s":"R LANGSAM K"}},{"m":"RPT SPAETER","n":{"s":"R CUL"}}]}},{"m":"R KOMME 8 UHR","n":{"s":"QSL 8 UHR TU","r":[{"m":"FB 73","n":{"s":"73 SK"}},{"m":"R CUL","n":{"s":"CUL OM 73"}}]}}]}],"gloss":{"CQ":"An alle","CQD":"Notruf (1912)","SOS":"Notruf","DE":"von","K":"Bitte kommen","R":"Verstanden","AR":"Ende Nachricht","SK":"Ende Verbindung","TU":"Danke","TNX":"Danke","GM":"Guten Morgen","GE":"Guten Abend","GN":"Gute Nacht","OM":"Alter Freund","WX":"Wetter","HR":"hier","UR":"dein / euer","FB":"Prima","ES":"und","HW":"Wie geht's","PSE":"bitte","RPT":"wiederholen","AGN":"nochmal","CUL":"Bis bald","73":"Viele Grüße","88":"Liebe Grüße","QTH":"Standort","QRM":"Störung","QRN":"Rauschen","QSL":"Bestätigt","QRZ":"Wer ruft?","MSG":"Nachricht","NIL":"nichts","SRI":"Entschuldigung","GL":"Viel Glück","LT":"Leuchtturm","SM":"Seemeilen","HI":"Lachen","MIN":"Minuten"}};
   var moI = {}; Object.keys(moA).forEach(function (k) { var im = new Image(); im.src = moA[k]; moI[k] = im; });
-  var MC = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--.." };
-  var MO_LV = [{ w: "E" }, { w: "T" }, { w: "TEE" }, { w: "AN" }, { r: ["AN", "TEE", "NA"] }, { w: "MAI" }, { w: "SOS" }, { r: ["SOS", "MAI", "OMA"] },
-    { w: "MEER" }, { w: "HAI" }, { r: ["HAI", "MEER", "SEE"] }, { w: "MOND" }, { w: "STERN" }, { r: ["STERN", "MOND", "NORD"] },
-    { w: "HAFEN" }, { w: "ANKER" }, { r: ["ANKER", "HAFEN", "KAHN"] }, { w: "GASTON" }, { w: "HAMSTER" }, { r: ["GASTON", "HAMSTER", "GARTEN"] }];
-  var moV = mPov("mo-pov", "Funkraum verlassen"), moS = null, moAC = null, DAH = 220, UNIT = 120;
+  var MC = { A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+    "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-", "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.", "?": "..--.." };
+  var MO_D = { easy: { n: "Leicht", u: 130, show: true, code: true }, medium: { n: "Mittel", u: 100, show: false, code: true }, hard: { n: "Schwer", u: 85, show: false, code: false } };
+  var moV = mPov("mo-pov", "Funkraum verlassen"), moS = null, moAC = null, DAH = 220;
   var moBar = xEl("div", "mo-bar", moV.el); moBar.hidden = true;
   function moOk(k) { var im = moI[k]; return im && im.complete && im.naturalWidth > 0; }
   function moTone(on, f) {
@@ -20778,81 +20781,148 @@ function recolorWallSvg(svg, grund, muster) {
   // pixel text with the 5x7 font of the map signs
   function moTxt(c, s, x, y, col) { c.fillStyle = col; for (var i = 0; i < s.length; i++) { var g = PF[s[i]]; if (!g) { x += 4; continue; } var rows = g.split(","); rows.forEach(function (r, yy) { for (var xx = 0; xx < r.length; xx++) if (r[xx] === "1") c.fillRect(x + xx, y + yy, 1, 1); }); x += rows[0].length + 1; } return x; }
   function moTw(s) { var w = 0; for (var i = 0; i < s.length; i++) w += (PF[s[i]] ? PF[s[i]].split(",")[0].length : 3) + 1; return w - 1; }
-  function moCw(code) { var w = 0; for (var i = 0; i < code.length; i++) w += (code[i] === "." ? 2 : 5) + 1; return Math.max(0, w - 1); }
-  function moCode(c, code, x, y, n, col, done) {    // dits and dahs; the first n are done (green)
-    for (var i = 0; i < code.length; i++) { var w = code[i] === "." ? 2 : 5; c.fillStyle = i < n ? done : col; c.fillRect(x, y, w, 2); x += w + 1; }
+  function moCw(code, cp) { var w = 0; for (var i = 0; i < code.length; i++) w += (code[i] === "." ? (cp ? 1 : 2) : (cp ? 3 : 5)) + 1; return Math.max(0, w - 1); }
+  function moCode(c, code, x, y, n, col, done, cp) {    // dits and dahs; the first n are done
+    for (var i = 0; i < code.length; i++) { var w = code[i] === "." ? (cp ? 1 : 2) : (cp ? 3 : 5); c.fillStyle = i < n ? done : col; c.fillRect(x, y, w, cp ? 1 : 2); x += w + 1; }
   }
-  function moStart(lv) {
-    var M = mL("morse"); lv = Math.max(0, Math.min(MO_LV.length - 1, lv == null ? (M.lvl || 0) : lv));
-    var L = MO_LV[lv];
+  // lay a message out on the wall card (x 34..146, y 9..53): words wrap, every letter with its code underneath when asked
+  function moLayout(msg, code) {
+    for (var cp = 0; cp < 2; cp++) {
+      var lg = cp ? 2 : 3, wg = cp ? 6 : 8, lh = code ? 17 : 10, lines = [[]], lw = [0], items = [], ci = 0;
+      msg.split(" ").forEach(function (word) {
+        var ls = word.split("").map(function (ch) { var w = Math.max(moTw(ch), code ? moCw(MC[ch], cp) : 0); return { ch: ch, w: w, i: ci++ }; }), ww = ls.reduce(function (a, b) { return a + b.w; }, 0) + lg * (ls.length - 1);
+        var L = lines.length - 1; if (lines[L].length && lw[L] + wg + ww > 110) { lines.push([]); lw.push(0); L++; }
+        if (lines[L].length) lw[L] += wg; ls.forEach(function (q, k) { q.x = lw[L] + (k ? 0 : 0); lw[L] += q.w + (k < ls.length - 1 ? lg : 0); lines[L].push(q); if (k < ls.length - 1) q.x = lw[L] - q.w - lg; });
+      });
+      // recompute x per line cleanly
+      lines.forEach(function (ln, L) { var x = 0, prev = null; ln.forEach(function (q) { if (prev) x += prev.word !== q.word ? 0 : 0; q.x = x; x += q.w + lg; }); });
+      if (lines.length * lh <= 46 || cp) {
+        var y0 = Math.round(31 - lines.length * lh / 2) + 1;
+        lines.forEach(function (ln, L) { var x = Math.round(90 - lw[L] / 2), xx = x; ln.forEach(function (q) { q.x = xx; q.y = y0 + L * lh; xx += q.w + lg; if (q.gap) xx += q.gap; items.push(q); }); });
+        return { items: items, cp: !!cp };
+      }
+    }
+  }
+  // word gaps: mark the first letter of every word after the first so the layout leaves room
+  function moLayoutMsg(msg, code) {
+    var L = moLayout(msg, code), wi = 0, words = msg.split(" "), k = 0;
+    // shift letters of later words on the same line by the word gap
+    var byLine = {};
+    words.forEach(function (w, n) { for (var j = 0; j < w.length; j++) { var q = L.items[k++]; q.wd = n; } });
+    L.items.forEach(function (q) { (byLine[q.y] = byLine[q.y] || []).push(q); });
+    Object.keys(byLine).forEach(function (y) {
+      var ln = byLine[y], wg = L.cp ? 6 : 8, lg = L.cp ? 2 : 3, tot = 0, x;
+      ln.forEach(function (q, j) { tot += q.w + (j ? (q.wd !== ln[j - 1].wd ? wg : lg) : 0); });
+      x = Math.round(90 - tot / 2);
+      ln.forEach(function (q, j) { if (j) x += q.wd !== ln[j - 1].wd ? wg : lg; q.x = x; x += q.w; });
+    });
+    return L;
+  }
+  function moGloss(msg) { var seen = {}, o = []; msg.replace(/\?/g, " ").split(" ").forEach(function (w) { if (MOC.gloss[w] && !seen[w]) { seen[w] = 1; o.push("<b>" + w + "</b> " + MOC.gloss[w]); } }); return o.join(" · "); }
+  function moLetters(msg) { return msg.replace(/ /g, ""); }
+  function moBarSet(gloss, btns) {
+    moBar.innerHTML = (gloss ? '<div class="mo-gl">' + gloss + '</div>' : "") + (btns ? '<div class="mo-btns">' + btns + '</div>' : "");
+    moBar.hidden = !gloss && !btns; moV.el.classList.toggle("mo-ch", !!(btns || gloss));
+  }
+  // ---------------- flow
+  function moPickDiff() {
+    var M = mL("morse"), last = M.diff || "easy";
+    moTone(false); if (!moS) moS = {};
+    moS.phase = "diff"; moBarSet("", "");
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">Funkraum</p><div class="fi-row mo-diffs">' + ["easy", "medium", "hard"].map(function (d) {
+      return '<button type="button" class="' + (d === last ? "fi-b" : "fi-b2") + '" data-d="' + d + '">' + MO_D[d].n + '</button>'; }).join("") + '</div></div>';
+    moV.card.hidden = false;
+  }
+  function moNewConv(diff) {
+    var M = mL("morse"), list = MOC[diff]; M.diff = diff; M.seen = M.seen || {}; var seen = M.seen[diff] = (M.seen[diff] || []).filter(function (i) { return i < list.length; });
+    if (seen.length >= list.length) seen.length = 0;
+    var free = list.map(function (c, i) { return i; }).filter(function (i) { return seen.indexOf(i) < 0; }), ci = free[Math.floor(Math.random() * free.length)];
+    seen.push(ci); if (window.SudokuSave) window.SudokuSave();
     moTone(false);
-    moS = { lv: lv, send: !!L.w, word: L.w || L.r[0], opts: L.r ? L.r.slice() : null, i: 0, buf: "", err: 0, down: 0, flash: 0, ok: 0, pad: [], play: null, won: false, raf: moS && moS.raf };
-    if (!moS.send) { moS.word = L.r[(lv * 7) % L.r.length]; moS.opts = L.r.slice().sort(); }
-    moV.card.hidden = true; moBar.hidden = true; moV.el.classList.remove('mo-ch'); mBan(moV, (moS.send ? "Senden " : "Empfangen ") + (lv + 1));
-    if (!moS.send) setTimeout(moPlay, 600);
+    moS = { diff: diff, D: MO_D[diff], node: list[ci], ci: ci, err: 0, phase: "", down: 0, raf: moS && moS.raf, pad: [], tx: null, flash: 0 };
+    moV.card.hidden = true; mBan(moV, MO_D[diff].n); moBarSet("", "");
+    setTimeout(function () { moRx(); }, 700);
   }
-  function moPlay() {      // the ship sends the word: the key moves by itself, the pencil writes along
-    if (!moS || moS.send || moS.play) return;
-    var S = moS, seq = [], t = 0; moBar.hidden = true; S.pad = [];
-    S.word.split("").forEach(function (ch, li) { MC[ch].split("").forEach(function (sym, k) { var d = (sym === "." ? 1 : 3) * UNIT * 1.4; seq.push([t, d, li, sym]); t += d + UNIT * 1.4; }); t += UNIT * 3; });
-    S.play = { t0: performance.now(), seq: seq, k: 0, end: t };
+  function moRx() {        // the ship sends: the key moves by itself, the pencil writes the codes on the pad
+    if (!moS || !moS.node) return;
+    var S = moS, msg = S.node.s, u = S.D.u, seq = [], t = 0, li = 0;
+    msg.split(" ").forEach(function (word, wi) {
+      if (wi) t += u * 4;
+      word.split("").forEach(function (ch, k) { if (k) t += u * 2; MC[ch].split("").forEach(function (sym, j) { if (j) t += u; var d = (sym === "." ? 1 : 3) * u; seq.push([t, d, li, sym]); t += d; }); li++; });
+    });
+    S.phase = "rx"; S.msg = msg; S.lay = moLayoutMsg(msg, S.D.code); S.got = []; S.pad = []; S.play = { t0: performance.now() + 250, seq: seq, k: 0, end: t + 400 };
+    moBarSet("", "");
   }
   function moPlayStep(now) {
-    var P = moS.play, el = now - P.t0, on = false;
-    P.seq.forEach(function (q, k) { if (el >= q[0] && el < q[0] + q[1]) on = true; if (el >= q[0] && k >= P.k) { P.k = k + 1; var li = q[2]; moS.pad[li] = (moS.pad[li] || "") + q[3]; } });
-    if (on !== !!moS.down) { moS.down = on ? now : 0; moTone(on, 600); }
-    if (el > P.end) { moS.play = null; moS.down = 0; moTone(false); moChoices(); }
+    var S = moS, P = S.play, el = now - P.t0, on = false;
+    for (var k = P.k; k < P.seq.length; k++) { var q = P.seq[k]; if (el < q[0]) break; S.got[q[2]] = (S.got[q[2]] || "") + q[3]; P.k = k + 1; }
+    P.seq.forEach(function (q) { if (el >= q[0] && el < q[0] + q[1]) on = true; });
+    if (on !== !!S.down) { S.down = on ? now : 0; moTone(on, 600); }
+    if (el > P.end) { S.play = null; S.down = 0; moTone(false); moAfterRx(); }
   }
-  function moChoices() {
-    moBar.innerHTML = moS.opts.map(function (w) { return '<button type="button" class="fi-b2 mo-opt" data-w="' + w + '">' + w + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Nochmal hören">↻</button>';
-    moBar.hidden = false; moV.el.classList.add('mo-ch');
+  function moAfterRx() {
+    var S = moS;
+    if (S.D.show) return moShow();
+    // which message was it? two look-alikes from the same level
+    var pool = []; (function walk(n) { pool.push(n.s); (n.r || []).forEach(function (r) { walk(r.n); }); })({ s: "", r: MOC[S.diff].map(function (c) { return { n: c }; }) });
+    pool = pool.filter(function (m, i) { return m && m !== S.msg && pool.indexOf(m) === i && Math.abs(m.length - S.msg.length) <= 4; });
+    var opts = [S.msg]; while (opts.length < 3 && pool.length) opts.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    opts.sort(function () { return Math.random() - .5; });
+    S.phase = "dec";
+    moBarSet("", opts.map(function (m) { return '<button type="button" class="fi-b2 mo-opt" data-m="' + m + '">' + m + '</button>'; }).join("") + '<button type="button" class="fi-b2 mo-again" aria-label="Nochmal hören">↻</button>');
   }
-  moBar.addEventListener("click", function (e) {
-    e.stopPropagation(); var b = e.target.closest("button"); if (!b || !moS) return;
-    if (b.classList.contains("mo-again")) { moPlay(); return; }
-    if (b.dataset.w === moS.word) { moBar.hidden = true; moS.i = moS.word.length; moWin(); }
-    else { moS.err++; b.disabled = true; moBlip(160, 260); }
-  });
+  function moShow() {      // the decoded message stands on the card; then the replies, or the end of the conversation
+    var S = moS; S.phase = "show"; S.got = moLetters(S.msg).split("").map(function (ch) { return MC[ch]; });
+    var g = moGloss(S.msg), rs = S.node.r || [];
+    if (!rs.length) { moBarSet(g, ""); setTimeout(function () { if (moS === S) moEnd(); }, 2600); return; }
+    moBarSet(g, "");
+    setTimeout(function () {
+      if (moS !== S) return; S.phase = "pick";
+      moBarSet(g, rs.map(function (r, i) { return '<button type="button" class="fi-b2 mo-rep" data-i="' + i + '">' + r.m + '</button>'; }).join(""));
+    }, 1100);
+  }
+  function moTx(i) {
+    var S = moS, r = S.node.r[i]; S.reply = r; S.phase = "tx"; S.msg = r.m; S.letters = moLetters(r.m); S.i = 0; S.buf = ""; S.pad = [];
+    S.lay = moLayoutMsg(r.m, true); moBarSet(moGloss(r.m), "");
+  }
   function moKey(down) {
-    if (!moS || !moS.send || moS.won) return;
+    var S = moS; if (!S || S.phase !== "tx") return;
     var now = performance.now();
-    if (down) { moS.down = now; moTone(true); return; }
-    if (!moS.down) return;
-    var d = now - moS.down; moS.down = 0; moTone(false);
-    var sym = d < DAH ? "." : "-", want = MC[moS.word[moS.i]];
-    moS.buf += sym; moS.pad.push(sym);
-    if (want.indexOf(moS.buf) !== 0) { moS.err++; moS.buf = ""; moS.flash = now; moS.pad = []; setTimeout(function () { moBlip(160, 260); }, 40); return; }
-    if (moS.buf === want) {
-      moS.buf = ""; moS.i++; moS.ok = now; moS.pad = [];
-      setTimeout(function () { moBlip(1050, 120); }, 60);
-      if (moS.i >= moS.word.length) setTimeout(moWin, 500);
+    if (down) { S.down = now; moTone(true); return; }
+    if (!S.down) return;
+    var d = now - S.down; S.down = 0; moTone(false);
+    var sym = d < DAH ? "." : "-", want = MC[S.letters[S.i]];
+    S.buf += sym; S.pad.push(sym);
+    if (want.indexOf(S.buf) !== 0) { S.err++; S.buf = ""; S.flash = now; S.pad = []; setTimeout(function () { moBlip(160, 260); }, 40); return; }
+    if (S.buf === want) {
+      S.buf = ""; S.i++; S.pad = [];
+      setTimeout(function () { moBlip(1050, 90); }, 50);
+      if (S.i >= S.letters.length) { S.phase = "sent"; setTimeout(function () { if (moS !== S) return; S.node = S.reply.n; moRx(); }, 900); }
     }
   }
   function moStarsN(err) { return err === 0 ? 3 : err <= 2 ? 2 : 1; }
-  function moWin() {
-    if (!moS || moS.won) return; moS.won = true;
-    var M = mL("morse"), st = moStarsN(moS.err); M.best = M.best || {}; M.best[moS.lv] = Math.max(M.best[moS.lv] || 0, st);
-    M.lvl = Math.max(M.lvl || 0, Math.min(MO_LV.length - 1, moS.lv + 1));
+  function moEnd() {
+    var S = moS; S.phase = "end"; moBarSet("", "");
+    var M = mL("morse"), st = moStarsN(S.err); M.done = M.done || {}; M.done[S.diff] = (M.done[S.diff] || 0) + 1;
     if (typeof s !== "undefined" && s.fun != null) { s.fun = clamp(s.fun + 6); if (typeof renderNeeds === "function") renderNeeds(); }
     if (window.SudokuSave) window.SudokuSave();
     [660, 880, 1100].forEach(function (f, i) { setTimeout(function () { moBlip(f, 140); }, i * 130); });
-    var next = moS.lv + 1 < MO_LV.length;
-    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">' + (moS.send ? moS.word + " ist angekommen!" : "Richtig: " + moS.word + "!") + '</p>' + mStars(st) +
-      '<div class="fi-row"><button type="button" class="fi-b2" data-a="again">Nochmal</button>' + (next ? '<button type="button" class="fi-b" data-a="next">Weiter</button>' : '<button type="button" class="fi-b" data-a="list">Alle</button>') + '</div></div>';
+    moV.card.innerHTML = '<div class="fi-c"><p class="fi-h">73! Funkspruch beendet</p>' + mStars(st) +
+      '<div class="fi-row"><button type="button" class="fi-b2" data-a="diff">Stufe</button><button type="button" class="fi-b" data-a="next">Nächster Funkspruch</button></div></div>';
     moV.card.hidden = false;
   }
-  function moPick() {
-    var M = mL("morse"), open = Math.min(MO_LV.length - 1, M.lvl || 0);
-    moV.card.innerHTML = '<div class="fi-c hb-pick"><p class="fi-h">Welche Nachricht?</p><div class="hb-lvs">' + MO_LV.map(function (q, i) {
-      return '<button type="button" class="rp-lv' + (i === open ? " on" : "") + '" data-lv="' + i + '"' + (i > open ? " disabled" : "") + '><b>' + (i + 1) + '</b>' + (i <= open ? mStars((M.best && M.best[i]) || 0) : "") + '</button>'; }).join("") + '</div></div>';
-    moV.card.hidden = false; moBar.hidden = true;
-  }
+  moBar.addEventListener("click", function (e) {
+    e.stopPropagation(); var b = e.target.closest("button"), S = moS; if (!b || !S) return;
+    if (b.classList.contains("mo-again")) { moRx(); return; }
+    if (S.phase === "dec" && b.dataset.m != null) { if (b.dataset.m === S.msg) moShow(); else { S.err++; b.disabled = true; moBlip(160, 260); } return; }
+    if (S.phase === "pick" && b.dataset.i != null) moTx(+b.dataset.i);
+  });
   moV.card.addEventListener("click", function (e) {
     e.stopPropagation(); var b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.lv != null) { moStart(+b.dataset.lv); return; }
-    if (b.dataset.a === "again") moStart(moS.lv); else if (b.dataset.a === "next") moStart(moS.lv + 1); else if (b.dataset.a === "list") moPick(); else moClose();
+    if (b.dataset.d) { moNewConv(b.dataset.d); return; }
+    if (b.dataset.a === "next") moNewConv(moS.diff); else if (b.dataset.a === "diff") moPickDiff(); else moClose();
   });
-  moV.cv.addEventListener("pointerdown", function (e) { if (moS && moS.send) { e.preventDefault(); try { moV.cv.setPointerCapture(e.pointerId); } catch (er) { } moKey(true); } });
+  moV.cv.addEventListener("pointerdown", function (e) { if (moS && moS.phase === "tx") { e.preventDefault(); try { moV.cv.setPointerCapture(e.pointerId); } catch (er) { } moKey(true); } });
   moV.cv.addEventListener("pointerup", function () { moKey(false); });
   moV.cv.addEventListener("pointercancel", function () { moKey(false); });
   moV.cv.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -20862,44 +20932,52 @@ function recolorWallSvg(svg, grund, muster) {
     c.clearRect(0, 0, 180, 135);
     if (moOk("mo_bg")) c.drawImage(moI.mo_bg, 0, 0);
     var dn = !!S.down; if (moOk(dn ? "mo_dn" : "mo_up")) c.drawImage(moI[dn ? "mo_dn" : "mo_up"], 0, 0);
-    var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#b8a888";
-    if (S.send) {      // the card: the word, each letter with its code underneath
-      var cols = S.word.split("").map(function (ch) { return Math.max(moTw(ch), moCw(MC[ch])); }), gap = 5, tw = cols.reduce(function (a, b) { return a + b; }, 0) + gap * (cols.length - 1), x = Math.round(90 - tw / 2);
-      var fl = S.flash && now - S.flash < 450;
-      S.word.split("").forEach(function (ch, i) {
-        var w = cols[i], cur = i === S.i, col = i < S.i ? DONE : cur ? (fl ? RED : INK) : DIM;
-        moTxt(c, ch, x + Math.round((w - moTw(ch)) / 2), 18, col);
-        moCode(c, MC[ch], x + Math.round((w - moCw(MC[ch])) / 2), 30, i < S.i ? 99 : cur ? S.buf.length : 0, i < S.i ? DONE : cur ? INK : DIM, DONE);
-        if (cur && !S.won) mR(c, x, 36, w, 1, fl ? RED : "#d8a840");
-        x += w + gap;
+    var INK = "#3a2414", DONE = "#3e8a4a", RED = "#c8403a", DIM = "#c4b494", L = S.lay;
+    if (L && (S.phase === "rx" || S.phase === "dec" || S.phase === "show" || S.phase === "pick")) {
+      // receiving: easy shows every letter once it has arrived; otherwise the card stays empty until the message is decoded
+      var reveal = S.phase === "show" || S.phase === "pick" || S.D.show;
+      L.items.forEach(function (q, k) {
+        var code = MC[q.ch], got = S.got[k] || "", full = got.length >= code.length;
+        if (reveal && (full || S.phase === "show" || S.phase === "pick")) moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, INK);
+        if (S.D.code && reveal && got) moCode(c, got, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, 0, INK, INK, L.cp);
       });
-      if (S.down && now - S.down >= DAH) mR(c, 85, 44, 10, 2, "#d8a840"); else if (S.down) mR(c, 89, 44, 2, 2, "#d8a840");   // what the key is making right now
-    } else {           // receive: the code table of every letter in the three words
-      var letters = []; S.opts.join("").split("").forEach(function (ch) { if (letters.indexOf(ch) < 0) letters.push(ch); }); letters.sort();
-      var per = Math.ceil(letters.length / 2);
-      letters.forEach(function (ch, i) { var cx = 36 + Math.floor(i / per) * 58, cy = 13 + (i % per) * 9 * (per > 4 ? .9 : 1); moTxt(c, ch, cx, Math.round(cy), INK); moCode(c, MC[ch], cx + 9, Math.round(cy) + 3, 0, INK, INK); });
+      if (!reveal && S.phase === "rx") { var nlet = S.got.length; for (var k = 0; k < Math.min(nlet, 16); k++) mR(c, 90 - 16 * 3 + k * 6, 31, 4, 1, DIM); }
     }
-    // the notepad: pencil marks of what was keyed (send: current letter; receive: one line per letter)
-    var lines = S.send ? [S.pad.join("")] : S.pad, ly = 105;
-    lines.forEach(function (code) { if (!code) { ly += 6; return; } moCode(c, code.slice(0, 5), 9, ly, 0, "#4a4a5a", "#4a4a5a"); ly += 6; });
-    if (S.send && S.ok && now - S.ok < 500) { c.fillStyle = "#ffe9a0"; c.fillRect(150 - 2, 92, 1, 1); }
+    if (L && (S.phase === "tx" || S.phase === "sent")) {
+      var fl = S.flash && now - S.flash < 450;
+      L.items.forEach(function (q, k) {
+        var code = MC[q.ch], cur = k === S.i && S.phase === "tx", col = k < S.i ? DONE : cur ? (fl ? RED : INK) : DIM;
+        moTxt(c, q.ch, q.x + Math.round((q.w - moTw(q.ch)) / 2), q.y, col);
+        var showCode = S.D.code || k < S.i;
+        if (showCode) moCode(c, code, q.x + Math.round((q.w - moCw(code, L.cp)) / 2), q.y + 10, k < S.i ? 99 : cur ? S.buf.length : 0, k < S.i ? DONE : cur ? INK : DIM, DONE, L.cp);
+        else if (cur && S.buf) moCode(c, S.buf, q.x + Math.round((q.w - moCw(S.buf, L.cp)) / 2), q.y + 10, 99, INK, INK, L.cp);
+        if (cur) mR(c, q.x, q.y + 14, q.w, 1, fl ? RED : "#d8a840");
+      });
+      if (S.down && now - S.down >= DAH) mR(c, 85, 52, 10, 1, "#d8a840"); else if (S.down) mR(c, 89, 52, 2, 1, "#d8a840");
+    }
+    // the notepad: pencil marks (receiving: the last letters as they come in; sending: the current letter)
+    var lines = S.phase === "tx" ? [S.pad.join("")] : (S.phase === "rx" || S.phase === "dec") ? S.got.slice(-4) : [], ly = 105;
+    lines.forEach(function (code) { if (code) moCode(c, code.slice(0, 6), 9, ly, 0, "#4a4a5a", "#4a4a5a"); ly += 6; });
     S.raf = requestAnimationFrame(moDraw);
   }
   function moNoSel(on) { document.documentElement.classList.toggle("mo-nosel", on); try { var se = window.getSelection(); if (se) se.removeAllRanges(); } catch (e) { } }
   document.addEventListener("selectstart", function (e) { if (document.documentElement.classList.contains("mo-nosel")) e.preventDefault(); }, true);
-  moV.cv.addEventListener("touchstart", function (e) { if (moS && moS.send) e.preventDefault(); }, { passive: false });
-  function moOpen(lv) { moNoSel(true); moV.el.hidden = false; moStart(lv); cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw); }
-  function moOpenPick() { moOpen(); moPick(); }
-  function moClose() { moNoSel(false); moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; }
+  moV.cv.addEventListener("touchstart", function (e) { if (moS && moS.phase === "tx") e.preventDefault(); }, { passive: false });
+  function moOpen(diff) {
+    moNoSel(true); moV.el.hidden = false; moS = { phase: "diff", D: MO_D.easy, raf: 0, pad: [], got: [] };
+    cancelAnimationFrame(moS.raf); moS.raf = requestAnimationFrame(moDraw);
+    if (diff) moNewConv(diff); else moPickDiff();
+  }
+  function moClose() { moNoSel(false); moTone(false); if (moS) cancelAnimationFrame(moS.raf); moS = null; moV.el.hidden = true; moBar.hidden = true; moV.card.hidden = true; }
   moV.el.querySelector(".bp-x").addEventListener("click", function (e) { e.stopPropagation(); moClose(); });
   // the lighthouse at the lake: tap it to climb up to the wireless room
   (function () {
     var hot = document.createElement("button"); hot.type = "button"; hot.className = "l-hot mo-lh"; hot.setAttribute("aria-label", "Leuchtturm");
     hot.style.cssText = "left:74%;top:30%;width:10%;height:28%";
     pondUi.insertBefore(hot, pondUi.firstChild);
-    hot.addEventListener("click", function (e) { e.stopPropagation(); if (typeof busy !== "undefined" && busy && typeof interruptible === "function" && !interruptible()) return; if (busy && typeof interrupt === "function") interrupt(); moOpenPick(); });
+    hot.addEventListener("click", function (e) { e.stopPropagation(); if (typeof busy !== "undefined" && busy && typeof interruptible === "function" && !interruptible()) return; if (busy && typeof interrupt === "function") interrupt(); moOpen(); });
   })();
-  window.__morse = { open: moOpen, key: moKey, st: function () { return moS && { lv: moS.lv, word: moS.word, i: moS.i, err: moS.err, won: moS.won, send: moS.send }; } };
+  window.__morse = { open: moOpen, key: moKey, st: function () { return moS && { diff: moS.diff, phase: moS.phase, msg: moS.msg, i: moS.i, err: moS.err, letters: moS.letters, opts: moS.node && moS.node.r && moS.node.r.map(function (r) { return r.m; }) }; }, MC: MC, C: MOC };
   // ===================== washing up, new: a big sink full of suds, the right tool for each kind of dirt, little finds under the foam =====================
   // Four pieces per round, one after the other. Each lies big in the soapy water, partly hidden under foam.
   // Wipe the foam away, then clean every spot with the tool it needs: sponge for ketchup, jam and cocoa, brush for burnt and dried-on bits, water for crumbs.
